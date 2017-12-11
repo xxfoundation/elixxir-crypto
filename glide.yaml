@@ -1,0 +1,5 @@
+package: .
+import:
+- package: github.com/golang/example
+  subpackages:
+  - stringutil

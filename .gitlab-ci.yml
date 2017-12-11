@@ -1,0 +1,93 @@
+# From: https://about.gitlab.com/2017/09/21/how-to-create-ci-cd-pipeline-with-autodeploy-to-kubernetes-using-gitlab-and-helm/
+
+cache:
+  untracked: true
+  key: "$CI_BUILD_REF_NAME"
+  paths:
+    - vendor/
+
+before_script:
+  - mkdir -p /go/src/gitlab.com/privategrity/
+  - ln -s $PWD ${APP_PATH}
+  - mkdir -p ${APP_PATH}/vendor
+  - cd ${APP_PATH}
+
+stages:
+  - setup
+  - test
+  - build
+  - release
+  - deploy
+
+variables:
+  CONTAINER_IMAGE: ${CI_REGISTRY}/${CI_PROJECT_PATH}:${CI_BUILD_REF_NAME}_${CI_BUILD_REF}
+  CONTAINER_IMAGE_LATEST: ${CI_REGISTRY}/${CI_PROJECT_PATH}:latest
+  DOCKER_DRIVER: overlay2
+
+  KUBECONFIG: /etc/deploy/config
+  STAGING_NAMESPACE: app-stage
+  PRODUCTION_NAMESPACE: app-prod
+
+  APP_PATH: /go/src/gitlab.com/privategrity/golang-template
+
+setup:
+  stage: setup
+  image: lwolf/golang-glide:0.12.3
+  script:
+    - glide install -v
+  artifacts:
+    paths:
+     - vendor/
+
+build:
+  stage: build
+  image: lwolf/golang-glide:0.12.3
+  script:
+    - cd ${APP_PATH}
+    - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o release/app -ldflags '-w -s'
+    - cd release
+  artifacts:
+    paths:
+     - release/
+
+release:
+  stage: release
+  image: docker:latest
+  script:
+    - cd ${APP_PATH}/release
+    # - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
+    # - docker build -t ${CONTAINER_IMAGE} .
+    # - docker tag ${CONTAINER_IMAGE} ${CONTAINER_IMAGE_LATEST}
+    # - docker push ${CONTAINER_IMAGE}
+    # - docker push ${CONTAINER_IMAGE_LATEST}
+
+test:
+  stage: test
+  image: lwolf/golang-glide:0.12.3
+  script:
+    - cd ${APP_PATH}
+    - go test -cover
+
+deploy_staging:
+  stage: deploy
+  image: lwolf/helm-kubectl-docker:v152_213
+  before_script:
+    - mkdir -p /etc/deploy
+    # - echo ${kube_config} | base64 -d > ${KUBECONFIG}
+    # - kubectl config use-context homekube
+    # - helm init --client-only
+    # - helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+    # - helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com/
+    # - helm repo update
+  script:
+    - cd /etc/deploy
+    # - helm dep build
+    # - export API_VERSION="$(grep "appVersion" Chart.yaml | cut -d" " -f2)"
+    # - export RELEASE_NAME="libr-files-v${API_VERSION/./-}"
+    # - export DEPLOYS=$(helm ls | grep $RELEASE_NAME | wc -l)
+    # - if [ ${DEPLOYS}  -eq 0 ]; then helm install --name=${RELEASE_NAME} . --namespace=${STAGING_NAMESPACE}; else helm upgrade ${RELEASE_NAME} . --namespace=${STAGING_NAMESPACE}; fi
+  environment:
+    name: staging
+    # url: https://librerio.example.com
+  only:
+  - master
