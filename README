@@ -1,0 +1,4 @@
+privategrity/crypto
+
+This library implements functionality for cryptographic operations in
+the cMix system.
