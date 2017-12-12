@@ -10,8 +10,8 @@ import (
 //Create the cyclic.Int type as a wrapper of the big.Int type
 type Int big.Int
 
-//GetBigInt converts the givne cyclic Int to a big Int and returns it
-func GetBigInt(n *Int) *big.Int {
+//BigInt converts the givne cyclic Int to a big Int and returns it
+func BigInt(n *Int) *big.Int {
 	nint := big.Int(*n)
 	return &nint
 }
@@ -26,7 +26,7 @@ func IsInt64(n *Int) bool {
 	return GetBigInt(n).IsInt64()
 }
 
-//(Private) NilInt returns a cyclic Int which is nil
+//(Private) nilInt returns a cyclic Int which is nil
 func nilInt() *Int {
 	return nil
 }
