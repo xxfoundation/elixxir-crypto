@@ -17,6 +17,7 @@ setup:
   stage: setup
   image: lwolf/golang-glide:0.12.3
   script:
+    - git clean -ffdx
     - glide install -v
   artifacts:
     paths:
