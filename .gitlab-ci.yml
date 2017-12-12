@@ -15,7 +15,7 @@ stages:
 
 setup:
   stage: setup
-  image: lwolf/golang-glide:0.12.3
+  image: instrumentisto/glide:latest
   script:
     - git clean -ffdx
     - glide install -v
@@ -25,13 +25,13 @@ setup:
 
 test:
   stage: test
-  image: lwolf/golang-glide:0.12.3
+  image: instrumentisto/glide:latest
   script:
     - go test -cover ./...
 
 build:
   stage: build
-  image: lwolf/golang-glide:0.12.3
+  image: instrumentisto/glide:latest
   script:
     - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o release/app -ldflags '-w -s'
     - cd release
