@@ -65,7 +65,6 @@ test:
   stage: test
   image: lwolf/golang-glide:0.12.3
   script:
-    - cd ${APP_PATH}
     - go test -cover
 
 deploy_staging:
