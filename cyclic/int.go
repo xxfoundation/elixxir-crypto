@@ -17,12 +17,12 @@ func BigInt(n *Int) *big.Int {
 }
 
 //Int64 converts the cyclic Int to an Int64 if possible and returns nil if not
-func Int64(n *Int) int64 {
+func (n *Int) Int64() int64 {
 	return BigInt(n).Int64()
 }
 
 //IsInt64 checks if a cyclic Int can be converted to an Int64
-func IsInt64(n *Int) bool {
+func (n *Int) IsInt64() bool {
 	return BigInt(n).IsInt64()
 }
 
@@ -90,14 +90,9 @@ func (z *Int) ModInverse(g, n *Int) *Int {
 
 //Add sets z to the sum x+y and returns z.
 func (z *Int) Add(x, y *Int) *Int {
-	err := errors.New("Unimplemented function: Int.Add recieved " + reflect.TypeOf(z).String() + ", " +
-		reflect.TypeOf(x).String() + ", " + reflect.TypeOf(y).String() + "\n")
-
-	if err != nil {
-		fmt.Print(err)
-	}
-
-	return nil
+	nint := BigInt(z).Add(BigInt(x), BigInt(y))
+	mint := Int(*nint)
+	return &mint
 }
 
 //Mul sets z to the product x*y and returns z.
@@ -155,14 +150,7 @@ func (x *Int) BitLen() int {
 //	 0 if x == y
 //	+1 if x > y
 func (x *Int) Cmp(y *Int) (r int) {
-	err := errors.New("Unimplemented function: Int.Cmp recieved " + reflect.TypeOf(x).String() + ", " +
-		reflect.TypeOf(y).String() + "\n")
-
-	if err != nil {
-		fmt.Print(err)
-	}
-
-	return 42
+	return BigInt(x).Cmp(BigInt(y))
 }
 
 //Text returns the string representation of x in the given base. Base must be between 2 and 36, inclusive.

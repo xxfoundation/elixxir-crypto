@@ -99,13 +99,15 @@ func TestModInverse(t *testing.T) {
 //TestAdd checks if the Add placeholder exists
 func TestAdd(t *testing.T) {
 
-	expected := nilInt()
+	var actual, expected int64
+	var xint, yint, zint *Int
 
-	xint := NewInt(42)
-	yint := NewInt(69)
-	zint := NewInt(30)
+	xint = NewInt(42)
+	yint = NewInt(69)
+	zint = NewInt(30)
 
-	actual := zint.Add(xint, yint)
+	expected = 111
+	actual = zint.Add(xint, yint).Int64()
 
 	if actual != expected {
 		t.Errorf("Test of Add failed, expected: '%v', got:  '%v'", actual, expected)
@@ -175,17 +177,49 @@ func TestBitLen(t *testing.T) {
 }
 
 //TestCmp checks if the Cmp placeholder exists
+//TestCmp checks if the Cmp placeholder exists
 func TestCmp(t *testing.T) {
 
-	xint := NewInt(42)
-	yint := NewInt(69)
+	var expected, actual int
+	var xint, yint *Int
 
-	actual := xint.Cmp(yint)
+	//Tests for case where x < y
 
-	expected := 42
+	expected = -1
+
+	xint = NewInt(42)
+	yint = NewInt(69)
+
+	actual = xint.Cmp(yint)
 
 	if actual != expected {
-		t.Errorf("Test of Cmp failed, expected: '%v', got:  '%v'", actual, expected)
+		t.Errorf("Test 'less than' of Cmp failed, expected: '%v', got:  '%v'", actual, expected)
+	}
+
+	//Tests for case where x==y
+
+	expected = 0
+
+	xint = NewInt(42)
+	yint = NewInt(42)
+
+	actual = xint.Cmp(yint)
+
+	if actual != expected {
+		t.Errorf("Test 'equals' of Cmp failed, expected: '%v', got:  '%v'", actual, expected)
+	}
+
+	//Test for case where x > y
+
+	expected = 1
+
+	xint = NewInt(69)
+	yint = NewInt(42)
+
+	actual = xint.Cmp(yint)
+
+	if actual != expected {
+		t.Errorf("Test 'greater than' of Cmp failed, expected: '%v', got:  '%v'", actual, expected)
 	}
 
 }
