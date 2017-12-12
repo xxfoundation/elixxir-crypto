@@ -59,7 +59,7 @@ test:
   stage: test
   image: lwolf/golang-glide:0.12.3
   script:
-    - go test -cover
+    - go test -cover ./...
 
 deploy_staging:
   stage: deploy
