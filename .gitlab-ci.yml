@@ -6,12 +6,6 @@ cache:
   paths:
     - vendor/
 
-before_script:
-  - mkdir -p /go/src/gitlab.com/privategrity/
-  - ln -s $PWD ${APP_PATH}
-  - mkdir -p ${APP_PATH}/vendor
-  - cd ${APP_PATH}
-
 stages:
   - setup
   - test
