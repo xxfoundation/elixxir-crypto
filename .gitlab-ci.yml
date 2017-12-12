@@ -15,7 +15,7 @@ stages:
 
 setup:
   stage: setup
-  image: instrumentisto/glide:0.13.1-go1.9
+  image: carback1/golang-glide:1.9
   script:
     - git clean -ffdx
     - glide install -v
@@ -25,13 +25,13 @@ setup:
 
 test:
   stage: test
-  image: instrumentisto/glide:0.13.1-go1.9
+  image: carback1/golang-glide:1.9
   script:
     - go test -cover ./...
 
 build:
   stage: build
-  image: instrumentisto/glide:0.13.1-go1.9
+  image: carback1/golang-glide:1.9
   script:
     - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o release/app -ldflags '-w -s'
     - cd release
