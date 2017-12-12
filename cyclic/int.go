@@ -18,12 +18,12 @@ func BigInt(n *Int) *big.Int {
 
 //Int64 converts the cyclic Int to an Int64 if possible and returns nil if not
 func Int64(n *Int) int64 {
-	return GetBigInt(n).Int64()
+	return BigInt(n).Int64()
 }
 
 //IsInt64 checks if a cyclic Int can be converted to an Int64
 func IsInt64(n *Int) bool {
-	return GetBigInt(n).IsInt64()
+	return BigInt(n).IsInt64()
 }
 
 //(Private) nilInt returns a cyclic Int which is nil
