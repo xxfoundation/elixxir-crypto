@@ -23,10 +23,18 @@ func (n *Int) IsInt64() bool {
 //NewInt allocates and returns a new Int set to x.
 func NewInt(x int64) *Int {
 
-	nint := big.NewInt(x)
-	mint := Int(*nint)
+	b := big.NewInt(x)
+	c := Int(*b)
 
-	return &mint
+	return &c
+}
+
+//Set sets z to x and returns z.
+func (z *Int) Set(x *Int) *Int {
+	b = bigInt(z).Set(bigInt(x))
+	c = Int(*b)
+
+	return &c
 }
 
 //SetString makes the Int equal to the number held in the string s,
@@ -64,41 +72,35 @@ func (z *Int) SetBytes(buf []byte) *Int {
 //modulus (unlike Go); see DivMod for more details.
 func (z *Int) Mod(x, m *Int) *Int {
 
-	nint := bigInt(z).Mod(bigInt(x), bigInt(m))
-	mint := Int(*nint)
+	b := bigInt(z).Mod(bigInt(x), bigInt(m))
+	c := Int(*b)
 
-	return &mint
+	return &c
 }
 
 //ModInverse sets z to the multiplicative inverse of g in the ring
 //ℤ/nℤ and returns z. If g and n are not relatively prime, the result is
 //undefined.
 func (z *Int) ModInverse(g, n *Int) *Int {
-	nint := bigInt(z).ModInverse(bigInt(g), bigInt(n))
-	mint := Int(*nint)
+	b := bigInt(z).ModInverse(bigInt(g), bigInt(n))
+	c := Int(*b)
 
-	return &mint
+	return &c
 }
 
 //Add sets z to the sum x+y and returns z.
 func (z *Int) Add(x, y *Int) *Int {
-	nint := bigInt(z).Add(bigInt(x), bigInt(y))
-	mint := Int(*nint)
-	return &mint
+	b := bigInt(z).Add(bigInt(x), bigInt(y))
+	c := Int(*b)
+	return &c
 }
 
 //Mul sets z to the product x*y and returns z.
 func (z *Int) Mul(x, y *Int) *Int {
-	err := errors.New("Unimplemented function: Int.Mul recieved " +
-		reflect.TypeOf(z).String() + ", " +
-		reflect.TypeOf(x).String() + ", " +
-		reflect.TypeOf(y).String() + "\n")
+	b := bigInt(z).Mul(bigInt(x), bigInt(y))
+	c := Int(*b)
 
-	if err != nil {
-		fmt.Print(err)
-	}
-
-	return nil
+	return &c
 }
 
 //Exp sets z = x*y mod |m| (i.e. the sign of m is ignored), and
@@ -106,43 +108,23 @@ func (z *Int) Mul(x, y *Int) *Int {
 //0, z = x*y. Modular exponentation of inputs of a particular size is
 //not a cryptographically constant-time operation.
 func (z *Int) Exp(x, y, m *Int) *Int {
-	err := errors.New("Unimplemented function: Int.Exp recieved " +
-		reflect.TypeOf(z).String() + ", " +
-		reflect.TypeOf(x).String() + ", " +
-		reflect.TypeOf(y).String() + ", " +
-		reflect.TypeOf(m).String() + "\n")
+	b := bigInt(z).Exp(bigInt(x), bigInt(y), bigInt(m))
+	c := Int(*b)
 
-	if err != nil {
-		fmt.Print(err)
-	}
-
-	return nil
+	return &c
 
 }
 
 //Bytes returns the absolute value of x as a big-endian byte slice.
 func (x *Int) Bytes() []byte {
-	err := errors.New("Unimplemented function: Int.Bytes recieved " +
-		reflect.TypeOf(x).String() + "\n")
 
-	if err != nil {
-		fmt.Print(err)
-	}
-
-	return nil
+	return bigInt(x).Bytes()
 }
 
 //BitLen returns the length of the absolute value of x in bits. The
 //bit length of 0 is 0.
 func (x *Int) BitLen() int {
-	err := errors.New("Unimplemented function: Int.BitLen recieved " +
-		reflect.TypeOf(x).String() + "\n")
-
-	if err != nil {
-		fmt.Print(err)
-	}
-
-	return -1
+	return bigInt(x).BitLen()
 }
 
 //Cmp compares x and y and returns:
@@ -158,15 +140,7 @@ func (x *Int) Cmp(y *Int) (r int) {
 //letters 'a' to 'z' for digit values >= 10. No base prefix (such as
 //"0x") is added to the string.
 func (x *Int) Text(base int) string {
-	err := errors.New("Unimplemented function: Int.Text recieved " +
-		reflect.TypeOf(x).String() + ", " +
-		reflect.TypeOf(base).String() + "\n")
-
-	if err != nil {
-		fmt.Print(err)
-	}
-
-	return ""
+	return bigInt(x).Text(base)
 }
 
 //PRIVATE FUNCTIONS
