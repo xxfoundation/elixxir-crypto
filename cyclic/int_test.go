@@ -6,18 +6,6 @@ import (
 	"testing"
 )
 
-//TestBigInt checks if the function GetBigInt returns a big.Int
-func TestBigInt(t *testing.T) {
-	expected := reflect.TypeOf(big.NewInt(int64(42)))
-
-	actual := reflect.TypeOf(bigInt(NewInt(int64(42))))
-
-	if actual != expected {
-		t.Errorf("Test of GetBigInt failed, expected: '%v', got: '%v'",
-			actual, expected)
-	}
-}
-
 //TestNewInt checks if the NewInt function returns a cyclic Int with
 //the same value of the passed int64
 func TestNewInt(t *testing.T) {
@@ -34,6 +22,9 @@ func TestNewInt(t *testing.T) {
 	}
 }
 
+//!!!TestSet!!!
+
+//!!!TestSetString!!!
 
 /*
 //TestSetBytes checks if the SetBytes placeholder exists
@@ -54,6 +45,12 @@ func TestSetBytes(t *testing.T) {
 
 }
 */
+
+//!!!TestInt64!!!
+
+//!!!TestIsInt64!!!
+
+
 
 //TestMod checks if the Mod placeholder exists
 func TestMod(t *testing.T) {
@@ -231,7 +228,6 @@ func TestBitLen(t *testing.T) {
 }
 
 //TestCmp checks if the Cmp placeholder exists
-//TestCmp checks if the Cmp placeholder exists
 func TestCmp(t *testing.T) {
 
 	var expected, actual int
@@ -303,3 +299,19 @@ func TestText(t *testing.T) {
 		}
 	}
 }
+
+
+//TestBigInt checks if the function GetBigInt returns a big.Int
+func TestBigInt(t *testing.T) {
+	expected := reflect.TypeOf(big.NewInt(int64(42)))
+
+	actual := reflect.TypeOf(bigInt(NewInt(int64(42))))
+
+	if actual != expected {
+		t.Errorf("Test of GetBigInt failed, expected: '%v', got: '%v'",
+			actual, expected)
+	}
+}
+
+
+///!!!TestNilInt!!!
