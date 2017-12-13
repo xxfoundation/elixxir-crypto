@@ -34,20 +34,6 @@ func TestNewInt(t *testing.T) {
 	}
 }
 
-//TestSetString checks if the SetString placeholder works
-func TestSetString(t *testing.T) {
-	expectedInt := nilInt()
-
-	nint := NewInt(42)
-
-	actualInt, actualBool := nint.SetString("42", 0)
-
-	/*if actualInt != expectedInt {
-		t.Errorf("Test of SetString failed, expected: '%v', got: '%v'",
-			actualInt, actualBool)
-	}*/
-
-}
 
 /*
 //TestSetBytes checks if the SetBytes placeholder exists
