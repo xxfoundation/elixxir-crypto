@@ -228,7 +228,7 @@ func TestBitLen(t *testing.T) {
 				expectedlens[i])
 		}
 	}
-}*/
+}
 
 //TestCmp checks if the Cmp placeholder exists
 //TestCmp checks if the Cmp placeholder exists
