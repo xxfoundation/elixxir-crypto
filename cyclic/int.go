@@ -65,27 +65,20 @@ func (z *Int) SetBytes(buf []byte) *Int {
 }
 
 //Mod sets z to the modulus x%y for y != 0 and returns z. If y == 0, a division-by-zero run-time panic occurs. Mod implements Euclidean modulus (unlike Go); see DivMod for more details.
-func (z *Int) Mod(x, y *Int) *Int {
-	err := errors.New("Unimplemented function: Int.Mod recieved " + reflect.TypeOf(z).String() + ", " +
-		reflect.TypeOf(x).String() + ", " + reflect.TypeOf(y).String() + "\n")
+func (z *Int) Mod(x, m *Int) *Int {
 
-	if err != nil {
-		fmt.Print(err)
-	}
+	nint := bigInt(z).Mod(bigInt(x), bigInt(m))
+	mint := Int(*nint)
 
-	return nil
+	return &mint
 }
 
 //ModInverse sets z to the multiplicative inverse of g in the ring ℤ/nℤ and returns z. If g and n are not relatively prime, the result is undefined.
 func (z *Int) ModInverse(g, n *Int) *Int {
-	err := errors.New("Unimplemented function: Int.ModInverse recieved " + reflect.TypeOf(z).String() + ", " +
-		reflect.TypeOf(g).String() + ", " + reflect.TypeOf(n).String() + "\n")
+	nint := bigInt(z).ModInverse(bigInt(g), bigInt(n))
+	mint := Int(*nint)
 
-	if err != nil {
-		fmt.Print(err)
-	}
-
-	return nil
+	return &mint
 }
 
 //Add sets z to the sum x+y and returns z.
