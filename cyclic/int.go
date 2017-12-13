@@ -32,31 +32,21 @@ func NewInt(x int64) *Int {
 //SetString makes the Int equal to the number held in the string s,
 //interpreted to have a base of b. Returns the set Int and a boolean
 //describing if the operation was successful.
-func (z *Int) SetString(s string, b int) (*Int, bool) {
-	err := errors.New("Unimplemented function: Int.SetString recieved " +
-		reflect.TypeOf(z).String() + ", " +
-		reflect.TypeOf(s).String() + ", " +
-		reflect.TypeOf(b).String() + "\n")
-
-	if err != nil {
-		fmt.Print(err)
-	}
-
-	return nil, false
+func (c *Int) SetString(s string, x int) (*Int, bool) {
+	success := false
+	b := big.NewInt(0)
+	b, success = b.SetString(s, x)
+	*c = Int(*b)
+	return c, success
 }
 
 //SetBytes interprets buf as the bytes of a big-endian unsigned
 //integer, sets z to that value, and returns z.
-func (z *Int) SetBytes(buf []byte) *Int {
-	err := errors.New("Unimplemented function: Int.SetBytes recieved " +
-		reflect.TypeOf(buf).String() + "\n")
-
-	if err != nil {
-		fmt.Print(err)
-	}
-
-	return nil
-
+func (c *Int) SetBytes(buf []byte) *Int {
+	b := big.NewInt(0)
+	b = b.SetBytes(buf)
+	*c = Int(*b)
+	return c
 }
 
 //Mod sets z to the modulus x%y for y != 0 and returns z. If y == 0, a
