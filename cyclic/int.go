@@ -7,7 +7,6 @@ import (
 //Create the cyclic.Int type as a wrapper of the big.Int type
 type Int big.Int
 
-
 //NewInt allocates and returns a new Int set to x.
 func NewInt(x int64) *Int {
 
@@ -36,7 +35,6 @@ func (c *Int) SetString(s string, x int) (*Int, bool) {
 	return c, success
 
 }
-
 
 //SetBytes interprets buf as the bytes of a big-endian unsigned
 //integer, sets z to that value, and returns z.
@@ -135,10 +133,16 @@ func (x *Int) Text(base int) string {
 
 //PRIVATE FUNCTIONS
 
-//bigInt converts the givne cyclic Int to a big Int and returns it
+//bigInt converts the givne cyclic Int to a big Int and returns it's pointer
 func bigInt(n *Int) *big.Int {
-	nint := big.Int(*n)
-	return &nint
+	b := big.Int(*n)
+	return &b
+}
+
+//cycInt converts the given big Int to a cyc Int and returns it's pointer
+func cycInt(n *big.Int) *Int {
+	c := Int(*n)
+	return &c
 }
 
 //nilInt returns a cyclic Int which is nil
