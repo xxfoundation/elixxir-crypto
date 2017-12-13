@@ -1,10 +1,7 @@
 package cyclic
 
 import (
-	"errors"
-	"fmt"
 	"math/big"
-	"reflect"
 )
 
 //Create the cyclic.Int type as a wrapper of the big.Int type
