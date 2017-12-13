@@ -107,7 +107,6 @@ func (z *Int) Exp(x, y, m *Int) *Int {
 
 //Bytes returns the absolute value of x as a big-endian byte slice.
 func (x *Int) Bytes() []byte {
-
 	return bigInt(x).Bytes()
 }
 
@@ -115,7 +114,6 @@ func (x *Int) Bytes() []byte {
 //bit length of 0 is 0.
 func (x *Int) BitLen() int {
 	return bigInt(x).BitLen()
-
 }
 
 //Cmp compares x and y and returns:
@@ -131,9 +129,7 @@ func (x *Int) Cmp(y *Int) (r int) {
 //letters 'a' to 'z' for digit values >= 10. No base prefix (such as
 //"0x") is added to the string.
 func (x *Int) Text(base int) string {
-
 	return bigInt(x).Text(base)
-
 }
 
 //PRIVATE FUNCTIONS

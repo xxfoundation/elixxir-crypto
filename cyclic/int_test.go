@@ -183,33 +183,50 @@ func TestAdd(t *testing.T) {
 }*/
 
 //TestBytes checks if the Bytes placeholder exists
-/*func TestBytes(t *testing.T) {
+func TestBytes(t *testing.T) {
+	testints := []Int{
+		*NewInt(42),
+		*NewInt(6553522),
+		//*NewInt(867530918239450598372829049587), TODO: When text parsing impl
+		*NewInt(-42) }
+	expectedbytes := [][]byte{
+		{ 0x2A }, // 42
+		{ 0x63, 0xFF, 0xB2 }, // 6553522
+		// { 0xA, 0xF3, 0x24, 0xC1, 0xA0, 0xAD, 0x87, 0x20,
+		//   0x57, 0xCE, 0xF4, 0x32, 0xF3 }, //"867530918239450598372829049587",
+		{ 0x2A }	} // TODO: Should be <nil>, not 42
 
-	xint := NewInt(42)
-
-	actual := xint.Bytes()
-
-	actual = actual * expected
-
-	/*if actual != nil {
-		t.Errorf("Test of Bytes failed, expected: 'nil', got:  '%v'", actual)
+	for i, tsti := range testints {
+		actual := bigInt(&tsti).Bytes()
+		for j, tstb := range expectedbytes[i] {
+			if actual[j] != tstb {
+				t.Errorf("Case %v of Text failed, got: '%v', expected: '%v'", i, actual,
+					tstb)
+			}
+		}
 	}
-
-}*/
+}
 
 //TestBitLen checks if the BitLen placeholder exists
-/*func TestBitLen(t *testing.T) {
-	expected := -1
+func TestBitLen(t *testing.T) {
+	testints := []Int{
+		*NewInt(42),
+		*NewInt(6553522),
+		//*NewInt(867530918239450598372829049587), TODO: When text parsing impl
+		*NewInt(-42) }
 
-	xint := NewInt(42)
+	expectedlens := []int{
+		6,
+		23,
+		// ???, TODO: when text parsing implemented
+		6}
 
-	actual := xint.BitLen()
-
-	actual = actual * expected
-
-	/*if actual != expected {
-		t.Errorf("Test of BitLen failed, expected: '%v', got: '%v'",
-			actual, expected)
+	for i, tsti := range testints {
+		actual := bigInt(&tsti).BitLen()
+		if actual != expectedlens[i] {
+			t.Errorf("Case %v of BitLen failed, got: '%v', expected: '%v'", i, actual,
+				expectedlens[i])
+		}
 	}
 }*/
 
@@ -265,20 +282,24 @@ func TestCmp(t *testing.T) {
 }
 
 //TestText checks if the Text placeholder exists
-/*func TestText(t *testing.T) {
+func TestText(t *testing.T) {
+	testints := []Int{
+		*NewInt(42),
+		*NewInt(6553522),
+		//*NewInt(867530918239450598372829049587), TODO: When text parsing impl
+		*NewInt(-42) }
+	expectedstrs := []string{
+		"42",
+		"6553522",
+		//"867530918239450598372829049587",
+		"-42" } // TODO: Should be <nil>, not -42
 
-	xint := NewInt(42)
-	base := 42
-
-	actual := xint.Text(base)
-
-	expected := ""
-
-	actual = actual * expected
-
-	/*if actual != expected {
-		t.Errorf("Test of Text failed, expected: '%v', got: '%v'", actual,
-			expected)
+	for i, tsti := range testints {
+		actual := tsti.Text(10)
+		expected := expectedstrs[i]
+		if actual != expected {
+			t.Errorf("Test of Text failed, got: '%v', expected: '%v'", actual,
+				expected)
+		}
 	}
-
-}*/
+}
