@@ -24,10 +24,39 @@ func TestNewInt(t *testing.T) {
 
 //!!!TestSet!!!
 
-//!!!TestSetString!!!
+//TestSetString
+func TestSetString(t *testing.T) {
+	type testStructure struct {
+		str  string
+		base int
+	}
 
-/*
-//TestSetBytes checks if the SetBytes placeholder exists
+	testStructs := []testStructure{
+		{"42", 0},
+		{"100000000", 0},
+		{"-5", 0},
+		{"0", 0},
+		{"2", 0},
+	}
+
+	for i, testi := range testStructs {
+		b := big.NewInt(0)
+		b, eSuccess := b.SetString(testi.str, testi.base)
+		expected := cycInt(b)
+
+		actual := NewInt(0)
+		actual, aSuccess := actual.SetString(testi.str, testi.base)
+
+		if actual.Cmp(expected) != 0 {
+			t.Errorf("Test of SetString failed at index: %v Expected: %v, %v;",
+				" Actual: %v, %v", i, expected, eSuccess, actual, aSuccess)
+		}
+	}
+	tests := len(testStructs)
+	println("SetString()", tests, "tests passed.")
+}
+
+/*/TestSetBytes
 func TestSetBytes(t *testing.T) {
 
 	var buf []byte
@@ -49,8 +78,6 @@ func TestSetBytes(t *testing.T) {
 //!!!TestInt64!!!
 
 //!!!TestIsInt64!!!
-
-
 
 //TestMod checks if the Mod placeholder exists
 func TestMod(t *testing.T) {
@@ -185,13 +212,13 @@ func TestBytes(t *testing.T) {
 		*NewInt(42),
 		*NewInt(6553522),
 		//*NewInt(867530918239450598372829049587), TODO: When text parsing impl
-		*NewInt(-42) }
+		*NewInt(-42)}
 	expectedbytes := [][]byte{
-		{ 0x2A }, // 42
-		{ 0x63, 0xFF, 0xB2 }, // 6553522
+		{0x2A},             // 42
+		{0x63, 0xFF, 0xB2}, // 6553522
 		// { 0xA, 0xF3, 0x24, 0xC1, 0xA0, 0xAD, 0x87, 0x20,
 		//   0x57, 0xCE, 0xF4, 0x32, 0xF3 }, //"867530918239450598372829049587",
-		{ 0x2A }	} // TODO: Should be <nil>, not 42
+		{0x2A}} // TODO: Should be <nil>, not 42
 
 	for i, tsti := range testints {
 		actual := bigInt(&tsti).Bytes()
@@ -210,7 +237,7 @@ func TestBitLen(t *testing.T) {
 		*NewInt(42),
 		*NewInt(6553522),
 		//*NewInt(867530918239450598372829049587), TODO: When text parsing impl
-		*NewInt(-42) }
+		*NewInt(-42)}
 
 	expectedlens := []int{
 		6,
@@ -283,12 +310,12 @@ func TestText(t *testing.T) {
 		*NewInt(42),
 		*NewInt(6553522),
 		//*NewInt(867530918239450598372829049587), TODO: When text parsing impl
-		*NewInt(-42) }
+		*NewInt(-42)}
 	expectedstrs := []string{
 		"42",
 		"6553522",
 		//"867530918239450598372829049587",
-		"-42" } // TODO: Should be <nil>, not -42
+		"-42"} // TODO: Should be <nil>, not -42
 
 	for i, tsti := range testints {
 		actual := tsti.Text(10)
@@ -299,7 +326,6 @@ func TestText(t *testing.T) {
 		}
 	}
 }
-
 
 //TestBigInt checks if the function GetBigInt returns a big.Int
 func TestBigInt(t *testing.T) {
@@ -312,6 +338,5 @@ func TestBigInt(t *testing.T) {
 			actual, expected)
 	}
 }
-
 
 ///!!!TestNilInt!!!
