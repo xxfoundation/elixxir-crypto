@@ -33,7 +33,7 @@ build:
   stage: build
   image: carback1/golang-glide:1.9
   script:
-    - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o release/app -ldflags '-w -s'
+    - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o release/app -ldflags '-w -s' ./...
     - cd release
   artifacts:
     paths:
