@@ -36,13 +36,14 @@ func TestNewInt(t *testing.T) {
 
 //TestSetString checks if the SetString placeholder works
 func TestSetString(t *testing.T) {
-	b := big.NewInt(42)
-	actualInt := NewInt(0)
-	actualInt, actualBool := actualInt.SetString("42", 0)
-	expectedInt := Int(*b)
-	//println("Expected value: %v, Actual value: %v", expectedInt.Text(), actualInt.Text())
-	if (actualInt).Cmp(&expectedInt) != 0 {
-		t.Errorf("Test of SetString failed, expected: 42, got: '%v'. Set String: %v",
+	expectedInt := nilInt()
+
+	nint := NewInt(42)
+
+	actualInt, actualBool := nint.SetString("42", 0)
+
+	if actualInt != expectedInt {
+		t.Errorf("Test of SetString failed, expected: '%v', got: '%v'",
 			actualInt, actualBool)
 	}
 
