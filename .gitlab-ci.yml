@@ -6,12 +6,6 @@ cache:
   paths:
     - vendor/
 
-before_script:
-  - mkdir -p /go/src/gitlab.com/privategrity/
-  - ln -s $PWD ${APP_PATH}
-  - mkdir -p ${APP_PATH}/vendor
-  - cd ${APP_PATH}
-
 stages:
   - setup
   - test
@@ -19,32 +13,27 @@ stages:
   - release
   - deploy
 
-variables:
-  CONTAINER_IMAGE: ${CI_REGISTRY}/${CI_PROJECT_PATH}:${CI_BUILD_REF_NAME}_${CI_BUILD_REF}
-  CONTAINER_IMAGE_LATEST: ${CI_REGISTRY}/${CI_PROJECT_PATH}:latest
-  DOCKER_DRIVER: overlay2
-
-  KUBECONFIG: /etc/deploy/config
-  STAGING_NAMESPACE: app-stage
-  PRODUCTION_NAMESPACE: app-prod
-
-  APP_PATH: /go/src/gitlab.com/privategrity/golang-template
-
 setup:
   stage: setup
-  image: lwolf/golang-glide:0.12.3
+  image: carback1/golang-glide:1.9
   script:
+    - git clean -ffdx
     - glide install -v
   artifacts:
     paths:
      - vendor/
 
+test:
+  stage: test
+  image: carback1/golang-glide:1.9
+  script:
+    - go test -cover ./...
+
 build:
   stage: build
-  image: lwolf/golang-glide:0.12.3
+  image: carback1/golang-glide:1.9
   script:
-    - cd ${APP_PATH}
-    - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o release/app -ldflags '-w -s'
+    - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o release/app -ldflags '-w -s' ./...
     - cd release
   artifacts:
     paths:
@@ -54,19 +43,12 @@ release:
   stage: release
   image: docker:latest
   script:
-    - cd ${APP_PATH}/release
+    - cd release
     # - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
     # - docker build -t ${CONTAINER_IMAGE} .
     # - docker tag ${CONTAINER_IMAGE} ${CONTAINER_IMAGE_LATEST}
     # - docker push ${CONTAINER_IMAGE}
     # - docker push ${CONTAINER_IMAGE_LATEST}
-
-test:
-  stage: test
-  image: lwolf/golang-glide:0.12.3
-  script:
-    - cd ${APP_PATH}
-    - go test -cover
 
 deploy_staging:
   stage: deploy
