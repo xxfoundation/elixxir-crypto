@@ -27,7 +27,7 @@ test:
   stage: test
   image: carback1/golang-glide:1.9
   script:
-    - go test -cover ./...
+    - go test -cover -v ./...
 
 build:
   stage: build
