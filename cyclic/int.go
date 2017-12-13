@@ -122,27 +122,13 @@ func (z *Int) Exp(x, y, m *Int) *Int {
 
 //Bytes returns the absolute value of x as a big-endian byte slice.
 func (x *Int) Bytes() []byte {
-	err := errors.New("Unimplemented function: Int.Bytes recieved " +
-		reflect.TypeOf(x).String() + "\n")
-
-	if err != nil {
-		fmt.Print(err)
-	}
-
-	return nil
+	return bigInt(x).Bytes()
 }
 
 //BitLen returns the length of the absolute value of x in bits. The
 //bit length of 0 is 0.
 func (x *Int) BitLen() int {
-	err := errors.New("Unimplemented function: Int.BitLen recieved " +
-		reflect.TypeOf(x).String() + "\n")
-
-	if err != nil {
-		fmt.Print(err)
-	}
-
-	return -1
+	return bigInt(x).BitLen()
 }
 
 //Cmp compares x and y and returns:
@@ -158,15 +144,7 @@ func (x *Int) Cmp(y *Int) (r int) {
 //letters 'a' to 'z' for digit values >= 10. No base prefix (such as
 //"0x") is added to the string.
 func (x *Int) Text(base int) string {
-	err := errors.New("Unimplemented function: Int.Text recieved " +
-		reflect.TypeOf(x).String() + ", " +
-		reflect.TypeOf(base).String() + "\n")
-
-	if err != nil {
-		fmt.Print(err)
-	}
-
-	return ""
+	return bigInt(x).Text(base)
 }
 
 //PRIVATE FUNCTIONS
