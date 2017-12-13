@@ -6,11 +6,11 @@ import (
 	"testing"
 )
 
-//TestGetBigInt checks if the function GetBigInt returns a big.Int
-func TestGetBigInt(t *testing.T) {
+//TestBigInt checks if the function GetBigInt returns a big.Int
+func TestBigInt(t *testing.T) {
 	expected := reflect.TypeOf(big.NewInt(int64(42)))
 
-	actual := reflect.TypeOf(BigInt(NewInt(int64(42))))
+	actual := reflect.TypeOf(bigInt(NewInt(int64(42))))
 
 	if actual != expected {
 		t.Errorf("Test of GetBigInt failed, expected: '%v', got:  '%v'", actual, expected)
@@ -23,7 +23,7 @@ func TestNewInt(t *testing.T) {
 
 	actual := NewInt(int64(42))
 
-	actualData := BigInt(actual).Int64()
+	actualData := bigInt(actual).Int64()
 	expectedData := expected.Int64()
 
 	if actualData != expectedData {
