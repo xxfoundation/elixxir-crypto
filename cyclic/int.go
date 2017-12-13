@@ -1,10 +1,7 @@
 package cyclic
 
 import (
-	"errors"
-	"fmt"
 	"math/big"
-	"reflect"
 )
 
 //Create the cyclic.Int type as a wrapper of the big.Int type
@@ -40,31 +37,23 @@ func (z *Int) Set(x *Int) *Int {
 //SetString makes the Int equal to the number held in the string s,
 //interpreted to have a base of b. Returns the set Int and a boolean
 //describing if the operation was successful.
-func (z *Int) SetString(s string, b int) (*Int, bool) {
-	err := errors.New("Unimplemented function: Int.SetString recieved " +
-		reflect.TypeOf(z).String() + ", " +
-		reflect.TypeOf(s).String() + ", " +
-		reflect.TypeOf(b).String() + "\n")
+func (c *Int) SetString(s string, x int) (*Int, bool) {
+	success := false
+	b := big.NewInt(0)
+	b, success = b.SetString(s, x)
+	*c = Int(*b)
+	return c, success
 
-	if err != nil {
-		fmt.Print(err)
-	}
-
-	return nil, false
 }
+
 
 //SetBytes interprets buf as the bytes of a big-endian unsigned
 //integer, sets z to that value, and returns z.
-func (z *Int) SetBytes(buf []byte) *Int {
-	err := errors.New("Unimplemented function: Int.SetBytes recieved " +
-		reflect.TypeOf(buf).String() + "\n")
-
-	if err != nil {
-		fmt.Print(err)
-	}
-
-	return nil
-
+func (c *Int) SetBytes(buf []byte) *Int {
+	b := big.NewInt(0)
+	b = b.SetBytes(buf)
+	*c = Int(*b)
+	return c
 }
 
 //Mod sets z to the modulus x%y for y != 0 and returns z. If y == 0, a
@@ -108,6 +97,7 @@ func (z *Int) Mul(x, y *Int) *Int {
 //0, z = x*y. Modular exponentation of inputs of a particular size is
 //not a cryptographically constant-time operation.
 func (z *Int) Exp(x, y, m *Int) *Int {
+
 	b := bigInt(z).Exp(bigInt(x), bigInt(y), bigInt(m))
 	c := Int(*b)
 
@@ -125,6 +115,7 @@ func (x *Int) Bytes() []byte {
 //bit length of 0 is 0.
 func (x *Int) BitLen() int {
 	return bigInt(x).BitLen()
+
 }
 
 //Cmp compares x and y and returns:
@@ -140,7 +131,9 @@ func (x *Int) Cmp(y *Int) (r int) {
 //letters 'a' to 'z' for digit values >= 10. No base prefix (such as
 //"0x") is added to the string.
 func (x *Int) Text(base int) string {
+
 	return bigInt(x).Text(base)
+
 }
 
 //PRIVATE FUNCTIONS
