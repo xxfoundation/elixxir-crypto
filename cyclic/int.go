@@ -57,7 +57,7 @@ func (c *Int) SetBytes(buf []byte) *Int {
 	b = b.SetBytes(buf)
 	*c = Int(*b)
 	return c
-
+}
 
 //Mod sets z to the modulus x%y for y != 0 and returns z. If y == 0, a
 //division-by-zero run-time panic occurs. Mod implements Euclidean
