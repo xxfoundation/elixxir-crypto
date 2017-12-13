@@ -31,8 +31,8 @@ func NewInt(x int64) *Int {
 
 //Set sets z to x and returns z.
 func (z *Int) Set(x *Int) *Int {
-	b = bigInt(z).Set(bigInt(x))
-	c = Int(*b)
+	b := bigInt(z).Set(bigInt(x))
+	c := Int(*b)
 
 	return &c
 }
