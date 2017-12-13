@@ -13,11 +13,13 @@ func TestBigInt(t *testing.T) {
 	actual := reflect.TypeOf(bigInt(NewInt(int64(42))))
 
 	if actual != expected {
-		t.Errorf("Test of GetBigInt failed, expected: '%v', got:  '%v'", actual, expected)
+		t.Errorf("Test of GetBigInt failed, expected: '%v', got: '%v'",
+			actual, expected)
 	}
 }
 
-//TestNewInt checks if the NewInt function returns a cyclic Int with the same value of the passed int64
+//TestNewInt checks if the NewInt function returns a cyclic Int with
+//the same value of the passed int64
 func TestNewInt(t *testing.T) {
 	expected := big.NewInt(int64(42))
 
@@ -27,7 +29,8 @@ func TestNewInt(t *testing.T) {
 	expectedData := expected.Int64()
 
 	if actualData != expectedData {
-		t.Errorf("Test of NewInt failed, expected: '%v', got:  '%v'", actualData, expectedData)
+		t.Errorf("Test of NewInt failed, expected: '%v', got: '%v'",
+			actualData, expectedData)
 	}
 }
 
@@ -40,7 +43,8 @@ func TestSetString(t *testing.T) {
 	actualInt, actualBool := nint.SetString("42", 0)
 
 	if actualInt != expectedInt {
-		t.Errorf("Test of SetString failed, expected: '%v', got:  '%v'", actualInt, actualBool)
+		t.Errorf("Test of SetString failed, expected: '%v', got: '%v'",
+			actualInt, actualBool)
 	}
 
 }
@@ -57,7 +61,8 @@ func TestSetBytes(t *testing.T) {
 	actual := nint.SetBytes(buf)
 
 	if actual != expected {
-		t.Errorf("Test of SetBytes failed, expected: '%v', got:  '%v'", actual, expected)
+		t.Errorf("Test of SetBytes failed, expected: '%v', got: '%v'",
+			actual, expected)
 	}
 
 }
@@ -79,7 +84,8 @@ func TestMod(t *testing.T) {
 	actual = zint.Mod(xint, mint).Int64()
 
 	if actual != expected {
-		t.Errorf("Test 'x<m' of Mod failed, expected: '%v', got:  '%v'", expected, actual)
+		t.Errorf("Test 'x<m' of Mod failed, expected: '%v', got: '%v'",
+			expected, actual)
 	}
 
 	//Test where x == m
@@ -91,7 +97,8 @@ func TestMod(t *testing.T) {
 	actual = zint.Mod(xint, mint).Int64()
 
 	if actual != expected {
-		t.Errorf("Test 'x==m' of Mod failed, expected: '%v', got:  '%v'", expected, actual)
+		t.Errorf("Test 'x==m' of Mod failed, expected: '%v', got: '%v'",
+			expected, actual)
 	}
 
 	//test where x>m
@@ -104,7 +111,8 @@ func TestMod(t *testing.T) {
 	actual = zint.Mod(xint, mint).Int64()
 
 	if actual != expected {
-		t.Errorf("Test 'x>m' of Mod failed, expected: '%v', got:  '%v'", expected, actual)
+		t.Errorf("Test 'x>m' of Mod failed, expected: '%v', got: '%v'",
+			expected, actual)
 	}
 
 }
@@ -206,7 +214,8 @@ func TestBitLen(t *testing.T) {
 	actual := xint.BitLen()
 
 	if actual != expected {
-		t.Errorf("Test of BitLen failed, expected: '%v', got:  '%v'", actual, expected)
+		t.Errorf("Test of BitLen failed, expected: '%v', got: '%v'",
+			actual, expected)
 	}
 }
 
@@ -227,7 +236,8 @@ func TestCmp(t *testing.T) {
 	actual = xint.Cmp(yint)
 
 	if actual != expected {
-		t.Errorf("Test 'less than' of Cmp failed, expected: '%v', got:  '%v'", actual, expected)
+		t.Errorf("Test 'less than' of Cmp failed, expected: '%v', got:" +
+			" '%v'", actual, expected)
 	}
 
 	//Tests for case where x==y
@@ -240,7 +250,8 @@ func TestCmp(t *testing.T) {
 	actual = xint.Cmp(yint)
 
 	if actual != expected {
-		t.Errorf("Test 'equals' of Cmp failed, expected: '%v', got:  '%v'", actual, expected)
+		t.Errorf("Test 'equals' of Cmp failed, expected: '%v', got: '%v'",
+			actual, expected)
 	}
 
 	//Test for case where x > y
@@ -253,7 +264,8 @@ func TestCmp(t *testing.T) {
 	actual = xint.Cmp(yint)
 
 	if actual != expected {
-		t.Errorf("Test 'greater than' of Cmp failed, expected: '%v', got:  '%v'", actual, expected)
+		t.Errorf("Test 'greater than' of Cmp failed, expected: '%v', got:" +
+			" '%v'", actual, expected)
 	}
 
 }
@@ -269,7 +281,8 @@ func TestText(t *testing.T) {
 	expected := ""
 
 	if actual != expected {
-		t.Errorf("Test of Text failed, expected: '%v', got:  '%v'", actual, expected)
+		t.Errorf("Test of Text failed, expected: '%v', got: '%v'", actual,
+			expected)
 	}
 
 }
