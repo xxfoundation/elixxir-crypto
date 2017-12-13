@@ -29,6 +29,13 @@ func NewInt(x int64) *Int {
 	return &c
 }
 
+//Set sets z to x and returns z.
+func (z *Int) Set(x *Int) *Int {
+	b := bigInt(z).Set(bigInt(x))
+	c := Int(*b)
+
+	return &c
+}
 
 //SetString makes the Int equal to the number held in the string s,
 //interpreted to have a base of b. Returns the set Int and a boolean
@@ -40,15 +47,8 @@ func (c *Int) SetString(s string, x int) (*Int, bool) {
 	*c = Int(*b)
 	return c, success
 
-//Set sets z to x and returns z.
-func (z *Int) Set(x *Int) *Int {
-	b := bigInt(z).Set(bigInt(x))
-	c := Int(*b)
-
-	return &c
 }
 
-}
 
 //SetBytes interprets buf as the bytes of a big-endian unsigned
 //integer, sets z to that value, and returns z.
