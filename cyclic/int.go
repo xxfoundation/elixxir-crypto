@@ -7,15 +7,6 @@ import (
 //Create the cyclic.Int type as a wrapper of the big.Int type
 type Int big.Int
 
-//Int64 converts the cyclic Int to an Int64 if possible and returns nil if not
-func (n *Int) Int64() int64 {
-	return bigInt(n).Int64()
-}
-
-//IsInt64 checks if a cyclic Int can be converted to an Int64
-func (n *Int) IsInt64() bool {
-	return bigInt(n).IsInt64()
-}
 
 //NewInt allocates and returns a new Int set to x.
 func NewInt(x int64) *Int {
@@ -54,6 +45,16 @@ func (c *Int) SetBytes(buf []byte) *Int {
 	b = b.SetBytes(buf)
 	*c = Int(*b)
 	return c
+}
+
+//Int64 converts the cyclic Int to an Int64 if possible and returns nil if not
+func (n *Int) Int64() int64 {
+	return bigInt(n).Int64()
+}
+
+//IsInt64 checks if a cyclic Int can be converted to an Int64
+func (n *Int) IsInt64() bool {
+	return bigInt(n).IsInt64()
 }
 
 //Mod sets z to the modulus x%y for y != 0 and returns z. If y == 0, a
