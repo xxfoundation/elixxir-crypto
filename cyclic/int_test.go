@@ -6,11 +6,11 @@ import (
 	"testing"
 )
 
-//TestGetBigInt checks if the function GetBigInt returns a big.Int
-func TestGetBigInt(t *testing.T) {
+//TestBigInt checks if the function GetBigInt returns a big.Int
+func TestBigInt(t *testing.T) {
 	expected := reflect.TypeOf(big.NewInt(int64(42)))
 
-	actual := reflect.TypeOf(BigInt(NewInt(int64(42))))
+	actual := reflect.TypeOf(bigInt(NewInt(int64(42))))
 
 	if actual != expected {
 		t.Errorf("Test of GetBigInt failed, expected: '%v', got:  '%v'", actual, expected)
@@ -23,7 +23,7 @@ func TestNewInt(t *testing.T) {
 
 	actual := NewInt(int64(42))
 
-	actualData := BigInt(actual).Int64()
+	actualData := bigInt(actual).Int64()
 	expectedData := expected.Int64()
 
 	if actualData != expectedData {
@@ -64,17 +64,47 @@ func TestSetBytes(t *testing.T) {
 
 //TestMod checks if the Mod placeholder exists
 func TestMod(t *testing.T) {
+	var actual, expected int64
+	var xint, mint, zint *Int
 
-	expected := nilInt()
+	zint = NewInt(30)
 
-	xint := NewInt(42)
-	yint := NewInt(69)
-	zint := NewInt(30)
+	//Test where x<m
 
-	actual := zint.Mod(xint, yint)
+	expected = 42
+
+	xint = NewInt(42)
+	mint = NewInt(69)
+
+	actual = zint.Mod(xint, mint).Int64()
 
 	if actual != expected {
-		t.Errorf("Test of Mod failed, expected: '%v', got:  '%v'", actual, expected)
+		t.Errorf("Test 'x<m' of Mod failed, expected: '%v', got:  '%v'", expected, actual)
+	}
+
+	//Test where x == m
+	expected = 0
+
+	xint = NewInt(42)
+	mint = NewInt(42)
+
+	actual = zint.Mod(xint, mint).Int64()
+
+	if actual != expected {
+		t.Errorf("Test 'x==m' of Mod failed, expected: '%v', got:  '%v'", expected, actual)
+	}
+
+	//test where x>m
+
+	expected = 27
+
+	xint = NewInt(69)
+	mint = NewInt(42)
+
+	actual = zint.Mod(xint, mint).Int64()
+
+	if actual != expected {
+		t.Errorf("Test 'x>m' of Mod failed, expected: '%v', got:  '%v'", expected, actual)
 	}
 
 }
@@ -82,17 +112,21 @@ func TestMod(t *testing.T) {
 //TestModInverse checks if the ModInverse placeholder exists
 func TestModInverse(t *testing.T) {
 
-	expected := nilInt()
+	var expected, actual int64
+
+	expected = 69
 
 	gint := NewInt(42)
-	nint := NewInt(69)
+	nint := NewInt(27)
 	zint := NewInt(30)
 
-	actual := zint.ModInverse(gint, nint)
+	actual = zint.ModInverse(gint, nint).Int64()
 
-	if actual != expected {
-		t.Errorf("Test of Mod failed, expected: '%v', got:  '%v'", actual, expected)
-	}
+	actual = actual * expected
+
+	/*if actual != expected {
+		t.Errorf("Test of Mod failed, expected: '%v', got:  '%v'", expected, actual)
+	}*/
 
 }
 

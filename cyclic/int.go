@@ -10,25 +10,14 @@ import (
 //Create the cyclic.Int type as a wrapper of the big.Int type
 type Int big.Int
 
-//BigInt converts the givne cyclic Int to a big Int and returns it
-func BigInt(n *Int) *big.Int {
-	nint := big.Int(*n)
-	return &nint
-}
-
 //Int64 converts the cyclic Int to an Int64 if possible and returns nil if not
 func (n *Int) Int64() int64 {
-	return BigInt(n).Int64()
+	return bigInt(n).Int64()
 }
 
 //IsInt64 checks if a cyclic Int can be converted to an Int64
 func (n *Int) IsInt64() bool {
-	return BigInt(n).IsInt64()
-}
-
-//(Private) nilInt returns a cyclic Int which is nil
-func nilInt() *Int {
-	return nil
+	return bigInt(n).IsInt64()
 }
 
 //NewInt allocates and returns a new Int set to x.
@@ -65,32 +54,25 @@ func (z *Int) SetBytes(buf []byte) *Int {
 }
 
 //Mod sets z to the modulus x%y for y != 0 and returns z. If y == 0, a division-by-zero run-time panic occurs. Mod implements Euclidean modulus (unlike Go); see DivMod for more details.
-func (z *Int) Mod(x, y *Int) *Int {
-	err := errors.New("Unimplemented function: Int.Mod recieved " + reflect.TypeOf(z).String() + ", " +
-		reflect.TypeOf(x).String() + ", " + reflect.TypeOf(y).String() + "\n")
+func (z *Int) Mod(x, m *Int) *Int {
 
-	if err != nil {
-		fmt.Print(err)
-	}
+	nint := bigInt(z).Mod(bigInt(x), bigInt(m))
+	mint := Int(*nint)
 
-	return nil
+	return &mint
 }
 
 //ModInverse sets z to the multiplicative inverse of g in the ring ℤ/nℤ and returns z. If g and n are not relatively prime, the result is undefined.
 func (z *Int) ModInverse(g, n *Int) *Int {
-	err := errors.New("Unimplemented function: Int.ModInverse recieved " + reflect.TypeOf(z).String() + ", " +
-		reflect.TypeOf(g).String() + ", " + reflect.TypeOf(n).String() + "\n")
+	nint := bigInt(z).ModInverse(bigInt(g), bigInt(n))
+	mint := Int(*nint)
 
-	if err != nil {
-		fmt.Print(err)
-	}
-
-	return nil
+	return &mint
 }
 
 //Add sets z to the sum x+y and returns z.
 func (z *Int) Add(x, y *Int) *Int {
-	nint := BigInt(z).Add(BigInt(x), BigInt(y))
+	nint := bigInt(z).Add(bigInt(x), bigInt(y))
 	mint := Int(*nint)
 	return &mint
 }
@@ -150,7 +132,7 @@ func (x *Int) BitLen() int {
 //	 0 if x == y
 //	+1 if x > y
 func (x *Int) Cmp(y *Int) (r int) {
-	return BigInt(x).Cmp(BigInt(y))
+	return bigInt(x).Cmp(bigInt(y))
 }
 
 //Text returns the string representation of x in the given base. Base must be between 2 and 36, inclusive.
@@ -165,4 +147,17 @@ func (x *Int) Text(base int) string {
 	}
 
 	return ""
+}
+
+//PRIVATE FUNCTIONS
+
+//bigInt converts the givne cyclic Int to a big Int and returns it
+func bigInt(n *Int) *big.Int {
+	nint := big.Int(*n)
+	return &nint
+}
+
+//nilInt returns a cyclic Int which is nil
+func nilInt() *Int {
+	return nil
 }
