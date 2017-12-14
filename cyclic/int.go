@@ -27,22 +27,25 @@ func (z *Int) Set(x *Int) *Int {
 //SetString makes the Int equal to the number held in the string s,
 //interpreted to have a base of b. Returns the set Int and a boolean
 //describing if the operation was successful.
-func (c *Int) SetString(s string, x int) (*Int, bool) {
+func (z *Int) SetString(s string, x int) (*Int, bool) {
 	success := false
 	b := big.NewInt(0)
 	b, success = b.SetString(s, x)
-	*c = Int(*b)
-	return c, success
+	if success == false {
+		return nil, success
+	}
+	z = cycInt(b)
+	return z, success
 
 }
 
 //SetBytes interprets buf as the bytes of a big-endian unsigned
 //integer, sets z to that value, and returns z.
-func (c *Int) SetBytes(buf []byte) *Int {
+func (z *Int) SetBytes(buf []byte) *Int {
 	b := big.NewInt(0)
 	b = b.SetBytes(buf)
-	*c = Int(*b)
-	return c
+	z = cycInt(b)
+	return z
 }
 
 //Int64 converts the cyclic Int to an Int64 if possible and returns nil if not
