@@ -36,12 +36,16 @@ func TestSetString(t *testing.T) {
 		{"100000000", 0},
 		{"-5", 0},
 		{"0", 0},
-		{"2", 0},
+		{"10", 0},
 	}
+
+	tests := len(testStructs)
+	pass := 0
 
 	for i, testi := range testStructs {
 		b := big.NewInt(0)
 		b, eSuccess := b.SetString(testi.str, testi.base)
+		//println(eSuccess)
 		expected := cycInt(b)
 
 		actual := NewInt(0)
@@ -50,10 +54,11 @@ func TestSetString(t *testing.T) {
 		if actual.Cmp(expected) != 0 {
 			t.Errorf("Test of SetString failed at index: %v Expected: %v, %v;",
 				" Actual: %v, %v", i, expected, eSuccess, actual, aSuccess)
+		} else {
+			pass += 1
 		}
 	}
-	tests := len(testStructs)
-	println("SetString()", tests, "tests passed.")
+	println("SetString()", pass, "out of ", tests, "tests passed.")
 }
 
 /*/TestSetBytes
