@@ -63,7 +63,7 @@ func TestSetSeed(t *testing.T) {
 	gen := Gen{blah: *NewInt(0)}
 	g := Group{prime: *NewInt(0), seed: *expected, g: gen}
 	a := NewInt(42)
-	g.SetK(a)
+	g.SetSeed(a)
 
 	var actual *Int
 	actual = &(g.seed)
