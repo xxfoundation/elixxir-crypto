@@ -26,7 +26,6 @@ func (c *Int) SetString(s string, x int) (*Int, bool) {
 	b, success = b.SetString(s, x)
 	*c = Int(*b)
 	return c, success
-
 }
 
 // SetBytes interprets buf as the bytes of a big-endian unsigned
@@ -58,8 +57,8 @@ func (z *Int) Mod(x, m *Int) *Int {
 // ModInverse sets z to the multiplicative inverse of g in the ring
 // ℤ/nℤ and returns z. If g and n are not relatively prime, the result is
 // undefined.
-func (z *Int) ModInverse(g, n *Int) *Int {
-	return cycInt(bigInt(z).ModInverse(bigInt(g), bigInt(n)))
+func (x *Int) ModInverse(z, m *Int) *Int {
+	return cycInt(bigInt(x).ModInverse(bigInt(z), bigInt(m)))
 }
 
 // Add sets z to the sum x+y and returns z.

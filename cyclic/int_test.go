@@ -537,13 +537,16 @@ func TestBytes(t *testing.T) {
 
 //TestBitLen checks if the BitLen placeholder exists
 func TestBitLen(t *testing.T) {
-	testints := []Int{
-		*NewInt(42),
-		*NewInt(6553522),
-		*NewInt(0),
-		*NewInt(-42)}
+	testints := []*Int{
+		NewInt(42),
+		NewInt(6553522),
+		NewInt(0),
+		NewInt(-42)}
 
 	testints[2].SetString("867530918239450598372829049587", 10)
+
+	tests := len(testints)
+	pass := 0
 
 	expectedlens := []int{
 		6,
@@ -552,12 +555,17 @@ func TestBitLen(t *testing.T) {
 		6}
 
 	for i, tsti := range testints {
-		actual := bigInt(&tsti).BitLen()
+		actual := tsti.BitLen()
 		if actual != expectedlens[i] {
 			t.Errorf("Case %v of BitLen failed, got: '%v', expected: '%v'", i, actual,
 				expectedlens[i])
+		} else {
+			pass++
 		}
 	}
+
+	println("BitLen()", pass, "out of", tests, "tests passed.")
+
 }
 
 //TestCmp checks if the Cmp placeholder exists
