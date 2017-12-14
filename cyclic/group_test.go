@@ -58,7 +58,7 @@ func TestInverse(t *testing.T) {
 	}
 }
 
-func TestSetK(t *testing.T) {
+func TestSetSeed(t *testing.T) {
 	expected := NewInt(0)
 	gen := Gen{blah: *NewInt(0)}
 	g := Group{prime: *NewInt(0), seed: *expected, g: gen}

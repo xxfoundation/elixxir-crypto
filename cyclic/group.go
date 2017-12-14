@@ -71,8 +71,8 @@ func (g Group) Inverse(a, b *Int) (*Int) {
 	return nil
 }
 
-// SetK sets a K for use in random number generation
-func (g Group) SetK(k *Int) {
+// SetSeed sets a seed for use in random number generation
+func (g Group) SetSeed(k *Int) {
 		err := errors.New("Unimplemented function: Group.SetK recieved " +
 		reflect.TypeOf(k).String() + "\n")
 
