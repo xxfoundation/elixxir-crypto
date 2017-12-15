@@ -89,7 +89,7 @@ func TestSetString(t *testing.T) {
 			pass += 1
 		}
 	}
-	println("SetString()", pass, "out of", tests, "tests passed.")
+	println("SetString()", pass, "out of ", tests, "tests passed.")
 }
 
 /*/TestSetBytes

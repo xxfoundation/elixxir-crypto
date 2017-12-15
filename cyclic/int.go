@@ -17,6 +17,7 @@ func (z *Int) Set(x *Int) *Int {
 	return cycInt(bigInt(z).Set(bigInt(x)))
 }
 
+
 // SetString makes the Int equal to the number held in the string s,
 // interpreted to have a base of b. Returns the set Int and a boolean
 // describing if the operation was successful.
@@ -28,8 +29,8 @@ func (c *Int) SetString(s string, x int) (*Int, bool) {
 	return c, success
 }
 
-// SetBytes interprets buf as the bytes of a big-endian unsigned
-// integer, sets z to that value, and returns z.
+//SetBytes interprets buf as the bytes of a big-endian unsigned
+//integer, sets z to that value, and returns z.
 func (c *Int) SetBytes(buf []byte) *Int {
 	b := big.NewInt(0)
 	b = b.SetBytes(buf)
