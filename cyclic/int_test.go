@@ -17,7 +17,7 @@ func TestNewInt(t *testing.T) {
 
 	actual := NewInt(int64(42))
 
-	actualData := bigInt(actual).Int64()
+	actualData := actual.Int64()
 	expectedData := expected.Int64()
 
 	if actualData != expectedData {
@@ -76,9 +76,14 @@ func TestSetString(t *testing.T) {
 	tests := len(testStructs)
 	pass := 0
 
+	expected := NewInt(0)
+
 	for i, testi := range testStructs {
 		b := big.NewInt(0)
 		b, eSuccess := b.SetString(testi.str, testi.base)
+		//println(eSuccess)
+
+		expected.SetBigInt(b)
 
 		// Test invalid input
 		if eSuccess == false {
@@ -224,19 +229,19 @@ func TestMod(t *testing.T) {
 	for i, strs := range testStrings {
 		var ts testStructure
 
-		ts.x, sucess = new(Int).SetString(strs[0], 10)
+		ts.x, sucess = NewInt(0).SetString(strs[0], 10)
 
 		if sucess != true {
 			t.Errorf("Setup for Test of Mod() failed at 'x' phase of index: %v", i)
 		}
 
-		ts.m, sucess = new(Int).SetString(strs[1], 10)
+		ts.m, sucess = NewInt(0).SetString(strs[1], 10)
 
 		if sucess != true {
 			t.Errorf("Setup for Test of Mod() failed at 'm' phase of index: %v", i)
 		}
 
-		ts.r, sucess = new(Int).SetString(strs[2], 10)
+		ts.r, sucess = NewInt(0).SetString(strs[2], 10)
 
 		if sucess != true {
 			t.Errorf("Setup for Test of Mod() failed at 'r' phase of index: %v", i)
@@ -251,7 +256,7 @@ func TestMod(t *testing.T) {
 	expected := 0
 
 	for i, testi := range testStructs {
-		actual := new(Int).Mod(testi.x, testi.m)
+		actual := NewInt(0).Mod(testi.x, testi.m)
 
 		result := actual.Cmp(testi.r)
 
@@ -288,13 +293,13 @@ func TestModInverse(t *testing.T) {
 	for i, strs := range testStrings {
 		var ts testStructure
 
-		ts.z, sucess = new(Int).SetString(strs[0], 10)
+		ts.z, sucess = NewInt(0).SetString(strs[0], 10)
 
 		if sucess != true {
 			t.Errorf("Setup for Test of ModInverse() failed at 'z' phase of index: %v", i)
 		}
 
-		ts.m, sucess = new(Int).SetString(strs[1], 10)
+		ts.m, sucess = NewInt(0).SetString(strs[1], 10)
 
 		if sucess != true {
 			t.Errorf("Setup for Test of ModInverse() failed at 'm' phase of index: %v", i)
@@ -309,9 +314,9 @@ func TestModInverse(t *testing.T) {
 	expected := 0
 
 	for i, testi := range testStructs {
-		actual := new(Int).ModInverse(testi.z, testi.m)
+		actual := NewInt(0).ModInverse(testi.z, testi.m)
 
-		remultiply := new(Int).Mul(testi.z, actual)
+		remultiply := NewInt(0).Mul(testi.z, actual)
 
 		remultiply = remultiply.Mod(remultiply, testi.m)
 
@@ -374,19 +379,19 @@ func TestSub(t *testing.T) {
 	for i, strs := range testStrings {
 		var ts testStructure
 
-		ts.x, sucess = new(Int).SetString(strs[0], 10)
+		ts.x, sucess = NewInt(0).SetString(strs[0], 10)
 
 		if sucess != true {
 			t.Errorf("Setup for Test of Sub() failed at 'x' phase of index: %v", i)
 		}
 
-		ts.y, sucess = new(Int).SetString(strs[1], 10)
+		ts.y, sucess = NewInt(0).SetString(strs[1], 10)
 
 		if sucess != true {
 			t.Errorf("Setup for Test of Sub() failed at 'y' phase of index: %v", i)
 		}
 
-		ts.z, sucess = new(Int).SetString(strs[2], 10)
+		ts.z, sucess = NewInt(0).SetString(strs[2], 10)
 
 		if sucess != true {
 			t.Errorf("Setup for Test of Sub() failed at 'z' phase of index: %v", i)
@@ -401,7 +406,7 @@ func TestSub(t *testing.T) {
 	expected := 0
 
 	for i, testi := range testStructs {
-		actual := new(Int).Sub(testi.x, testi.y)
+		actual := NewInt(0).Sub(testi.x, testi.y)
 
 		result := actual.Cmp(testi.z)
 
@@ -461,19 +466,19 @@ func TestDiv(t *testing.T) {
 	for i, strs := range testStrings {
 		var ts testStructure
 
-		ts.x, sucess = new(Int).SetString(strs[0], 10)
+		ts.x, sucess = NewInt(0).SetString(strs[0], 10)
 
 		if sucess != true {
 			t.Errorf("Setup for Test of Div() failed at 'x' phase of index: %v", i)
 		}
 
-		ts.y, sucess = new(Int).SetString(strs[1], 10)
+		ts.y, sucess = NewInt(0).SetString(strs[1], 10)
 
 		if sucess != true {
 			t.Errorf("Setup for Test of Div() failed at 'y' phase of index: %v", i)
 		}
 
-		ts.z, sucess = new(Int).SetString(strs[2], 10)
+		ts.z, sucess = NewInt(0).SetString(strs[2], 10)
 
 		if sucess != true {
 			t.Errorf("Setup for Test of Div() failed at 'z' phase of index: %v", i)
@@ -488,7 +493,7 @@ func TestDiv(t *testing.T) {
 	expected := 0
 
 	for i, testi := range testStructs {
-		actual := new(Int).Div(testi.x, testi.y)
+		actual := NewInt(0).Div(testi.x, testi.y)
 
 		result := actual.Cmp(testi.z)
 
@@ -527,25 +532,25 @@ func TestExp(t *testing.T) {
 	for i, strs := range testStrings {
 		var ts testStructure
 
-		ts.x, sucess = new(Int).SetString(strs[0], 10)
+		ts.x, sucess = NewInt(0).SetString(strs[0], 10)
 
 		if sucess != true {
 			t.Errorf("Setup for Test of Exp() failed at 'x' phase of index: %v", i)
 		}
 
-		ts.y, sucess = new(Int).SetString(strs[1], 10)
+		ts.y, sucess = NewInt(0).SetString(strs[1], 10)
 
 		if sucess != true {
 			t.Errorf("Setup for Test of Exp() failed at 'y' phase of index: %v", i)
 		}
 
-		ts.m, sucess = new(Int).SetString(strs[2], 10)
+		ts.m, sucess = NewInt(0).SetString(strs[2], 10)
 
 		if sucess != true {
 			t.Errorf("Setup for Test of Exp() failed at 'm' phase of index: %v", i)
 		}
 
-		ts.z, sucess = new(Int).SetString(strs[3], 10)
+		ts.z, sucess = NewInt(0).SetString(strs[3], 10)
 
 		if sucess != true {
 			t.Errorf("Setup for Test of Exp() failed at 'z' phase of index: %v", i)
@@ -560,7 +565,7 @@ func TestExp(t *testing.T) {
 	expected := 0
 
 	for i, testi := range testStructs {
-		actual := new(Int).Exp(testi.x, testi.y, testi.m)
+		actual := NewInt(0).Exp(testi.x, testi.y, testi.m)
 
 		result := actual.Cmp(testi.z)
 
