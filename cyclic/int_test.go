@@ -67,7 +67,10 @@ func TestSetString(t *testing.T) {
 		{"100000000", 0},
 		{"-5", 0},
 		{"0", 0},
-		{"10", 0},
+		{"f", 0},
+		{"12", 5},
+		{"9000000000000000000000000000000090090909090909090090909090909090", 0},
+		{"-1", 2},
 	}
 
 	tests := len(testStructs)
@@ -82,47 +85,69 @@ func TestSetString(t *testing.T) {
 
 		expected.SetBigInt(b)
 
-		actual := NewInt(0)
-		actual, aSuccess := actual.SetString(testi.str, testi.base)
-
-		if actual.Cmp(expected) != 0 {
-			t.Errorf("Test of SetString failed at index: %v Expected: %v, %v;",
-				" Actual: %v, %v", i, expected, eSuccess, actual, aSuccess)
+		// Test invalid input
+		if eSuccess == false {
+			actual := NewInt(0)
+			actual, aSuccess := actual.SetString(testi.str, testi.base)
+			if aSuccess != eSuccess || actual != nil {
+				t.Error("Test of SetString() failed at index:", i,
+					"Function didn't handle invalid input correctly")
+			} else {
+				pass++
+			}
 		} else {
-			pass += 1
+
+			// Test valid input
+			expected := cycInt(b)
+
+			actual := NewInt(0)
+			actual, aSuccess := actual.SetString(testi.str, testi.base)
+
+			if actual.Cmp(expected) != 0 {
+				t.Errorf("Test of SetString() failed at index: %v Expected: %v, %v;",
+					" Actual: %v, %v", i, expected, eSuccess, actual, aSuccess)
+			} else {
+				pass++
+			}
 		}
 	}
-	println("SetString()", pass, "out of ", tests, "tests passed.")
+	println("SetString()", pass, "out of", tests, "tests passed.")
 }
 
-/*/TestSetBytes
+//TestSetBytes
 func TestSetBytes(t *testing.T) {
-
-	var buf []byte
-
-	expected := nilInt()
-
-	nint := NewInt(42)
-
-	actual := nint.SetBytes(buf)
-
-	if actual != expected {
-		t.Errorf("Test of SetBytes failed, expected: '%v', got: '%v'",
-			actual, expected)
+	expected := []*Int{
+		NewInt(42),
+		NewInt(6553522),
+		//*NewInt(867530918239450598372829049587), TODO: When text parsing impl
+		NewInt(42)}
+	testBytes := [][]byte{
+		{0x2A},             // 42
+		{0x63, 0xFF, 0xB2}, // 6553522
+		// { 0xA, 0xF3, 0x24, 0xC1, 0xA0, 0xAD, 0x87, 0x20,
+		//   0x57, 0xCE, 0xF4, 0x32, 0xF3 }, //"867530918239450598372829049587",
+		{0x2A}} // TODO: Should be <nil>, not 42
+	tests := len(expected)
+	pass := 0
+	actual := NewInt(0)
+	for i, testi := range testBytes {
+		actual = actual.SetBytes(testi)
+		if actual.Cmp(expected[i]) != 0 {
+			t.Errorf("Test of SetBytes failed at index %v, expected: '%v', "+
+				"actual: %v", i, expected[i].Text(10), actual.Text(10))
+		} else {
+			pass++
+		}
 	}
-
+	println("SetBytes()", pass, "out of", tests, "tests passed.")
 }
-*/
 
-//!!!TestInt64!!!
 //TestInt64 checks if Int64 creates an Int with the same value as the passed Int64
 func TestInt64(t *testing.T) {
 	tests := 1
-
 	pass := 0
 
 	expected := int64(42)
-
 	actual := NewInt(int64(42)).Int64()
 
 	if actual != expected {
@@ -135,7 +160,49 @@ func TestInt64(t *testing.T) {
 	println("Int64()", pass, "out of", tests, "tests passed.")
 }
 
-//!!!TestIsInt64!!!
+//TestIsInt64
+func TestIsInt64(t *testing.T) {
+	testInts := []*Int{
+		NewInt(0),
+		NewInt(1000000),
+		NewInt(9223372036854775807),
+		NewInt(0), // int64 overflow test below
+		NewInt(-1),
+		NewInt(-9223372036854775808),
+		NewInt(0), // int64 overflow test below
+	}
+	//int64 overflow tests
+	success := false
+	testInts[3], success = testInts[3].SetString("9223372036854775808", 10)
+	if success == false {
+		println("FAILED")
+	}
+	testInts[6], success = testInts[6].SetString("-9223372036854775809", 10)
+	if success == false {
+		println("FAILED")
+	}
+	expected := []bool{
+		true,
+		true,
+		true,
+		false,
+		true,
+		true,
+		false,
+	}
+	tests := len(testInts)
+	pass := 0
+	for i, testi := range testInts {
+		actual := testi.IsInt64()
+		if actual != expected[i] {
+			t.Errorf("Test of IsInt64 failed at index %v, expected: '%v', "+
+				"actual: %v", i, expected[i], actual)
+		} else {
+			pass++
+		}
+	}
+	println("IsInt64()", pass, "out of", tests, "tests passed.")
+}
 
 //TestMod checks if the Mod operation returns the correct result
 func TestMod(t *testing.T) {
@@ -546,7 +613,7 @@ func TestBitLen(t *testing.T) {
 		NewInt(0),
 		NewInt(-42)}
 
-	testints[2].SetString("867530918239450598372829049587", 10)
+	testints[2], _ = testints[2].SetString("867530918239450598372829049587", 10)
 
 	tests := len(testints)
 	pass := 0
@@ -566,9 +633,7 @@ func TestBitLen(t *testing.T) {
 			pass++
 		}
 	}
-
 	println("BitLen()", pass, "out of", tests, "tests passed.")
-
 }
 
 //TestCmp checks if the Cmp placeholder exists
@@ -675,5 +740,29 @@ func TestBigInt(t *testing.T) {
 	println("bigInt()", pass, "out of", tests, "tests passed.")
 
 }
+/*
+//TestNilInt
+func TestNilInt(t *testing.T) {
+	pass, tests := 0, 0
+	actual := nilInt()
 
-///!!!TestNilInt!!!
+	// test that value is nil
+	tests += 1
+	if actual != nil {
+		t.Errorf("Test of nilInt() failed. Expected nil value, actual:",
+			actual)
+	} else {
+		pass += 1
+	}
+
+	// test that type is *Int
+	tests += 1
+	c := NewInt(0)
+	if reflect.TypeOf(c) != reflect.TypeOf(actual) {
+		t.Errorf("Test of nilInt() failed. Expected *Int type, actual:",
+			reflect.TypeOf(actual))
+	} else {
+		pass += 1
+	}
+	println("nilInt()", pass, "out of", tests, "tests passed.")
+}*/
