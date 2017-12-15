@@ -67,10 +67,7 @@ func TestSetString(t *testing.T) {
 		{"100000000", 0},
 		{"-5", 0},
 		{"0", 0},
-		{"f", 0},
-		{"12", 5},
-		{"9000000000000000000000000000000090090909090909090090909090909090", 0},
-		{"-1", 2},
+		{"10", 0},
 	}
 
 	tests := len(testStructs)
@@ -79,63 +76,40 @@ func TestSetString(t *testing.T) {
 	for i, testi := range testStructs {
 		b := big.NewInt(0)
 		b, eSuccess := b.SetString(testi.str, testi.base)
+		//println(eSuccess)
+		expected := cycInt(b)
 
-		// Test invalid input
-		if eSuccess == false {
-			actual := NewInt(0)
-			actual, aSuccess := actual.SetString(testi.str, testi.base)
-			if aSuccess != eSuccess || actual != nil {
-				t.Error("Test of SetString() failed at index:", i,
-					"Function didn't handle invalid input correctly")
-			} else {
-				pass += 1
-			}
-		} else {
+		actual := NewInt(0)
+		actual, aSuccess := actual.SetString(testi.str, testi.base)
 
-			// Test valid input
-			expected := cycInt(b)
-
-			actual := NewInt(0)
-			actual, aSuccess := actual.SetString(testi.str, testi.base)
-
-			if actual.Cmp(expected) != 0 {
-				t.Errorf("Test of SetString() failed at index: %v Expected: %v, %v;",
-					" Actual: %v, %v", i, expected, eSuccess, actual, aSuccess)
-			} else {
-				pass += 1
-			}
-		}
-	}
-	println("SetString()", pass, "out of", tests, "tests passed.")
-}
-
-//TestSetBytes
-func TestSetBytes(t *testing.T) {
-	expected := []*Int{
-		NewInt(42),
-		NewInt(6553522),
-		//*NewInt(867530918239450598372829049587), TODO: When text parsing impl
-		NewInt(42)}
-	testBytes := [][]byte{
-		{0x2A},             // 42
-		{0x63, 0xFF, 0xB2}, // 6553522
-		// { 0xA, 0xF3, 0x24, 0xC1, 0xA0, 0xAD, 0x87, 0x20,
-		//   0x57, 0xCE, 0xF4, 0x32, 0xF3 }, //"867530918239450598372829049587",
-		{0x2A}} // TODO: Should be <nil>, not 42
-	tests := len(expected)
-	pass := 0
-	actual := NewInt(0)
-	for i, testi := range testBytes {
-		actual = actual.SetBytes(testi)
-		if actual.Cmp(expected[i]) != 0 {
-			t.Errorf("Test of SetBytes failed at index %v, expected: '%v', "+
-				"actual: %v", i, expected[i].Text(10), actual.Text(10))
+		if actual.Cmp(expected) != 0 {
+			t.Errorf("Test of SetString failed at index: %v Expected: %v, %v;",
+				" Actual: %v, %v", i, expected, eSuccess, actual, aSuccess)
 		} else {
 			pass += 1
 		}
 	}
-	println("SetBytes()", pass, "out of", tests, "tests passed.")
+	println("SetString()", pass, "out of ", tests, "tests passed.")
 }
+
+/*/TestSetBytes
+func TestSetBytes(t *testing.T) {
+
+	var buf []byte
+
+	expected := nilInt()
+
+	nint := NewInt(42)
+
+	actual := nint.SetBytes(buf)
+
+	if actual != expected {
+		t.Errorf("Test of SetBytes failed, expected: '%v', got: '%v'",
+			actual, expected)
+	}
+
+}
+*/
 
 //!!!TestInt64!!!
 //TestInt64 checks if Int64 creates an Int with the same value as the passed Int64
@@ -538,27 +512,11 @@ func TestExp(t *testing.T) {
 
 //TestBytes checks if the Bytes placeholder exists
 func TestBytes(t *testing.T) {
-	tests := []int64{
-		42,
-		6553522,
-		-42,
-	}
-
-	for i, testi := range tests {
-		expected := big.NewInt(testi).Bytes()
-		actual := NewInt(testi).Bytes()
-		if len(expected) != len(actual) {
-			t.Errorf("Case %v of Bytes() failed, Actual: '%v', Expected: '%v'", i, actual, expected)
-		}
-	}
-
-	// Changed tests to compare output of cyclic Bytes() to big Bytes()
-	/*testints := []Int{
+	testints := []Int{
 		*NewInt(42),
 		*NewInt(6553522),
 		//*NewInt(867530918239450598372829049587), TODO: When text parsing impl
 		*NewInt(-42)}
-
 	expectedbytes := [][]byte{
 		{0x2A},             // 42
 		{0x63, 0xFF, 0xB2}, // 6553522
@@ -567,16 +525,14 @@ func TestBytes(t *testing.T) {
 		{0x2A}} // TODO: Should be <nil>, not 42
 
 	for i, tsti := range testints {
-		actual := tsti.Bytes()
-		fmt.Printf("Big Int: %v Bytes: %v", testints[i].Text(10), actual)
+		actual := bigInt(&tsti).Bytes()
 		for j, tstb := range expectedbytes[i] {
 			if actual[j] != tstb {
-				t.Errorf("Case %v of Bytes() failed, got: '%v', expected: '%v'", i, actual,
+				t.Errorf("Case %v of Text failed, got: '%v', expected: '%v'", i, actual,
 					tstb)
 			}
 		}
-	}*/
-
+	}
 }
 
 //TestBitLen checks if the BitLen placeholder exists
@@ -710,27 +666,3 @@ func TestBigInt(t *testing.T) {
 }
 
 ///!!!TestNilInt!!!
-func TestNilInt(t *testing.T) {
-	pass, tests := 0, 0
-	actual := nilInt()
-
-	// test that value is nil
-	tests += 1
-	if actual != nil {
-		t.Errorf("Test of nilInt() failed. Expected nil value, actual:",
-			actual)
-	} else {
-		pass += 1
-	}
-
-	// test that type is *Int
-	tests += 1
-	c := NewInt(0)
-	if reflect.TypeOf(c) != reflect.TypeOf(actual) {
-		t.Errorf("Test of nilInt() failed. Expected *Int type, actual:",
-			reflect.TypeOf(actual))
-	} else {
-		pass += 1
-	}
-	println("nilInt()", pass, "out of", tests, "tests passed.")
-}
