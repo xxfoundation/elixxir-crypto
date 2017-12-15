@@ -140,4 +140,13 @@ func bigInt(n *Int) *big.Int {
 	return b
 }
 
-//
+// cycInt converts the given big Int to a cyc Int and returns it's pointer
+func cycInt(n *big.Int) *Int {
+	c := Int(*n)
+	return &c
+}
+
+// nilInt returns a cyclic Int which is nil
+func nilInt() *Int {
+	return nil
+}
