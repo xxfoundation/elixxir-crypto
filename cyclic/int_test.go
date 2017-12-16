@@ -68,7 +68,7 @@ func TestSetString(t *testing.T) {
 		{"-5", 0},
 		{"0", 0},
 		{"f", 0},
-		{"12", 5},
+		{"182", 5},
 		{"9000000000000000000000000000000090090909090909090090909090909090", 0},
 		{"-1", 2},
 	}
@@ -76,14 +76,9 @@ func TestSetString(t *testing.T) {
 	tests := len(testStructs)
 	pass := 0
 
-	expected := NewInt(0)
-
 	for i, testi := range testStructs {
 		b := big.NewInt(0)
 		b, eSuccess := b.SetString(testi.str, testi.base)
-		//println(eSuccess)
-
-		expected.SetBigInt(b)
 
 		// Test invalid input
 		if eSuccess == false {
@@ -110,6 +105,7 @@ func TestSetString(t *testing.T) {
 				pass++
 			}
 		}
+		println("Index: ", i, "passed")
 	}
 	println("SetString()", pass, "out of", tests, "tests passed.")
 }
@@ -740,6 +736,7 @@ func TestBigInt(t *testing.T) {
 	println("bigInt()", pass, "out of", tests, "tests passed.")
 
 }
+
 /*
 //TestNilInt
 func TestNilInt(t *testing.T) {

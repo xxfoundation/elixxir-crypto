@@ -28,6 +28,9 @@ func (z *Int) Set(x *Int) *Int {
 func (c *Int) SetString(s string, x int) (*Int, bool) {
 	var b bool
 	_, b = c.value.SetString(s, x)
+	if b == false {
+		return nil, false
+	}
 	return c, b
 }
 
@@ -142,8 +145,9 @@ func bigInt(n *Int) *big.Int {
 
 // cycInt converts the given big Int to a cyc Int and returns it's pointer
 func cycInt(n *big.Int) *Int {
-	c := Int(*n)
-	return &c
+	c := new(Int)
+	c.value = n
+	return c
 }
 
 // nilInt returns a cyclic Int which is nil
