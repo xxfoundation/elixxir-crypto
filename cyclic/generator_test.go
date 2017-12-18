@@ -4,6 +4,7 @@ import (
 	"testing"
 )
 
+// Tests Rand function using 4000 bit Int as max and 2 as min
 func TestRand(t *testing.T) {
 	max := NewInt(0)
 	max.SetString("oi2n40g27kmjfdkkn332lg1eep4ji585egipan1ap1l70jbk008ib5k"+
@@ -20,7 +21,7 @@ func TestRand(t *testing.T) {
 		"h7i4ef1gjc9pheb5ehng5pa76pp36a19fpp81499dodgm0c876325ff1ifm7olkm200m"+
 		"h1doag6kpbl3p789fk2d71d4oah319h9k10498ipfo71gjofb603ag", 26)
 	min := NewInt(2)
-	gen := NewGen(max)
+	gen := NewGen(NewInt(2), max)
 	rand := NewInt(0)
 	tests := 10000
 	pass := 0

@@ -14,12 +14,6 @@ type Group struct {
 	g     Gen
 }
 
-// Dummy Gen structure definition
-type Gen struct {
-	//	min *Int
-	max *Int
-}
-
 // NewGroup returns a group with the given prime, seed, and generator
 func NewGroup(p *Int, gen Gen) *Group {
 	err := errors.New("Unimplemented function: Group.NewGroup recieved " +
