@@ -105,7 +105,7 @@ func TestSetString(t *testing.T) {
 				pass++
 			}
 		}
-		println("Index: ", i, "passed")
+		//println("Index: ", i, "passed")
 	}
 	println("SetString()", pass, "out of", tests, "tests passed.")
 }
@@ -115,14 +115,14 @@ func TestSetBytes(t *testing.T) {
 	expected := []*Int{
 		NewInt(42),
 		NewInt(6553522),
-		//*NewInt(867530918239450598372829049587), TODO: When text parsing impl
-		NewInt(42)}
+		//NewInt(867530918239450598372829049587), TODO: When text parsing impl
+		NewInt(0)}
 	testBytes := [][]byte{
 		{0x2A},             // 42
 		{0x63, 0xFF, 0xB2}, // 6553522
 		// { 0xA, 0xF3, 0x24, 0xC1, 0xA0, 0xAD, 0x87, 0x20,
 		//   0x57, 0xCE, 0xF4, 0x32, 0xF3 }, //"867530918239450598372829049587",
-		{0x2A}} // TODO: Should be <nil>, not 42
+		{0x00}} // TODO: Should be <nil>, not 42
 	tests := len(expected)
 	pass := 0
 	actual := NewInt(0)
@@ -322,30 +322,47 @@ func TestModInverse(t *testing.T) {
 			t.Errorf("Test of ModInverse() failed at index: %v Expected: %v, %v; Actual: %v, %v",
 				i, expected, int1.Text(10), result, remultiply.Text(10))
 		} else {
-			pass += 1
+			pass++
 		}
 	}
 	println("ModInverse()", pass, "out of", tests, "tests passed.")
 
 }
 
-//TestAdd checks if the Add placeholder exists
+//TestAdd checks if the Add function returns correct results
 func TestAdd(t *testing.T) {
-
-	var actual, expected int64
-	var xint, yint, zint *Int
-
-	xint = NewInt(42)
-	yint = NewInt(69)
-	zint = NewInt(30)
-
-	expected = 111
-	actual = zint.Add(xint, yint).Int64()
-
-	if actual != expected {
-		t.Errorf("Test of Add failed, expected: '%v', got:  '%v'", actual, expected)
+	type testStructure struct {
+		xint *Int
+		yint *Int
+		zint *Int
+	}
+	testCases := []testStructure{
+		{NewInt(42), NewInt(69), NewInt(30)},
+		{NewInt(0), NewInt(69), NewInt(0)},
+		{NewInt(-50), NewInt(69), NewInt(10000)},
+		{NewInt(9223372036854775807), NewInt(10), NewInt(30)},
 	}
 
+	expected := []*Int{
+		NewInt(111),
+		NewInt(69),
+		NewInt(19),
+		NewInt(0),
+	}
+
+	expected[3].SetString("9223372036854775817", 10)
+	tests := len(testCases)
+	pass := 0
+	for i, testi := range testCases {
+		actual := testi.zint.Add(testi.xint, testi.yint)
+		if actual.Cmp(expected[i]) != 0 {
+			t.Errorf("Test of Add() failed at index: %v Expected: %v, %v; Actual: %v, %v",
+				i, expected[i].Text(10), actual.Text(10))
+		} else {
+			pass++
+		}
+	}
+	println("Add()", pass, "out of", tests, "tests passed.")
 }
 
 //TestSub checks if the Sub function returns the correct result
@@ -417,22 +434,41 @@ func TestSub(t *testing.T) {
 
 }
 
-//TestMul checks if the Mod placeholder exists
-/*func TestMul(t *testing.T) {
-
-	expected := nilInt()
-
-	xint := NewInt(42)
-	yint := NewInt(69)
-	zint := NewInt(30)
-
-	actual := zint.Mul(xint, yint)
-
-	if actual != expected {
-		t.Errorf("Test of Mul failed, expected: '%v', got:  '%v'", actual, expected)
+//TestAdd checks if the Mul function returns correct results
+func TestMul(t *testing.T) {
+	type testStructure struct {
+		xint *Int
+		yint *Int
+		zint *Int
+	}
+	testCases := []testStructure{
+		{NewInt(42), NewInt(69), NewInt(30)},
+		{NewInt(0), NewInt(69), NewInt(0)},
+		{NewInt(-50), NewInt(69), NewInt(10000)},
+		{NewInt(9223372036854775807), NewInt(10), NewInt(30)},
 	}
 
-}*/
+	expected := []*Int{
+		NewInt(2898),
+		NewInt(0),
+		NewInt(-3450),
+		NewInt(0),
+	}
+
+	expected[3].SetString("92233720368547758070", 10)
+	tests := len(testCases)
+	pass := 0
+	for i, testi := range testCases {
+		actual := testi.zint.Mul(testi.xint, testi.yint)
+		if actual.Cmp(expected[i]) != 0 {
+			t.Errorf("Test of Mul() failed at index: %v Expected: %v, %v; Actual: %v, %v",
+				i, expected[i].Text(10), actual.Text(10))
+		} else {
+			pass++
+		}
+	}
+	println("Mul()", pass, "out of", tests, "tests passed.")
+}
 
 //TestDiv checks if the Sub function returns the correct result
 func TestDiv(t *testing.T) {
@@ -589,7 +625,8 @@ func TestBytes(t *testing.T) {
 		// { 0xA, 0xF3, 0x24, 0xC1, 0xA0, 0xAD, 0x87, 0x20,
 		//   0x57, 0xCE, 0xF4, 0x32, 0xF3 }, //"867530918239450598372829049587",
 		{0x2A}} // TODO: Should be <nil>, not 42
-
+	tests := len(testints)
+	pass := 0
 	for i, tsti := range testints {
 		actual := bigInt(&tsti).Bytes()
 		for j, tstb := range expectedbytes[i] {
@@ -598,7 +635,9 @@ func TestBytes(t *testing.T) {
 					tstb)
 			}
 		}
+		pass++
 	}
+	println("Bytes()", pass, "out of", tests, "tests passed.")
 }
 
 //TestBitLen checks if the BitLen placeholder exists
@@ -705,15 +744,19 @@ func TestText(t *testing.T) {
 		"6553522",
 		//"867530918239450598372829049587",
 		"-42"} // TODO: Should be <nil>, not -42
-
+	tests := len(testints)
+	pass := 0
 	for i, tsti := range testints {
 		actual := tsti.Text(10)
 		expected := expectedstrs[i]
 		if actual != expected {
 			t.Errorf("Test of Text failed, got: '%v', expected: '%v'", actual,
 				expected)
+		} else {
+			pass++
 		}
 	}
+	println("Text()", pass, "out of", tests, "tests passed.")
 }
 
 //TestBigInt checks if the function GetBigInt returns a big.Int
