@@ -1,8 +1,10 @@
 package cyclic
 
+/*
 import (
 	"testing"
 )
+
 
 func TestNewGroup(t *testing.T) {
 	expected := nilGroup()
@@ -143,3 +145,4 @@ func TestRoot(t *testing.T) {
 			expected, actual)
 	}
 }
+*/
