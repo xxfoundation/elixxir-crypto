@@ -1,6 +1,7 @@
 package cyclic
 
-import(
+import (
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"reflect"
@@ -10,19 +11,20 @@ import(
 // a finite field under modulo p
 type Group struct {
 	prime Int
-	seed Int
-	g Gen
+	seed  Int
+	g     Gen
 }
 
 // Dummy Gen structure definition
 type Gen struct {
-	blah Int
+	//	min *Int
+	max *Int
 }
 
 // NewGroup returns a group with the given prime, seed, and generator
 func NewGroup(p *Int, gen Gen) *Group {
 	err := errors.New("Unimplemented function: Group.NewGroup recieved " +
-		reflect.TypeOf(p).String() + " " + reflect.TypeOf(gen).String()  + "\n")
+		reflect.TypeOf(p).String() + " " + reflect.TypeOf(gen).String() + "\n")
 
 	if err != nil {
 		fmt.Print(err)
@@ -31,10 +33,9 @@ func NewGroup(p *Int, gen Gen) *Group {
 	return nil
 }
 
-
 // Mul multiplies a and b within the group, putting the result in c
 // and returning c
-func (g Group) Mul(a, b, c *Int) (*Int) {
+func (g Group) Mul(a, b, c *Int) *Int {
 	err := errors.New("Unimplemented function: Group.Mul recieved " +
 		reflect.TypeOf(a).String() + " " + reflect.TypeOf(b).String() +
 		reflect.TypeOf(c).String() + "\n")
@@ -46,9 +47,8 @@ func (g Group) Mul(a, b, c *Int) (*Int) {
 	return nil
 }
 
-
 // Inside returns true of the Int is within the group, false if it isn't
-func (g Group) Inside(a *Int)(bool) {
+func (g Group) Inside(a *Int) bool {
 	err := errors.New("Unimplemented function: Group.Inside recieved " +
 		reflect.TypeOf(a).String() + "\n")
 
@@ -60,7 +60,7 @@ func (g Group) Inside(a *Int)(bool) {
 }
 
 // Inverse sets b equal to the inverse of a within the group and returns b
-func (g Group) Inverse(a, b *Int) (*Int) {
+func (g Group) Inverse(a, b *Int) *Int {
 	err := errors.New("Unimplemented function: Group.Inverse recieved " +
 		reflect.TypeOf(a).String() + " " + reflect.TypeOf(b).String() + "\n")
 
@@ -73,7 +73,7 @@ func (g Group) Inverse(a, b *Int) (*Int) {
 
 // SetSeed sets a seed for use in random number generation
 func (g Group) SetSeed(k *Int) {
-		err := errors.New("Unimplemented function: Group.SetK recieved " +
+	err := errors.New("Unimplemented function: Group.SetK recieved " +
 		reflect.TypeOf(k).String() + "\n")
 
 	if err != nil {
@@ -84,7 +84,7 @@ func (g Group) SetSeed(k *Int) {
 
 // Gen securely generates a random number within the group and sets r
 // equal to it.
-func (g Group) Gen(r *Int) (*Int) {
+func (g Group) Gen(r *Int) *Int {
 	err := errors.New("Unimplemented function: Group.Gen recieved " +
 		reflect.TypeOf(r).String() + "\n")
 
@@ -96,7 +96,7 @@ func (g Group) Gen(r *Int) (*Int) {
 }
 
 // GetP sets the passed Int equal to p
-func (g Group) GetP(p *Int) (*Int) {
+func (g Group) GetP(p *Int) *Int {
 	err := errors.New("Unimplemented function: Group.GetP recieved " +
 		reflect.TypeOf(p).String() + "\n")
 
@@ -109,7 +109,7 @@ func (g Group) GetP(p *Int) (*Int) {
 
 // GroupMul Multiplies all ints in the passed slice slc together and
 // places the result in c
-func (g Group) GroupMul(slc []*Int, c *Int) (*Int) {
+func (g Group) GroupMul(slc []*Int, c *Int) *Int {
 	err := errors.New("Unimplemented function: Group.GroupMul recieved " +
 		reflect.TypeOf(slc).String() + " " + reflect.TypeOf(c).String() + "\n")
 
@@ -144,6 +144,26 @@ func (g Group) Root(x, y, z *Int) *Int {
 	}
 
 	return nil
+}
+
+func NewGen(max *Int) Gen {
+	gen := Gen{max}
+	return gen
+}
+
+func (gen Gen) Rand(x *Int) *Int {
+	ran, err := rand.Int(rand.Reader, gen.max.value)
+	if err != nil {
+		return nil
+	}
+	x.value = ran
+	if x.IsInt64() {
+		xint := x.Int64()
+		if xint < 2 {
+			x = NewInt(2)
+		}
+	}
+	return x
 }
 
 //nilGroup returns a nil group
