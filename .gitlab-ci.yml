@@ -11,7 +11,7 @@ variables:
   REPO_NAME: crypto
 
 before_script:
-  - go version
+  - go version || echo "Go executable not found."
   - echo $CI_BUILD_REF
   - echo $CI_PROJECT_DIR
   - mkdir -p $GOPATH/src/$REPO_DIR
