@@ -6,6 +6,19 @@ cache:
   paths:
     - vendor/
 
+variables:
+  REPO_DIR: gitlab.com/privategrity
+  REPO_NAME: crypto
+
+before_script:
+  - go version
+  - echo $CI_BUILD_REF
+  - echo $CI_PROJECT_DIR
+  - mkdir -p $GOPATH/src/$REPO_DIR
+  - ln -s $CI_PROJECT_DIR $GOPATH/src/$REPO_DIR/$REPO_NAME
+  - cd $GOPATH/src/$REPO_DIR/$REPO_NAME
+  - echo $PWD
+
 stages:
   - setup
   - test
