@@ -1,2 +1,5 @@
 package: .
 import:
+- package: golang.org/x/crypto
+  subpackages:
+  - blake2b
