@@ -73,12 +73,14 @@ func TestInside(t *testing.T) {
 	group := NewGroup(p, s, gen)
 	expected := []bool{
 		false,
+		true,
 		false,
 		false,
 		true,
 	}
 	actual := []bool{
 		group.Inside(NewInt(0)),
+		group.Inside(NewInt(1)),
 		group.Inside(NewInt(17)),
 		group.Inside(NewInt(18)),
 		group.Inside(NewInt(12)),
@@ -103,12 +105,12 @@ func TestInverse(t *testing.T) {
 	max := NewInt(1000)
 	gen := NewGen(min, max)
 	group := NewGroup(p, s, gen)
-	x := NewInt(13)
-	a := NewInt(10)
+	x := NewInt(13) //message
+	a := NewInt(10) //encryption key
 	inv := NewInt(0)
-	inv = group.Inverse(a, inv)
-	a = group.Mul(x, a, a)
-	c := group.Mul(inv, a, NewInt(0))
+	inv = group.Inverse(a, inv)       //decryption key
+	a = group.Mul(x, a, a)            // encrypted message
+	c := group.Mul(inv, a, NewInt(0)) //decrypted message (x)
 
 	tests := 1
 	pass := 0
@@ -122,49 +124,82 @@ func TestInverse(t *testing.T) {
 	println("Inverse()", pass, "out of", tests, "tests passed.")
 }
 
-/*
 func TestSetSeed(t *testing.T) {
-	expected := NewInt(0)
-	gen := Gen{blah: *NewInt(0)}
-	g := Group{prime: *NewInt(0), seed: *expected, g: gen}
-	a := NewInt(42)
-	g.SetSeed(a)
-
-	var actual *Int
-	actual = &(g.seed)
-
-	if actual == expected {
-		t.Errorf("TestSetK failed, expected: '%v', got: '%v'",
-			expected, actual)
+	p := NewInt(17)
+	s := NewInt(15)
+	min := NewInt(2)
+	max := NewInt(1000)
+	gen := NewGen(min, max)
+	group := NewGroup(p, s, gen)
+	expected := NewInt(10)
+	group.SetSeed(expected)
+	pass := 0
+	tests := 1
+	if group.seed.Cmp(expected) != 0 {
+		t.Errorf("SetSeed() failed, expected: '%v', got: '%v'",
+			expected.Text(10), group.seed.Text(10))
+	} else {
+		pass++
 	}
+	println("SetSeed()", pass, "out of", tests, "tests passed.")
 }
 
 func TestGen(t *testing.T) {
-	expected := nilInt()
-	gen := Gen{blah: *NewInt(0)}
-	g := Group{prime: *NewInt(0), seed: *NewInt(0), g: gen}
-	a := NewInt(42)
-	actual := g.Gen(a)
+	// setup test group and generator
+	p := NewInt(17)
+	s := NewInt(15)
+	min := NewInt(2)
+	max := NewInt(1000)
+	gen := NewGen(min, max)
+	group := NewGroup(p, s, gen)
 
-	if actual != expected {
-		t.Errorf("TestGen failed, expected: '%v', got: '%v'",
-			expected, actual)
+	// setup array to keep track of frequency of random values
+	r := NewInt(0)
+	rand := make([]int, int(p.Int64()))
+
+	// how many tests and the threshold max to be sufficientyly random
+	tests := 30
+	pass := 0
+	thresh := 0.3
+
+	// generate randoms
+	for i := 0; i < tests; i++ {
+		rand[int(group.Gen(r).Int64())]++
 	}
+
+	// check that frequency doesn't exceed threshold
+	for i := 0; i < len(rand); i++ {
+		if float64(rand[i])/float64(tests) > thresh {
+			t.Errorf("TestGen() failed, insufficiently random, value: %v"+
+				" occured: %v out of %v tests", i, rand[i], tests)
+		} else {
+			pass = pass + rand[i]
+		}
+	}
+	println("Gen()", pass, "out of", tests, "tests passed.")
 }
 
 func TestGetP(t *testing.T) {
-	expected := nilInt()
-	gen := Gen{blah: *NewInt(0)}
-	g := Group{prime: *NewInt(0), seed: *NewInt(0), g: gen}
-	a := NewInt(42)
-	actual := g.GetP(a)
-
-	if actual != expected {
+	// setup test group and generator
+	p := NewInt(17)
+	s := NewInt(15)
+	min := NewInt(2)
+	max := NewInt(1000)
+	gen := NewGen(min, max)
+	group := NewGroup(p, s, gen)
+	actual := group.GetP(NewInt(0))
+	tests := 1
+	pass := 0
+	if actual.Cmp(p) != 0 {
 		t.Errorf("TestGetP failed, expected: '%v', got: '%v'",
-			expected, actual)
+			p.Text(10), actual.Text(10))
+	} else {
+		pass++
 	}
+	println("GetP()", pass, "out of", tests, "tests passed.")
 }
 
+/*
 func TestGroupMul(t *testing.T) {
 	expected := nilInt()
 	gen := Gen{blah: *NewInt(0)}

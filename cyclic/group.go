@@ -9,25 +9,28 @@ import (
 // Groups provide cyclic int operations that keep the return values confined to
 // a finite field under modulo p
 type Group struct {
-	prime *Int
-	seed  *Int
-	g     Gen
+	prime  *Int
+	psub1  *Int
+	seed   *Int
+	random *Int
+	one    *Int
+	g      Gen
 }
 
 // NewGroup returns a group with the given prime, seed, and generator
 func NewGroup(p *Int, s *Int, g Gen) Group {
-	return Group{p, s, g}
+	return Group{p, NewInt(0).Sub(p, NewInt(1)), s, NewInt(0), NewInt(1), g}
 }
 
 // Mul multiplies a and b within the group, putting the result in c
 // and returning c
-func (g Group) Mul(a, b, c *Int) *Int {
+func (g *Group) Mul(a, b, c *Int) *Int {
 	return c.Mod((c.Mul(a, b)), g.prime)
 }
 
 // Inside returns true of the Int is within the group, false if it isn't
-func (g Group) Inside(a *Int) bool {
-	if a.Cmp(NewInt(0)) != 1 || a.Cmp(g.prime) != -1 {
+func (g *Group) Inside(a *Int) bool {
+	if a.Cmp(g.one) == -1 || a.Cmp(g.prime) != -1 {
 		return false
 	} else {
 		return true
@@ -35,44 +38,29 @@ func (g Group) Inside(a *Int) bool {
 }
 
 // Inverse sets b equal to the inverse of a within the group and returns b
-func (g Group) Inverse(a, b *Int) *Int {
+func (g *Group) Inverse(a, b *Int) *Int {
 	return b.ModInverse(a, g.prime)
 }
 
 // SetSeed sets a seed for use in random number generation
-func (g Group) SetSeed(k *Int) {
-	err := errors.New("Unimplemented function: Group.SetK recieved " +
-		reflect.TypeOf(k).String() + "\n")
-
-	if err != nil {
-		fmt.Print(err)
-	}
-
+func (g *Group) SetSeed(k *Int) {
+	g.seed = k
 }
 
 // Gen securely generates a random number within the group and sets r
 // equal to it.
-func (g Group) Gen(r *Int) *Int {
-	err := errors.New("Unimplemented function: Group.Gen recieved " +
-		reflect.TypeOf(r).String() + "\n")
-
-	if err != nil {
-		fmt.Print(err)
-	}
-
-	return nil
+func (g *Group) Gen(r *Int) *Int {
+	r = r.Add(g.seed, g.g.Rand(g.random))
+	r = r.Mod(r, g.psub1)
+	r = r.Add(r, g.one)
+	//println("rand: ", r.Text(10))
+	return r
 }
 
 // GetP sets the passed Int equal to p
-func (g Group) GetP(p *Int) *Int {
-	err := errors.New("Unimplemented function: Group.GetP recieved " +
-		reflect.TypeOf(p).String() + "\n")
-
-	if err != nil {
-		fmt.Print(err)
-	}
-
-	return nil
+func (g *Group) GetP(p *Int) *Int {
+	p.value = g.prime.value
+	return p
 }
 
 // GroupMul Multiplies all ints in the passed slice slc together and
