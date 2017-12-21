@@ -65,28 +65,21 @@ func (g *Group) GetP(p *Int) *Int {
 
 // GroupMul Multiplies all ints in the passed slice slc together and
 // places the result in c
-func (g Group) GroupMul(slc []*Int, c *Int) *Int {
-	err := errors.New("Unimplemented function: Group.GroupMul recieved " +
-		reflect.TypeOf(slc).String() + " " + reflect.TypeOf(c).String() + "\n")
+func (g Group) ArrayMul(slc []*Int, c *Int) *Int {
 
-	if err != nil {
-		fmt.Print(err)
+	c.SetString("1", 10)
+
+	for _, islc := range slc {
+		g.Mul(c, islc, c)
 	}
 
-	return nil
+	return c
 }
 
 // Exp sets z = x**y mod p, and returns z.
 func (g Group) Exp(x, y, z *Int) *Int {
-	err := errors.New("Unimplemented function: Group.Exp recieved " +
-		reflect.TypeOf(x).String() + " " + reflect.TypeOf(y).String() +
-		reflect.TypeOf(z).String() + "\n")
 
-	if err != nil {
-		fmt.Print(err)
-	}
-
-	return nil
+	return z.Exp(x, y, g.prime)
 }
 
 // Root sets z = y√x mod p, and returns z.

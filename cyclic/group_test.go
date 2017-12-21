@@ -199,48 +199,189 @@ func TestGetP(t *testing.T) {
 	println("GetP()", pass, "out of", tests, "tests passed.")
 }
 
-/*
-func TestGroupMul(t *testing.T) {
-	expected := nilInt()
-	gen := Gen{blah: *NewInt(0)}
-	g := Group{prime: *NewInt(0), seed: *NewInt(0), g: gen}
-	slc := []*Int{NewInt(42)}
-	c := NewInt(42)
-	actual := g.GroupMul(slc, c)
+func TestArrayMul(t *testing.T) {
+	tests := 1
+	pass := 0
 
-	if actual != expected {
-		t.Errorf("TestGroupMul failed, expected: '%v', got: '%v'",
-			expected, actual)
+	p := NewInt(11)
+
+	expected := NewInt(10)
+
+	min := NewInt(2)
+	max := NewInt(0)
+	max.Mul(p, NewInt(1000))
+	seed := NewInt(42)
+	gen := NewGen(min, max)
+
+	g := NewGroup(p, seed, gen)
+
+	slc := []*Int{
+		NewInt(2),
+		NewInt(3),
+		NewInt(4),
+		NewInt(5),
 	}
+
+	c := NewInt(42)
+	actual := g.ArrayMul(slc, c)
+
+	if actual.Cmp(expected) != 0 {
+		t.Errorf("TestArrayMul failed, expected: '%v', got: '%v'",
+			expected, actual)
+	} else {
+		pass++
+	}
+
+	println("ArrayMul()", pass, "out of", tests, "tests passed.")
 }
 
 func TestExpForGroup(t *testing.T) {
-	expected := nilInt()
-	gen := Gen{blah: *NewInt(0)}
-	g := Group{prime: *NewInt(0), seed: *NewInt(0), g: gen}
-	x := NewInt(42)
-	y := NewInt(42)
-	z := NewInt(42)
-	actual := g.Exp(x, y, z)
 
-	if actual != expected {
-		t.Errorf("TestExpForGroup failed, expected: '%v', got: '%v'",
-			expected, actual)
+	p := NewInt(11)
+	min := NewInt(2)
+	max := NewInt(0)
+	max.Mul(p, NewInt(1000))
+	seed := NewInt(42)
+	gen := NewGen(min, max)
+
+	g := NewGroup(p, seed, gen)
+
+	type testStructure struct {
+		x *Int
+		y *Int
+		z *Int
 	}
+
+	testStrings := [][]string{
+		{"42", "42", "4"},
+		{"42", "69", "5"},
+		{"-69", "42", "9"},
+		{"1000000000", "9999999", "10"},
+	}
+
+	var testStructs []testStructure
+
+	var sucess bool
+
+	for i, strs := range testStrings {
+		var ts testStructure
+
+		ts.x, sucess = NewInt(0).SetString(strs[0], 10)
+
+		if sucess != true {
+			t.Errorf("Setup for Test of Exp() for Group failed at 'x' phase of index: %v", i)
+		}
+
+		ts.y, sucess = NewInt(0).SetString(strs[1], 10)
+
+		if sucess != true {
+			t.Errorf("Setup for Test of Exp() for Group failed at 'y' phase of index: %v", i)
+		}
+
+		ts.z, sucess = NewInt(0).SetString(strs[2], 10)
+
+		if sucess != true {
+			t.Errorf("Setup for Test of Exp() for Group failed at 'z' phase of index: %v", i)
+		}
+
+		testStructs = append(testStructs, ts)
+	}
+
+	tests := len(testStructs)
+	pass := 0
+
+	expected := 0
+
+	for i, testi := range testStructs {
+		actual := NewInt(0)
+		actual = g.Exp(testi.x, testi.y, actual)
+
+		result := actual.Cmp(testi.z)
+
+		if result != expected {
+			t.Errorf("Test of Exp() for Group failed at index: %v Expected: %v, %v; Actual: %v, %v",
+				i, expected, testi.z.Text(10), result, actual.Text(10))
+		} else {
+			pass += 1
+		}
+	}
+	println("Exp() for Group", pass, "out of", tests, "tests passed.")
+
 }
 
 func TestRoot(t *testing.T) {
-	expected := nilInt()
-	gen := Gen{blah: *NewInt(0)}
-	g := Group{prime: *NewInt(0), seed: *NewInt(0), g: gen}
-	x := NewInt(42)
-	y := NewInt(42)
-	z := NewInt(42)
-	actual := g.Root(x, y, z)
+	p := NewInt(11)
+	min := NewInt(2)
+	max := NewInt(0)
+	max.Mul(p, NewInt(1000))
+	seed := NewInt(42)
+	gen := NewGen(min, max)
 
-	if actual != expected {
-		t.Errorf("TestRoot failed, expected: '%v', got: '%v'",
-			expected, actual)
+	g := NewGroup(p, seed, gen)
+
+	type testStructure struct {
+		x *Int
+		y *Int
+		z *Int
 	}
+
+	testStrings := [][]string{
+		{"42", "42", "1"},
+		{"42", "69", "5"},
+		{"-69", "42", "10"},
+		{"1000000000", "9999999", "10"},
+	}
+
+	var testStructs []testStructure
+
+	var sucess bool
+
+	for i, strs := range testStrings {
+		var ts testStructure
+
+		ts.x, sucess = NewInt(0).SetString(strs[0], 10)
+
+		if sucess != true {
+			t.Errorf("Setup for Test of Root() failed at 'x' phase of index: %v", i)
+		}
+
+		ts.y, sucess = NewInt(0).SetString(strs[1], 10)
+
+		if sucess != true {
+			t.Errorf("Setup for Test of Root() failed at 'y' phase of index: %v", i)
+		}
+
+		ts.z, sucess = NewInt(0).SetString(strs[2], 10)
+
+		if sucess != true {
+			t.Errorf("Setup for Test of Root() failed at 'z' phase of index: %v", i)
+		}
+
+		testStructs = append(testStructs, ts)
+	}
+
+	tests := len(testStructs)
+	pass := 0
+
+	expected := 0
+
+	for i, testi := range testStructs {
+
+		inv := NewInt(0)
+		actual := NewInt(0)
+
+		g.Inverse(testi.y, inv)
+
+		actual = g.Exp(testi.x, inv, actual)
+
+		result := actual.Cmp(testi.z)
+
+		if result != expected {
+			t.Errorf("Test of Root() failed at index: %v Expected: %v, %v; Actual: %v, %v",
+				i, expected, testi.z.Text(10), result, actual.Text(10))
+		} else {
+			pass += 1
+		}
+	}
+	println("Root()", pass, "out of", tests, "tests passed.")
 }
-*/
