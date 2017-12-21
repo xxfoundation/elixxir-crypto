@@ -10,16 +10,17 @@ import (
 // a finite field under modulo p
 type Group struct {
 	prime  *Int
-	psub1  *Int
+	psub2  *Int
 	seed   *Int
 	random *Int
 	one    *Int
+	two    *Int
 	g      Gen
 }
 
 // NewGroup returns a group with the given prime, seed, and generator
 func NewGroup(p *Int, s *Int, g Gen) Group {
-	return Group{p, NewInt(0).Sub(p, NewInt(1)), s, NewInt(0), NewInt(1), g}
+	return Group{p, NewInt(0).Sub(p, NewInt(2)), s, NewInt(0), NewInt(1), NewInt(2), g}
 }
 
 // Mul multiplies a and b within the group, putting the result in c
@@ -51,8 +52,8 @@ func (g *Group) SetSeed(k *Int) {
 // equal to it.
 func (g *Group) Gen(r *Int) *Int {
 	r = r.Add(g.seed, g.g.Rand(g.random))
-	r = r.Mod(r, g.psub1)
-	r = r.Add(r, g.one)
+	r = r.Mod(r, g.psub2)
+	r = r.Add(r, g.two)
 	//println("rand: ", r.Text(10))
 	return r
 }

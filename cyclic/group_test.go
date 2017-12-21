@@ -158,13 +158,21 @@ func TestGen(t *testing.T) {
 	rand := make([]int, int(p.Int64()))
 
 	// how many tests and the threshold max to be sufficientyly random
-	tests := 30
+	tests := 500
 	pass := 0
 	thresh := 0.3
 
 	// generate randoms
 	for i := 0; i < tests; i++ {
 		rand[int(group.Gen(r).Int64())]++
+	}
+
+	// make sure 0 and 1 were not generated
+	if rand[0] > 0 {
+		t.Errorf("TestGen() failed, 0 is outside of the required range")
+	}
+	if rand[1] > 0 {
+		t.Errorf("TestGen() failed, 1 is outside of the required range")
 	}
 
 	// check that frequency doesn't exceed threshold
