@@ -1,11 +1,5 @@
 package cyclic
 
-import (
-	"errors"
-	"fmt"
-	"reflect"
-)
-
 // Groups provide cyclic int operations that keep the return values confined to
 // a finite field under modulo p
 type Group struct {
@@ -85,15 +79,10 @@ func (g Group) Exp(x, y, z *Int) *Int {
 
 // Root sets z = y√x mod p, and returns z.
 func (g Group) Root(x, y, z *Int) *Int {
-	err := errors.New("Unimplemented function: Group.Root recieved " +
-		reflect.TypeOf(x).String() + " " + reflect.TypeOf(y).String() +
-		reflect.TypeOf(z).String() + "\n")
+	g.Inverse(y, z)
+	g.Exp(x, z, z)
 
-	if err != nil {
-		fmt.Print(err)
-	}
-
-	return nil
+	return z
 }
 
 //nilGroup returns a nil group
