@@ -20,7 +20,7 @@ func NewGen(min, max *Int) Gen {
 }
 
 // Generates a random Int between min and max
-func (gen Gen) Rand(x *Int) *Int {
+func (gen *Gen) Rand(x *Int) *Int {
 	ran, err := rand.Int(gen.reader, gen.max.value)
 	if err != nil {
 		return nil

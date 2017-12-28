@@ -66,8 +66,8 @@ func (z *Int) Mod(x, m *Int) *Int {
 	return z
 }
 
-// ModInverse sets z to the multiplicative inverse of g in the ring
-// ℤ/nℤ and returns z. If g and n are not relatively prime, the result is
+// ModInverse sets x to the multiplicative inverse of z in the ring
+// ℤ/nℤ and returns x. If g and n are not relatively prime, the result is
 // undefined.
 func (x *Int) ModInverse(z, m *Int) *Int {
 	x.value.ModInverse(z.value, m.value)
