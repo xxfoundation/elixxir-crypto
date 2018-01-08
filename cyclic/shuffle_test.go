@@ -66,7 +66,8 @@ func TestShuffle(t *testing.T) {
 //i, d, s
 
 func circularDelta(a, b, c uint64) float64 {
-    //computes the 
+    // computes the closest distance to the new position positions int the array
+    // are a cyclic group defined by length
 	i := int64(a)
 
 	d := int64(b)
