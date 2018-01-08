@@ -43,7 +43,7 @@ func TestShuffle(t *testing.T) {
 
 		for j := uint64(0); j < batch; j++ {
 
-			newDlta := circularDelat(outInts[i][j], j, batch)
+			newDlta := circularDelta(outInts[i][j], j, batch)
 			newDlta /= halfBatch
 
 			sumDlta += newDlta
@@ -65,7 +65,7 @@ func TestShuffle(t *testing.T) {
 
 //i, d, s
 
-func circularDelat(a, b, c uint64) float64 {
+func circularDelta(a, b, c uint64) float64 {
     //computes the 
 	i := int64(a)
 
