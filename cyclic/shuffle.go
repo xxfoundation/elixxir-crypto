@@ -7,9 +7,9 @@ func Shuffle(slice *[]uint64) {
 
 	x := NewInt(1<<63 - 1)
 
-	for i := int64(0); i < int64(len(*slice)); i++ {
-		j := g.Rand(x).Int64()
-		(*slice)[j], (*slice)[i] = (*slice)[i], (*slice)[j]
+	for curPos := int64(0); curPos < int64(len(*slice)); curPos++ {
+		randPos := g.Rand(x).Int64()
+		(*slice)[randPos], (*slice)[curPos] = (*slice)[curPos], (*slice)[randPos]
 	}
 
 }
