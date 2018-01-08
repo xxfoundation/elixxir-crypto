@@ -7,6 +7,10 @@ import (
 )
 
 func TestShuffle(t *testing.T) {
+    // assuming the number system is circular, averages the movement of each
+    // shuffle.  The result should be that the average shuffle is 1/4 the 
+    // batch size.
+    // TODO: calulate false failure rate 
 
 	reps := uint64(100)
 	batch := uint64(2000)
@@ -62,7 +66,7 @@ func TestShuffle(t *testing.T) {
 //i, d, s
 
 func circularDelat(a, b, c uint64) float64 {
-
+    //computes the 
 	i := int64(a)
 
 	d := int64(b)
