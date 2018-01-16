@@ -171,7 +171,7 @@ func TestGen(t *testing.T) {
 
 	// generate randoms
 	for i := 0; i < tests; i++ {
-		rand[int(group.Gen(r).Int64())]++
+		rand[int(group.Random(r).Int64())]++
 	}
 
 	// make sure 0 and 1 were not generated

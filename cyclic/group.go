@@ -45,7 +45,7 @@ func (g *Group) SetSeed(k *Int) {
 
 // Random securely generates a random number within the group and sets r
 // equal to it.
-func (g *Group) Gen(r *Int) *Int {
+func (g *Group) Random(r *Int) *Int {
 	r = r.Add(g.seed, g.rng.Rand(g.random))
 	r = r.Mod(r, g.psub2)
 	r = r.Add(r, g.two)
