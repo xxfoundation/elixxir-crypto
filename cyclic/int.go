@@ -67,7 +67,7 @@ func (z *Int) Mod(x, m *Int) *Int {
 }
 
 // ModInverse sets x to the multiplicative inverse of z in the ring
-// ℤ/nℤ and returns x. If g and n are not relatively prime, the result is
+// ℤ/nℤ and returns x. If rng and n are not relatively prime, the result is
 // undefined.
 func (x *Int) ModInverse(z, m *Int) *Int {
 	x.value.ModInverse(z.value, m.value)
@@ -136,7 +136,7 @@ func (x *Int) Text(base int) string {
 
 // CONSTANTS
 
-// A 4128bit int, meant to be the size of post moded cyclic ints.  
+// A 4128bit int, meant to be the size of post moded cyclic ints.
 // Will probubly be made to hole this 4096 bit prime:
 //   https://tools.ietf.org/html/rfc3526#page-5
 var Max4kBitInt = []byte{
