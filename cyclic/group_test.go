@@ -164,7 +164,7 @@ func TestGen(t *testing.T) {
 
 	// generate randoms
 	for i := 0; i < tests; i++ {
-		rand[int(group.Random(r).Int64())]++
+		rand[int(group.Gen(r).Int64())]++
 	}
 
 	// make sure 0 and 1 were not generated
@@ -184,7 +184,7 @@ func TestGen(t *testing.T) {
 			pass = pass + rand[i]
 		}
 	}
-	println("Random()", pass, "out of", tests, "tests passed.")
+	println("Gen()", pass, "out of", tests, "tests passed.")
 }
 
 func TestGetP(t *testing.T) {
