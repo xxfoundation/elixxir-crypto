@@ -11,13 +11,13 @@ func TestNewGroup(t *testing.T) {
 	min := NewInt(2)
 	max := NewInt(0)
 	max.Mul(p, NewInt(1000))
-	g := NewGen(min, max)
+	g := NewRandom(min, max)
 	actual := NewGroup(p, s, g)
 
 	type testStruct struct {
 		prime *Int
 		seed  *Int
-		g     Gen
+		g     Random
 	}
 	expected := testStruct{p, s, g}
 	tests := 1
@@ -39,7 +39,7 @@ func TestMulForGroup(t *testing.T) {
 	s := NewInt(15)
 	min := NewInt(2)
 	max := NewInt(1000)
-	gen := NewGen(min, max)
+	gen := NewRandom(min, max)
 	group := NewGroup(p, s, gen)
 
 	actual := []*Int{
@@ -69,7 +69,7 @@ func TestInside(t *testing.T) {
 	s := NewInt(15)
 	min := NewInt(2)
 	max := NewInt(1000)
-	gen := NewGen(min, max)
+	gen := NewRandom(min, max)
 	group := NewGroup(p, s, gen)
 	expected := []bool{
 		false,
@@ -103,7 +103,7 @@ func TestInverse(t *testing.T) {
 	s := NewInt(15)
 	min := NewInt(2)
 	max := NewInt(1000)
-	gen := NewGen(min, max)
+	gen := NewRandom(min, max)
 	group := NewGroup(p, s, gen)
 	x := NewInt(13) //message
 	a := NewInt(10) //encryption key
@@ -129,7 +129,7 @@ func TestSetSeed(t *testing.T) {
 	s := NewInt(15)
 	min := NewInt(2)
 	max := NewInt(1000)
-	gen := NewGen(min, max)
+	gen := NewRandom(min, max)
 	group := NewGroup(p, s, gen)
 	expected := NewInt(10)
 	group.SetSeed(expected)
@@ -150,7 +150,7 @@ func TestGen(t *testing.T) {
 	s := NewInt(15)
 	min := NewInt(2)
 	max := NewInt(1000)
-	gen := NewGen(min, max)
+	gen := NewRandom(min, max)
 	group := NewGroup(p, s, gen)
 
 	// setup array to keep track of frequency of random values
@@ -184,7 +184,7 @@ func TestGen(t *testing.T) {
 			pass = pass + rand[i]
 		}
 	}
-	println("Gen()", pass, "out of", tests, "tests passed.")
+	println("Random()", pass, "out of", tests, "tests passed.")
 }
 
 func TestGetP(t *testing.T) {
@@ -193,7 +193,7 @@ func TestGetP(t *testing.T) {
 	s := NewInt(15)
 	min := NewInt(2)
 	max := NewInt(1000)
-	gen := NewGen(min, max)
+	gen := NewRandom(min, max)
 	group := NewGroup(p, s, gen)
 	actual := group.GetP(NewInt(0))
 	tests := 1
@@ -219,7 +219,7 @@ func TestArrayMul(t *testing.T) {
 	max := NewInt(0)
 	max.Mul(p, NewInt(1000))
 	seed := NewInt(42)
-	gen := NewGen(min, max)
+	gen := NewRandom(min, max)
 
 	g := NewGroup(p, seed, gen)
 
@@ -250,7 +250,7 @@ func TestExpForGroup(t *testing.T) {
 	max := NewInt(0)
 	max.Mul(p, NewInt(1000))
 	seed := NewInt(42)
-	gen := NewGen(min, max)
+	gen := NewRandom(min, max)
 
 	g := NewGroup(p, seed, gen)
 
@@ -323,7 +323,7 @@ func TestRoot(t *testing.T) {
 	max := NewInt(0)
 	max.Mul(p, NewInt(1000))
 	seed := NewInt(42)
-	gen := NewGen(min, max)
+	gen := NewRandom(min, max)
 
 	g := NewGroup(p, seed, gen)
 

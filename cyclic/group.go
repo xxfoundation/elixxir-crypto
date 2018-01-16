@@ -9,11 +9,11 @@ type Group struct {
 	random *Int
 	one    *Int
 	two    *Int
-	g      Gen
+	rng    Random
 }
 
 // NewGroup returns a group with the given prime, seed, and generator
-func NewGroup(p *Int, s *Int, g Gen) Group {
+func NewGroup(p *Int, s *Int, g Random) Group {
 	return Group{p, NewInt(0).Sub(p, NewInt(2)), s, NewInt(0), NewInt(1), NewInt(2), g}
 }
 
@@ -42,10 +42,10 @@ func (g *Group) SetSeed(k *Int) {
 	g.seed = k
 }
 
-// Gen securely generates a random number within the group and sets r
+// Random securely generates a random number within the group and sets r
 // equal to it.
 func (g *Group) Gen(r *Int) *Int {
-	r = r.Add(g.seed, g.g.Rand(g.random))
+	r = r.Add(g.seed, g.rng.Rand(g.random))
 	r = r.Mod(r, g.psub2)
 	r = r.Add(r, g.two)
 	//println("rand: ", r.Text(10))
