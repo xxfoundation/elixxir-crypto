@@ -11,15 +11,17 @@ func TestNewGroup(t *testing.T) {
 	min := NewInt(2)
 	max := NewInt(0)
 	max.Mul(p, NewInt(1000))
-	g := NewRandom(min, max)
-	actual := NewGroup(p, s, g)
+	g := NewInt(5)
+	rng := NewRandom(min, max)
+	actual := NewGroup(p, s, g, rng)
 
 	type testStruct struct {
 		prime *Int
 		seed  *Int
-		g     Random
+		g     *Int
+		rng   Random
 	}
-	expected := testStruct{p, s, g}
+	expected := testStruct{p, s, g, rng}
 	tests := 1
 	pass := 0
 	if actual.prime.Cmp(expected.prime) != 0 {
@@ -39,8 +41,9 @@ func TestMulForGroup(t *testing.T) {
 	s := NewInt(15)
 	min := NewInt(2)
 	max := NewInt(1000)
-	gen := NewRandom(min, max)
-	group := NewGroup(p, s, gen)
+	rng := NewRandom(min, max)
+	g := NewInt(5)
+	group := NewGroup(p, s, g, rng)
 
 	actual := []*Int{
 		group.Mul(NewInt(20), NewInt(10), NewInt(0)),
@@ -69,8 +72,9 @@ func TestInside(t *testing.T) {
 	s := NewInt(15)
 	min := NewInt(2)
 	max := NewInt(1000)
-	gen := NewRandom(min, max)
-	group := NewGroup(p, s, gen)
+	rng := NewRandom(min, max)
+	g := NewInt(7)
+	group := NewGroup(p, s, g, rng)
 	expected := []bool{
 		false,
 		true,
@@ -103,8 +107,9 @@ func TestInverse(t *testing.T) {
 	s := NewInt(15)
 	min := NewInt(2)
 	max := NewInt(1000)
-	gen := NewRandom(min, max)
-	group := NewGroup(p, s, gen)
+	g := NewInt(13)
+	rng := NewRandom(min, max)
+	group := NewGroup(p, s, g, rng)
 	x := NewInt(13) //message
 	a := NewInt(10) //encryption key
 	inv := NewInt(0)
@@ -129,8 +134,9 @@ func TestSetSeed(t *testing.T) {
 	s := NewInt(15)
 	min := NewInt(2)
 	max := NewInt(1000)
-	gen := NewRandom(min, max)
-	group := NewGroup(p, s, gen)
+	rng := NewRandom(min, max)
+	g := NewInt(9)
+	group := NewGroup(p, s, g, rng)
 	expected := NewInt(10)
 	group.SetSeed(expected)
 	pass := 0
@@ -150,8 +156,9 @@ func TestGen(t *testing.T) {
 	s := NewInt(15)
 	min := NewInt(2)
 	max := NewInt(1000)
-	gen := NewRandom(min, max)
-	group := NewGroup(p, s, gen)
+	g := NewInt(29)
+	rng := NewRandom(min, max)
+	group := NewGroup(p, s, g, rng)
 
 	// setup array to keep track of frequency of random values
 	r := NewInt(0)
@@ -193,8 +200,9 @@ func TestGetP(t *testing.T) {
 	s := NewInt(15)
 	min := NewInt(2)
 	max := NewInt(1000)
-	gen := NewRandom(min, max)
-	group := NewGroup(p, s, gen)
+	rng := NewRandom(min, max)
+	g := NewInt(29)
+	group := NewGroup(p, s, g, rng)
 	actual := group.GetP(NewInt(0))
 	tests := 1
 	pass := 0
@@ -219,9 +227,10 @@ func TestArrayMul(t *testing.T) {
 	max := NewInt(0)
 	max.Mul(p, NewInt(1000))
 	seed := NewInt(42)
-	gen := NewRandom(min, max)
+	rng := NewRandom(min, max)
+	g := NewInt(7)
 
-	g := NewGroup(p, seed, gen)
+	grp := NewGroup(p, seed, g, rng)
 
 	slc := []*Int{
 		NewInt(2),
@@ -231,7 +240,7 @@ func TestArrayMul(t *testing.T) {
 	}
 
 	c := NewInt(42)
-	actual := g.ArrayMul(slc, c)
+	actual := grp.ArrayMul(slc, c)
 
 	if actual.Cmp(expected) != 0 {
 		t.Errorf("TestArrayMul failed, expected: '%v', got: '%v'",
@@ -250,9 +259,10 @@ func TestExpForGroup(t *testing.T) {
 	max := NewInt(0)
 	max.Mul(p, NewInt(1000))
 	seed := NewInt(42)
-	gen := NewRandom(min, max)
+	rng := NewRandom(min, max)
+	g := NewInt(7)
 
-	g := NewGroup(p, seed, gen)
+	grp := NewGroup(p, seed, g, rng)
 
 	type testStructure struct {
 		x *Int
@@ -302,7 +312,7 @@ func TestExpForGroup(t *testing.T) {
 
 	for i, testi := range testStructs {
 		actual := NewInt(0)
-		actual = g.Exp(testi.x, testi.y, actual)
+		actual = grp.Exp(testi.x, testi.y, actual)
 
 		result := actual.Cmp(testi.z)
 
@@ -323,9 +333,10 @@ func TestRoot(t *testing.T) {
 	max := NewInt(0)
 	max.Mul(p, NewInt(1000))
 	seed := NewInt(42)
-	gen := NewRandom(min, max)
+	rng := NewRandom(min, max)
+	g := NewInt(9)
 
-	g := NewGroup(p, seed, gen)
+	grp := NewGroup(p, seed, g, rng)
 
 	type testStructure struct {
 		x *Int
@@ -378,9 +389,9 @@ func TestRoot(t *testing.T) {
 		inv := NewInt(0)
 		actual := NewInt(0)
 
-		g.Inverse(testi.y, inv)
+		grp.Inverse(testi.y, inv)
 
-		actual = g.Exp(testi.x, inv, actual)
+		actual = grp.Exp(testi.x, inv, actual)
 
 		result := actual.Cmp(testi.z)
 

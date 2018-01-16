@@ -9,12 +9,13 @@ type Group struct {
 	random *Int
 	one    *Int
 	two    *Int
+	g      *Int
 	rng    Random
 }
 
 // NewGroup returns a group with the given prime, seed, and generator
-func NewGroup(p *Int, s *Int, g Random) Group {
-	return Group{p, NewInt(0).Sub(p, NewInt(2)), s, NewInt(0), NewInt(1), NewInt(2), g}
+func NewGroup(p *Int, s *Int, g *Int, rng Random) Group {
+	return Group{p, NewInt(0).Sub(p, NewInt(2)), s, NewInt(0), NewInt(1), NewInt(2), g, rng}
 }
 
 // Mul multiplies a and b within the group, putting the result in c
