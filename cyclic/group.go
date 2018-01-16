@@ -9,7 +9,7 @@ type Group struct {
 	random *Int
 	one    *Int
 	two    *Int
-	g      *Int
+	G      *Int
 	rng    Random
 }
 
