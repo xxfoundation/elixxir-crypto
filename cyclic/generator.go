@@ -12,7 +12,7 @@ type Gen struct {
 	reader io.Reader
 }
 
-// Initialize a new Gen with min and max values
+// Initialize a new Random with min and max values
 func NewGen(min, max *Int) Gen {
 	fmax := NewInt(0)
 	gen := Gen{min, max, fmax.Sub(max, min), rand.Reader}
