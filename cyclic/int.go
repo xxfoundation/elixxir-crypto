@@ -16,6 +16,42 @@ func NewInt(x int64) *Int {
 	return s
 }
 
+// NewIntFromBytes creates a new Int initialized from a byte buffer
+func NewIntFromBytes(buf []byte) *Int {
+	s := new(Int)
+	var x big.Int
+	x.SetBytes(buf)
+	s.value = &x
+	return s
+}
+
+// NewIntFromString creates a new Int from a string using the passed base
+func NewIntFromString(str string, base int) *Int {
+	s := new(Int)
+	var x big.Int
+	x.SetString(str, base)
+	s.value = &x
+	return s
+}
+
+// NewMaxInt creates a new Int with the value Max4KInt
+func NewMaxInt() *Int {
+	s := new(Int)
+	var x big.Int
+	x.SetBytes(Max4kBitInt)
+	s.value = &x
+	return s
+}
+
+// NewIntFromUInt creates a new Int from a uint64
+func NewIntFromUInt(i uint64) *Int {
+	s := new(Int)
+	var x big.Int
+	x.SetUint64(i)
+	s.value = &x
+	return s
+}
+
 // Set sets z to x and returns z.
 func (z *Int) Set(x *Int) *Int {
 	z.value.Set(x.value)
@@ -137,7 +173,7 @@ func (x *Int) Text(base int) string {
 // CONSTANTS
 
 // A 4128bit int, meant to be the size of post moded cyclic ints.
-// Will probubly be made to hole this 4096 bit prime:
+// Will probably be made to hold this 4096 bit prime:
 //   https://tools.ietf.org/html/rfc3526#page-5
 var Max4kBitInt = []byte{
 	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
