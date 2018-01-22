@@ -9,12 +9,6 @@ func GenerateKey(toHash *cyclic.Int, byteLength int) *cyclic.Int {
 	// TODO: don't construct new hash every time
 	h, err := hash.NewCMixHash()
 
-	if err != nil {
-		println("Failed to construct the hash function. This should",
-			"never happen.")
-		println(err.Error)
-	}
-
 	var result []byte
 
 	// F(x)
