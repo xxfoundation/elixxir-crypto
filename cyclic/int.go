@@ -128,7 +128,7 @@ func (z *Int) Mul(x, y *Int) *Int {
 	return z
 }
 
-// Sub sets z to the difference x-y and returns z.
+// Div sets z to the quotient x/y and returns z.
 func (z *Int) Div(x, y *Int) *Int {
 	z.value.Div(x.value, y.value)
 	return z
