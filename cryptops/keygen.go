@@ -26,7 +26,6 @@ func GenerateSharedKey(g *cyclic.Group, baseKey, recursiveKey,
 		panic("Recursive key has non-256 bit length")
 	}
 
-	// TODO: don't construct new hash every time
 	hash, _ := hash.NewCMixHash()
 	// Used to increment the recursive key while constructing the long key,
 	// and to hold the group's prime for modulus division
