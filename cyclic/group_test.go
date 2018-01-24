@@ -129,6 +129,31 @@ func TestInverse(t *testing.T) {
 	println("Inverse()", pass, "out of", tests, "tests passed.")
 }
 
+func TestModP(t *testing.T) {
+	p := NewInt(17)
+	s := NewInt(15)
+	min := NewInt(2)
+	max := NewInt(1000)
+	g := NewInt(13)
+	rng := NewRandom(min, max)
+	group := NewGroup(p, s, g, rng)
+	expected := NewInt(2)
+	a := NewInt(5000)
+	actual := NewInt(0)
+	actual = group.ModP(a, actual)
+
+	tests := 1
+	pass := 0
+
+	if actual.Cmp(expected) != 0 {
+		t.Errorf("TestModP failed, expected: '%v', got: '%v'",
+			expected.Text(10), actual.Text(10))
+	} else {
+		pass++
+	}
+	println("ModP()", pass, "out of", tests, "tests passed.")
+}
+
 func TestSetSeed(t *testing.T) {
 	p := NewInt(17)
 	s := NewInt(15)

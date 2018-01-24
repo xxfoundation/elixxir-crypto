@@ -33,6 +33,13 @@ func (g *Group) Inside(a *Int) bool {
 	}
 }
 
+// ModP sets z ≡ x mod prime within the group and returns z.
+func (g Group) ModP(x, z *Int) *Int {
+	z.Mod(x, g.prime)
+
+	return z
+}
+
 // Inverse sets b equal to the inverse of a within the group and returns b
 func (g *Group) Inverse(a, b *Int) *Int {
 	return b.ModInverse(a, g.prime)
