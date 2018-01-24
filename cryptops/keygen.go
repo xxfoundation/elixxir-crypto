@@ -1,7 +1,6 @@
 package cryptops
 
 import (
-	"fmt"
 	"gitlab.com/privategrity/crypto/cyclic"
 	"gitlab.com/privategrity/crypto/hash"
 )
@@ -49,10 +48,7 @@ func GenerateSharedKey(g *cyclic.Group, baseKey, recursiveKey,
 	hash.Reset()
 	hashInput := cyclic.NewIntFromBytes(recursiveKey.Bytes())
 
-	fmt.Printf("%v\n\n", outSharedKeyStorage)
-	println(cap(outSharedKeyStorage))
 	outSharedKeyStorage = outSharedKeyStorage[:0]
-	println(cap(outSharedKeyStorage))
 	// each iteration of H adds 256 bits to the length of the shared key
 	for len(outSharedKeyStorage) < cap(outSharedKeyStorage) {
 		// increment hash input
@@ -62,16 +58,9 @@ func GenerateSharedKey(g *cyclic.Group, baseKey, recursiveKey,
 		outSharedKeyStorage = hash.Sum(outSharedKeyStorage)
 	}
 
-	fmt.Printf("%v\n\n", outSharedKeyStorage)
-
 	// limit the length of the shared key output with a modulus
-	g.GetP(temp)
-	println("Prime:")
-	println(temp.Text(16))
 	outSharedKey.SetBytes(outSharedKeyStorage)
-	println("OutSharedKey:")
-	println(outSharedKey.Text(16))
-	outSharedKey.Mod(outSharedKey, temp)
+	g.ModP(outSharedKey, outSharedKey)
 
 	return outSharedKey
 }
