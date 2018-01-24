@@ -130,26 +130,38 @@ func TestInverse(t *testing.T) {
 }
 
 func TestModP(t *testing.T) {
-	p := NewInt(17)
+	p := []*Int{NewInt(17), NewIntFromString("717190887961", 10),
+		NewIntFromString("717190905917", 10)}
 	s := NewInt(15)
 	min := NewInt(2)
 	max := NewInt(1000)
 	g := NewInt(13)
 	rng := NewRandom(min, max)
-	group := NewGroup(p, s, g, rng)
-	expected := NewInt(2)
-	a := NewInt(5000)
-	actual := NewInt(0)
-	actual = group.ModP(a, actual)
 
-	tests := 1
+	group := make([]Group, 0, len(p))
+	for i := 0; i < len(p); i++ {
+		group = append(group, NewGroup(p[i], s, g, rng))
+	}
+
+	expected := []*Int{NewInt(2), NewIntFromString("269673339004", 10),
+		NewIntFromString("623940771224", 10)}
+	a := []*Int{NewInt(5000), NewIntFromString("beefbeecafe80386", 16),
+		NewIntFromString("77777777777777777777", 16)}
+	actual := []*Int{NewInt(0), NewInt(0), NewInt(0)}
+	for i := 0; i < len(actual); i++ {
+		actual[i] = group[i].ModP(a[i], actual[i])
+	}
+
+	tests := 3
 	pass := 0
 
-	if actual.Cmp(expected) != 0 {
-		t.Errorf("TestModP failed, expected: '%v', got: '%v'",
-			expected.Text(10), actual.Text(10))
-	} else {
-		pass++
+	for i := 0; i < len(expected); i++ {
+		if actual[i].Cmp(expected[i]) != 0 {
+			t.Errorf("TestModP failed, expected: '%v', got: '%v'",
+				expected[i].Text(10), actual[i].Text(10))
+		} else {
+			pass++
+		}
 	}
 	println("ModP()", pass, "out of", tests, "tests passed.")
 }
