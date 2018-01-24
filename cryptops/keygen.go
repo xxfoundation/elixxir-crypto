@@ -29,6 +29,8 @@ func GenerateSharedKey(g *cyclic.Group, baseKey, recursiveKey,
 
 	// TODO: don't construct new hash every time
 	hash, _ := hash.NewCMixHash()
+	// Used to increment the recursive key while constructing the long key,
+	// and to hold the group's prime for modulus division
 	temp := cyclic.NewInt(1)
 
 	// F(x)
