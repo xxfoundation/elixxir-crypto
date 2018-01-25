@@ -29,9 +29,10 @@ func TestGenerateSharedKey(t *testing.T) {
 			"1F612970CEE2D7AFB81BDD762170481CD0069127D5B05AA9"+
 			"93B4EA988D8FDDC186FFB7DC90A6C08F4DF435C934063199"+
 			"FFFFFFFFFFFFFFFF", 16),
-		cyclic.NewIntFromString("17", 10)}
+		cyclic.NewIntFromString("17", 10),
+		cyclic.NewIntFromString("197", 10)}
 
-	tests := 2
+	tests := 3
 	pass := 0
 
 	var g []cyclic.Group
@@ -46,6 +47,8 @@ func TestGenerateSharedKey(t *testing.T) {
 		"ef9ab83927cd2349f98b1237889909002b897231ae9c927d1792ea0879287ea3",
 		16), cyclic.NewIntFromString(
 		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+		16), cyclic.NewIntFromString(
+		"f12345ffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
 		16)}
 
 	outSharedKey := cyclic.NewMaxInt()
@@ -55,7 +58,11 @@ func TestGenerateSharedKey(t *testing.T) {
 		16),
 		cyclic.NewIntFromString(
 			"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-			16)}
+			16),
+		cyclic.NewIntFromString(
+			"f12345ffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+			16),
+	}
 
 	expectedSharedKeys := []*cyclic.Int{cyclic.NewIntFromString(
 		"4de2e3e634b726d210afd0284a2cac0653eb37a347b34aac683b335653fd"+
@@ -76,11 +83,12 @@ func TestGenerateSharedKey(t *testing.T) {
 			"3b224be2d8b066b0d00744365fde76f086992a942a669881e4302615c6d4"+
 			"c4204c07bb05766cbcd8cbac7ac0d862a3f5e02036543af53684c63412b6"+
 			"9b8f", 16),
-		cyclic.NewIntFromString("d", 16)}
+		cyclic.NewIntFromString("d", 16), cyclic.NewIntFromString("2c", 16)}
 
 	expectedRecursiveKeys := []*cyclic.Int{
 		cyclic.NewIntFromString("5577eca469086dd710d29d28117d7014c0ebbfb28fe488c2a2297e33f5dc6441", 16),
-		cyclic.NewIntFromString("a957f9b2863d5575eb23092f846a8addd669b6caaec02df65b2d174648f28179", 16)}
+		cyclic.NewIntFromString("a957f9b2863d5575eb23092f846a8addd669b6caaec02df65b2d174648f28179", 16),
+		cyclic.NewIntFromString("2e8f49546c705902481bb56eaff3ac1e312484dc5c344e69ad50a8c7cbd62745", 16)}
 
 	for i := 0; i < tests; i++ {
 		GenerateSharedKey(&g[i], baseKey[i],
