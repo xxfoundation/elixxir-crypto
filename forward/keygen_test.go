@@ -1,4 +1,4 @@
-package cryptops
+package forward
 
 import (
 	"gitlab.com/privategrity/crypto/cyclic"
