@@ -1,3 +1,6 @@
 *~
 glide.lock
+.idea/*
+.*.swp
+.*.swo
 vendor/
