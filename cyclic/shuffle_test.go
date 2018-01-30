@@ -86,3 +86,10 @@ func circularDelta(a, b, c uint64) float64 {
 		return dlt3
 	}
 }
+
+// Test the shuffle on a list of length 1
+func TestShufLen1(t *testing.T) {
+	var testlst []uint64
+	testlst = append(testlst, 1)
+	Shuffle(&testlst)
+}
