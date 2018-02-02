@@ -109,10 +109,11 @@ func (g Group) Root(x, y, z *Int) *Int {
 // RandomCoprime randomly generates coprimes int he group (coprime
 // against g.prime-1)
 func (g *Group) RandomCoprime(r *Int) *Int {
-	for r := NewInt(1); !r.IsCoprime(g.psub1); r.Add(r, g.two) {
+	for r := NewInt(1); !r.IsCoprime(g.psub1); {
 		r.Set(g.one)
 		r = r.Add(g.seed, g.rng.Rand(g.random))
 		r = r.Mod(r, g.psub3)
+		r = r.Add(r, g.two)
 	}
 	return r
 }
