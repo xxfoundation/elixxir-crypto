@@ -22,7 +22,7 @@ func NewGroup(p *Int, s *Int, g *Int, rng Random) Group {
 		psub1: NewInt(0).Sub(p, NewInt(1)),
 		psub2: NewInt(0).Sub(p, NewInt(2)),
 		psub3: NewInt(0).Sub(p, NewInt(3)),
-		see: s,
+		seed: s,
 		random: NewInt(0),
 		one: NewInt(1),
 		two: NewInt(2),
