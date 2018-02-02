@@ -1,7 +1,5 @@
 package cyclic
 
-import ("fmt")
-
 // Groups provide cyclic int operations that keep the return values confined to
 // a finite field under modulo p
 type Group struct {
