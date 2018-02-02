@@ -4,6 +4,7 @@ package cyclic
 // a finite field under modulo p
 type Group struct {
 	prime  *Int
+	psub1  *Int
 	psub2  *Int
 	psub3  *Int
 	seed   *Int
@@ -18,6 +19,7 @@ type Group struct {
 func NewGroup(p *Int, s *Int, g *Int, rng Random) Group {
 	return Group{
 		prime: p,
+		psub1: NewInt(0).Sub(p, NewInt(1)),
 		psub2: NewInt(0).Sub(p, NewInt(2)),
 		psub3: NewInt(0).Sub(p, NewInt(3)),
 		see: s,
@@ -107,7 +109,7 @@ func (g Group) Root(x, y, z *Int) *Int {
 // RandomCoprime randomly generates coprimes int he group (coprime
 // against g.prime-1)
 func (g *Group) RandomCoprime(r *Int) *Int {
-	for r := NewInt(1); !r.IsCoPrime(g.psub1); r.Add(r, g.two) {
+	for r := NewInt(1); !r.IsCoprime(g.psub1); r.Add(r, g.two) {
 		r.Set(g.one)
 		r = r.Add(g.seed, g.rng.Rand(g.random))
 		r = r.Mod(r, g.psub3)
