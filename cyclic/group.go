@@ -118,6 +118,14 @@ func (g *Group) RandomCoprime(r *Int) *Int {
 	return r
 }
 
+// RootCoprime sets z = y√x mod p, and returns z. Only works with y's
+// coprime with g.prime-1 (g.psub1)
+func (g Group) RootCoprime(x, y, z *Int) *Int {
+	z.ModInverse(y, g.psub1)
+	g.Exp(x, z, z)
+
+	return z
+}
 
 //nilGroup returns a nil group
 func nilGroup() *Group {
