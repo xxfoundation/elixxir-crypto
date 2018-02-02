@@ -145,13 +145,20 @@ func (z *Int) Exp(x, y, m *Int) *Int {
 
 // GCD returns the greatest common denominator
 func (z *Int) GCD(x, y, a, b *Int) *Int {
-	z.value.GCD(x.value, y.value, a.value, b.value)
+	var xVal, yVal *big.Int
+	if x != nil {
+		xVal = x.value
+	}
+	if y != nil {
+		yVal = y.value
+	}
+	z.value.GCD(xVal, yVal, a.value, b.value)
 	return z
 }
 
 // IsCoprime returns true if the 2 numbers are coprime (relatively prime)
 func (z *Int) IsCoprime(x *Int) bool {
-	s := new(Int)
+	s := NewInt(0)
 	s.GCD(nil, nil, z, x)
 	return s.Cmp(NewInt(1)) == 0
 }
