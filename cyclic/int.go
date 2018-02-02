@@ -241,3 +241,9 @@ func cycInt(n *big.Int) *Int {
 func nilInt() *Int {
 	return nil
 }
+
+// GCD returns the greatest common denominator
+func (z *Int) GCD(x, y, a, b *Int) *Int {
+	z.value.GCD(x.value, y.value, a.value, b.value)
+	return z
+}
