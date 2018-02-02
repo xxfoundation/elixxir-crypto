@@ -441,3 +441,47 @@ func TestRoot(t *testing.T) {
 	}
 	println("Root()", pass, "out of", tests, "tests passed.")
 }
+
+func TestRandomCoprime(t *testing.T) {
+	// setup test group and generator
+	p := NewInt(17)
+	s := NewInt(15)
+	min := NewInt(2)
+	max := NewInt(1000)
+	g := NewInt(29)
+	rng := NewRandom(min, max)
+	group := NewGroup(p, s, g, rng)
+
+	// setup array to keep track of frequency of random values
+	r := NewInt(0)
+	rand := make([]int, int(p.Int64()))
+
+	// how many tests and the threshold max to be sufficientyly random
+	tests := 500
+	pass := 0
+	thresh := 0.3
+
+	// generate randoms
+	for i := 0; i < tests; i++ {
+		rand[int(group.RandomCoprime(r).Int64())]++
+	}
+
+	// make sure 0 and 1 were not generated
+	if rand[0] > 0 {
+		t.Errorf("TestRandomeCoprime() failed, 0 is outside of the required range")
+	}
+	if rand[1] > 0 {
+		t.Errorf("TestRandomeCoprime() failed, 1 is outside of the required range")
+	}
+
+	// check that frequency doesn't exceed threshold
+	for i := 0; i < len(rand); i++ {
+		if float64(rand[i])/float64(tests) > thresh {
+			t.Errorf("TestRandomCoprime() failed, insufficiently random, value: %v"+
+				" occured: %v out of %v tests", i, rand[i], tests)
+		} else {
+			pass = pass + rand[i]
+		}
+	}
+	println("Random()", pass, "out of", tests, "tests passed.")
+}
