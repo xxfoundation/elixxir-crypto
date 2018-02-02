@@ -5,6 +5,7 @@ package cyclic
 type Group struct {
 	prime  *Int
 	psub2  *Int
+	psub3  *Int
 	seed   *Int
 	random *Int
 	one    *Int
@@ -15,7 +16,17 @@ type Group struct {
 
 // NewGroup returns a group with the given prime, seed, and generator
 func NewGroup(p *Int, s *Int, g *Int, rng Random) Group {
-	return Group{p, NewInt(0).Sub(p, NewInt(2)), s, NewInt(0), NewInt(1), NewInt(2), g, rng}
+	return Group{
+		prime: p,
+		psub2: NewInt(0).Sub(p, NewInt(2)),
+		psub3: NewInt(0).Sub(p, NewInt(3)),
+		see: s,
+		random: NewInt(0),
+		one: NewInt(1),
+		two: NewInt(2),
+		G: g,
+		rng: rng,
+	}
 }
 
 // Mul multiplies a and b within the group, putting the result in c
@@ -92,6 +103,20 @@ func (g Group) Root(x, y, z *Int) *Int {
 
 	return z
 }
+
+// RandomCoprime randomly generates coprimes int he group (coprime
+// against g.prime-1)
+func (g *Group) RandomCoprime(r *Int) *Int {
+	for true {
+		r = r.Add(g.seed, g.rng.Rand(g.random))
+		r = r.Mod(r, g.psub3)
+		r = r.Add(r, g.two)
+		if r.IsCoprime(g.psub1) {
+			return r
+		}
+	}
+}
+
 
 //nilGroup returns a nil group
 func nilGroup() *Group {
