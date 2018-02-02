@@ -143,6 +143,19 @@ func (z *Int) Exp(x, y, m *Int) *Int {
 	return z
 }
 
+// GCD returns the greatest common denominator
+func (z *Int) GCD(x, y, a, b *Int) *Int {
+	z.value.GCD(x.value, y.value, a.value, b.value)
+	return z
+}
+
+// IsCoprime returns true if the 2 numbers are coprime (relatively prime)
+func (z *Int) IsCoprime(x *Int) bool {
+	s := new(Int)
+	s.GCD(nil, nil, z, x)
+	return s.Cmp(NewInt(1)) == 0
+}
+
 // Bytes returns the absolute value of x as a big-endian byte slice.
 func (x *Int) Bytes() []byte {
 	return x.value.Bytes()
@@ -240,10 +253,4 @@ func cycInt(n *big.Int) *Int {
 // nilInt returns a cyclic Int which is nil
 func nilInt() *Int {
 	return nil
-}
-
-// GCD returns the greatest common denominator
-func (z *Int) GCD(x, y, a, b *Int) *Int {
-	z.value.GCD(x.value, y.value, a.value, b.value)
-	return z
 }
