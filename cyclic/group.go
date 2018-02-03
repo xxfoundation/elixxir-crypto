@@ -4,7 +4,9 @@ package cyclic
 // a finite field under modulo p
 type Group struct {
 	prime  *Int
+	psub1  *Int
 	psub2  *Int
+	psub3  *Int
 	seed   *Int
 	random *Int
 	one    *Int
@@ -15,7 +17,18 @@ type Group struct {
 
 // NewGroup returns a group with the given prime, seed, and generator
 func NewGroup(p *Int, s *Int, g *Int, rng Random) Group {
-	return Group{p, NewInt(0).Sub(p, NewInt(2)), s, NewInt(0), NewInt(1), NewInt(2), g, rng}
+	return Group{
+		prime: p,
+		psub1: NewInt(0).Sub(p, NewInt(1)),
+		psub2: NewInt(0).Sub(p, NewInt(2)),
+		psub3: NewInt(0).Sub(p, NewInt(3)),
+		seed: s,
+		random: NewInt(0),
+		one: NewInt(1),
+		two: NewInt(2),
+		G: g,
+		rng: rng,
+	}
 }
 
 // Mul multiplies a and b within the group, putting the result in c
@@ -88,6 +101,27 @@ func (g Group) Exp(x, y, z *Int) *Int {
 // Root sets z = y√x mod p, and returns z.
 func (g Group) Root(x, y, z *Int) *Int {
 	g.Inverse(y, z)
+	g.Exp(x, z, z)
+
+	return z
+}
+
+// RandomCoprime randomly generates coprimes int he group (coprime
+// against g.prime-1)
+func (g *Group) RandomCoprime(r *Int) *Int {
+	for r.Set(g.psub1); !r.IsCoprime(g.psub1); {
+		r.Set(g.one)
+		r = r.Add(g.seed, g.rng.Rand(g.random))
+		r = r.Mod(r, g.psub3)
+		r = r.Add(r, g.two)
+	}
+	return r
+}
+
+// RootCoprime sets z = y√x mod p, and returns z. Only works with y's
+// coprime with g.prime-1 (g.psub1)
+func (g Group) RootCoprime(x, y, z *Int) *Int {
+	z.ModInverse(y, g.psub1)
 	g.Exp(x, z, z)
 
 	return z

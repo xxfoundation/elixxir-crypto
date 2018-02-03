@@ -947,3 +947,33 @@ func TestNilInt(t *testing.T) {
 	}
 	println("nilInt()", pass, "out of", tests, "tests passed.")
 }*/
+
+// Test that IsCoprime returns false when sent a 0
+func TestIsCoprime0(t *testing.T) {
+	a := NewInt(50580)
+	b := NewInt(0)
+	if a.IsCoprime(b) {
+		t.Errorf("0 cannot be Coprime!")
+	}
+}
+
+// Test that IsCoprime returns true when sent a 1
+func TestIsCoprime1(t *testing.T) {
+	a := NewInt(50580)
+	b := NewInt(1)
+	if !a.IsCoprime(b) {
+		t.Errorf("1 must always be Coprime")
+	}
+}
+
+// Test that IsCoprime returns true when sent a 14
+func TestIsCoprime49(t *testing.T) {
+	a := NewInt(50580)
+	b := NewInt(49)
+	if !a.IsCoprime(b) {
+		gcdAB := NewInt(0)
+		gcdAB.GCD(nil, nil, a, b)
+		t.Errorf("49 must always be Coprime: GCD(%d, %d) -> %d)",
+			a.Int64(), b.Int64(), gcdAB.Int64())
+	}
+}
