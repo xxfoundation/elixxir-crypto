@@ -196,6 +196,54 @@ func TestSet(t *testing.T) {
 	println("Set()", pass, "out of", tests, "tests passed.")
 }
 
+// Checks whether you can set an Int correctly with an int64
+func TestSetInt64(t *testing.T) {
+	tests := 1
+
+	pass := 0
+
+	expected := NewInt(int64(42))
+
+	actual := NewInt(int64(69))
+
+	actual.SetInt64(expected.Int64())
+
+	result := actual.Cmp(expected)
+
+	if result != 0 {
+		t.Errorf("Test of SetInt64 failed, expected: '0', got: '%v'",
+			result)
+	} else {
+		pass++
+	}
+
+	println("SetInt64()", pass, "out of", tests, "tests passed.")
+}
+
+// Checks whether you can set an Int correctly with a uint64
+func TestSetUint64(t *testing.T) {
+	tests := 1
+
+	pass := 0
+
+	expected := NewInt(int64(42))
+
+	actual := NewInt(int64(69))
+
+	actual.SetUint64(expected.Uint64())
+
+	result := actual.Cmp(expected)
+
+	if result != 0 {
+		t.Errorf("Test of SetUint64 failed, expected: '0', got: '%v'",
+			result)
+	} else {
+		pass++
+	}
+
+	println("SetUint64()", pass, "out of", tests, "tests passed.")
+}
+
 //TestSetString
 func TestSetString(t *testing.T) {
 	type testStructure struct {

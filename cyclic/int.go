@@ -101,6 +101,11 @@ func (n *Int) Int64() int64 {
 	return n.value.Int64()
 }
 
+// Int64 converts the cyclic Int to a Uint64 if possible and returns nil if not
+func (n *Int) Uint64() uint64 {
+	return n.value.Uint64()
+}
+
 // IsInt64 checks if a cyclic Int can be converted to an Int64
 func (n *Int) IsInt64() bool {
 	return n.value.IsInt64()
