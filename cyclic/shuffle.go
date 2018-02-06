@@ -1,6 +1,8 @@
 package cyclic
 
-// Shuffles a passed interface array using a Fisher-Yates shuffle
+import "math"
+
+// Shuffles a uint64 array using a Fisher-Yates shuffle
 func Shuffle(shufflee *[]uint64) {
 	// Skip empty lists or lists of only 1 element, they cannot be shuffled
 	if len(*shufflee) <= 1 {
@@ -9,11 +11,13 @@ func Shuffle(shufflee *[]uint64) {
 
 	g := NewRandom(NewInt(0), NewInt(int64(len(*shufflee))-1))
 
-	x := NewInt(1<<63 - 1)
+	x := NewIntFromUInt(math.MaxInt64)
 
-	for curPos := int64(0); curPos < int64(len(*shufflee)); curPos++ {
+	for curPos := int64(0); curPos < int64(len(*shufflee))-1; curPos++ {
+		// Shuffle should be able to swap with any element that hasn't
+		// already been shuffled
+		g.SetMinFromInt64(curPos)
 		randPos := g.Rand(x).Int64()
 		(*shufflee)[randPos], (*shufflee)[curPos] = (*shufflee)[curPos], (*shufflee)[randPos]
 	}
-
 }
