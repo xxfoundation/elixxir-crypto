@@ -256,13 +256,13 @@ func TestSetBytes(t *testing.T) {
 	expected := []*Int{
 		NewInt(42),
 		NewInt(6553522),
-		//NewInt(867530918239450598372829049587), TODO: When text parsing impl
+		NewIntFromString("867530918239450598372829049587", 10),
 		NewInt(0)}
 	testBytes := [][]byte{
 		{0x2A},             // 42
 		{0x63, 0xFF, 0xB2}, // 6553522
-		// { 0xA, 0xF3, 0x24, 0xC1, 0xA0, 0xAD, 0x87, 0x20,
-		//   0x57, 0xCE, 0xF4, 0x32, 0xF3 }, //"867530918239450598372829049587",
+		{0xA, 0xF3, 0x24, 0xC1, 0xA0, 0xAD, 0x87, 0x20,
+			0x57, 0xCE, 0xF4, 0x32, 0xF3}, //"867530918239450598372829049587",
 		{0x00}} // TODO: Should be <nil>, not 42
 	tests := len(expected)
 	pass := 0
