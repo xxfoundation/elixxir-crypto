@@ -20,6 +20,8 @@ func TestRand(t *testing.T) {
 		"fl1pa3kd1a6akmbbh2e9g1jddjjg9lp2akmake3n8lljb361mpa7pnhjhj1fdabn0mf7"+
 		"h7i4ef1gjc9pheb5ehng5pa76pp36a19fpp81499dodgm0c876325ff1ifm7olkm200m"+
 		"h1doag6kpbl3p789fk2d71d4oah319h9k10498ipfo71gjofb603ag", 26)
+
+	// 6 less than max
 	largeMin := NewIntFromString("oi2n40g27kmjfdkkn332lg1eep4ji585egipan1ap1l70jbk008ib5k"+
 		"n96aj38ej5nc99infk3j5mhlfbibhlnm9p0c180pengk4m8977i6l9m44be2p85ejl"+
 		"j5oilp1b5bp8ffdm5g1bff562jii0kjmni4kinphma7a0981debkk4g19h01iii4m6"+
