@@ -13,17 +13,17 @@ type Random struct {
 }
 
 func (r *Random) recalculateRange() {
-	fmax.Sub(r.max, r.min)
+	r.fmax.Sub(r.max, r.min)
 }
 
 func (r *Random) SetMin(newMin *Int) {
-	min.Set(newMin)
-	recalculateRange()
+	r.min.Set(newMin)
+	r.recalculateRange()
 }
 
 func (r *Random) SetMax(newMax *Int) {
-	max.Set(newMax)
-	recalculateRange()
+	r.max.Set(newMax)
+	r.recalculateRange()
 }
 
 // Initialize a new Random with min and max values
@@ -33,7 +33,7 @@ func NewRandom(min, max *Int) Random {
 	return gen
 }
 
-// Generates a random Int between min and max
+// Generates a random Int x, min <= x < max
 func (gen *Random) Rand(x *Int) *Int {
 	ran, err := rand.Int(gen.reader, gen.fmax.value)
 	if err != nil {

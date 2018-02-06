@@ -42,7 +42,7 @@ func TestRand(t *testing.T) {
 	pass := 0
 	for i := 0; i < tests/2; i++ {
 		x := largeGen.Rand(rand)
-		if x.Cmp(max) > 0 || x.Cmp(largeMin) < 0 {
+		if x.Cmp(max) >= 0 || x.Cmp(largeMin) < 0 {
 			t.Errorf("Rand() failed, random Int outside range")
 		} else {
 			pass++
@@ -50,7 +50,7 @@ func TestRand(t *testing.T) {
 	}
 	for i := 0; i < tests/2; i++ {
 		x := smallGen.Rand(rand)
-		if x.Cmp(max) > 0 || x.Cmp(smallMin) < 0 {
+		if x.Cmp(max) >= 0 || x.Cmp(smallMin) < 0 {
 			t.Errorf("Rand() failed, random Int outside range")
 		} else {
 			pass++
