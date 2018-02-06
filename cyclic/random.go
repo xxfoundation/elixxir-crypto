@@ -12,6 +12,20 @@ type Random struct {
 	reader io.Reader
 }
 
+func (r *Random) recalculateRange() {
+	fmax.Sub(r.max, r.min)
+}
+
+func (r *Random) SetMin(newMin *Int) {
+	min.Set(newMin)
+	recalculateRange()
+}
+
+func (r *Random) SetMax(newMax *Int) {
+	max.Set(newMax)
+	recalculateRange()
+}
+
 // Initialize a new Random with min and max values
 func NewRandom(min, max *Int) Random {
 	fmax := NewInt(0)
