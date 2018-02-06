@@ -21,7 +21,7 @@ func NewRandom(min, max *Int) Random {
 
 // Generates a random Int between min and max
 func (gen *Random) Rand(x *Int) *Int {
-	ran, err := rand.Int(gen.reader, gen.max.value)
+	ran, err := rand.Int(gen.reader, gen.fmax.value)
 	if err != nil {
 		return nil
 	}
