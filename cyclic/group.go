@@ -18,16 +18,16 @@ type Group struct {
 // NewGroup returns a group with the given prime, seed, and generator
 func NewGroup(p *Int, s *Int, g *Int, rng Random) Group {
 	return Group{
-		prime: p,
-		psub1: NewInt(0).Sub(p, NewInt(1)),
-		psub2: NewInt(0).Sub(p, NewInt(2)),
-		psub3: NewInt(0).Sub(p, NewInt(3)),
-		seed: s,
+		prime:  p,
+		psub1:  NewInt(0).Sub(p, NewInt(1)),
+		psub2:  NewInt(0).Sub(p, NewInt(2)),
+		psub3:  NewInt(0).Sub(p, NewInt(3)),
+		seed:   s,
 		random: NewInt(0),
-		one: NewInt(1),
-		two: NewInt(2),
-		G: g,
-		rng: rng,
+		one:    NewInt(1),
+		two:    NewInt(2),
+		G:      g,
+		rng:    rng,
 	}
 }
 
@@ -106,7 +106,7 @@ func (g Group) Root(x, y, z *Int) *Int {
 	return z
 }
 
-// RandomCoprime randomly generates coprimes int he group (coprime
+// RandomCoprime randomly generates coprimes in the group (coprime
 // against g.prime-1)
 func (g *Group) RandomCoprime(r *Int) *Int {
 	for r.Set(g.psub1); !r.IsCoprime(g.psub1); {
