@@ -84,6 +84,18 @@ func (c *Int) SetBigInt(b *big.Int) *Int {
 	return c
 }
 
+//SetInt64 sets the internal Big Int to the value of the passed int64
+func (c *Int) SetInt64(newValue int64) *Int {
+	c.value.SetInt64(newValue)
+	return c
+}
+
+//SetUint64 sets the internal Big Int to the value of the passed uint64
+func (c *Int) SetUint64(newValue uint64) *Int {
+	c.value.SetUint64(newValue)
+	return c
+}
+
 // Int64 converts the cyclic Int to an Int64 if possible and returns nil if not
 func (n *Int) Int64() int64 {
 	return n.value.Int64()

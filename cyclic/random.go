@@ -21,8 +21,18 @@ func (r *Random) SetMin(newMin *Int) {
 	r.recalculateRange()
 }
 
+func (r *Random) SetMinFromInt64(newMin int64) {
+	r.min.SetInt64(newMin)
+	r.recalculateRange()
+}
+
 func (r *Random) SetMax(newMax *Int) {
 	r.max.Set(newMax)
+	r.recalculateRange()
+}
+
+func (r *Random) SetMaxFromInt64(newMax int64) {
+	r.max.SetInt64(newMax)
 	r.recalculateRange()
 }
 
