@@ -38,7 +38,7 @@ func GenerateSharedKey(g *cyclic.Group, baseKey, recursiveKey,
 	// G(x)
 	hash.Reset()
 	// combine fOut and recursiveKey without losing entropy
-	fOut = bitwiseXOR(fOut, recursiveKey.Bytes(), fOut)
+	bitwiseXOR(fOut, recursiveKey.Bytes(), fOut)
 	hash.Write(fOut)
 	recursiveKey.SetBytes(hash.Sum(nil))
 
