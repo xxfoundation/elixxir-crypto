@@ -203,8 +203,28 @@ func (x *Int) Cmp(y *Int) (r int) {
 // must be between 2 and 36, inclusive. The result uses the lower-case
 // letters 'a' to 'z' for digit values >= 10. No base prefix (such as
 // "0x") is added to the string.
+// Text truncates ints to a length of 10, appending an ellipsis
+// if the int is too long.
 func (x *Int) Text(base int) string {
-	return x.value.Text(base)
+	const intTextLen = 10
+	return x.TextVerbose(base, intTextLen)
+}
+
+// TextVerbose returns the string representation of x in the given base. Base
+// must be between 2 and 36, inclusive. The result uses the lower-case
+// letters 'a' to 'z' for digit values >= 10. No base prefix (such as
+// "0x") is added to the string.
+// TextVerbose truncates ints to a length of length in characters (not runes)
+// and append an ellipsis to indicate that the whole int wasn't returned,
+// unless len is 0, in which case it will return the whole int as a string.
+func (x *Int) TextVerbose(base int, length int) string {
+	fullText := x.value.Text(base)
+
+	if length == 0 || len(fullText) <= length {
+		return fullText
+	} else {
+		return fullText[:length] + "..."
+	}
 }
 
 // CONSTANTS
