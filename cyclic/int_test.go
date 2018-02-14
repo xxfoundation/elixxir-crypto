@@ -926,12 +926,12 @@ func TestText(t *testing.T) {
 	testints := []Int{
 		*NewInt(42),
 		*NewInt(6553522),
-		//*NewInt(867530918239450598372829049587), TODO: When text parsing impl
+		*NewIntFromString("867530918239450598372829049587", 10),
 		*NewInt(-42)}
 	expectedstrs := []string{
 		"42",
 		"6553522",
-		//"867530918239450598372829049587",
+		"8675309182...",
 		"-42"} // TODO: Should be <nil>, not -42
 	tests := len(testints)
 	pass := 0
@@ -946,6 +946,26 @@ func TestText(t *testing.T) {
 		}
 	}
 	println("Text()", pass, "out of", tests, "tests passed.")
+}
+
+func TestTextVerbose(t *testing.T) {
+	testInt := NewIntFromString("867530918239450598372829049587", 10)
+	lens := []int{12, 16, 18, 0}
+	expected := []string{"867530918239...", "8675309182394505...",
+		"867530918239450598...", "867530918239450598372829049587"}
+	tests := len(lens)
+	pass := 0
+	for i, testLen := range lens {
+		actual := testInt.TextVerbose(10, testLen)
+		if actual != expected[i] {
+			t.Errorf("Test of TextVerbose failed, got: %v,"+
+				"expected: %v", actual, expected[i])
+		} else {
+			pass++
+		}
+	}
+	println("TestTextVerbose()", pass, "out of", tests, "tests passed.")
+
 }
 
 //TestBigInt checks if the function GetBigInt returns a big.Int
