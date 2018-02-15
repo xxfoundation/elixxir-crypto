@@ -9,7 +9,7 @@ import (
 // global hash on it, and returns the MAC -- in other words:
 // MAC(M, K) = Hash(M + K)
 func MessageAuthenticationCode(message, key []byte) []byte {
-	h = NewCMixHash()
+	h, _ := hash.NewCMixHash()
 	h.Write(message)
 	h.Write(key)
 	return h.Sum(nil)
@@ -18,7 +18,7 @@ func MessageAuthenticationCode(message, key []byte) []byte {
 // Verify a message authentication code, return true if it works, or
 // false if it doesn't
 func VerifyMessageAuthenticationCode(message, key, mac []byte) (bool) {
-	vMac = MessageAuthenticationCode(message, key)
+	vMac := MessageAuthenticationCode(message, key)
 	if len(vMac) != len(mac) {
 		return false
 	}
