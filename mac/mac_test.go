@@ -26,4 +26,21 @@ func TestMAC(t *testing.T) {
 				mac[i])
 		}
 	}
+
+	// Now test sending a nil as the key
+	message2 := []byte("BlahBlah2")
+	mac2 := MessageAuthenticationCode(message2, nil)
+	if !VerifyMessageAuthenticationCode(message2, nil, mac2) {
+		t.Errorf("MAC is not working!")
+	}
+	if len(expected) != len(mac2) {
+		t.Errorf("MAC w/ no key has changed length: %d expected, got %d",
+			len(expected), len(mac2))
+	}
+	for i := 0; i < len(expected); i++ {
+		if expected[i] != mac2[i] {
+			t.Errorf("MAC w/ no key Byte Differs at %d: %d expected, got %d",
+				i, expected[i], mac2[i])
+		}
+	}
 }
