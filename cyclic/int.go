@@ -1,6 +1,7 @@
 package cyclic
 
 import (
+	"fmt"
 	"math/big"
 )
 
@@ -183,6 +184,24 @@ func (z *Int) IsCoprime(x *Int) bool {
 // Bytes returns the absolute value of x as a big-endian byte slice.
 func (x *Int) Bytes() []byte {
 	return x.value.Bytes()
+}
+
+// LeftpadBytes returns the absolute value of x leftpadded with zeroes
+// up the the passed number of bytes.  Panics if the byte slice from the Int
+// is longer than the passed length
+func (x *Int) LeftpadBytes(l uint64) []byte {
+	b := x.value.Bytes()
+
+	if uint64(len(b)) > l {
+		panic(fmt.Sprintf("Cyclic.Int.BytesAtLen(): Byte array too long! \n"+
+			"  Expected: %v, Received: %v", l, len(b)))
+	}
+
+	rtnslc := make([]byte, l-uint64(len(b)))
+
+	rtnslc = append(rtnslc, b...)
+
+	return rtnslc
 }
 
 // BitLen returns the length of the absolute value of x in bits. The
