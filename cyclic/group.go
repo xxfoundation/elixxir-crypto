@@ -17,6 +17,9 @@ type Group struct {
 
 // NewGroup returns a group with the given prime, seed, and generator
 func NewGroup(p *Int, s *Int, g *Int, rng Random) Group {
+	if !p.IsPrime() {
+		panic("passed number for NewGroup is not prime")
+	}
 	return Group{
 		prime:  p,
 		psub1:  NewInt(0).Sub(p, NewInt(1)),

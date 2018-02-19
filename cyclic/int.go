@@ -181,6 +181,13 @@ func (z *Int) IsCoprime(x *Int) bool {
 	return s.Cmp(NewInt(1)) == 0
 }
 
+// Function that calculates (with high probability) if a number is prime or not.
+// This function uses 40 (can be changed) iterations of the Miller-Rabin prime test
+// Return: True if number is prime. False if not.
+func (x *Int) IsPrime() bool {
+	return x.value.ProbablyPrime(40)
+}
+
 // Bytes returns the absolute value of x as a big-endian byte slice.
 func (x *Int) Bytes() []byte {
 	return x.value.Bytes()
