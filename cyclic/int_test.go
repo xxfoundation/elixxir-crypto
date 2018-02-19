@@ -1049,11 +1049,11 @@ func TestIsCoprime49(t *testing.T) {
 func TestIsPrime(t *testing.T) {
 	n := NewInt(101) // 101 is prime
 	if !n.IsPrime() {
-		t.Errorf("%v should be prime!", n.Uint64())
+		t.Errorf("IsPrime: %v should be prime!", n.Uint64())
 	}
 
 	n = NewInt(63) // 63 is NOT prime
 	if n.IsPrime() {
-		t.Errorf("%v should NOT be prime!", n.Uint64())
+		t.Errorf("IsPrime: %v should NOT be prime!", n.Uint64())
 	}
 }
