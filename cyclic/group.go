@@ -73,12 +73,9 @@ func (g *Group) Random(r *Int) *Int {
 	r = r.Add(g.seed, g.rng.Rand(g.random))
 	r = r.Mod(r, g.psub2)
 	r = r.Add(r, g.two)
-	if r.Cmp(g.one) <= 0 || r.Cmp(g.prime) >= 0 {
-		panic(fmt.Sprintf("Random is out of expected range: %s is less"+
-			"than or equal to %s or greater than or equal to %s",
-			r.TextVerbose(16, 0),
-			g.one.TextVerbose(16, 0),
-			g.psub1.TextVerbose(16, 0)))
+	if !g.Inside(r) {
+		panic(fmt.Sprintf("Random int is not in cyclic group: %s",
+			r.TextVerbose(16, 0)))
 	}
 	return r
 }
