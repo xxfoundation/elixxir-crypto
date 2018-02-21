@@ -989,33 +989,6 @@ func TestBigInt(t *testing.T) {
 
 }
 
-/*
-//TestNilInt
-func TestNilInt(t *testing.T) {
-	pass, tests := 0, 0
-	actual := nilInt()
-
-	// test that value is nil
-	tests += 1
-	if actual != nil {
-		t.Errorf("Test of nilInt() failed. Expected nil value, actual:",
-			actual)
-	} else {
-		pass += 1
-	}
-
-	// test that type is *Int
-	tests += 1
-	c := NewInt(0)
-	if reflect.TypeOf(c) != reflect.TypeOf(actual) {
-		t.Errorf("Test of nilInt() failed. Expected *Int type, actual:",
-			reflect.TypeOf(actual))
-	} else {
-		pass += 1
-	}
-	println("nilInt()", pass, "out of", tests, "tests passed.")
-}*/
-
 // Test that IsCoprime returns false when sent a 0
 func TestIsCoprime0(t *testing.T) {
 	a := NewInt(50580)
