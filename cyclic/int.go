@@ -196,15 +196,15 @@ func (x *Int) Bytes() []byte {
 // LeftpadBytes returns the absolute value of x leftpadded with zeroes
 // up the the passed number of bytes.  Panics if the byte slice from the Int
 // is longer than the passed length
-func (x *Int) LeftpadBytes(l uint64) []byte {
+func (x *Int) LeftpadBytes(length uint64) []byte {
 	b := x.value.Bytes()
 
-	if uint64(len(b)) > l {
+	if uint64(len(b)) > length {
 		panic(fmt.Sprintf("Cyclic.Int.BytesAtLen(): Byte array too long! \n"+
-			"  Expected: %v, Received: %v", l, len(b)))
+			"  Expected: %v, Received: %v", length, len(b)))
 	}
 
-	rtnslc := make([]byte, l-uint64(len(b)))
+	rtnslc := make([]byte, length-uint64(len(b)))
 
 	rtnslc = append(rtnslc, b...)
 

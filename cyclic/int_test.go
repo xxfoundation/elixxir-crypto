@@ -294,9 +294,34 @@ func TestSetString(t *testing.T) {
 				pass++
 			}
 		}
-		//println("Index: ", i, "passed")
 	}
 	println("SetString()", pass, "out of", tests, "tests passed.")
+}
+
+func TestSetBigInt(t *testing.T) {
+	expected := []*Int{
+		NewInt(42),
+		NewInt(6553522),
+		NewIntFromString("867530918239450598372829049587", 10),
+		NewInt(0)}
+	testInts := []*big.Int{
+		big.NewInt(42),
+		big.NewInt(6553522),
+		big.NewInt(1),
+		big.NewInt(0),
+	}
+	testInts[2].SetString("867530918239450598372829049587", 10)
+
+	actual := NewInt(0)
+	for i := range testInts {
+		actual.SetBigInt(testInts[i])
+		if expected[i].Cmp(actual) != 0 {
+			t.Errorf("Test of SetBigInt() failed at index %v."+
+				"Expected %v, got %v.",
+				i, expected[i].Text(10), actual.Text(10))
+		}
+
+	}
 }
 
 //TestSetBytes
@@ -307,11 +332,11 @@ func TestSetBytes(t *testing.T) {
 		NewIntFromString("867530918239450598372829049587", 10),
 		NewInt(0)}
 	testBytes := [][]byte{
-		{0x2A},             // 42
-		{0x63, 0xFF, 0xB2}, // 6553522
+		{0x2A},                            // 42
+		{0x63, 0xFF, 0xB2},                // 6553522
 		{0xA, 0xF3, 0x24, 0xC1, 0xA0, 0xAD, 0x87, 0x20,
 			0x57, 0xCE, 0xF4, 0x32, 0xF3}, //"867530918239450598372829049587",
-		{0x00}} // TODO: Should be <nil>, not 42
+		{0x00}}
 	tests := len(expected)
 	pass := 0
 	actual := NewInt(0)
@@ -829,6 +854,36 @@ func TestBytes(t *testing.T) {
 	println("Bytes()", pass, "out of", tests, "tests passed.")
 }
 
+// TestLeftpadBytes makes sure that LeftpadBytes returns the correctly
+// leftpadded byte strings
+func TestLeftpadBytes(t *testing.T) {
+	testInts := []*Int{
+		NewInt(420),
+		NewInt(6553522),
+		NewInt(0),
+		NewInt(-42)}
+
+	testLengths := []uint64{
+		3,
+		7,
+		5,
+		8}
+	expected := [][]byte{
+		[]byte{0, 1, 164},
+		[]byte{0, 0, 0, 0, 99, 255, 178},
+		[]byte{0, 0, 0, 0, 0},
+		[]byte{0, 0, 0, 0, 0, 0, 0, 42},
+	}
+
+	for i := range testInts {
+		actual := testInts[i].LeftpadBytes(testLengths[i])
+		if !bytes.Equal(actual, expected[i]) {
+			t.Errorf("LeftpadBytes: Actual differed from expected at index"+
+				" %v. Got %v, expected %v.", i, actual, expected[i])
+		}
+	}
+}
+
 //TestBitLen checks if the BitLen placeholder exists
 func TestBitLen(t *testing.T) {
 	testints := []*Int{
@@ -987,6 +1042,37 @@ func TestBigInt(t *testing.T) {
 
 	println("bigInt()", pass, "out of", tests, "tests passed.")
 
+}
+
+func TestExtendedGCD(t *testing.T) {
+	a := NewInt(178919)
+	b := NewInt(987642)
+	// These will be filled in by GCD and can calculate modular inverse
+	x := NewInt(0)
+	y := NewInt(0)
+	// This will hold the actual GCD
+	actual := NewInt(0)
+
+	actual.GCD(x, y, a, b)
+
+	expected := NewInt(1)
+
+	if actual.Cmp(expected) != 0 {
+		t.Errorf("TestExtendedGCD: got %v, expected %v", actual.Text(10),
+			expected.Text(10))
+	}
+	// use results of extended GCD to calculate modular inverse and check
+	// consistency with ModInverse
+	if x.Cmp(NewInt(0)) < 0 {
+		// we need to add the prime in again to put the result back in the
+		// cyclic group
+		x.Add(x, b)
+	}
+	modInverseResult := NewInt(0)
+	if x.Cmp(modInverseResult.ModInverse(a, b)) != 0 {
+		t.Errorf("TestExtendedGCD: got incorrect modular inverse %v, "+
+			"expected %v", x.Text(10), modInverseResult.Text(10))
+	}
 }
 
 // Test that IsCoprime returns false when sent a 0
