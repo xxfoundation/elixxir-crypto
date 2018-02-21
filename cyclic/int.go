@@ -319,8 +319,3 @@ func cycInt(n *big.Int) *Int {
 	c.value = n
 	return c
 }
-
-// nilInt returns a cyclic Int which is nil
-func nilInt() *Int {
-	return nil
-}
