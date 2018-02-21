@@ -9,6 +9,7 @@ type Group struct {
 	psub3  *Int
 	seed   *Int
 	random *Int
+	zero   *Int
 	one    *Int
 	two    *Int
 	G      *Int
@@ -27,6 +28,7 @@ func NewGroup(p *Int, s *Int, g *Int, rng Random) Group {
 		psub3:  NewInt(0).Sub(p, NewInt(3)),
 		seed:   s,
 		random: NewInt(0),
+		zero:   NewInt(0),
 		one:    NewInt(1),
 		two:    NewInt(2),
 		G:      g,
@@ -42,11 +44,7 @@ func (g *Group) Mul(a, b, c *Int) *Int {
 
 // Inside returns true of the Int is within the group, false if it isn't
 func (g *Group) Inside(a *Int) bool {
-	if a.Cmp(g.one) == -1 || a.Cmp(g.prime) != -1 {
-		return false
-	} else {
-		return true
-	}
+	return a.Cmp(g.zero) == 1 && a.Cmp(g.prime) == -1
 }
 
 // ModP sets z ≡ x mod prime within the group and returns z.
