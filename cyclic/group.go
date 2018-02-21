@@ -1,5 +1,9 @@
 package cyclic
 
+import (
+	"fmt"
+)
+
 // Groups provide cyclic int operations that keep the return values confined to
 // a finite field under modulo p
 type Group struct {
@@ -70,7 +74,10 @@ func (g *Group) Random(r *Int) *Int {
 	r = r.Add(g.seed, g.rng.Rand(g.random))
 	r = r.Mod(r, g.psub2)
 	r = r.Add(r, g.two)
-	//println("rand: ", r.Text(10))
+	if !g.Inside(r) {
+		panic(fmt.Sprintf("Random int is not in cyclic group: %s",
+			r.TextVerbose(16, 0)))
+	}
 	return r
 }
 
