@@ -60,3 +60,67 @@ func TestRand(t *testing.T) {
 	}
 	println("Rand()", pass, "out of", tests, "tests passed.")
 }
+
+func TestSetMin(t *testing.T) {
+	tests := 1
+	pass := 0
+	gen := NewRandom(NewInt(0), NewInt(10))
+	gen.SetMin(NewInt(5))
+	// expected fmax
+	expected := NewInt(5)
+	actual := gen.fmax
+	if actual.Cmp(expected) != 0 {
+		t.Errorf("SetMin() failed: fmax is %v, expected %v", actual.Text(10), expected.Text(10))
+	} else {
+		pass++
+		println("SetMin()", pass, "out of", tests, "tests passed.")
+	}
+}
+
+func TestSetMinFromInt64(t *testing.T) {
+	tests := 1
+	pass := 0
+	gen := NewRandom(NewInt(0), NewInt(10))
+	gen.SetMinFromInt64(-1)
+	// expected fmax
+	expected := NewInt(11)
+	actual := gen.fmax
+	if actual.Cmp(expected) != 0 {
+		t.Errorf("SetMinFromInt64() failed: fmax is %v, expected %v", actual.Text(10), expected.Text(10))
+	} else {
+		pass++
+		println("SetMinFromInt64()", pass, "out of", tests, "tests passed.")
+	}
+}
+
+func TestSetMax(t *testing.T) {
+	tests := 1
+	pass := 0
+	gen := NewRandom(NewInt(6), NewInt(10))
+	gen.SetMax(NewInt(16))
+	// expected fmax
+	expected := NewInt(10)
+	actual := gen.fmax
+	if actual.Cmp(expected) != 0 {
+		t.Errorf("SetMax() failed: fmax is %v, expected %v", actual.Text(10), expected.Text(10))
+	} else {
+		pass++
+		println("SetMax()", pass, "out of", tests, "tests passed.")
+	}
+}
+
+func TestSetMaxFromInt64(t *testing.T) {
+	tests := 1
+	pass := 0
+	gen := NewRandom(NewInt(5), NewInt(10))
+	gen.SetMaxFromInt64(16)
+	// expected fmax
+	expected := NewInt(11)
+	actual := gen.fmax
+	if actual.Cmp(expected) != 0 {
+		t.Errorf("SetMaxFromInt64() failed: fmax is %v, expected %v", actual.Text(10), expected.Text(10))
+	} else {
+		pass++
+		println("SetMaxFromInt64()", pass, "out of", tests, "tests passed.")
+	}
+}
