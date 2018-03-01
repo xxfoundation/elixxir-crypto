@@ -47,7 +47,7 @@ func NewRandom(min, max *Int) Random {
 func (gen *Random) Rand(x *Int) *Int {
 	ran, err := rand.Int(gen.reader, gen.fmax.value)
 	if err != nil {
-		return nil
+		panic(err.Error())
 	}
 	x.value = ran
 	x = x.Add(x, gen.min)
