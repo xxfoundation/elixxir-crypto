@@ -19,11 +19,11 @@ func bitwiseXOR(a []byte, b []byte, out []byte) []byte {
 // outSharedKeyStorage
 func GenerateSharedKey(g *cyclic.Group, baseKey, recursiveKey,
 	outSharedKey *cyclic.Int, outSharedKeyStorage []byte) *cyclic.Int {
-	if baseKey.BitLen() != 256 {
-		panic("Base key has non-256 bit length")
+	if baseKey.BitLen() > 256 {
+		panic("Base key is too long")
 	}
-	if recursiveKey.BitLen() != 256 {
-		panic("Recursive key has non-256 bit length")
+	if recursiveKey.BitLen() > 256 {
+		panic("Recursive key is too long")
 	}
 
 	hash, _ := hash.NewCMixHash()
