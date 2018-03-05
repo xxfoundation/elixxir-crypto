@@ -5,6 +5,8 @@ import (
 	"gitlab.com/privategrity/crypto/hash"
 )
 
+const hashLen uint64 = 32
+
 // Combine two keys without losing entropy
 func bitwiseXOR(a []byte, b []byte, out []byte) []byte {
 	for i := 0; i < len(a); i++ {
@@ -26,34 +28,34 @@ func GenerateSharedKey(g *cyclic.Group, baseKey, recursiveKey,
 		panic("Recursive key is too long")
 	}
 
-	hash, _ := hash.NewCMixHash()
+	fwhash, _ := hash.NewCMixHash()
 	// Used to increment the recursive key while constructing the long key
 	temp := cyclic.NewInt(1)
 
 	// F(x)
-	hash.Reset()
-	hash.Write(baseKey.Bytes())
-	fOut := hash.Sum(nil)
+	fwhash.Reset()
+	fwhash.Write(baseKey.LeftpadBytes(hashLen))
+	fOut := fwhash.Sum(nil)
 
 	// G(x)
-	hash.Reset()
+	fwhash.Reset()
 	// combine fOut and recursiveKey without losing entropy
-	bitwiseXOR(fOut, recursiveKey.Bytes(), fOut)
-	hash.Write(fOut)
-	recursiveKey.SetBytes(hash.Sum(nil))
+	bitwiseXOR(fOut, recursiveKey.LeftpadBytes(hashLen), fOut)
+	fwhash.Write(fOut)
+	recursiveKey.SetBytes(fwhash.Sum(nil))
 
 	// H(x)
-	hash.Reset()
-	hashInput := cyclic.NewIntFromBytes(recursiveKey.Bytes())
+	fwhash.Reset()
+	hashInput := cyclic.NewIntFromBytes(recursiveKey.LeftpadBytes(hashLen))
 
 	outSharedKeyStorage = outSharedKeyStorage[:0]
 	// each iteration of H adds 256 bits to the length of the shared key
 	for len(outSharedKeyStorage) < cap(outSharedKeyStorage) {
 		// increment hash input
 		hashInput = hashInput.Add(temp, hashInput)
-		hash.Reset()
-		hash.Write(hashInput.Bytes())
-		outSharedKeyStorage = hash.Sum(outSharedKeyStorage)
+		fwhash.Reset()
+		fwhash.Write(hashInput.Bytes())
+		outSharedKeyStorage = fwhash.Sum(outSharedKeyStorage)
 	}
 
 	// limit the length of the shared key output with a modulus
