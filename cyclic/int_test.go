@@ -1129,10 +1129,6 @@ func TestGob(t *testing.T){
 
 	err := enc.Encode(inInt)
 
-	if err!=nil{
-		panic(err.Error())
-	}
-
 	outInt := NewInt(0)
 
 	dec.Decode(&outInt)
