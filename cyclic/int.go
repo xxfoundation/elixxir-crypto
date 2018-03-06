@@ -1,8 +1,8 @@
 package cyclic
 
 import (
-	"fmt"
 	"math/big"
+	"fmt"
 )
 
 // Create the cyclic.Int type as a wrapper of the big.Int type
@@ -252,6 +252,17 @@ func (x *Int) TextVerbose(base int, length int) string {
 		return fullText[:length] + "..."
 	}
 }
+
+func (x Int) GobDecode(in []byte) error{
+	x.value.SetBytes(in)
+	return nil
+}
+
+func (x Int) GobEncode()([]byte,error){
+	return x.value.Bytes(), nil
+}
+
+
 
 // CONSTANTS
 

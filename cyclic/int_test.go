@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"reflect"
 	"testing"
+	"encoding/gob"
 )
 
 //TestNewInt checks if the NewInt function returns a cyclic Int with
@@ -1115,4 +1116,26 @@ func TestIsPrime(t *testing.T) {
 	if n.IsPrime() {
 		t.Errorf("IsPrime: %v should NOT be prime!", n.Uint64())
 	}
+}
+
+func TestGob(t *testing.T){
+
+	var byteBuf bytes.Buffer
+
+	enc := gob.NewEncoder(&byteBuf)
+	dec := gob.NewDecoder(&byteBuf)
+
+	inInt := NewInt(42)
+
+	enc.Encode(inInt)
+
+	outInt := NewInt(0)
+
+	dec.Decode(&outInt)
+
+	if inInt.Cmp(outInt) != 0 {
+		t.Errorf("GobEncoder/GobDecoder failed, " +
+			"Expected: %v; Recieved: %v ", inInt.Text(10), outInt.Text(10))
+	}
+
 }
