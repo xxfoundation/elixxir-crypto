@@ -1127,7 +1127,7 @@ func TestGob(t *testing.T){
 
 	inInt := NewInt(42)
 
-	err := enc.Encode(inInt)
+	enc.Encode(inInt)
 
 	outInt := NewInt(0)
 
