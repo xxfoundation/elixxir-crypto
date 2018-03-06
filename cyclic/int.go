@@ -2,6 +2,7 @@ package cyclic
 
 import (
 	"math/big"
+	"fmt"
 )
 
 // Create the cyclic.Int type as a wrapper of the big.Int type
