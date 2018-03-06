@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"testing"
 	"encoding/gob"
-	"fmt"
 )
 
 //TestNewInt checks if the NewInt function returns a cyclic Int with
