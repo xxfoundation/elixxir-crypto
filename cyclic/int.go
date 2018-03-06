@@ -253,13 +253,11 @@ func (x *Int) TextVerbose(base int, length int) string {
 }
 
 func (x Int) GobDecode(in []byte) error{
-	fmt.Println(in)
 	x.value.SetBytes(in)
 	return nil
 }
 
 func (x Int) GobEncode()([]byte,error){
-	fmt.Println(x.value.Bytes())
 	return x.value.Bytes(), nil
 }
 
