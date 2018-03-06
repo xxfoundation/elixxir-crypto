@@ -1,7 +1,6 @@
 package cyclic
 
 import (
-	"fmt"
 	"math/big"
 )
 
@@ -254,10 +253,8 @@ func (x *Int) TextVerbose(base int, length int) string {
 }
 
 func (x Int) GobDecode(in []byte) error{
-	fmt.Print("decode called: ")
 	fmt.Println(in)
 	x.value.SetBytes(in)
-	fmt.Println("decode called: " + x.Text(10))
 	return nil
 }
 
