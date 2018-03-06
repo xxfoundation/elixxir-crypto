@@ -253,6 +253,21 @@ func (x *Int) TextVerbose(base int, length int) string {
 	}
 }
 
+func (x Int) GobDecode(in []byte) error{
+	fmt.Print("decode called: ")
+	fmt.Println(in)
+	x.value.SetBytes(in)
+	fmt.Println("decode called: " + x.Text(10))
+	return nil
+}
+
+func (x Int) GobEncode()([]byte,error){
+	fmt.Println(x.value.Bytes())
+	return x.value.Bytes(), nil
+}
+
+
+
 // CONSTANTS
 
 // A 4128bit int, meant to be the size of post moded cyclic ints.
