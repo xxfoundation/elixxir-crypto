@@ -254,6 +254,9 @@ func (x *Int) TextVerbose(base int, length int) string {
 }
 
 func (x Int) GobDecode(in []byte) error{
+    if x.value == nil {
+        x.value = big.NewInt(0)
+    }
 	x.value.SetBytes(in)
 	return nil
 }
