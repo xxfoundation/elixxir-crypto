@@ -253,7 +253,7 @@ func (x *Int) TextVerbose(base int, length int) string {
 	}
 }
 
-func (x Int) GobDecode(in []byte) error{
+func (x *Int) GobDecode(in []byte) error{
     if x.value == nil {
         x.value = big.NewInt(0)
     }
@@ -261,7 +261,7 @@ func (x Int) GobDecode(in []byte) error{
 	return nil
 }
 
-func (x Int) GobEncode()([]byte,error){
+func (x *Int) GobEncode()([]byte,error){
 	return x.value.Bytes(), nil
 }
 
