@@ -18,6 +18,7 @@ func Shuffle(shufflee *[]uint64) {
 		// already been shuffled
 		g.SetMinFromInt64(curPos)
 		randPos := g.Rand(x).Int64()
-		(*shufflee)[randPos], (*shufflee)[curPos] = (*shufflee)[curPos], (*shufflee)[randPos]
+		(*shufflee)[randPos], (*shufflee)[curPos] = (*shufflee)[curPos],
+			(*shufflee)[randPos]
 	}
 }

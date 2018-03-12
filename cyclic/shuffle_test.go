@@ -4,86 +4,75 @@ import (
 	"fmt"
 	"math"
 	"testing"
+	"strconv"
 )
 
 func TestShuffle(t *testing.T) {
-	// assuming the number system is circular, averages the movement of each
-	// shuffle.  The result should be that the average shuffle is 1/4 the
-	// batch size.
-	// TODO: calulate false failure rate
+	// TODO: calculate false failure rate
 
-	reps := uint64(100)
-	batch := uint64(2000)
-
-	min := float64(0.48)
-	max := float64(0.52)
+	// Shuffle a bunch of small lists
+	reps := 100000
+	batch := 4
 
 	var outInts [][]uint64
 
-	for i := uint64(0); i < reps; i++ {
+	for i := 0; i < reps; i++ {
 
 		var intLst []uint64
 
-		for j := uint64(0); j < batch; j++ {
+		for j := uint64(0); j < uint64(batch); j++ {
 			intLst = append(intLst, j)
 		}
 		outInts = append(outInts, intLst)
 	}
 
-	for i := uint64(0); i < reps; i++ {
+	for i := 0; i < reps; i++ {
 		Shuffle(&(outInts[i]))
 	}
 
-	sumDelta := float64(0)
-	numElements := float64(batch * reps)
+	// Count the number of times that a particular number ended up in a
+	// particular place
+	var intPlacementCounts [][]int
 
-	halfBatch := float64(batch) / float64(2.0)
-
-	for i := uint64(0); i < reps; i++ {
-
-		for j := uint64(0); j < batch; j++ {
-
-			newDelta := circularDelta(outInts[i][j], j, batch)
-			newDelta /= halfBatch
-
-			sumDelta += newDelta
-
-		}
-
+	for i := 0; i < batch; i++ {
+		intPlacementCounts = append(intPlacementCounts, make([]int,
+			int(batch)))
 	}
 
-	avgDelta := sumDelta / numElements
+	for i := 0; i < reps; i++ {
+		for j := 0; j < batch; j++ {
+			intPlacementCounts[j][outInts[i][j]]++
+		}
+	}
 
-	if (avgDelta < min) || (avgDelta > max) {
-		t.Errorf("Test of Shuffle failed, expected delta between: '%v' and '%v', got: '%v'",
-			min, max, avgDelta)
+	// Find out how different it was from what we expected
+	totalDeviationFromExpected := 0
+	t.Log("Probabilities that each number ended up in each slot:")
+	for i := 0; i < batch; i++ {
+		tableLogRow := ""
+		for j := 0; j < batch; j++ {
+			totalDeviationFromExpected += int(math.Abs(float64(
+				intPlacementCounts[i][j] - reps/batch)))
+			// Log probability that a number ends up here
+			tableLogCell := strconv.FormatFloat(float64(
+				intPlacementCounts[i][j])/ float64(
+				reps), 'f', 4, 64)
+			tableLogRow += tableLogCell
+			tableLogRow += "\t"
+		}
+		t.Log(tableLogRow)
+	}
+	t.Logf("Total deviation from expected probabilities: %v",
+		totalDeviationFromExpected)
+
+	// TODO: calculate what the expected maximum deviation should actually be
+	expectedMaximumDeviation := 3000
+	if totalDeviationFromExpected > expectedMaximumDeviation {
+		t.Errorf("Got more deviation from even shuffle probabilities than"+
+			" expected. Got: %v, expected less than %v.",
+			totalDeviationFromExpected, expectedMaximumDeviation)
 	} else {
 		fmt.Println("Shuffle() 1 out of 1 tests passed.\n")
-	}
-
-}
-
-//i, d, s
-
-func circularDelta(a, b, c uint64) float64 {
-	// computes the closest distance to the new position positions int the array
-	// are a cyclic group defined by length
-	i := int64(a)
-
-	d := int64(b)
-
-	s := int64(c)
-
-	delta1 := math.Abs(float64(i - d))
-	delta2 := float64((s - i) + d)
-	delta3 := float64(i + (s - d))
-
-	if delta1 < delta2 && delta1 < delta3 {
-		return delta1
-	} else if delta2 < delta1 && delta2 < delta3 {
-		return delta2
-	} else {
-		return delta3
 	}
 }
 
