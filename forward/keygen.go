@@ -40,7 +40,7 @@ func GenerateSharedKey(g *cyclic.Group, baseKey, recursiveKey,
 	if !runRatchet{
 		jww.WARN.Println("Base Key * Recursive Key returned; " +
 			"ratcheting is disabled")
-		outSharedKey.Mul(baseKey,recursiveKey)
+		g.Mul(baseKey,recursiveKey,outSharedKey)
 		return outSharedKey
 	}
 
