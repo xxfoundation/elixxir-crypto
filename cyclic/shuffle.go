@@ -9,7 +9,7 @@ func Shuffle(shufflee *[]uint64) {
 		return
 	}
 
-	g := NewRandom(NewInt(0), NewInt(int64(len(*shufflee))))
+	g := NewRandom(NewInt(0), NewInt(int64(len(*shufflee))-1))
 
 	x := NewIntFromUInt(math.MaxInt64)
 

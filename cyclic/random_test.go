@@ -44,7 +44,7 @@ func TestRand(t *testing.T) {
 	pass := 0
 	for i := 0; i < tests/2; i++ {
 		x := largeGen.Rand(rand)
-		if x.Cmp(max) >= 0 || x.Cmp(largeMin) < 0 {
+		if x.Cmp(max) > 0 || x.Cmp(largeMin) < 0 {
 			t.Errorf("Rand() failed, random Int outside range")
 		} else {
 			pass++
@@ -52,7 +52,7 @@ func TestRand(t *testing.T) {
 	}
 	for i := 0; i < tests/2; i++ {
 		x := smallGen.Rand(rand)
-		if x.Cmp(max) >= 0 || x.Cmp(smallMin) < 0 {
+		if x.Cmp(max) > 0 || x.Cmp(smallMin) < 0 {
 			t.Errorf("Rand() failed, random Int outside range")
 		} else {
 			pass++
@@ -67,7 +67,7 @@ func TestSetMin(t *testing.T) {
 	gen := NewRandom(NewInt(0), NewInt(10))
 	gen.SetMin(NewInt(5))
 	// expected fmax
-	expected := NewInt(5)
+	expected := NewInt(6)
 	actual := gen.fmax
 	if actual.Cmp(expected) != 0 {
 		t.Errorf("SetMin() failed: fmax is %v, expected %v", actual.Text(10), expected.Text(10))
@@ -83,7 +83,7 @@ func TestSetMinFromInt64(t *testing.T) {
 	gen := NewRandom(NewInt(0), NewInt(10))
 	gen.SetMinFromInt64(-1)
 	// expected fmax
-	expected := NewInt(11)
+	expected := NewInt(12)
 	actual := gen.fmax
 	if actual.Cmp(expected) != 0 {
 		t.Errorf("SetMinFromInt64() failed: fmax is %v, expected %v", actual.Text(10), expected.Text(10))
@@ -99,7 +99,7 @@ func TestSetMax(t *testing.T) {
 	gen := NewRandom(NewInt(6), NewInt(10))
 	gen.SetMax(NewInt(16))
 	// expected fmax
-	expected := NewInt(10)
+	expected := NewInt(11)
 	actual := gen.fmax
 	if actual.Cmp(expected) != 0 {
 		t.Errorf("SetMax() failed: fmax is %v, expected %v", actual.Text(10), expected.Text(10))
@@ -115,7 +115,7 @@ func TestSetMaxFromInt64(t *testing.T) {
 	gen := NewRandom(NewInt(5), NewInt(10))
 	gen.SetMaxFromInt64(16)
 	// expected fmax
-	expected := NewInt(11)
+	expected := NewInt(12)
 	actual := gen.fmax
 	if actual.Cmp(expected) != 0 {
 		t.Errorf("SetMaxFromInt64() failed: fmax is %v, expected %v", actual.Text(10), expected.Text(10))
