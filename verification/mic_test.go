@@ -71,6 +71,17 @@ func TestMIC(t *testing.T){
 		}
 	}
 
+	for i:=0;i<len(miclist);i++{
+		for j:=i+1;j<len(miclist);j++{
+			valid := CheckMic(hashdata[i],miclist[j])
+			if valid{
+				t.Errorf("TestMIC: Reported valid MIC when invalid with" +
+					" index %v and" +
+					" %v", i, j)
+			}
+		}
+	}
+
 }
 
 func minlen(a,b []byte) (int){
