@@ -94,10 +94,10 @@ func TestGenerateSharedKey(t *testing.T) {
 		GenerateSharedKey(&g[i], baseKey[i],
 			recursiveKeys[i], outSharedKey, outSharedKeyStorage)
 		if outSharedKey.Cmp(expectedSharedKeys[i]) != 0 {
-			t.Errorf("Test Keygen: Shared key didn't match at index %d. " +
+			t.Errorf("Test Keygen: Shared key didn't match at index %d. "+
 				"Expected 0x%v, actual 0x%v\n", i, expectedSharedKeys[i].Text(16), outSharedKey.Text(16))
 		} else if recursiveKeys[i].Cmp(expectedRecursiveKeys[i]) != 0 {
-			t.Errorf("Test Keygen: Recursive key didn't match at index %d. " +
+			t.Errorf("Test Keygen: Recursive key didn't match at index %d. "+
 				"Expected 0x%v, actual 0x%v\n", i, expectedRecursiveKeys[i].Text(16), recursiveKeys[i].Text(16))
 		} else {
 			pass++
@@ -107,28 +107,26 @@ func TestGenerateSharedKey(t *testing.T) {
 	println("GenerateSharedKey():", pass, "out of", tests, "tests passed.")
 }
 
-func TestRunRatchet(t *testing.T){
-	if !GetRatchetStatus(){
+func TestRunRatchet(t *testing.T) {
+	if !GetRatchetStatus() {
 		t.Errorf("Test RunRatchet: Ratcheting did not come up as enabled")
 	}
 
 	SetRatchetStatus(false)
 
-	if GetRatchetStatus(){
+	if GetRatchetStatus() {
 		t.Errorf("Test RunRatchet: Changeing of Set Ratchet did not take for" +
 			" false")
 	}
 
 	SetRatchetStatus(true)
 
-	if !GetRatchetStatus(){
+	if !GetRatchetStatus() {
 		t.Errorf("Test RunRatchet: Changeing of Set Ratchet did not take for" +
 			" true")
 	}
 
 	//TODO: Add tests which show this takes when actually calling shared
 	// generate
-
-
 
 }

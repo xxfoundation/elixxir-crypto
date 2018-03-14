@@ -1,26 +1,25 @@
 package forward
 
 import (
+	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/privategrity/crypto/cyclic"
 	"gitlab.com/privategrity/crypto/hash"
-	jww "github.com/spf13/jwalterweatherman"
 )
 
 const hashLen uint64 = 32
 
 var runRatchet bool = true
 
-func SetRatchetStatus(status bool){
+func SetRatchetStatus(status bool) {
 	runRatchet = status
-	if !status{
+	if !status {
 		jww.WARN.Println("Ratcheting has been disabled")
 	}
 }
 
-func GetRatchetStatus()(bool){
+func GetRatchetStatus() bool {
 	return runRatchet
 }
-
 
 // Combine two keys without losing entropy
 func bitwiseXOR(a []byte, b []byte, out []byte) []byte {
@@ -37,10 +36,10 @@ func bitwiseXOR(a []byte, b []byte, out []byte) []byte {
 func GenerateSharedKey(g *cyclic.Group, baseKey, recursiveKey,
 	outSharedKey *cyclic.Int, outSharedKeyStorage []byte) *cyclic.Int {
 
-	if !runRatchet{
+	if !runRatchet {
 		jww.WARN.Println("Base Key * Recursive Key returned; " +
 			"ratcheting is disabled")
-		g.Mul(baseKey,recursiveKey,outSharedKey)
+		g.Mul(baseKey, recursiveKey, outSharedKey)
 
 		return outSharedKey
 	}

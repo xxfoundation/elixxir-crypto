@@ -2,9 +2,9 @@ package verification
 
 import "testing"
 
-func TestMIC(t *testing.T){
+func TestMIC(t *testing.T) {
 
-	miclengths := []uint64{26,36,25,25}
+	miclengths := []uint64{26, 36, 25, 25}
 
 	hashdata := make([][][]byte, 4)
 	hashdata[0] = make([][]byte, 3)
@@ -37,46 +37,45 @@ func TestMIC(t *testing.T){
 	hashdata[3][7] = hashdata[1][4]
 	hashdata[3][8] = hashdata[2][0]
 
-	miclist := make([][]byte,len(miclengths))
+	miclist := make([][]byte, len(miclengths))
 
-	for i:=0; i<len(miclist);i++{
-		miclist[i] = GenerateMIC(hashdata[i],miclengths[i])
-		if uint64(len(miclist[i]))!=miclengths[i]{
-			t.Errorf("TestMIC: MIC came back at the wrong size on Index %v" +
+	for i := 0; i < len(miclist); i++ {
+		miclist[i] = GenerateMIC(hashdata[i], miclengths[i])
+		if uint64(len(miclist[i])) != miclengths[i] {
+			t.Errorf("TestMIC: MIC came back at the wrong size on Index %v"+
 				"Expected: %v; Received: %v ", i, miclengths[i], len(miclist))
 		}
 	}
 
-
-	for i:=0;i<len(miclist)-1;i++{
-		for j:=i+1;j<len(miclist);j++{
+	for i := 0; i < len(miclist)-1; i++ {
+		for j := i + 1; j < len(miclist); j++ {
 
 			same := true
-			for x:=0;x<minlen(miclist[i],miclist[j]);x++{
-				if miclist[i][x] != miclist[j][x]{
+			for x := 0; x < minlen(miclist[i], miclist[j]); x++ {
+				if miclist[i][x] != miclist[j][x] {
 					same = false
 				}
 			}
 
-			if same{
+			if same {
 				t.Errorf("TestMIC: MICs on index %v and %v are the same",
 					i, j)
 			}
 		}
 	}
 
-	for i:=0;i<len(miclist);i++{
-		if !CheckMic(hashdata[i],miclist[i]){
+	for i := 0; i < len(miclist); i++ {
+		if !CheckMic(hashdata[i], miclist[i]) {
 			t.Errorf("TestMIC: MICs did not match on inxed %v", i)
 		}
 	}
 
-	for i:=0;i<len(miclist);i++{
-		for j:=i+1;j<len(miclist);j++{
-			valid := CheckMic(hashdata[i],miclist[j])
-			if valid{
-				t.Errorf("TestMIC: Reported valid MIC when invalid with" +
-					" index %v and" +
+	for i := 0; i < len(miclist); i++ {
+		for j := i + 1; j < len(miclist); j++ {
+			valid := CheckMic(hashdata[i], miclist[j])
+			if valid {
+				t.Errorf("TestMIC: Reported valid MIC when invalid with"+
+					" index %v and"+
 					" %v", i, j)
 			}
 		}
@@ -84,10 +83,10 @@ func TestMIC(t *testing.T){
 
 }
 
-func minlen(a,b []byte) (int){
-	if len(a)<len(b){
+func minlen(a, b []byte) int {
+	if len(a) < len(b) {
 		return len(a)
-	}else{
+	} else {
 		return len(b)
 	}
 }

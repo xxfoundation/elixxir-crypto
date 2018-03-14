@@ -1,7 +1,6 @@
 package cyclic
 
 import (
-	"fmt"
 	"math"
 	"testing"
 )
@@ -55,10 +54,11 @@ func TestShuffle(t *testing.T) {
 	avgDelta := sumDelta / numElements
 
 	if (avgDelta < min) || (avgDelta > max) {
-		t.Errorf("Test of Shuffle failed, expected delta between: '%v' and '%v', got: '%v'",
+		t.Errorf("Test of Shuffle failed, "+
+			"expected delta between: '%v' and '%v', got: '%v'",
 			min, max, avgDelta)
 	} else {
-		fmt.Println("Shuffle() 1 out of 1 tests passed.\n")
+		println("Shuffle() 1 out of 1 tests passed.")
 	}
 
 }
