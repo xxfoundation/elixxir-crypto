@@ -2,8 +2,8 @@ package cyclic
 
 import (
 	"math"
-	"testing"
 	"strconv"
+	"testing"
 )
 
 func TestShuffle(t *testing.T) {
@@ -54,7 +54,7 @@ func TestShuffle(t *testing.T) {
 				intPlacementCounts[i][j] - reps/batch)))
 			// Log probability that a number ends up here
 			tableLogCell := strconv.FormatFloat(float64(
-				intPlacementCounts[i][j])/ float64(
+				intPlacementCounts[i][j])/float64(
 				reps), 'f', 4, 64)
 			tableLogRow += tableLogCell
 			tableLogRow += "\t"
@@ -71,7 +71,7 @@ func TestShuffle(t *testing.T) {
 			" expected. Got: %v, expected less than %v.",
 			totalDeviationFromExpected, expectedMaximumDeviation)
 	} else {
-		fmt.Println("Shuffle() 1 out of 1 tests passed.\n")
+		t.Log("Shuffle() 1 out of 1 tests passed.\n")
 	}
 }
 
