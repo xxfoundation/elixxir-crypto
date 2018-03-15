@@ -1,8 +1,8 @@
 package hash
 
 import (
-	"hash"
 	"golang.org/x/crypto/blake2b"
+	"hash"
 )
 
 // NewCMixHash returns the current cMix hash implementation

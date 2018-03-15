@@ -1,7 +1,6 @@
 package cyclic
 
 import (
-	"fmt"
 	"math"
 	"testing"
 	"strconv"

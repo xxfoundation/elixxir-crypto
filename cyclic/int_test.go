@@ -2,6 +2,7 @@ package cyclic
 
 import (
 	"bytes"
+	"encoding/gob"
 	"math/big"
 	"reflect"
 	"testing"
@@ -332,8 +333,8 @@ func TestSetBytes(t *testing.T) {
 		NewIntFromString("867530918239450598372829049587", 10),
 		NewInt(0)}
 	testBytes := [][]byte{
-		{0x2A},                            // 42
-		{0x63, 0xFF, 0xB2},                // 6553522
+		{0x2A},             // 42
+		{0x63, 0xFF, 0xB2}, // 6553522
 		{0xA, 0xF3, 0x24, 0xC1, 0xA0, 0xAD, 0x87, 0x20,
 			0x57, 0xCE, 0xF4, 0x32, 0xF3}, //"867530918239450598372829049587",
 		{0x00}}
@@ -1115,4 +1116,26 @@ func TestIsPrime(t *testing.T) {
 	if n.IsPrime() {
 		t.Errorf("IsPrime: %v should NOT be prime!", n.Uint64())
 	}
+}
+
+func TestGob(t *testing.T) {
+
+	var byteBuf bytes.Buffer
+
+	enc := gob.NewEncoder(&byteBuf)
+	dec := gob.NewDecoder(&byteBuf)
+
+	inInt := NewInt(42)
+
+	enc.Encode(inInt)
+
+	outInt := NewInt(0)
+
+	dec.Decode(&outInt)
+
+	if inInt.Cmp(outInt) != 0 {
+		t.Errorf("GobEncoder/GobDecoder failed, "+
+			"Expected: %v; Recieved: %v ", inInt.Text(10), outInt.Text(10))
+	}
+
 }

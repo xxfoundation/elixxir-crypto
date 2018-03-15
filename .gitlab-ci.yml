@@ -9,6 +9,7 @@ cache:
 variables:
   REPO_DIR: gitlab.com/privategrity
   REPO_NAME: crypto
+  DOCKER_IMAGE: carback1/golang-glide:1.9-3b2621654f38
 
 before_script:
   - go version || echo "Go executable not found."
@@ -25,10 +26,11 @@ stages:
   - build
   - release
   - deploy
+  - trigger_integration
 
 setup:
   stage: setup
-  image: carback1/golang-glide:1.9
+  image: $DOCKER_IMAGE
   script:
     - git clean -ffdx
     - glide install -v
@@ -38,13 +40,19 @@ setup:
 
 test:
   stage: test
-  image: carback1/golang-glide:1.9
+  image: $DOCKER_IMAGE
   script:
-    - go test -cover -v ./...
+    - mkdir -p testdata
+    - goverage -coverprofile=testdata/coverage.out -v ./... | grep -v "no packages being tested depend on"
+    - go tool cover -func=testdata/coverage.out
+    - go tool cover -html=testdata/coverage.out -o testdata/coverage.html
+  artifacts:
+    paths:
+      - testdata/
 
 build:
   stage: build
-  image: carback1/golang-glide:1.9
+  image: $DOCKER_IMAGE
   script:
     - mkdir -p release
     - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags '-w -s' ./...
@@ -87,3 +95,13 @@ deploy_staging:
     # url: https://librerio.example.com
   only:
   - master
+
+trigger_integration:
+  stage: trigger_integration
+  script:
+    # Server
+    - "curl -X POST -F token=719da505f58f77e042deaf6e2617f2 -F ref=master https://gitlab.com/api/v4/projects/5014439/trigger/pipeline"
+    # Client
+    - "curl -X POST -F token=49d8780aca37fe7dabd6faecee913c -F ref=master https://gitlab.com/api/v4/projects/5454785/trigger/pipeline"
+  only:
+    - master

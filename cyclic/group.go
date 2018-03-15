@@ -1,7 +1,7 @@
 package cyclic
 
 import (
-	"fmt"
+	jww "github.com/spf13/jwalterweatherman"
 )
 
 // Groups provide cyclic int operations that keep the return values confined to
@@ -43,7 +43,7 @@ func NewGroup(p *Int, s *Int, g *Int, rng Random) Group {
 // Mul multiplies a and b within the group, putting the result in c
 // and returning c
 func (g *Group) Mul(a, b, c *Int) *Int {
-	return c.Mod((c.Mul(a, b)), g.prime)
+	return c.Mod(c.Mul(a, b), g.prime)
 }
 
 // Inside returns true of the Int is within the group, false if it isn't
@@ -75,8 +75,8 @@ func (g *Group) Random(r *Int) *Int {
 	r = r.Mod(r, g.psub2)
 	r = r.Add(r, g.two)
 	if !g.Inside(r) {
-		panic(fmt.Sprintf("Random int is not in cyclic group: %s",
-			r.TextVerbose(16, 0)))
+		jww.FATAL.Panicf("Random int is not in cyclic group: %s",
+			r.TextVerbose(16, 0))
 	}
 	return r
 }
@@ -90,7 +90,6 @@ func (g *Group) GetP(p *Int) *Int {
 // GroupMul Multiplies all ints in the passed slice slc together and
 // places the result in c
 func (g Group) ArrayMul(slc []*Int, c *Int) *Int {
-
 	c.SetString("1", 10)
 
 	for _, islc := range slc {
@@ -102,16 +101,7 @@ func (g Group) ArrayMul(slc []*Int, c *Int) *Int {
 
 // Exp sets z = x**y mod p, and returns z.
 func (g Group) Exp(x, y, z *Int) *Int {
-
 	return z.Exp(x, y, g.prime)
-}
-
-// Root sets z = y√x mod p, and returns z.
-func (g Group) Root(x, y, z *Int) *Int {
-	g.Inverse(y, z)
-	g.Exp(x, z, z)
-
-	return z
 }
 
 // RandomCoprime randomly generates coprimes in the group (coprime
@@ -133,9 +123,4 @@ func (g Group) RootCoprime(x, y, z *Int) *Int {
 	g.Exp(x, z, z)
 
 	return z
-}
-
-//nilGroup returns a nil group
-func nilGroup() *Group {
-	return nil
 }
