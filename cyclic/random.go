@@ -9,11 +9,15 @@ type Random struct {
 	min    *Int
 	max    *Int
 	fmax   *Int
+	one    *Int
 	reader io.Reader
 }
 
+// The random range is inclusive of both the minimum and maximum boundaries of
+// the random range
 func (r *Random) recalculateRange() {
 	r.fmax.Sub(r.max, r.min)
+	r.fmax.Add(r.fmax, r.one)
 }
 
 func (r *Random) SetMin(newMin *Int) {
@@ -39,7 +43,7 @@ func (r *Random) SetMaxFromInt64(newMax int64) {
 // Initialize a new Random with min and max values
 func NewRandom(min, max *Int) Random {
 	fmax := NewInt(0)
-	gen := Random{min, max, fmax.Sub(max, min), rand.Reader}
+	gen := Random{min, max, fmax.Sub(max, min), NewInt(1), rand.Reader}
 	return gen
 }
 
