@@ -84,7 +84,7 @@ func TestMessagePayload(t *testing.T) {
 			pld.GetPayloadInitVect().SetUint64(uint64(i * 5))
 
 			serial := pld.SerializePayload()
-			deserial := DeseralizePayload(serial)
+			deserial := DeserializePayload(serial)
 
 			if deserial.GetPayloadInitVect().Cmp(pld.GetPayloadInitVect()) != 0 {
 				t.Errorf("Test of Payload failed on "+

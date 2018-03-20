@@ -126,7 +126,7 @@ func (p Payload) SerializePayload() *cyclic.Int {
 }
 
 //Returns a Deserialized Message Payload
-func DeseralizePayload(pSerial *cyclic.Int) Payload {
+func DeserializePayload(pSerial *cyclic.Int) Payload {
 	pbytes := pSerial.LeftpadBytes(TOTAL_LEN)
 
 	return Payload{

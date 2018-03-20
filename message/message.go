@@ -102,7 +102,7 @@ func (m Message) SerializeMessage() MessageSerial {
 		m.Recipient.SerializeRecipient()}
 }
 
-func DeseralizeMessage(ms MessageSerial) Message {
-	return Message{DeseralizePayload(ms.Payload),
-		DeseralizeRecipient(ms.Recipient)}
+func DeserializeMessage(ms MessageSerial) Message {
+	return Message{DeserializePayload(ms.Payload),
+		DeserializeRecipient(ms.Recipient)}
 }

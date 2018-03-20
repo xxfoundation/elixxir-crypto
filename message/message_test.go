@@ -88,7 +88,7 @@ func TestNewMessage(t *testing.T) {
 			}
 
 			serial := msg.SerializeMessage()
-			deserial := DeseralizeMessage(serial)
+			deserial := DeserializeMessage(serial)
 
 			pldSuccess, pldErr := payloadEqual(msg.Payload, deserial.Payload)
 

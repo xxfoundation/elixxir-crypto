@@ -81,7 +81,7 @@ func TestRecipientPayload(t *testing.T) {
 
 		serial := recipients[i].SerializeRecipient()
 
-		deserial := DeseralizeRecipient(serial)
+		deserial := DeserializeRecipient(serial)
 
 		if deserial.GetRecipientID().Cmp(recipients[i].GetRecipientID()) != 0 {
 			t.Errorf("Test of Recipient Payload failed on test %v, "+

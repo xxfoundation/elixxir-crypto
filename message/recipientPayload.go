@@ -109,7 +109,7 @@ func (r Recipient) SerializeRecipient() *cyclic.Int {
 }
 
 //Returns a Deserialized recipient id
-func DeseralizeRecipient(rSerial *cyclic.Int) Recipient {
+func DeserializeRecipient(rSerial *cyclic.Int) Recipient {
 	rbytes := rSerial.LeftpadBytes(TOTAL_LEN)
 
 	return Recipient{
