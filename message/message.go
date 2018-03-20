@@ -19,7 +19,7 @@ import (
 const (
 	TOTAL_LEN uint64 = 512
 
-	//Byte used to ensure the highest bit of a zerilization is zero
+	//Byte used to ensure the highest bit of a serilization is zero
 	ZEROER byte = 0x7F
 )
 
