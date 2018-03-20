@@ -72,7 +72,7 @@ func NewPayload(sender uint64, text string) ([]Payload, error) {
 	return payloadLst, nil
 }
 
-// This function returns a pointer to the Payload Initiliztion Vector
+// This function returns a pointer to the Payload Initialization Vector
 // This ensures that while the data can be edited, it cant be reallocated
 func (p Payload) GetPayloadInitVect() *cyclic.Int {
 	return p.payloadInitVect

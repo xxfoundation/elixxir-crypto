@@ -56,7 +56,7 @@ func TestRecipientPayload(t *testing.T) {
 
 		if recipients[i].GetRecipientInitVect().Cmp(initVects[i]) != 0 {
 			t.Errorf("Test of Recipient Payload failed on test %v, "+
-				"Initilization Vectors did not match;\n  Expected: %v, "+
+				"Initialization Vectors did not match;\n  Expected: %v, "+
 				"Recieved: %v ", i, initVects[i].Text(16),
 				recipients[i].GetRecipientInitVect().Text(16))
 		}
