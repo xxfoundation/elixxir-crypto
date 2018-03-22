@@ -485,3 +485,51 @@ func TestRandomCoprime(t *testing.T) {
 	}
 	println("Random()", pass, "out of", tests, "tests passed.")
 }
+
+// You pass a value x = a^y to the RootCoprime function, where y is (supposed to be) coprime with (p-1)
+// If y is coprime, then the function returns the value of a
+func TestGroup_RootCoprime(t *testing.T) {
+
+	tests := 2
+	pass := 0
+
+	p := NewInt(17)
+	s := NewInt(15)
+	g := NewInt(29)
+	min := NewInt(2)
+	max := NewInt(1000)
+	rng := NewRandom(min, max)
+
+	group := NewGroup(p, s, g, rng)
+
+	// 32 = 2^5
+	x1 := NewInt(32)
+	y1 := NewInt(5)
+	z1 := NewInt(0)
+
+	// 16 = 2^4
+	x2 := NewInt(16)
+	y2 := NewInt(4)
+	z2 := NewInt(0)
+
+	group.RootCoprime(x1, y1, z1)
+	group.RootCoprime(x2, y2, z2)
+
+	ref := "2"
+	Z1 := z1.value.String()
+	Z2 := z2.value.String()
+
+	if Z1 != ref {
+		t.Errorf("RootCoprime Error: Function did not output expected value!")
+	} else {
+		pass++
+	}
+
+	if Z2 == ref {
+		t.Errorf("RootCoprime Error: Function should not have returned 2")
+	} else {
+		pass++
+	}
+
+	println("RootCoprime", pass, "out of", tests, "tests passed.")
+}
