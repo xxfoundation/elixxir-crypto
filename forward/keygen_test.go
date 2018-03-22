@@ -6,11 +6,11 @@ import (
 )
 
 // Catch calls recover to catch the panic thrown in the GenerateSharedKey() test functions
-func Catch(fn string) {
+func Catch(fn string, t *testing.T) {
 	if r := recover(); r != nil {
 		println("Good news! Panic was caught!", fn, " Had to trigger recover in", r)
 	} else {
-		println("No panic was caught!")
+		t.Errorf("No panic was caught and it was expected to!")
 	}
 }
 
@@ -171,7 +171,7 @@ func TestGenerateSharedKey2(t *testing.T) {
 		"da9f8137821987b978164932015c105263ae769310269b510937c190768e2930",
 		16)
 
-	defer Catch("TestGenerateSharedKey2()")
+	defer Catch("TestGenerateSharedKey2()", t)
 	GenerateSharedKey(&g, baseKey, recursiveKeys, outSharedKey, outSharedKeyStorage)
 }
 
@@ -219,7 +219,7 @@ func TestGenerateSharedKey3(t *testing.T) {
 		"da9f8137821987b978164932015c105263ae769310269b510937c190768e2930ffffffffff",
 		16)
 
-	defer Catch("TestGenerateSharedKey3()")
+	defer Catch("TestGenerateSharedKey3()", t)
 	GenerateSharedKey(&g, baseKey, recursiveKeys, outSharedKey, outSharedKeyStorage)
 }
 
