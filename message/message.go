@@ -67,7 +67,7 @@ type Message struct {
 	recipientMIC      *cyclic.Int
 }
 
-// Makes a new message for a certain sender and recipient
+// NewMessage makes a new message for a certain sender and recipient
 func NewMessage(sender, recipient uint64, text string) []*Message {
 
 	if sender == 0 {
@@ -110,62 +110,64 @@ func NewMessage(sender, recipient uint64, text string) []*Message {
 	return messageList
 }
 
-// This function returns a pointer to the sender ID in Message
+// GetSenderID returns a pointer to the sender ID in Message
 // This ensures that while the data can be edited, it cant be reallocated
 func (m *Message) GetSenderID() *cyclic.Int {
 	return m.senderID
 }
 
-// This function returns a pointer to the payload in Message
+// GetPayload returns a pointer to the payload in Message
 // This ensures that while the data can be edited, it cant be reallocated
 func (m *Message) GetPayload() *cyclic.Int {
 	return m.payload
 }
 
-// This function returns a pointer to the Recipient ID in Message
+// GetRecipientID returns a pointer to the Recipient ID in Message
 // This ensures that while the data can be edited, it cant be reallocated
 func (m *Message) GetRecipientID() *cyclic.Int {
 	return m.recipientID
 }
 
-// This function returns a pointer to the Payload Initiliztion Vector in
+// GetPayloadInitVector returns a pointer to the Payload Initialization Vector in
 // Message
 // This ensures that while the data can be edited, it cant be reallocated
 func (m *Message) GetPayloadInitVector() *cyclic.Int {
 	return m.payloadInitVect
 }
 
-// This function returns a pointer to the Recipient ID Initilization Vector in
+// GetRecipientInitVector returns a pointer to the Recipient ID Initialization Vector in
 // Message
 // This ensures that while the data can be edited, it cant be reallocated
 func (m *Message) GetRecipientInitVector() *cyclic.Int {
 	return m.recipientInitVect
 }
 
-// This function returns the Sender ID as a uint64 from Message
+// getSenderIDInt returns the Sender ID as a uint64 from Message
 func (m *Message) getSenderIDInt() uint64 {
 	return m.senderID.Uint64()
 }
 
-// This function returns the Recipient ID as a uint64 from Message
+// getRecipientIDInt returns the Recipient ID as a uint64 from Message
 func (m *Message) getRecipientIDInt() uint64 {
 	return m.recipientID.Uint64()
 }
 
-// This function returns a Payload String from Message
+// GetPayloadString returns a Payload String from Message
 func (m *Message) GetPayloadString() string {
 	return string(m.payload.Bytes())
 }
 
+// GetPayloadMIC returns a MIC associated with the Payload of a message
 func (m *Message) GetPayloadMIC() *cyclic.Int {
 	return m.payloadMIC
 }
 
+// GetRecipientMIC returns a MIC associated with the Recipient field of a message
 func (m *Message) GetRecipientMIC() *cyclic.Int {
 	return m.recipientMIC
 }
 
-//Builds the Serialized MessageBytes from Message
+//ConstructMessageBytes Builds the Serialized MessageBytes from Message
 func (m *Message) ConstructMessageBytes() *MessageBytes {
 
 	/*CONSTRUCT MESSAGE PAYLOAD*/
@@ -209,7 +211,6 @@ func (m *Message) ConstructMessageBytes() *MessageBytes {
 		m.recipientID.LeftpadBytes(RID_LEN)...)
 
 	//Create message
-
 	mb := &MessageBytes{
 		cyclic.NewIntFromBytes(messagePayload),
 		cyclic.NewIntFromBytes(recipientPayload),
@@ -218,7 +219,7 @@ func (m *Message) ConstructMessageBytes() *MessageBytes {
 	return mb
 }
 
-//Deserializes MessageBytes
+// DeconstructMessageBytes Deserializes MessageBytes
 func (mb *MessageBytes) DeconstructMessageBytes() *Message {
 	payloadBytes := mb.Payload.LeftpadBytes(TOTAL_LEN)
 	recipientBytes := mb.Recipient.LeftpadBytes(TOTAL_LEN)

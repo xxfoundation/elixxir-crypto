@@ -73,9 +73,7 @@ func TestNewMessage(t *testing.T) {
 				"match;\n Value Expected: %v, Value Received: %v", i,
 				string(expct.Bytes()), string(msg.payload.Bytes()))
 		}
-
 	}
-
 }
 
 func TestConstructDeconstructMessageBytes(t *testing.T) {
@@ -111,12 +109,9 @@ func compareByteSlices(a, b *[]byte) bool {
 
 	for i := 0; i < len(*a); i++ {
 		if (*a)[i] != (*b)[i] {
-
 			return false
 		}
-
 	}
-
 	return true
 }
 

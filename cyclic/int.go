@@ -181,7 +181,7 @@ func (z *Int) IsCoprime(x *Int) bool {
 	return s.Cmp(NewInt(1)) == 0
 }
 
-// Function that calculates (with high probability) if a number is prime or not.
+// IsPrime calculates (with high probability) if a number is prime or not.
 // This function uses 40 (can be changed) iterations of the Miller-Rabin prime test
 // Return: True if number is prime. False if not.
 func (x *Int) IsPrime() bool {
