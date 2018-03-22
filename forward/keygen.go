@@ -10,6 +10,8 @@ const hashLen uint64 = 32
 
 var runRatchet bool = true
 
+// Define the Ratchet for the system
+// True to activate it, False to deactivate it
 func SetRatchetStatus(status bool) {
 	runRatchet = status
 	if !status {
@@ -17,6 +19,9 @@ func SetRatchetStatus(status bool) {
 	}
 }
 
+// This function returns the Ratchet status
+// If true, then Ratchet is on and key rolling is happening
+// If false, then same key is being used for sequential messages
 func GetRatchetStatus() bool {
 	return runRatchet
 }
@@ -45,10 +50,10 @@ func GenerateSharedKey(g *cyclic.Group, baseKey, recursiveKey,
 	}
 
 	if baseKey.BitLen() > 256 {
-		panic("Base key is too long")
+		jww.FATAL.Panicf("Base key is too long")
 	}
 	if recursiveKey.BitLen() > 256 {
-		panic("Recursive key is too long")
+		jww.FATAL.Panicf("Recursive key is too long")
 	}
 
 	fwhash, _ := hash.NewCMixHash()
