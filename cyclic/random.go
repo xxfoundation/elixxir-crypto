@@ -20,34 +20,38 @@ func (r *Random) recalculateRange() {
 	r.fmax.Add(r.fmax, r.one)
 }
 
+// SetMin sets Minimum value for the lower boundary of the random range
 func (r *Random) SetMin(newMin *Int) {
 	r.min.Set(newMin)
 	r.recalculateRange()
 }
 
+// SetMinFromInt64 sets Min value for the lower boundary of the random range (int 64 version)
 func (r *Random) SetMinFromInt64(newMin int64) {
 	r.min.SetInt64(newMin)
 	r.recalculateRange()
 }
 
+// SetMax sets Max value for the upper boundary of the random range
 func (r *Random) SetMax(newMax *Int) {
 	r.max.Set(newMax)
 	r.recalculateRange()
 }
 
+// SetMaxFromInt64 sets Max val for the upper boundary of the random range (int 64 version)
 func (r *Random) SetMaxFromInt64(newMax int64) {
 	r.max.SetInt64(newMax)
 	r.recalculateRange()
 }
 
-// Initialize a new Random with min and max values
+// NewRandom initializes a new Random with min and max values
 func NewRandom(min, max *Int) Random {
 	fmax := NewInt(0)
 	gen := Random{min, max, fmax.Sub(max, min), NewInt(1), rand.Reader}
 	return gen
 }
 
-// Generates a random Int x, min <= x < max
+// Rand generates a random Int x, min <= x < max
 func (gen *Random) Rand(x *Int) *Int {
 	ran, err := rand.Int(gen.reader, gen.fmax.value)
 	if err != nil {
