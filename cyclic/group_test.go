@@ -364,84 +364,6 @@ func TestExpForGroup(t *testing.T) {
 
 }
 
-func TestRoot(t *testing.T) {
-	p := NewInt(11)
-	min := NewInt(2)
-	max := NewInt(0)
-	max.Mul(p, NewInt(1000))
-	seed := NewInt(42)
-	rng := NewRandom(min, max)
-	g := NewInt(9)
-
-	grp := NewGroup(p, seed, g, rng)
-
-	type testStructure struct {
-		x *Int
-		y *Int
-		z *Int
-	}
-
-	testStrings := [][]string{
-		{"42", "42", "1"},
-		{"42", "69", "5"},
-		{"-69", "42", "10"},
-		{"1000000000", "9999999", "10"},
-	}
-
-	var testStructs []testStructure
-
-	var sucess bool
-
-	for i, strs := range testStrings {
-		var ts testStructure
-
-		ts.x, sucess = NewInt(0).SetString(strs[0], 10)
-
-		if sucess != true {
-			t.Errorf("Setup for Test of Root() failed at 'x' phase of index: %v", i)
-		}
-
-		ts.y, sucess = NewInt(0).SetString(strs[1], 10)
-
-		if sucess != true {
-			t.Errorf("Setup for Test of Root() failed at 'y' phase of index: %v", i)
-		}
-
-		ts.z, sucess = NewInt(0).SetString(strs[2], 10)
-
-		if sucess != true {
-			t.Errorf("Setup for Test of Root() failed at 'z' phase of index: %v", i)
-		}
-
-		testStructs = append(testStructs, ts)
-	}
-
-	tests := len(testStructs)
-	pass := 0
-
-	expected := 0
-
-	for i, testi := range testStructs {
-
-		inv := NewInt(0)
-		actual := NewInt(0)
-
-		grp.Inverse(testi.y, inv)
-
-		actual = grp.Exp(testi.x, inv, actual)
-
-		result := actual.Cmp(testi.z)
-
-		if result != expected {
-			t.Errorf("Test of Root() failed at index: %v Expected: %v, %v; Actual: %v, %v",
-				i, expected, testi.z.Text(10), result, actual.Text(10))
-		} else {
-			pass += 1
-		}
-	}
-	println("Root()", pass, "out of", tests, "tests passed.")
-}
-
 func TestRandomCoprime(t *testing.T) {
 	// setup test group and generator
 	p := NewInt(17)
@@ -484,4 +406,43 @@ func TestRandomCoprime(t *testing.T) {
 		}
 	}
 	println("Random()", pass, "out of", tests, "tests passed.")
+}
+
+// You pass a value x = a^y to the RootCoprime function, where y is (supposed to be) coprime with (p-1).
+// If y is coprime, then the function returns the value of a
+func TestGroup_RootCoprime(t *testing.T) {
+
+	tests := 2
+	pass := 0
+
+	p := NewInt(17)
+	s := NewInt(15)
+	g := NewInt(29)
+	min := NewInt(2)
+	max := NewInt(1000)
+	rng := NewRandom(min, max)
+
+	group := NewGroup(p, s, g, rng)
+
+	a := []*Int{NewInt(5), NewInt(4), NewInt(15)}
+	x := NewInt(0)
+	y := []*Int{NewInt(5), NewInt(11), NewInt(2)}
+	z := []*Int{NewInt(0), NewInt(0), NewInt(0)}
+
+	passing := []bool{true, true, false}
+
+	for i := 0; i < 2; i++ {
+		group.Exp(a[i], y[i], x)
+
+		group.RootCoprime(x, y[i], z[i])
+
+		if z[i].Cmp(a[i]) != 0 && passing[i] {
+			t.Errorf("RootCoprime Error: Function did not output expected value!")
+		} else {
+			pass++
+		}
+
+	}
+
+	println("RootCoprime", pass, "out of", tests, "tests passed.")
 }
