@@ -17,7 +17,7 @@ import (
 // exclusive for the end, so the END consts are one more then the final
 // index.
 const (
-	TOTAL_LEN uint64 = 512
+	TOTAL_LEN uint64 = 256
 
 	//Byte used to ensure the highest bit of a serilization is zero
 	ZEROER byte = 0x7F
