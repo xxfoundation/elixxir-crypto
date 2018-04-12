@@ -1,10 +1,11 @@
 package format
 
 import (
-	"gitlab.com/privategrity/crypto/cyclic"
-	"testing"
+//	"gitlab.com/privategrity/crypto/cyclic"
+//	"testing"
 )
 
+/*
 func TestMessagePayload(t *testing.T) {
 	tests := 3
 
@@ -138,3 +139,4 @@ func compareByteSlices(a, b *[]byte) bool {
 
 	return true
 }
+*/

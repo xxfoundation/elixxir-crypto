@@ -6,6 +6,7 @@
 
 package format
 
+/*
 import (
 	"fmt"
 	"gitlab.com/privategrity/crypto/cyclic"
@@ -160,5 +161,5 @@ func recipientEqual(r1 Recipient, r2 Recipient) (bool, string) {
 	return true, ""
 
 }
-
+*/
 //TODO: Test End cases, messages over 2x length, at max length, and others.
