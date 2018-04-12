@@ -1,4 +1,4 @@
-package message
+package format
 
 import (
 	"errors"
