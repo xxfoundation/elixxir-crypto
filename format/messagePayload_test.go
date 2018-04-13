@@ -1,43 +1,19 @@
 package format
 
 import (
-//	"gitlab.com/privategrity/crypto/cyclic"
-//	"testing"
+	"gitlab.com/privategrity/crypto/cyclic"
+	"testing"
 )
 
-/*
 func TestMessagePayload(t *testing.T) {
 	tests := 3
 
 	testStrings := make([]string, tests)
 
-	testStrings[0] = "short test"
-	testStrings[1] = "Perfect test: Lorem ipsum dolor sit amet, consectetur " +
-		"adipiscing elit. Curabitur congue, tellus non rhoncus tincidunt, " +
-		"tortor mi rhoncus arcu, quis commodo diam elit nec nisl. Phasellus " +
-		"luctus velit a tempus rutrum. Etiam sollicitudin a lorem eget " +
-		"consequat. Nunc volutpat diam a vulputate blandit. Fusce congue " +
-		"laoreet dignissim. Curabitur fermentum lacus vel mauris mollis, in " +
-		"tempor ligula ornare. Ut sit amet arcu tellus. Aenean luctus massa " +
-		"lorem, id tempus odio faucibus quis. Cura"
+	testStrings[0] = testText[0 : DATA_LEN/2]
+	testStrings[1] = testText[0:DATA_LEN]
 
-	testStrings[2] = "long test: Lorem ipsum dolor sit amet, consectetur " +
-		"adipiscing elit. Quisque vitae elit venenatis, tincidunt tellus " +
-		"non, efficitur eros. Maecenas vel fermentum magna, ac varius velit." +
-		"Mauris eleifend ullamcorper velit, at aliquam magna semper cursus." +
-		"Mauris finibus mauris in suscipit placerat. Mauris fermentum dolor " +
-		"nisi, a condimentum lacus imperdiet at. Interdum et malesuada fames " +
-		"ac ante ipsum primis in faucibus. Mauris hendrerit nisi in suscipit " +
-		"ornare. Maecenas imperdiet luctus tincidunt. Vivamus tortor turpis, " +
-		"aliquam facilisis bibendum a, efficitur lobortis dolor. Etiam " +
-		"iaculis nunc nec convallis condimentum. Vivamus et mauris vel " +
-		"sapien efficitur elementum. Vestibulum ante ipsum primis in " +
-		"faucibus orci luctus et ultrices posuere cubilia Curae;  " +
-		"Ut fermentum aliquet ornare. Sed tincidunt interdum est sed " +
-		"vestibulum. Integer ultricies vitae magna ac venenatis. Curabitur " +
-		"a velit sit amet erat tincidunt ullamcorper a id nulla. " +
-		"Pellentesque habitant morbi tristique senectus et netus et cras " +
-		"amet."
+	testStrings[2] = testText[0 : 2*DATA_LEN]
 
 	expectedSlices := make([][][]byte, tests)
 
@@ -139,4 +115,3 @@ func compareByteSlices(a, b *[]byte) bool {
 
 	return true
 }
-*/

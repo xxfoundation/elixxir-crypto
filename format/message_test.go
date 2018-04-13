@@ -6,7 +6,6 @@
 
 package format
 
-/*
 import (
 	"fmt"
 	"gitlab.com/privategrity/crypto/cyclic"
@@ -19,33 +18,10 @@ func TestNewMessage(t *testing.T) {
 
 	testStrings := make([]string, tests)
 
-	testStrings[0] = "short test"
-	testStrings[1] = "Perfect test: Lorem ipsum dolor sit amet, consectetur " +
-		"adipiscing elit. Curabitur congue, tellus non rhoncus tincidunt, " +
-		"tortor mi rhoncus arcu, quis commodo diam elit nec nisl. Phasellus " +
-		"luctus velit a tempus rutrum. Etiam sollicitudin a lorem eget " +
-		"consequat. Nunc volutpat diam a vulputate blandit. Fusce congue " +
-		"laoreet dignissim. Curabitur fermentum lacus vel mauris mollis, in " +
-		"tempor ligula ornare. Ut sit amet arcu tellus. Aenean luctus massa " +
-		"lorem, id tempus odio faucibus quis. Cura"
+	testStrings[0] = testText[0 : DATA_LEN/2]
+	testStrings[1] = testText[0:DATA_LEN]
 
-	testStrings[2] = "long test: Lorem ipsum dolor sit amet, consectetur " +
-		"adipiscing elit. Quisque vitae elit venenatis, tincidunt tellus " +
-		"non, efficitur eros. Maecenas vel fermentum magna, ac varius velit." +
-		"Mauris eleifend ullamcorper velit, at aliquam magna semper cursus." +
-		"Mauris finibus mauris in suscipit placerat. Mauris fermentum dolor " +
-		"nisi, a condimentum lacus imperdiet at. Interdum et malesuada fames " +
-		"ac ante ipsum primis in faucibus. Mauris hendrerit nisi in suscipit " +
-		"ornare. Maecenas imperdiet luctus tincidunt. Vivamus tortor turpis, " +
-		"aliquam facilisis bibendum a, efficitur lobortis dolor. Etiam " +
-		"iaculis nunc nec convallis condimentum. Vivamus et mauris vel " +
-		"sapien efficitur elementum. Vestibulum ante ipsum primis in " +
-		"faucibus orci luctus et ultrices posuere cubilia Curae;  " +
-		"Ut fermentum aliquet ornare. Sed tincidunt interdum est sed " +
-		"vestibulum. Integer ultricies vitae magna ac venenatis. Curabitur " +
-		"a velit sit amet erat tincidunt ullamcorper a id nulla. " +
-		"Pellentesque habitant morbi tristique senectus et netus et cras " +
-		"amet."
+	testStrings[2] = testText[0 : 2*DATA_LEN]
 
 	expectedSlices := make([][][]byte, tests)
 
@@ -161,5 +137,34 @@ func recipientEqual(r1 Recipient, r2 Recipient) (bool, string) {
 	return true, ""
 
 }
-*/
+
 //TODO: Test End cases, messages over 2x length, at max length, and others.
+var testText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed" +
+	" maximus convallis libero in laoreet. Aenean venenatis auctor condimentum." +
+	" Suspendisse sed sapien purus. Ut molestie, mauris id porta ultrices, justo" +
+	" nisi bibendum diam, quis facilisis metus ipsum nec dui. Nunc turpis felis," +
+	" tristique nec viverra non, ultricies at elit. Ut pretium erat non porta" +
+	" bibendum. Cras diam nulla, lobortis vel commodo luctus, dapibus nec nunc." +
+	" Pellentesque ac commodo orci. Pellentesque nec nisi maximus, varius odio" +
+	" eget, suscipit est. In viverra pretium lobortis. Fusce quis efficitur " +
+	" libero. Sed eleifend dictum nulla sed tempus. Donec a tristique dolor, " +
+	" quis mattis tellus. Nullam massa elit, ullamcorper ac consectetur ut, " +
+	" tincidunt vel erat. Vivamus ut mauris eu ligula pretium tristique id in " +
+	" justo. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce" +
+	" porttitor, massa non iaculis faucibus, magna metus venenatis nisi," +
+	" sodales fringilla enim nulla a erat. Vestibulum posuere ligula a mi " +
+	" mollis, quis sodales ipsum hendrerit. Duis a iaculis felis, at " +
+	" tristique ligula. In vulputate arcu quam, sit amet consequat lorem" +
+	" convallis varius. Donec efficitur semper metus, a sodales dolor " +
+	" vestibulum eu. Aliquam et laoreet massa. Phasellus cursus ligula ac " +
+	" gravida vehicula. Etiam vitae malesuada nunc. Nunc vitae massa ex. " +
+	" Mauris ullamcorper, nunc et rutrum lacinia, est nulla consectetur ex," +
+	" non faucibus nulla eros imperdiet justo. Aenean ut velit a odio pretium" +
+	" dictum ac nec dui. Vestibulum vulputate nulla vel elit ornare maximus." +
+	" Sed egestas diam vel arcu venenatis, nec pulvinar ligula placerat. " +
+	" Praesent sed interdum magna. Integer in diam lacus. Sed congue enim eros," +
+	" ut ultricies erat porttitor sed. Nullam neque risus, bibendum eu risus ut," +
+	" fermentum viverra dolor. Cras non iaculis augue, id euismod metus. In hac" +
+	" habitasse platea dictumst. Aenean convallis dignissim commodo. Duis ut" +
+	" ultricies turpis. Duis mollis finibus mi dignissim efficitur. Maecenas" +
+	" eleifend mi porttitor convallis sed."
