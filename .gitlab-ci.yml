@@ -10,7 +10,7 @@ variables:
   REPO_DIR: gitlab.com/privategrity
   REPO_NAME: crypto
   DOCKER_IMAGE: carback1/golang-glide:1.9-4a49ace8cac8
-  MIN_CODE_COVERAGE: "70.0"
+  MIN_CODE_COVERAGE: "95.0"
 
 before_script:
   - go version || echo "Go executable not found."
