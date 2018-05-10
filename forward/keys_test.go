@@ -49,7 +49,7 @@ func TestUpdateKey(t *testing.T) {
 	salt := []byte("salt")
 
 	baseKey2 := []byte("a906df88f30d6afbfa6165a50cc9e208d16b34e70b367068dc5d6bd6e155b2c3")
-	salt2 := []byte("fdecfa52a8ad1688dbfa7d16df84ebf27e535903c469cefc007ebbe1ee895064")
+	salt2 := []byte("fdecfa52a8ad1688dbfa7d16df74ebf27e535903c469cefc007ebbe1ee895064")
 
 	NextKey, e1 := UpdateKey(baseKey, salt)
 	NextKey2, e2 := UpdateKey(baseKey2, salt2)

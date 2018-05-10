@@ -1,9 +1,10 @@
 package forward
 
 import (
+	"crypto/sha256"
 	"crypto/sha512"
 	"errors"
-	"gitlab.com/privategrity/crypto/hash"
+	"golang.org/x/crypto/blake2b"
 	"golang.org/x/crypto/pbkdf2"
 )
 
@@ -32,11 +33,14 @@ func UpdateKey(baseKey, salt []byte) ([]byte, error) {
 		// Append the base key and the received salt to generate a random input
 		a := append(baseKey, salt...)
 
-		//Hash of the result of previous stage (base key + salt)
-		x := hash.NewBlakeHash(a)
+		//Blake2b Hash of the result of previous stage (base key + salt)
+		b := blake2b.Sum256(a)
+		x := b[:]
 
-		//Different Hash of the previous result to add entropy
-		y := hash.NewSHA256(x)
+		//Different Hash (SHA256) of the previous result to add entropy
+		h := sha256.New()
+		h.Write(x)
+		y := h.Sum(nil)
 
 		// Expand Key
 		z, err := ExpandKey(y, salt)
