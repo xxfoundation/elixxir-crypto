@@ -35,7 +35,7 @@ func TestExpandKey(t *testing.T) {
 		pass++
 	}
 
-	println("TestExpandKey():", pass, "out of", test, "tests passed.")
+	println("TestExpandKey():", pass, "out of", test, "tests passed")
 }
 
 //TestUpdateKey tests if function correctly rejects salts & keys that are less than 256 bits long

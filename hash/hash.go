@@ -23,8 +23,7 @@ func NewBlakeHash(payload []byte) []byte {
 	return x[:]
 }
 
-//NewSHA256 returns a fixed-size (256 bit) SHA256 hash in a byte format
-// Function receives the payload to be hashed and outputs a 256 bit hash in the []byte format
+//NewSHA256 receives the payload to be hashed and outputs a 256 bit SHA256 hash in the []byte format
 func NewSHA256(payload []byte) []byte {
 
 	h := sha256.New()

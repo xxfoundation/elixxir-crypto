@@ -91,7 +91,6 @@ func TestHMAC(t *testing.T) {
 	}
 
 	println("TestHMAC():", pass, "out of", tests, "tests passed.")
-
 }
 
 // This test simply verifies that for two different inputs, the outputs are different

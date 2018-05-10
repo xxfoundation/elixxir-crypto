@@ -7,8 +7,8 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 )
 
-// ExpandKey is a function that expands a key to fit a specific group
-// Returns a 2048 bit-size key (or 256 bytes)
+// ExpandKey is a function that receives a key and a salt and expands such key to a specific size
+// This implementation returns a 2048 bit-size key (or 256 bytes)
 func ExpandKey(key []byte, salt []byte) ([]byte, error) {
 
 	if len(key) < 32 || len(salt) < 32 {
