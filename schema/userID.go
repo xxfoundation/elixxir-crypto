@@ -3,7 +3,6 @@ package schema
 import (
 	"encoding/binary"
 	"errors"
-	"fmt"
 	"gitlab.com/privategrity/crypto/cyclic"
 	"gitlab.com/privategrity/crypto/hash"
 	"math"
