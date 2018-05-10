@@ -40,9 +40,7 @@ func TestHMAC(t *testing.T) {
 
 	msg := []byte("SuperMario")
 
-	hmac2, _ := CreateHMAC(msg, []byte("key"))
-
-	_, err := CreateHMAC(msg, []byte("key"))
+	hmac2, err := CreateHMAC(msg, []byte("key"))
 
 	if hex.EncodeToString(hmac1) != expectedHMAC {
 		t.Errorf("TestHMAC(): Error 1: MACs should have matched!")

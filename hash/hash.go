@@ -24,7 +24,6 @@ func CreateHMAC(message, key []byte) ([]byte, error) {
 		return nil, errors.New("CreateHMAC(): key size is too small")
 
 	} else {
-
 		h := hmac.New(sha256.New, key)
 		h.Write(message)
 

@@ -29,7 +29,6 @@ func UpdateKey(baseKey, salt []byte) ([]byte, error) {
 		return nil, errors.New("UpdateKey(): invalid size either in the base key or the salt")
 
 	} else {
-
 		// Append the base key and the received salt to generate a random input
 		a := append(baseKey, salt...)
 

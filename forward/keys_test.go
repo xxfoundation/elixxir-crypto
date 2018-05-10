@@ -34,7 +34,6 @@ func TestExpandKey(t *testing.T) {
 	} else {
 		pass++
 	}
-
 	println("TestExpandKey():", pass, "out of", test, "tests passed")
 }
 
@@ -83,6 +82,5 @@ func TestUpdateKey(t *testing.T) {
 	} else {
 		pass++
 	}
-
 	println("TestUpdateKey():", pass, "out of", test, "tests passed.")
 }
