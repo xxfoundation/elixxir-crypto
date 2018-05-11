@@ -16,7 +16,7 @@ func NewCMixHash() (hash.Hash, error) {
 
 // NewHMAC creates a new Message Authentication Code from a message payload and a key.
 // This function does not accept keys that are less than 256 bits (or 32 bytes)
-// *** This function was copied from Golang, we need to look into this again in the future ***
+// *Function was copied from (https://golang.org/pkg/crypto/hmac/), we need to analyze this again in the future *
 func CreateHMAC(message, key []byte) []byte {
 
 	h := hmac.New(sha256.New, key)
@@ -25,9 +25,9 @@ func CreateHMAC(message, key []byte) []byte {
 	return h.Sum(nil)
 }
 
-// CheckHMAC receives a MAC value along with the respective message and key associated with the Message Authentication Code.
+// CheckHMAC receives a MAC value along with the respective message and key associated with the Msg Authentication Code
 // Returns true if calculated MAC matches the received one. False if not.
-// *** This function was copied from Golang, we need to look into this again in the future ***
+// *Function was copied from (https://golang.org/pkg/crypto/hmac/), we need to analyze this again in the future *
 func VerifyHMAC(message, MAC, key []byte) bool {
 
 	mac := hmac.New(sha256.New, key)
