@@ -1,6 +1,7 @@
 package cyclic
 
 import (
+	"bytes"
 	"testing"
 )
 
@@ -123,4 +124,29 @@ func TestSetMaxFromInt64(t *testing.T) {
 		pass++
 		println("SetMaxFromInt64()", pass, "out of", tests, "tests passed.")
 	}
+}
+
+// This test generates a Random Key of 256 bits (32 bytes)
+func TestGenerateRandomKey(t *testing.T) {
+
+	tests := 2
+	pass := 0
+
+	size := 32
+	a, _ := GenerateRandomKey(size)
+	b, _ := GenerateRandomKey(size)
+
+	if len(a) != size {
+		t.Errorf("TestGenerateKeys(): Key Size is Wrong")
+	} else {
+		pass++
+	}
+
+	if bytes.Equal(a, b) {
+		t.Errorf("TestGenerateKeys(): Keys should have not been the same")
+	} else {
+		pass++
+	}
+
+	println("TestGenerateKeys():", pass, "out of", tests, "tests passed.")
 }

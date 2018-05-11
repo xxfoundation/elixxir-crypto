@@ -61,3 +61,16 @@ func (gen *Random) Rand(x *Int) *Int {
 	x = x.Add(x, gen.min)
 	return x
 }
+
+// GenerateRandomKey is a Crypto Random number generator that returns a key with a specified size (in bytes)
+func GenerateRandomKey(size int) ([]byte, error) {
+
+	key := make([]byte, size)
+	_, err := rand.Read(key)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return key, nil
+}
