@@ -1,6 +1,7 @@
 package hash
 
 import (
+	"encoding/hex"
 	"testing"
 )
 
@@ -23,4 +24,31 @@ func TestNewCMixHash(t *testing.T) {
 				i, expected, actual)
 		}
 	}
+}
+
+// TestHMAC tests that we get the expected value for the payload "Mario" and a key "key"
+func TestHMAC(t *testing.T) {
+
+	tests := 2
+	pass := 0
+
+	payload := []byte("Mario")
+	key := []byte("a906df88f30d6afbfa6165a50cc9e208d16b34e70b367068dc5d6bd6e155b2c3")
+
+	hmac1 := CreateHMAC(payload, key)
+	expectedHMAC := "0b716229f4920f70265ee25045d3dc01f40ec423c4da97d249ca9c0dd146693e"
+
+	if hex.EncodeToString(hmac1) != expectedHMAC {
+		t.Errorf("TestHMAC(): Error 1: MACs should have matched!")
+	} else {
+		pass++
+	}
+
+	if VerifyHMAC(payload, hmac1, key) {
+		pass++
+	} else {
+		t.Errorf("TestHMAC(): Error 2: MACs should have matched!")
+	}
+
+	println("TestHMAC():", pass, "out of", tests, "tests passed.")
 }
