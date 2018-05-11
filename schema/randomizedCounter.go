@@ -31,7 +31,7 @@ func GenerateNextCount(field []byte, counter []byte) (hashed []byte,
 	if cyclicCounter.BitLen() > (len(counter) * 8) {
 		hashed = filledByteSlice(len(field)+len(counter), 0x00)
 		outCounter = filledByteSlice(len(counter), 0xff)
-		err = errors.New("Max number of UserIDs generated")
+		err = errors.New("max number of Counts generated")
 		return
 	}
 

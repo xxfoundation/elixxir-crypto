@@ -24,7 +24,7 @@ func TestGenerateNextCount(t *testing.T) {
 			cntr)
 
 		if cyclic.NewIntFromBytes(newcounter).Text(16) == cyclic.NewIntFromBytes(cntr).Text(16) {
-			t.Errorf("Test of GenerateNextUID failed: output counter was"+
+			t.Errorf("Test of GenerateNextCount failed: output counter was"+
 				" equal to input counter; input: %v, output: %v",
 				cyclic.NewIntFromBytes(newcounter).Text(16), cyclic.NewIntFromBytes(cntr).Text(16))
 		}
@@ -34,7 +34,7 @@ func TestGenerateNextCount(t *testing.T) {
 	}
 
 	if len(results) != len(counters) {
-		t.Errorf("Test of GenerateNextUID failed: corrent number of results"+
+		t.Errorf("Test of GenerateNextCount failed: corrent number of results"+
 			" not detected: expected: %v, recieved: %v, map: %v",
 			len(counters), len(results), results)
 	}
@@ -46,18 +46,18 @@ func TestGenerateNextCount(t *testing.T) {
 		cyclic.NewInt((1<<32)-1).LeftpadBytes(4))
 
 	if err == nil {
-		t.Errorf("Test of GenerateNextUID failed: did not return error when"+
+		t.Errorf("Test of GenerateNextCount failed: did not return error when"+
 			" counter was full. id: %v, counter: %v",
 			cyclic.NewIntFromBytes(hash).Int64(), newcounter)
 	} else {
 		if cyclic.NewIntFromBytes(hash).Int64() != 0 {
-			t.Errorf("Test of GenerateNextUID failed: did not properly"+
+			t.Errorf("Test of GenerateNextCount failed: did not properly"+
 				" handle ID when coutner was full: Expected: 0, "+
 				"Recieved: %v", cyclic.NewIntFromBytes(hash).Int64())
 		}
 
 		if cyclic.NewIntFromBytes(newcounter).Int64() != ((1 << 32) - 1) {
-			t.Errorf("Test of GenerateNextUID failed: incremented"+
+			t.Errorf("Test of GenerateNextCount failed: incremented"+
 				" counter when coutner was full; Expected: %v, Recieved: %v",
 				((1 << 32) - 1), cyclic.NewIntFromBytes(newcounter).Int64())
 		}
