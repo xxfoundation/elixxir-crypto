@@ -3,7 +3,6 @@ package hash
 import (
 	"crypto/hmac"
 	"crypto/sha256"
-	"errors"
 	"golang.org/x/crypto/blake2b"
 	"hash"
 )
@@ -17,33 +16,23 @@ func NewCMixHash() (hash.Hash, error) {
 
 // NewHMAC creates a new Message Authentication Code from a message payload and a key.
 // This function does not accept keys that are less than 256 bits (or 32 bytes)
-func CreateHMAC(message, key []byte) ([]byte, error) {
+// *** This function was copied from Golang, we need to look into this again in the future ***
+func CreateHMAC(message, key []byte) []byte {
 
-	if len(key) < 32 {
+	h := hmac.New(sha256.New, key)
+	h.Write(message)
 
-		return nil, errors.New("CreateHMAC(): key size is too small")
-
-	} else {
-		h := hmac.New(sha256.New, key)
-		h.Write(message)
-
-		return h.Sum(nil), nil
-	}
+	return h.Sum(nil)
 }
 
 // CheckHMAC receives a MAC value along with the respective message and key associated with the Message Authentication Code.
 // Returns true if calculated MAC matches the received one. False if not.
+// *** This function was copied from Golang, we need to look into this again in the future ***
 func VerifyHMAC(message, MAC, key []byte) bool {
 
-	if len(key) < 32 {
-		//TODO: SEND THIS TO LOGGING?
-		return false
-	} else {
+	mac := hmac.New(sha256.New, key)
+	mac.Write(message)
+	expectedMAC := mac.Sum(nil)
 
-		mac := hmac.New(sha256.New, key)
-		mac.Write(message)
-		expectedMAC := mac.Sum(nil)
-
-		return hmac.Equal(MAC, expectedMAC)
-	}
+	return hmac.Equal(MAC, expectedMAC)
 }
