@@ -7,30 +7,30 @@ import (
 // Groups provide cyclic int operations that keep the return values confined to
 // a finite field under modulo p
 type Group struct {
-	prime  *Int
-	psub1  *Int
+	Prime  *Int
+	Psub1  *Int
 	psub2  *Int
 	psub3  *Int
 	seed   *Int
 	random *Int
 	zero   *Int
-	one    *Int
+	One    *Int
 	two    *Int
 	G      *Int
 	rng    Random
 }
 
-// NewGroup returns a group with the given prime, seed, and generator
+// NewGroup returns a group with the given Prime, seed, and generator
 func NewGroup(p *Int, s *Int, g *Int, rng Random) Group {
 	return Group{
-		prime:  p,
-		psub1:  NewInt(0).Sub(p, NewInt(1)),
+		Prime:  p,
+		Psub1:  NewInt(0).Sub(p, NewInt(1)),
 		psub2:  NewInt(0).Sub(p, NewInt(2)),
 		psub3:  NewInt(0).Sub(p, NewInt(3)),
 		seed:   s,
 		random: NewInt(0),
 		zero:   NewInt(0),
-		one:    NewInt(1),
+		One:    NewInt(1),
 		two:    NewInt(2),
 		G:      g,
 		rng:    rng,
@@ -40,24 +40,24 @@ func NewGroup(p *Int, s *Int, g *Int, rng Random) Group {
 // Mul multiplies a and b within the group, putting the result in c
 // and returning c
 func (g *Group) Mul(a, b, c *Int) *Int {
-	return c.Mod(c.Mul(a, b), g.prime)
+	return c.Mod(c.Mul(a, b), g.Prime)
 }
 
 // Inside returns true of the Int is within the group, false if it isn't
 func (g *Group) Inside(a *Int) bool {
-	return a.Cmp(g.zero) == 1 && a.Cmp(g.prime) == -1
+	return a.Cmp(g.zero) == 1 && a.Cmp(g.Prime) == -1
 }
 
-// ModP sets z ≡ x mod prime within the group and returns z.
+// ModP sets z ≡ x mod Prime within the group and returns z.
 func (g Group) ModP(x, z *Int) *Int {
-	z.Mod(x, g.prime)
+	z.Mod(x, g.Prime)
 
 	return z
 }
 
 // Inverse sets b equal to the inverse of a within the group and returns b
 func (g *Group) Inverse(a, b *Int) *Int {
-	return b.ModInverse(a, g.prime)
+	return b.ModInverse(a, g.Prime)
 }
 
 // SetSeed sets a seed for use in random number generation
@@ -80,7 +80,7 @@ func (g *Group) Random(r *Int) *Int {
 
 // GetP sets the passed Int equal to p
 func (g *Group) GetP(p *Int) *Int {
-	p.value = g.prime.value
+	p.value = g.Prime.value
 	return p
 }
 
@@ -98,14 +98,14 @@ func (g Group) ArrayMul(slc []*Int, c *Int) *Int {
 
 // Exp sets z = x**y mod p, and returns z.
 func (g Group) Exp(x, y, z *Int) *Int {
-	return z.Exp(x, y, g.prime)
+	return z.Exp(x, y, g.Prime)
 }
 
 // RandomCoprime randomly generates coprimes in the group (coprime
-// against g.prime-1)
+// against g.Prime-1)
 func (g *Group) RandomCoprime(r *Int) *Int {
-	for r.Set(g.psub1); !r.IsCoprime(g.psub1); {
-		r.Set(g.one)
+	for r.Set(g.Psub1); !r.IsCoprime(g.Psub1); {
+		r.Set(g.One)
 		r = r.Add(g.seed, g.rng.Rand(g.random))
 		r = r.Mod(r, g.psub3)
 		r = r.Add(r, g.two)
@@ -114,9 +114,9 @@ func (g *Group) RandomCoprime(r *Int) *Int {
 }
 
 // RootCoprime sets z = y√x mod p, and returns z. Only works with y's
-// coprime with g.prime-1 (g.psub1)
+// coprime with g.Prime-1 (g.Psub1)
 func (g Group) RootCoprime(x, y, z *Int) *Int {
-	z.ModInverse(y, g.psub1)
+	z.ModInverse(y, g.Psub1)
 	g.Exp(x, z, z)
 
 	return z

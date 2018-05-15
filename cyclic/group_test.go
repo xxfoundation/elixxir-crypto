@@ -24,9 +24,9 @@ func TestNewGroup(t *testing.T) {
 	expected := testStruct{p, s, g, rng}
 	tests := 1
 	pass := 0
-	if actual.prime.Cmp(expected.prime) != 0 {
-		t.Errorf("TestNewGroup failed to initialize prime, expected: '%v',"+
-			" got: '%v'", expected.prime.Text(10), actual.prime.Text(10))
+	if actual.Prime.Cmp(expected.prime) != 0 {
+		t.Errorf("TestNewGroup failed to initialize Prime, expected: '%v',"+
+			" got: '%v'", expected.prime.Text(10), actual.Prime.Text(10))
 	} else if actual.seed.Cmp(expected.seed) != 0 {
 		t.Errorf("TestNewGroup failed to initialize seed, expected: '%v',"+
 			" got: '%v'", expected.seed.Text(10), actual.seed.Text(10))
@@ -416,7 +416,7 @@ func TestGroup_RootCoprime(t *testing.T) {
 	pass := 0
 
 	p := NewInt(17)
-	s := NewInt(15)
+	s := NewInt(0)
 	g := NewInt(29)
 	min := NewInt(2)
 	max := NewInt(1000)

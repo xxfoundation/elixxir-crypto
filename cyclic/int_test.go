@@ -1065,7 +1065,7 @@ func TestExtendedGCD(t *testing.T) {
 	// use results of extended GCD to calculate modular inverse and check
 	// consistency with ModInverse
 	if x.Cmp(NewInt(0)) < 0 {
-		// we need to add the prime in again to put the result back in the
+		// we need to add the Prime in again to put the result back in the
 		// cyclic group
 		x.Add(x, b)
 	}
@@ -1107,14 +1107,14 @@ func TestIsCoprime49(t *testing.T) {
 }
 
 func TestIsPrime(t *testing.T) {
-	n := NewInt(101) // 101 is prime
+	n := NewInt(101) // 101 is Prime
 	if !n.IsPrime() {
-		t.Errorf("IsPrime: %v should be prime!", n.Uint64())
+		t.Errorf("IsPrime: %v should be Prime!", n.Uint64())
 	}
 
-	n = NewInt(63) // 63 is NOT prime
+	n = NewInt(63) // 63 is NOT Prime
 	if n.IsPrime() {
-		t.Errorf("IsPrime: %v should NOT be prime!", n.Uint64())
+		t.Errorf("IsPrime: %v should NOT be Prime!", n.Uint64())
 	}
 }
 
