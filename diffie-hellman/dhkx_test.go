@@ -93,7 +93,7 @@ func TestCreateDHKeyPair(t *testing.T) {
 
 func TestCheckPublicKey(t *testing.T) {
 
-	tests := 3
+	tests := 2
 	pass := 0
 
 	primeString := "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
