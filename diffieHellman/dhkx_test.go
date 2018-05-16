@@ -31,8 +31,8 @@ func TestDHKX(t *testing.T) {
 	min := cyclic.NewInt(2)
 	max := p
 	rng := cyclic.NewRandom(min, max)
-
-	testGroup := cyclic.NewGroup(p, s, g, rng)
+	grp := cyclic.NewGroup(p, s, g, rng)
+	testGroup := &grp
 
 	// Creation of two different DH Key Pairs with valid parameters
 	privKey, pubKey := CreateDHKeyPair(testGroup)
@@ -85,7 +85,8 @@ func TestCreateDHKeyPair(t *testing.T) {
 	max := p
 	rng := cyclic.NewRandom(min, max)
 
-	testGroup := cyclic.NewGroup(p, s, g, rng)
+	grp := cyclic.NewGroup(p, s, g, rng)
+	testGroup := &grp
 
 	defer Catch("TestCreateDHKeyPair():", t)
 	CreateDHKeyPair(testGroup)
@@ -115,7 +116,8 @@ func TestCheckPublicKey(t *testing.T) {
 	max := p
 	rng := cyclic.NewRandom(min, max)
 
-	testGroup := cyclic.NewGroup(p, s, g, rng)
+	grp := cyclic.NewGroup(p, s, g, rng)
+	testGroup := &grp
 
 	// Creation of a DH Key Pair with valid parameters
 	_, pubKey := CreateDHKeyPair(testGroup)
@@ -183,7 +185,8 @@ func TestDHNodeKeys(t *testing.T) {
 	max := p
 	rng := cyclic.NewRandom(min, max)
 
-	testGroup := cyclic.NewGroup(p, s, g, rng)
+	grp := cyclic.NewGroup(p, s, g, rng)
+	testGroup := &grp
 
 	// This is a map key(string) -> value (hex string)
 	// To convert the contents to byte, one should do: res, _ := hex.DecodeString(nodeDHKeys["key"])

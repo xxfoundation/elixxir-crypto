@@ -7,7 +7,7 @@ import (
 
 // CreateDHKeyPair is a function that receives the generator and prime and
 // returns a Diffie-Hellman Key pair withing the group
-func CreateDHKeyPair(group cyclic.Group) (*cyclic.Int, *cyclic.Int) {
+func CreateDHKeyPair(group *cyclic.Group) (*cyclic.Int, *cyclic.Int) {
 
 	prime := group.GetP(cyclic.NewInt(0))
 
@@ -30,7 +30,8 @@ func CreateDHKeyPair(group cyclic.Group) (*cyclic.Int, *cyclic.Int) {
 // NewDHSessionKey takes the prime, the other party's public key and private key
 // Function returns a valid session Key within the group
 // v1.0 still does not include the CheckPublicKeyFeature
-func CreateDHSessionKey(publicKey *cyclic.Int, privateKey *cyclic.Int, group cyclic.Group) (*cyclic.Int, error) {
+func CreateDHSessionKey(publicKey *cyclic.Int, privateKey *cyclic.Int,
+	group *cyclic.Group) (*cyclic.Int, error) {
 
 	prime := group.GetP(cyclic.NewInt(0))
 
@@ -44,7 +45,7 @@ func CreateDHSessionKey(publicKey *cyclic.Int, privateKey *cyclic.Int, group cyc
 // This function can return false positives, but never false negatives
 // A valid public key will never trigger a negative response from this function
 // Legendre Symbol = a^(p-1)/2 mod p
-func CheckPublicKey(group cyclic.Group, publicKey *cyclic.Int) bool {
+func CheckPublicKey(group *cyclic.Group, publicKey *cyclic.Int) bool {
 
 	prime := cyclic.NewInt(0)
 	group.GetP(prime)
