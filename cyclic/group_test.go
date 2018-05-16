@@ -416,7 +416,7 @@ func TestGroup_RootCoprime(t *testing.T) {
 	pass := 0
 
 	p := NewInt(17)
-	s := NewInt(0)
+	s := NewInt(15)
 	g := NewInt(29)
 	min := NewInt(2)
 	max := NewInt(1000)
