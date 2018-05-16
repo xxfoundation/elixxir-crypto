@@ -9,7 +9,9 @@ import (
 // returns a Diffie-Hellman Key pair withing the group
 func CreateDHKeyPair(group cyclic.Group) (*cyclic.Int, *cyclic.Int) {
 
-	if !group.Prime.IsPrime() {
+	prime := group.GetP(cyclic.NewInt(0))
+
+	if !prime.IsPrime() {
 		jww.FATAL.Panicf("CreateDHKeyPair(): Passed number is not prime")
 	}
 
@@ -20,7 +22,7 @@ func CreateDHKeyPair(group cyclic.Group) (*cyclic.Int, *cyclic.Int) {
 	privateKey := cyclic.NewIntFromBytes(k1)
 
 	publicKey := cyclic.NewInt(0)
-	publicKey.Exp(group.G, privateKey, group.Prime)
+	publicKey.Exp(group.G, privateKey, prime)
 
 	return privateKey, publicKey
 }
@@ -30,8 +32,10 @@ func CreateDHKeyPair(group cyclic.Group) (*cyclic.Int, *cyclic.Int) {
 // v1.0 still does not include the CheckPublicKeyFeature
 func CreateDHSessionKey(publicKey *cyclic.Int, privateKey *cyclic.Int, group cyclic.Group) (*cyclic.Int, error) {
 
+	prime := group.GetP(cyclic.NewInt(0))
+
 	sessionKey := cyclic.NewInt(0)
-	sessionKey.Exp(publicKey, privateKey, group.Prime)
+	sessionKey.Exp(publicKey, privateKey, prime)
 
 	return sessionKey, nil
 }
@@ -42,10 +46,19 @@ func CreateDHSessionKey(publicKey *cyclic.Int, privateKey *cyclic.Int, group cyc
 // Legendre Symbol = a^(p-1)/2 mod p
 func CheckPublicKey(group cyclic.Group, publicKey *cyclic.Int) bool {
 
-	//Definition of the bounds for the public key: 1 and (prime-1)
+	prime := cyclic.NewInt(0)
+	group.GetP(prime)
+
+	// Definition of the lower bound to 1
+	lowerBound := cyclic.NewInt(1)
+
+	// Definition of the upper bound to p-1
+	upperBound := cyclic.NewInt(0)
+	group.GetPSub1(upperBound)
+
 	//Cmp returns -1 if number is smaller, 0 if the same and 1 if bigger than.
-	x := publicKey.Cmp(group.One)
-	y := publicKey.Cmp(group.Psub1)
+	x := publicKey.Cmp(lowerBound)
+	y := publicKey.Cmp(upperBound)
 
 	// Public Key must be bigger than 1 and smaller than p-1
 	if x != 1 || y != -1 {
@@ -53,12 +66,13 @@ func CheckPublicKey(group cyclic.Group, publicKey *cyclic.Int) bool {
 	}
 
 	z := cyclic.NewInt(0)
-	z.Div(group.Psub1, cyclic.NewInt(2))
+	z.Div(upperBound, cyclic.NewInt(2))
 
 	symbol := cyclic.NewInt(0)
-	symbol.Exp(publicKey, z, group.Prime)
+	symbol.Exp(publicKey, z, prime)
 
-	if symbol.Cmp(group.One) == 0 {
+	// Symbol must be equal to 1
+	if symbol.Cmp(lowerBound) == 0 {
 		return true
 	} else {
 		return false

@@ -63,6 +63,7 @@ func (gen *Random) Rand(x *Int) *Int {
 }
 
 // GenerateRandomKey is a Crypto Random number generator that returns a key with a specified size (in bytes)
+// This function reads 'size' cryptographically secure pseudorandom numbers from rand.Reader and writes them to a byte slice.
 func GenerateRandomKey(size int) ([]byte, error) {
 
 	key := make([]byte, size)

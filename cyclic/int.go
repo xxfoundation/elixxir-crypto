@@ -121,7 +121,7 @@ func (z *Int) Mod(x, m *Int) *Int {
 }
 
 // ModInverse sets x to the multiplicative inverse of z in the ring
-// ℤ/nℤ and returns x. If rng and n are not relatively Prime, the result is
+// ℤ/nℤ and returns x. If rng and n are not relatively prime, the result is
 // undefined.
 func (x *Int) ModInverse(z, m *Int) *Int {
 	x.value.ModInverse(z.value, m.value)
@@ -174,16 +174,16 @@ func (z *Int) GCD(x, y, a, b *Int) *Int {
 	return z
 }
 
-// IsCoprime returns true if the 2 numbers are coprime (relatively Prime)
+// IsCoprime returns true if the 2 numbers are coprime (relatively prime)
 func (z *Int) IsCoprime(x *Int) bool {
 	s := NewInt(0)
 	s.GCD(nil, nil, z, x)
 	return s.Cmp(NewInt(1)) == 0
 }
 
-// IsPrime calculates (with high probability) if a number is Prime or not.
-// This function uses 40 (can be changed) iterations of the Miller-Rabin Prime test
-// Return: True if number is Prime. False if not.
+// IsPrime calculates (with high probability) if a number is prime or not.
+// This function uses 40 (can be changed) iterations of the Miller-Rabin prime test
+// Return: True if number is prime. False if not.
 func (x *Int) IsPrime() bool {
 	return x.value.ProbablyPrime(40)
 }
@@ -268,7 +268,7 @@ func (x *Int) GobEncode() ([]byte, error) {
 // CONSTANTS
 
 // A 4128bit int, meant to be the size of post moded cyclic ints.
-// Will probably be made to hold this 4096 bit Prime:
+// Will probably be made to hold this 4096 bit prime:
 //   https://tools.ietf.org/html/rfc3526#page-5
 var Max4kBitInt = []byte{
 	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,

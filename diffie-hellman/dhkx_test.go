@@ -93,7 +93,7 @@ func TestCreateDHKeyPair(t *testing.T) {
 
 func TestCheckPublicKey(t *testing.T) {
 
-	tests := 2
+	tests := 3
 	pass := 0
 
 	primeString := "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
@@ -117,9 +117,8 @@ func TestCheckPublicKey(t *testing.T) {
 
 	testGroup := cyclic.NewGroup(p, s, g, rng)
 
-	// Creation of two different DH Key Pairs with valid parameters
+	// Creation of a DH Key Pair with valid parameters
 	_, pubKey := CreateDHKeyPair(testGroup)
-	//_, pubKey2 := CreateDHKeyPair(g, prime)
 
 	// Random 2048 bit number that is not a quadratic residue
 	randomNum := "27a0ed88dd37d9d9c041bd31500e239ac050b618502a64e7f703dba20390" +
@@ -135,12 +134,19 @@ func TestCheckPublicKey(t *testing.T) {
 	x := cyclic.NewIntFromBytes(a)
 
 	rightSymbol := CheckPublicKey(testGroup, pubKey)
+	fakeSymbol := CheckPublicKey(testGroup, cyclic.NewInt(1))
 	falseSymbol := CheckPublicKey(testGroup, x)
 
 	if rightSymbol {
 		pass++
 	} else {
 		t.Errorf("TestCheckPublicKey(): Public Key is supposed to be valid!")
+	}
+
+	if fakeSymbol {
+		t.Errorf("TestCheckPublicKey(): 1 should not be valid input!")
+	} else {
+		pass++
 	}
 
 	if falseSymbol {
