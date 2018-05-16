@@ -6,6 +6,7 @@ import (
 
 // Groups provide cyclic int operations that keep the return values confined to
 // a finite field under modulo p
+//TODO: EVENTUALLY WE NEED TO UPDATE THIS STRUCT AND REMOVE RAND, SEED, RNG, ETC... this is way too complex
 type Group struct {
 	prime  *Int
 	psub1  *Int
@@ -79,9 +80,23 @@ func (g *Group) Random(r *Int) *Int {
 }
 
 // GetP sets the passed Int equal to p
+// If p is nil we return the pointer. Otherwise we copy the value into p
 func (g *Group) GetP(p *Int) *Int {
-	p.value = g.prime.value
-	return p
+	g.Copy(p, g.prime)
+	return g.prime
+}
+
+// GetP sets the passed Int equal to p
+func (g *Group) GetPSub1(p *Int) *Int {
+	g.Copy(p, g.psub1)
+	return g.psub1
+}
+
+// Copy returns a copy of the source value to a specific destination var
+func (g *Group) Copy(destination, source *Int) {
+	if destination != nil {
+		destination.value.Set(source.value)
+	}
 }
 
 // GroupMul Multiplies all ints in the passed slice slc together and
