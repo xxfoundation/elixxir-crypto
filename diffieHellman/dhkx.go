@@ -1,4 +1,4 @@
-package diffie_hellman
+package diffieHellman
 
 import (
 	jww "github.com/spf13/jwalterweatherman"
