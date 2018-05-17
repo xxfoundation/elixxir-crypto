@@ -32,7 +32,7 @@ func RegistrationHash(regkey []byte, regpin uint32) ([]byte, error) {
 	//Make sure the pin is in range
 	if regpin > REGPIN_MAX {
 		return nil, errors.New(fmt.Sprintf(
-			"Could not make Regestration Hash: Regestrtation Pin too long"+
+			"Could not make Registration Hash: Regestrtation Pin too long"+
 				"; Max: %v, Recieved: %v", REGPIN_MAX, regpin))
 	}
 
