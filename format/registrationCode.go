@@ -9,9 +9,13 @@ import (
 
 const REGCODE_LEN uint64 = 32
 
+//Registration pin in 24 bits, in hex every character is 4 bits,
+// so 24/4 = 6 characters
 const REGPIN_LEN uint64 = 3
 const REGPIN_START uint64 = 0
 const REGPIN_END uint64 = REGPIN_START + REGPIN_LEN
+
+// Max value for 6 digit registration key, (2^24)-1
 const REGPIN_MAX uint32 = uint32((1 << (REGPIN_LEN * 8)) - 1)
 
 const REGKEY_LEN uint64 = REGCODE_LEN - REGPIN_LEN
