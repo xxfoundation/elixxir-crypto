@@ -23,7 +23,8 @@ func UpdateKey(baseKey, salt []byte, b hash.Hash, h hash.Hash) []byte {
 
 	//Blake2b Hash of the result of previous stage (base key + salt)
 	b.Reset()
-	x := b.Sum(a)
+	b.Write(a)
+	x := b.Sum(nil)
 
 	//Different Hash (SHA256) of the previous result to add entropy
 	h.Reset()
