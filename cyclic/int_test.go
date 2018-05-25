@@ -289,7 +289,7 @@ func TestSetString(t *testing.T) {
 			actual, aSuccess := actual.SetString(testi.str, testi.base)
 
 			if actual.Cmp(expected) != 0 {
-				t.Errorf("Test of SetString() failed at index: %v Expected: %v, %v;",
+				t.Errorf("Test of SetString() failed at index: %v Expected: %v, %v;"+
 					" Actual: %v, %v", i, expected, eSuccess, actual, aSuccess)
 			} else {
 				pass++
@@ -472,7 +472,7 @@ func TestMod(t *testing.T) {
 		result := actual.Cmp(testi.r)
 
 		if result != expected {
-			t.Errorf("Test of Mod() failed at index: %v Expected: %v, %v;",
+			t.Errorf("Test of Mod() failed at index: %v Expected: %v, %v;"+
 				" Actual: %v, %v", i, expected, testi.r.Text(10), result, actual.Text(10))
 		} else {
 			pass += 1
@@ -571,7 +571,7 @@ func TestAdd(t *testing.T) {
 	for i, testi := range testCases {
 		actual := testi.zint.Add(testi.xint, testi.yint)
 		if actual.Cmp(expected[i]) != 0 {
-			t.Errorf("Test of Add() failed at index: %v Expected: %v, %v; Actual: %v, %v",
+			t.Errorf("Test of Add() failed at index: %v Expected: %v; Actual: %v",
 				i, expected[i].Text(10), actual.Text(10))
 		} else {
 			pass++
@@ -676,7 +676,7 @@ func TestMul(t *testing.T) {
 	for i, testi := range testCases {
 		actual := testi.zint.Mul(testi.xint, testi.yint)
 		if actual.Cmp(expected[i]) != 0 {
-			t.Errorf("Test of Mul() failed at index: %v Expected: %v, %v; Actual: %v, %v",
+			t.Errorf("Test of Mul() failed at index: %v Expected: %v; Actual: %v",
 				i, expected[i].Text(10), actual.Text(10))
 		} else {
 			pass++
