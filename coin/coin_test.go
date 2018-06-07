@@ -5,7 +5,7 @@ import "testing"
 func TestCoinPreimagesAndImages(t *testing.T) {
 	numTestedCoins := 100
 
-	preimageslice := make([]CoinPreimage, numTestedCoins)
+	preimageslice := make([]Preimage, numTestedCoins)
 	var err error
 
 	for i := 0; i < numTestedCoins; i++ {
@@ -24,7 +24,7 @@ func TestCoinPreimagesAndImages(t *testing.T) {
 		}
 	}
 
-	imageslice := make([]CoinImage, numTestedCoins)
+	imageslice := make([]Image, numTestedCoins)
 
 	for i := 0; i < numTestedCoins; i++ {
 		imageslice[i] = preimageslice[i].ComputeImage()
@@ -52,7 +52,7 @@ func TestCoinPreimagesAndImages(t *testing.T) {
 	}
 }
 
-func comparePreimages(a, b CoinPreimage) bool {
+func comparePreimages(a, b Preimage) bool {
 	for i := 0; i < CoinLen; i++ {
 		if a[i] != b[i] {
 			return false
@@ -62,7 +62,7 @@ func comparePreimages(a, b CoinPreimage) bool {
 	return true
 }
 
-func compareImages(a, b CoinImage) bool {
+func compareImages(a, b Image) bool {
 	for i := 0; i < CoinLen; i++ {
 		if a[i] != b[i] {
 			return false

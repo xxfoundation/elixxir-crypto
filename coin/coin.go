@@ -8,18 +8,18 @@ import (
 //TODO: Multi-frame messages so this can be increased in size, this is too small
 const CoinLen = 7 //56 bit
 
-type CoinPreimage [CoinLen]byte
-type CoinImage [CoinLen]byte
+type Preimage [CoinLen]byte
+type Image [CoinLen]byte
 
 // Returns a new valid preimage for a coin
-func NewCoinPreimage() (CoinPreimage, error) {
+func NewCoinPreimage() (Preimage, error) {
 	//Generate the image
 	p, err := cyclic.GenerateRandomBytes(CoinLen)
 	if err != nil {
-		return CoinPreimage{}, err
+		return Preimage{}, err
 	}
 
-	var preimage CoinPreimage
+	var preimage Preimage
 
 	//Convert the image to an array
 	for i, pi := range p {
@@ -30,13 +30,13 @@ func NewCoinPreimage() (CoinPreimage, error) {
 }
 
 //Computes and returns an image for a given preimage
-func (cpi CoinPreimage) ComputeImage() CoinImage {
+func (cpi Preimage) ComputeImage() Image {
 	//Hash the preimage
 	h := sha256.New()
 	h.Write(cpi[:])
 	img := h.Sum(nil)[0:CoinLen]
 
-	var image CoinImage
+	var image Image
 
 	//Convert the preimage to an array
 	for i, pi := range img {
@@ -47,7 +47,7 @@ func (cpi CoinPreimage) ComputeImage() CoinImage {
 }
 
 //Verify the an ImagePreimage Pair
-func (img CoinImage) Verify(preimage CoinPreimage) bool {
+func (img Image) Verify(preimage Preimage) bool {
 	computedImage := preimage.ComputeImage()
 
 	for i := 0; i < CoinLen; i++ {
