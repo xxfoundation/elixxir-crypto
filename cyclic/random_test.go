@@ -127,14 +127,14 @@ func TestSetMaxFromInt64(t *testing.T) {
 }
 
 // This test generates a Random Key of 256 bits (32 bytes)
-func TestGenerateRandomKey(t *testing.T) {
+func TestGenerateRandomBytes(t *testing.T) {
 
 	tests := 2
 	pass := 0
 
 	size := 32
-	a, _ := GenerateRandomKey(size)
-	b, _ := GenerateRandomKey(size)
+	a, _ := GenerateRandomBytes(size)
+	b, _ := GenerateRandomBytes(size)
 
 	if len(a) != size {
 		t.Errorf("TestGenerateKeys(): Key Size is Wrong")
