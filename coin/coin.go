@@ -7,6 +7,7 @@ import (
 
 //TODO: Multi-frame messages so this can be increased in size, this is too small
 const CoinLen = 7 //56 bit
+const Denominations = 8
 
 type Preimage [CoinLen]byte
 type Image [CoinLen]byte
