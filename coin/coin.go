@@ -44,8 +44,6 @@ func NewCoinPreimage(denomination uint8) (Preimage, error) {
 
 //Computes and returns an image for a given preimage
 func (cpi Preimage) ComputeImage() Image {
-	//Store the images denomination
-
 	//Hash the preimage
 	h := sha256.New()
 	h.Write(cpi[:])
