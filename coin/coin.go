@@ -56,7 +56,8 @@ func (cpi Preimage) ComputeImage() Image {
 		image[i] = pi
 	}
 
-	image[CoinLen-1] = (image[CoinLen-1] & DenominationMask) | cpi[CoinLen-1]
+	image[CoinLen-1] = (image[CoinLen-1] & DenominationMask) |
+		cpi.GetDenomination()
 
 	return image
 }
