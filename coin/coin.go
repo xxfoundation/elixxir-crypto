@@ -20,7 +20,7 @@ func NewCoinPreimage(denomination uint8) (Preimage, error) {
 	//Check the denomination
 	if denomination >= Denominations {
 		return Preimage{}, errors.New(fmt.Sprintf(
-			"invalid denomination recieved: %v", denomination))
+			"invalid denomination received: %v", denomination))
 	}
 
 	//Generate the image
