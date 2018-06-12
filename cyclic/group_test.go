@@ -1,6 +1,7 @@
 package cyclic
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -445,4 +446,40 @@ func TestGroup_RootCoprime(t *testing.T) {
 	}
 
 	println("RootCoprime", pass, "out of", tests, "tests passed.")
+}
+
+func TestGroup_MineEfficientExponent(t *testing.T) {
+	p := NewInt(1907)
+	s := NewInt(15)
+	g := NewInt(2)
+	min := NewInt(2)
+	max := NewInt(1000)
+	rng := NewRandom(min, max)
+
+	group := NewGroup(p, s, g, rng)
+
+	for i := 0; i < 10; i++ {
+		z := NewInt(0)
+
+		group.MineEfficientExponent(z, 1)
+
+		fmt.Println(z.Text(10))
+
+		gZ := NewInt(0)
+
+		group.Exp(g, z, gZ)
+
+		zcalc := NewInt(0)
+
+		group.RootCoprime(gZ, z, zcalc)
+
+		fmt.Println(zcalc.Text(10))
+
+		if z.Cmp(zcalc) != 0 {
+			t.Errorf("MineEfficientExponent Error: Result incorrect"+
+				" on attempt %v Expected: %s, Recieved: %s", i, z.Text(10),
+				zcalc.Text(10))
+		}
+	}
+
 }

@@ -139,15 +139,21 @@ func (g Group) RootCoprime(x, y, z *Int) *Int {
 
 // Finds a number who's modular exponent is bits length
 // Only works when the prime is safe or strong
-func (g Group) MineEfficientExponent(z *Int, bits int) *Int {
+func (g Group) MineEfficientExponent(z *Int, bytes uint32) *Int {
 	for true {
-		rk, _ := GenerateRandomKey(bits)
-		zinv := NewIntFromBytes(rk)
+
+		max := g.Exp(NewInt(2), NewInt(int64(bytes)*8), NewInt(0))
+		rng := NewRandom(NewInt(2), max)
+		zinv := rng.Rand(NewInt(0))
+
+		//fmt.Println(zinv.Text(10))
 		z.ModInverse(zinv, g.psub1)
+
+		//fmt.Println(z.Text(10))
 
 		zbytes := z.Bytes()
 
-		if zbytes[len(zbytes)]&0x01 == 0 {
+		if zbytes[len(zbytes)-1]&0x01 == 0 {
 			break
 		}
 
