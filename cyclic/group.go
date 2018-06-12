@@ -148,13 +148,13 @@ func (g Group) RootCoprime(x, y, z *Int) *Int {
 
 func (g Group) FindSmallInverse(z *Int, bytes uint32) *Int {
 
-	for true {
+	// RNG that ensures the output is an odd number between 2 and 2^(
+	// bytes*8)-1
+	max := NewInt(0).Sub(g.Exp(NewInt(2), NewInt(int64(bytes)*8-1),
+		NewInt(0)), NewInt(1))
+	rng := NewRandom(NewInt(1), max)
 
-		// RNG that ensures the output is an odd number between 2 and 2^(
-		// bytes*8)-1
-		max := NewInt(0).Sub(g.Exp(NewInt(2), NewInt(int64(bytes)*8-1),
-			NewInt(0)), NewInt(1))
-		rng := NewRandom(NewInt(1), max)
+	for true {
 		zinv := NewInt(0).Add(NewInt(0).Mul(rng.Rand(NewInt(0)),
 			NewInt(2)), NewInt(1))
 

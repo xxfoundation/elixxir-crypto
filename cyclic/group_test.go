@@ -457,7 +457,7 @@ func TestGroup_FindSmallInverse(t *testing.T) {
 
 	group := NewGroup(p, s, g, rng)
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 1000; i++ {
 		z := NewInt(0)
 
 		group.FindSmallInverse(z, 1)
