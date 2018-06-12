@@ -1,6 +1,7 @@
 package cyclic
 
 import (
+	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
 )
 
@@ -133,11 +134,10 @@ func (g *Group) RandomCoprime(r *Int) *Int {
 func (g Group) RootCoprime(x, y, z *Int) *Int {
 	z.ModInverse(y, g.psub1)
 	g.Exp(x, z, z)
-
 	return z
 }
 
-// Finds a number who's modular exponent is bits length
+// Finds a number who's modular exponential inverse is bits length
 // Only works when the prime is safe or strong
 func (g Group) MineEfficientExponent(z *Int, bytes uint32) *Int {
 	for true {
@@ -146,14 +146,11 @@ func (g Group) MineEfficientExponent(z *Int, bytes uint32) *Int {
 		rng := NewRandom(NewInt(2), max)
 		zinv := rng.Rand(NewInt(0))
 
-		//fmt.Println(zinv.Text(10))
 		z.ModInverse(zinv, g.psub1)
-
-		//fmt.Println(z.Text(10))
 
 		zbytes := z.Bytes()
 
-		if zbytes[len(zbytes)-1]&0x01 == 0 {
+		if zbytes[len(zbytes)-1]&0x01 == 1 {
 			break
 		}
 
