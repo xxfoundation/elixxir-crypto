@@ -155,6 +155,8 @@ func (g Group) FindSmallInverse(z *Int, bytes uint32) *Int {
 	rng := NewRandom(NewInt(1), max)
 
 	for true {
+		// By multiplying up and adding one to an RNG in half the range,
+		// all odd numbers in the range are generated
 		zinv := NewInt(0).Add(NewInt(0).Mul(rng.Rand(NewInt(0)),
 			NewInt(2)), NewInt(1))
 
