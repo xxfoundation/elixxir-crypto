@@ -447,7 +447,7 @@ func TestGroup_RootCoprime(t *testing.T) {
 	println("RootCoprime", pass, "out of", tests, "tests passed.")
 }
 
-func TestGroup_MineEfficientExponent(t *testing.T) {
+func TestGroup_FindSmallInverse(t *testing.T) {
 	p := NewInt(1907)
 	s := NewInt(2)
 	g := NewInt(2)
@@ -460,20 +460,20 @@ func TestGroup_MineEfficientExponent(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		z := NewInt(0)
 
-		group.MineEfficientExponent(z, 1)
+		group.FindSmallInverse(z, 1)
 
 		gZ := NewInt(0)
 
 		group.Exp(g, z, gZ)
 
-		zcalc := NewInt(0)
+		gcalc := NewInt(0)
 
-		zcalc = group.RootCoprime(gZ, z, zcalc)
+		gcalc = group.RootCoprime(gZ, z, gcalc)
 
-		if z.Cmp(zcalc) != 0 {
+		if g.Cmp(gcalc) != 0 {
 			t.Errorf("MineEfficientExponent Error: Result incorrect"+
-				" on attempt %v; Expected: %s, Recieved: %s", i, z.Text(10),
-				zcalc.Text(10))
+				" on attempt %v; Expected: %s, Recieved: %s", i, g.Text(10),
+				gcalc.Text(10))
 		}
 	}
 

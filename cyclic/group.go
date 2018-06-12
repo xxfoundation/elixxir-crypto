@@ -1,7 +1,6 @@
 package cyclic
 
 import (
-	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
 )
 
@@ -139,7 +138,12 @@ func (g Group) RootCoprime(x, y, z *Int) *Int {
 
 // Finds a number who's modular exponential inverse is bits length
 // Only works when the prime is safe or strong
-func (g Group) MineEfficientExponent(z *Int, bytes uint32) *Int {
+// Using a smaller prime is acceptable because modular logarithm algorithm's
+// complexities derive primarily from the size of the prime defining the group
+// not the size of the exponent.  More information can be found here:
+// TODO: add link to doc
+
+func (g Group) FindSmallInverse(z *Int, bytes uint32) *Int {
 	for true {
 
 		max := g.Exp(NewInt(2), NewInt(int64(bytes)*8), NewInt(0))
