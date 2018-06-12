@@ -8,26 +8,29 @@ import (
 // a finite field under modulo p
 //TODO: EVENTUALLY WE NEED TO UPDATE THIS STRUCT AND REMOVE RAND, SEED, RNG, ETC... this is way too complex
 type Group struct {
-	prime  *Int
-	psub1  *Int
-	psub2  *Int
-	psub3  *Int
-	seed   *Int
-	random *Int
-	zero   *Int
-	one    *Int
-	two    *Int
-	G      *Int
-	rng    Random
+	prime       *Int
+	psub1       *Int
+	psub2       *Int
+	psub3       *Int
+	psub1factor *Int
+	seed        *Int
+	random      *Int
+	zero        *Int
+	one         *Int
+	two         *Int
+	G           *Int
+	rng         Random
 }
 
 // NewGroup returns a group with the given prime, seed, and generator
 func NewGroup(p *Int, s *Int, g *Int, rng Random) Group {
 	return Group{
-		prime:  p,
-		psub1:  NewInt(0).Sub(p, NewInt(1)),
-		psub2:  NewInt(0).Sub(p, NewInt(2)),
-		psub3:  NewInt(0).Sub(p, NewInt(3)),
+		prime:       p,
+		psub1:       NewInt(0).Sub(p, NewInt(1)),
+		psub2:       NewInt(0).Sub(p, NewInt(2)),
+		psub3:       NewInt(0).Sub(p, NewInt(3)),
+		psub1factor: NewInt(0).Div(NewInt(0).Sub(p, NewInt(1)), NewInt(2)),
+
 		seed:   s,
 		random: NewInt(0),
 		zero:   NewInt(0),
@@ -144,18 +147,33 @@ func (g Group) RootCoprime(x, y, z *Int) *Int {
 // TODO: add link to doc
 
 func (g Group) FindSmallInverse(z *Int, bytes uint32) *Int {
+
 	for true {
 
-		max := g.Exp(NewInt(2), NewInt(int64(bytes)*8), NewInt(0))
+		max := NewInt(0).Sub(g.Exp(NewInt(2), NewInt(int64(bytes)*8),
+			NewInt(0)), NewInt(1))
 		rng := NewRandom(NewInt(2), max)
 		zinv := rng.Rand(NewInt(0))
+
+		zinvbytes := zinv.Bytes()
+
+		//Restart if the output is even because the inverses cannot be even
+		if zinvbytes[len(zinvbytes)-1]&0x01 == 0 {
+			continue
+		}
 
 		z.ModInverse(zinv, g.psub1)
 
 		zbytes := z.Bytes()
 
+		// Checks if the lowest bit is 1, implying the value is odd.
+		// Due to the fact that p is a safe prime, this means the value is
+		// coprime with p minus 1 because its only has one odd factor, which is
+		// also checked
 		if zbytes[len(zbytes)-1]&0x01 == 1 {
-			break
+			if z.Cmp(g.psub1factor) != 0 {
+				break
+			}
 		}
 
 	}

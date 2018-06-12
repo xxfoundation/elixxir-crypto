@@ -462,6 +462,14 @@ func TestGroup_FindSmallInverse(t *testing.T) {
 
 		group.FindSmallInverse(z, 1)
 
+		zinv := NewInt(0).ModInverse(z, group.psub1)
+
+		if zinv.Cmp(NewInt(256)) != -1 {
+			t.Errorf("FindSmallExponent Error: Inverse too large on "+
+				"attempt %v; Expected: <%v, Recieved: %s", i, 256,
+				zinv.Text(10))
+		}
+
 		gZ := NewInt(0)
 
 		group.Exp(g, z, gZ)
@@ -471,7 +479,7 @@ func TestGroup_FindSmallInverse(t *testing.T) {
 		gcalc = group.RootCoprime(gZ, z, gcalc)
 
 		if g.Cmp(gcalc) != 0 {
-			t.Errorf("MineEfficientExponent Error: Result incorrect"+
+			t.Errorf("FindSmallExponent Error: Result incorrect"+
 				" on attempt %v; Expected: %s, Recieved: %s", i, g.Text(10),
 				gcalc.Text(10))
 		}
