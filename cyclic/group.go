@@ -8,26 +8,29 @@ import (
 // a finite field under modulo p
 //TODO: EVENTUALLY WE NEED TO UPDATE THIS STRUCT AND REMOVE RAND, SEED, RNG, ETC... this is way too complex
 type Group struct {
-	prime  *Int
-	psub1  *Int
-	psub2  *Int
-	psub3  *Int
-	seed   *Int
-	random *Int
-	zero   *Int
-	one    *Int
-	two    *Int
-	G      *Int
-	rng    Random
+	prime       *Int
+	psub1       *Int
+	psub2       *Int
+	psub3       *Int
+	psub1factor *Int
+	seed        *Int
+	random      *Int
+	zero        *Int
+	one         *Int
+	two         *Int
+	G           *Int
+	rng         Random
 }
 
 // NewGroup returns a group with the given prime, seed, and generator
 func NewGroup(p *Int, s *Int, g *Int, rng Random) Group {
 	return Group{
-		prime:  p,
-		psub1:  NewInt(0).Sub(p, NewInt(1)),
-		psub2:  NewInt(0).Sub(p, NewInt(2)),
-		psub3:  NewInt(0).Sub(p, NewInt(3)),
+		prime:       p,
+		psub1:       NewInt(0).Sub(p, NewInt(1)),
+		psub2:       NewInt(0).Sub(p, NewInt(2)),
+		psub3:       NewInt(0).Sub(p, NewInt(3)),
+		psub1factor: NewInt(0).Div(NewInt(0).Sub(p, NewInt(1)), NewInt(2)),
+
 		seed:   s,
 		random: NewInt(0),
 		zero:   NewInt(0),
@@ -133,6 +136,45 @@ func (g *Group) RandomCoprime(r *Int) *Int {
 func (g Group) RootCoprime(x, y, z *Int) *Int {
 	z.ModInverse(y, g.psub1)
 	g.Exp(x, z, z)
+	return z
+}
+
+// Finds a number who's modular exponential inverse is bits length
+// Only works when the prime is safe or strong
+// Using a smaller prime is acceptable because modular logarithm algorithm's
+// complexities derive primarily from the size of the prime defining the group
+// not the size of the exponent.  More information can be found here:
+// TODO: add link to doc
+
+func (g Group) FindSmallInverse(z *Int, bytes uint32) *Int {
+
+	// RNG that ensures the output is an odd number between 2 and 2^(
+	// bytes*8)-1
+	max := NewInt(0).Sub(g.Exp(NewInt(2), NewInt(int64(bytes)*8-1),
+		NewInt(0)), NewInt(1))
+	rng := NewRandom(NewInt(1), max)
+
+	for true {
+		// By multiplying up and adding one to an RNG in half the range,
+		// all odd numbers in the range are generated
+		zinv := NewInt(0).Add(NewInt(0).Mul(rng.Rand(NewInt(0)),
+			NewInt(2)), NewInt(1))
+
+		z.ModInverse(zinv, g.psub1)
+
+		zbytes := z.Bytes()
+
+		// Checks if the lowest bit is 1, implying the value is odd.
+		// Due to the fact that p is a safe prime, this means the value is
+		// coprime with p minus 1 because its only has one odd factor, which is
+		// also checked
+		if zbytes[len(zbytes)-1]&0x01 == 1 {
+			if z.Cmp(g.psub1factor) != 0 {
+				break
+			}
+		}
+
+	}
 
 	return z
 }

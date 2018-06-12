@@ -446,3 +446,45 @@ func TestGroup_RootCoprime(t *testing.T) {
 
 	println("RootCoprime", pass, "out of", tests, "tests passed.")
 }
+
+func TestGroup_FindSmallInverse(t *testing.T) {
+	p := NewInt(1907)
+	s := NewInt(2)
+	g := NewInt(2)
+	min := NewInt(2)
+	max := NewInt(1000)
+	rng := NewRandom(min, max)
+
+	group := NewGroup(p, s, g, rng)
+
+	for i := 0; i < 1000; i++ {
+		z := NewInt(0)
+
+		base := group.Random(NewInt(0))
+
+		group.FindSmallInverse(z, 1)
+
+		zinv := NewInt(0).ModInverse(z, group.psub1)
+
+		if zinv.Cmp(NewInt(256)) != -1 {
+			t.Errorf("FindSmallExponent Error: Inverse too large on "+
+				"attempt %v; Expected: <%v, Recieved: %s", i, 256,
+				zinv.Text(10))
+		}
+
+		baseZ := NewInt(0)
+
+		group.Exp(base, z, baseZ)
+
+		basecalc := NewInt(0)
+
+		basecalc = group.RootCoprime(baseZ, z, basecalc)
+
+		if base.Cmp(basecalc) != 0 {
+			t.Errorf("FindSmallExponent Error: Result incorrect"+
+				" on attempt %v; Expected: %s, Recieved: %s", i, base.Text(10),
+				basecalc.Text(10))
+		}
+	}
+
+}
