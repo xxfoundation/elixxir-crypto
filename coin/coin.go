@@ -2,18 +2,27 @@ package coin
 
 import (
 	"crypto/sha256"
+	"errors"
+	"fmt"
 	"gitlab.com/privategrity/crypto/cyclic"
 )
 
 //TODO: Multi-frame messages so this can be increased in size, this is too small
 const CoinLen = 7 //56 bit
 const Denominations = uint8(8)
+const DenominationMask = uint8(0xF8)
 
 type Preimage [CoinLen]byte
 type Image [CoinLen]byte
 
-// Returns a new valid preimage for a coin
-func NewCoinPreimage() (Preimage, error) {
+func NewCoinPreimage(denomination uint8) (Preimage, error) {
+
+	//Check the denomination
+	if denomination >= Denominations {
+		return Preimage{}, errors.New(fmt.Sprintf(
+			"invalid denomination received: %v", denomination))
+	}
+
 	//Generate the image
 	p, err := cyclic.GenerateRandomBytes(CoinLen)
 	if err != nil {
@@ -26,6 +35,9 @@ func NewCoinPreimage() (Preimage, error) {
 	for i, pi := range p {
 		preimage[i] = pi
 	}
+
+	//Append the denomination to the last 3 bits of the image
+	preimage[CoinLen-1] = (preimage[CoinLen-1] & DenominationMask) | denomination
 
 	return preimage, nil
 }
@@ -44,7 +56,14 @@ func (cpi Preimage) ComputeImage() Image {
 		image[i] = pi
 	}
 
+	image[CoinLen-1] = (image[CoinLen-1] & DenominationMask) |
+		cpi.GetDenomination()
+
 	return image
+}
+
+func (cpi Preimage) GetDenomination() uint8 {
+	return cpi[CoinLen-1] &^ DenominationMask
 }
 
 //Verify the an ImagePreimage Pair
@@ -58,4 +77,8 @@ func (img Image) Verify(preimage Preimage) bool {
 	}
 
 	return true
+}
+
+func (img Image) GetDenomination() uint8 {
+	return img[CoinLen-1] &^ DenominationMask
 }

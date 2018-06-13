@@ -1,6 +1,8 @@
 package coin
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestCoinPreimagesAndImages(t *testing.T) {
 	numTestedCoins := 100
@@ -9,15 +11,37 @@ func TestCoinPreimagesAndImages(t *testing.T) {
 	var err error
 
 	for i := 0; i < numTestedCoins; i++ {
-		preimageslice[i], err = NewCoinPreimage()
+
+		denomination := uint8(uint64(i) % 8)
+
+		preimageslice[i], err = NewCoinPreimage(denomination)
 
 		if err != nil {
 			t.Errorf("NewCoinPreimage() failed: could not generate "+
 				"coin preimage #%v: %s", i, err.Error())
 		}
+
+		dnm := uint8(preimageslice[i][CoinLen-1]) &^ DenominationMask
+		if (dnm &^ DenominationMask) != denomination {
+
+			t.Errorf("NewCoinPreimage() failed: appended denomination"+
+				" incorrect: for coin %v: Expected: %v, Recieved: %v", i, denomination,
+				dnm)
+		}
+
 	}
 
 	for i := 0; i < (numTestedCoins - 1); i++ {
+
+		denomination := uint8(i % 8)
+
+		if preimageslice[i].GetDenomination() != denomination {
+			t.Errorf("Preimage.GetDenomination("+
+				") failed: appended denomination"+
+				" incorrect: for coin %v: Expected: %v, Recieved: %v", i,
+				denomination, preimageslice[i].GetDenomination())
+		}
+
 		if comparePreimages(preimageslice[i], preimageslice[i+1]) {
 			t.Errorf("NewCoinPreimage() failed: preimage %v and %v "+
 				"match: %v, %v", i, i+i, preimageslice[i], preimageslice[i+1])
@@ -27,7 +51,16 @@ func TestCoinPreimagesAndImages(t *testing.T) {
 	imageslice := make([]Image, numTestedCoins)
 
 	for i := 0; i < numTestedCoins; i++ {
+		denomination := uint8(i % 8)
+
 		imageslice[i] = preimageslice[i].ComputeImage()
+
+		if imageslice[i].GetDenomination() != denomination {
+			t.Errorf("Image.GetDenomination("+
+				") failed: appended denomination"+
+				" incorrect: for coin %v: Expected: %v, Recieved: %v", i,
+				denomination, imageslice[i].GetDenomination())
+		}
 	}
 
 	for i := 0; i < (numTestedCoins - 1); i++ {
