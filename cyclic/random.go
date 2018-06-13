@@ -2,7 +2,6 @@ package cyclic
 
 import (
 	"crypto/rand"
-	jww "github.com/spf13/jwalterweatherman"
 	"io"
 )
 
