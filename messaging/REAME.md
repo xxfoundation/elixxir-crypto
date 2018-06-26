@@ -25,7 +25,7 @@ When a client sends a message, they call:
 ```
 salt := NewSalt(csprng, SaltSize)
 encryptionKeys := NewEncryptionKeys(salt, baseKeys)
-kmacs := NewKMACs(encryptionKeys)
+kmacs := NewKMACs(salt, encryptionKeys)
 encryptedMessage := EncryptMessage(encryptionKeys, inputMessage)
 ...
 SendMessage(encryptedMessage, salt, kmacs, ...)
@@ -38,7 +38,7 @@ salt, kmacs, inputMessage := receiver(...)
 ...
 decryptionKeys := NewDecryptionKeys(salt, []*cyclic.Int{baseKey})
 kmac := kmacs[mynodeid]
-if ! VerifyKMAC(kmac, decryptionKeys[0]) {
+if ! VerifyKMAC(kmac, salt, decryptionKeys[0]) {
   ... return error
 }
 partiallyDecryptedMessage := DecryptMessage(decryptionKeys, inputMessage)
@@ -55,7 +55,7 @@ if inputMessage.Salt == nil {
   inputMessage.Salt := NewSalt(csprng, SaltSize)
 }
 encryptionKeys := NewEncryptionKeys(salt, []*cyclic.Int{baseKey})
-kmac := NewKMACs(encryptionKeys)[0]
+kmac := NewKMACs(salt, encryptionKeys)[0]
 kmacs = append(kmacs, kmac)
 partiallyEncryptedMessage := EncryptMessage(encryptionKeys, inputMessage)
 ...
@@ -69,7 +69,7 @@ salt, kmacs, inputMessage := receiver(...)
 ...
 decryptionKeys := NewDecryptionKeys(salt, baseKeys)
 for i := range kmacs {
-  if ! VerifyKMAC(kmac[i], decryptionKeys[i]) {
+  if ! VerifyKMAC(kmac[i], salt, decryptionKeys[i]) {
     .. error
   }
 }
@@ -151,6 +151,9 @@ NewPartialBaseKey(csprng *Rand, group *cyclic.Group) *cyclic.Int
 NewSalt(csprng *Rand, size int) []byte
 NewEncryptionKeys(salt []byte, baseKeys []*cyclic.Int) []*cyclic.Int
 NewDecryptionKeys(salt []byte, baseKeys []*cyclic.Int) []*cyclic.Int
+
+NewKMAC(salt []byte, keys []*cyclic.Int) []byte
+VerifyKMAC(salt []byte, keys *cyclic.Int) bool
 
 // Note: Clients send multiple keys, nodes only send 1
 encrypt(keys []*cyclic.Int, payload *cyclic.Int)
