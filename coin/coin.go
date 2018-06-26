@@ -26,9 +26,10 @@ const NumCompoundsPerPayload = uint64(5)
 const MaxCoinsPerCompound = 2 * ((format.DATA_LEN / NumCompoundsPerPayload) - HashLen)
 const CompoundLen = HashLen + MaxCoinsPerCompound/2
 
-//Defines the size of a coin
+// Defines the size of a coin
 const CoinLen = HashLen + 1
 
+// Returnable errors
 var ErrZeroCoins = errors.New("no denominations passed")
 var ErrExcessiveCoins = errors.New("too many denominations passed")
 
