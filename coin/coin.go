@@ -5,73 +5,173 @@ import (
 	"errors"
 	"fmt"
 	"gitlab.com/privategrity/crypto/cyclic"
+	"gitlab.com/privategrity/crypto/format"
 )
 
-//TODO: Multi-frame messages so this can be increased in size, this is too small
-const CoinLen = 7 //56 bit
-const Denominations = uint8(8)
-const DenominationMask = uint8(0xF8)
+// A Seed contains the secret proving ownership of a series of coins
+type Seed [CompoundLen]byte
 
-type Preimage [CoinLen]byte
-type Image [CoinLen]byte
+// A Compound contains the intermediate hash describing a series of coins
+type Compound [CompoundLen]byte
 
-func NewCoinPreimage(denomination uint8) (Preimage, error) {
+// An individual coin in the system
+type Coin [CoinLen]byte
 
-	//Check the denomination
-	if denomination >= Denominations {
-		return Preimage{}, errors.New(fmt.Sprintf(
-			"invalid denomination received: %v", denomination))
+// Length of the base random number and its hashes
+const HashLenBits = uint64(160)
+const HashLen = HashLenBits / 8
+
+// Calculates the number of coins in a compound based upon external data
+const NumCompoundsPerPayload = uint64(5)
+const MaxCoinsPerCompound = 2 * ((format.DATA_LEN / NumCompoundsPerPayload) - HashLen)
+const CompoundLen = HashLen + MaxCoinsPerCompound/2
+
+//Defines the size of a coin
+const CoinLen = HashLen + 1
+
+var ErrZeroCoins = errors.New("no denominations passed")
+var ErrExcessiveCoins = errors.New("too many denominations passed")
+
+// Creates a new randomized seed defining coins of the passed denominations
+func NewSeed(denominations []Denomination) (Seed, error) {
+
+	// Check that denominations were passed
+	if len(denominations) == 0 {
+		return Seed{}, ErrZeroCoins
 	}
 
-	//Generate the image
-	p, err := cyclic.GenerateRandomBytes(CoinLen)
+	// Make sure that the number of subcoins does not exceed the maximum
+	if uint64(len(denominations)) > MaxCoinsPerCompound {
+		return Seed{}, ErrExcessiveCoins
+	}
+
+	// Check the denominations are valid
+	for indx, denom := range denominations {
+		if denom >= Denominations {
+			return Seed{}, errors.New(fmt.Sprintf(
+				"invalid denomination received at position%v: %v",
+				indx, denom))
+		}
+	}
+
+	//Generate the seed
+	p, err := cyclic.GenerateRandomBytes(int(CompoundLen))
 	if err != nil {
-		return Preimage{}, err
+		return Seed{}, err
 	}
 
-	var preimage Preimage
+	var preimage Seed
 
 	//Convert the image to an array
 	for i, pi := range p {
 		preimage[i] = pi
 	}
 
-	//Append the denomination to the last 3 bits of the image
-	preimage[CoinLen-1] = (preimage[CoinLen-1] & DenominationMask) | denomination
+	//Append Nil Denominations to the Denomination List
+	for i := uint64(len(denominations)); i < MaxCoinsPerCompound; i++ {
+		denominations = append(denominations, NilDenomination)
+	}
+
+	//Append the denominations to the coin
+	for i := uint64(CompoundLen); i < MaxCoinsPerCompound; i++ {
+		preimage[i] = byte(denominations[2*i]<<4 | denominations[2*i+1])
+	}
 
 	return preimage, nil
 }
 
-//Computes and returns an image for a given preimage
-func (cpi Preimage) ComputeImage() Image {
+// Returns a list of the denominations of all coins defined in the seed
+func (cpi Seed) GetDenominations() []Denomination {
+	return getCoins(cpi)
+}
+
+// Returns the Number of coins defined by a seed
+func (cpi Seed) GetNumCoins() uint64 {
+	return getNumCoins(cpi)
+}
+
+// Returns the value of all coins defined by a seed
+func (cpi Seed) Value() uint64 {
+	return value(cpi)
+}
+
+//Computes and returns a compound for a given seed
+func (cpi Seed) ComputeCompound() Compound {
 	//Hash the preimage
 	h := sha256.New()
 	h.Write(cpi[:])
-	img := h.Sum(nil)[0:CoinLen]
+	img := h.Sum(nil)[0:CompoundLen]
 
-	var image Image
+	var image Compound
 
 	//Convert the preimage to an array
 	for i, pi := range img {
 		image[i] = pi
 	}
 
-	image[CoinLen-1] = (image[CoinLen-1] & DenominationMask) |
-		cpi.GetDenomination()
+	//Copy the denominations over from the coin
+	for i := HashLen; i < CompoundLen; i++ {
+		image[i] = cpi[i]
+	}
 
 	return image
 }
 
-func (cpi Preimage) GetDenomination() uint8 {
-	return cpi[CoinLen-1] &^ DenominationMask
+// Returns a list of the denominations of all coins defined in the Compound
+func (ci Compound) GetDenominations() []Denomination {
+	return getCoins(ci)
 }
 
-//Verify the an ImagePreimage Pair
-func (img Image) Verify(preimage Preimage) bool {
-	computedImage := preimage.ComputeImage()
+// Returns the number of coins defined by the compound
+func (ci Compound) GetNumDenominations() uint64 {
+	return getNumCoins(ci)
+}
 
-	for i := 0; i < CoinLen; i++ {
-		if computedImage[i] != img[i] {
+// Returns the value of all coins in the compound
+func (ci Compound) Value() uint64 {
+	return value(ci)
+}
+
+// Returns all coins defined by a compound
+func (ci Compound) ComputeCoins() []Coin {
+	imgPostfix := byte(0)
+	var imgLst []Coin
+
+	h := sha256.New()
+
+	cibytes := ci[:]
+
+	h.Write(cibytes)
+
+	for _, dnom := range ci.GetDenominations() {
+
+		if dnom == NilDenomination {
+			break
+		}
+
+		h.Write([]byte{imgPostfix})
+		imgPostfix++
+		imgByte := h.Sum(nil)[0:HashLen]
+		imgByte[HashLen] = (imgByte[HashLen] & 0xF0) | byte(dnom)
+
+		var img Coin
+
+		for i, b := range imgByte {
+			img[i] = b
+		}
+
+		imgLst = append(imgLst, img)
+	}
+
+	return imgLst
+}
+
+//Verify that a compound matches a seed
+func (cimg Compound) Verify(preimage Seed) bool {
+	computedImage := preimage.ComputeCompound()
+
+	for i := uint64(0); i < CompoundLen; i++ {
+		if computedImage[i] != cimg[i] {
 			return false
 		}
 	}
@@ -79,6 +179,60 @@ func (img Image) Verify(preimage Preimage) bool {
 	return true
 }
 
-func (img Image) GetDenomination() uint8 {
-	return img[CoinLen-1] &^ DenominationMask
+// Internal function used by both seed and compound to return all Coins
+func getCoins(pi [CompoundLen]byte) []Denomination {
+	var denom []Denomination
+	for i := HashLen; i < CompoundLen; i++ {
+		denom1 := Denomination(pi[i] & 0x0f)
+
+		if denom1 == NilDenomination {
+			break
+		}
+
+		denom = append(denom, denom1)
+
+		denom2 := Denomination((pi[i] >> 4) & 0x0f)
+
+		if denom2 == NilDenomination {
+			break
+		}
+
+		denom = append(denom, denom2)
+	}
+
+	return denom
+}
+
+// Internal function used by both seed and compound to return the number of
+// Coins
+func getNumCoins(pi [CompoundLen]byte) uint64 {
+	numDenom := uint64(0)
+	for i := HashLen; i < CompoundLen; i++ {
+		denom1 := Denomination(pi[i] & 0x0f)
+
+		if denom1 == NilDenomination {
+			break
+		}
+
+		numDenom++
+
+		denom2 := Denomination((pi[i] >> 4) & 0x0f)
+
+		if denom2 == NilDenomination {
+			break
+		}
+
+		numDenom++
+	}
+	return numDenom
+}
+
+// Internal function used by both seed and compound to return the sum of
+// the value of all coins represented
+func value(pi [CompoundLen]byte) uint64 {
+	v := uint64(0)
+	for _, dnm := range getCoins(pi) {
+		v += dnm.Value()
+	}
+	return v
 }
