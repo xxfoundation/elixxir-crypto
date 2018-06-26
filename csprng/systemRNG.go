@@ -6,12 +6,19 @@
 
 package csprng
 
-// Source is the common interface for all cryptographically secure random number
-// generators
-type Source interface {
-	// Read returns a slice of len(b) size bytes from the random number
-	// generator, or an error if one occurs
-	Read(b []byte) (int, error)
-	// SetSeed sets the internal state of the random number generator, or an error
-	SetSeed(seed []byte) error
+import (
+	"crypto/rand"
+)
+
+// SystemRNG uses the golang CSPRNG
+type SystemRNG struct{}
+
+// Read calls the crypto/rand Read function and returns the values
+func (s *SystemRNG) Read(b []byte) (int, error) {
+	return rand.Read(b)
+}
+
+// SetSeed has not effect on the system reader
+func (s *SystemRNG) SetSeed(seed []byte) error {
+	return nil
 }
