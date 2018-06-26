@@ -7,17 +7,15 @@
 package messaging
 
 import (
-	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/privategrity/crypto/csprng"
+	"testing"
 )
 
-// NewSalt creates a byteslize of `size` using the provided output from the
-// given cryptographically secure pseudo-random number generator
-func NewSalt(csprng csprng.Source, size int) []byte {
-	b := make([]byte, size)
-	size, err := csprng.Read(b)
-	if err != nil || size != len(b) {
-		jww.FATAL.Panicf("Could not generate salt: %v", err.Error())
+func TestSaltSystemRand(t *testing.T) {
+	c := csprng.Source(&csprng.SystemRNG{})
+	salt := NewSalt(c, 16)
+	if len(salt) != 16 {
+		t.Errorf("Couldn't use systmeRNG, got %d bytes instead of 16",
+			len(salt))
 	}
-	return b
 }
