@@ -19,3 +19,13 @@ func TestSaltSystemRand(t *testing.T) {
 			len(salt))
 	}
 }
+
+func TestSaltPanic(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Salt should panic on negative size!")
+		}
+	}()
+	c := csprng.Source(&csprng.SystemRNG{})
+	NewSalt(c, -1)
+}
