@@ -3,8 +3,9 @@ package coin
 import "errors"
 
 //Defines the properties of Deonominations
-const Denominations = Denomination(15)
+const NumDenominations = Denomination(15)
 const NilDenomination = Denomination(0x0f)
+const DenominationPerByte = uint64(2)
 
 // The denomination of a coin.
 // The value of the coin is 2^Denomination and the only valid denominations

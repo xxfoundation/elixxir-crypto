@@ -3,7 +3,6 @@ package coin
 import (
 	"crypto/sha256"
 	"errors"
-	"fmt"
 	"gitlab.com/privategrity/crypto/cyclic"
 	"gitlab.com/privategrity/crypto/format"
 )
@@ -23,7 +22,7 @@ const HashLen = HashLenBits / 8
 
 // Calculates the number of coins in a compound based upon external data
 const NumCompoundsPerPayload = uint64(5)
-const MaxCoinsPerCompound = 2 * ((format.DATA_LEN / NumCompoundsPerPayload) - HashLen)
+const MaxCoinsPerCompound = DenominationPerByte * ((format.DATA_LEN / NumCompoundsPerPayload) - HashLen)
 const CompoundLen = HashLen + MaxCoinsPerCompound/2
 
 // Defines the size of a coin
@@ -47,11 +46,9 @@ func NewSeed(denominations []Denomination) (Seed, error) {
 	}
 
 	// Check the denominations are valid
-	for indx, denom := range denominations {
-		if denom >= Denominations {
-			return Seed{}, errors.New(fmt.Sprintf(
-				"invalid denomination received at position%v: %v",
-				indx, denom))
+	for _, denom := range denominations {
+		if denom >= NumDenominations {
+			return Seed{}, ErrInvalidDenomination
 		}
 	}
 
@@ -61,11 +58,11 @@ func NewSeed(denominations []Denomination) (Seed, error) {
 		return Seed{}, err
 	}
 
-	var preimage Seed
+	var seed Seed
 
 	//Convert the image to an array
 	for i, pi := range p {
-		preimage[i] = pi
+		seed[i] = pi
 	}
 
 	//Append Nil Denominations to the Denomination List
@@ -74,15 +71,15 @@ func NewSeed(denominations []Denomination) (Seed, error) {
 	}
 
 	//Append the denominations to the coin
-	for i := uint64(CompoundLen); i < MaxCoinsPerCompound; i++ {
-		preimage[i] = byte(denominations[2*i]<<4 | denominations[2*i+1])
+	for i := uint64(0); i < (CompoundLen - HashLen); i++ {
+		seed[HashLen+i] = byte(denominations[2*i]<<4 | denominations[2*i+1])
 	}
 
-	return preimage, nil
+	return seed, nil
 }
 
 // Returns a list of the denominations of all coins defined in the seed
-func (cpi Seed) GetDenominations() []Denomination {
+func (cpi Seed) GetCoins() []Denomination {
 	return getCoins(cpi)
 }
 
@@ -119,12 +116,12 @@ func (cpi Seed) ComputeCompound() Compound {
 }
 
 // Returns a list of the denominations of all coins defined in the Compound
-func (ci Compound) GetDenominations() []Denomination {
+func (ci Compound) GetCoins() []Denomination {
 	return getCoins(ci)
 }
 
 // Returns the number of coins defined by the compound
-func (ci Compound) GetNumDenominations() uint64 {
+func (ci Compound) GetNumCoins() uint64 {
 	return getNumCoins(ci)
 }
 
@@ -144,7 +141,7 @@ func (ci Compound) ComputeCoins() []Coin {
 
 	h.Write(cibytes)
 
-	for _, dnom := range ci.GetDenominations() {
+	for _, dnom := range ci.GetCoins() {
 
 		if dnom == NilDenomination {
 			break
@@ -184,17 +181,16 @@ func (cimg Compound) Verify(preimage Seed) bool {
 func getCoins(pi [CompoundLen]byte) []Denomination {
 	var denom []Denomination
 	for i := HashLen; i < CompoundLen; i++ {
-		denom1 := Denomination(pi[i] & 0x0f)
+		denom1 := Denomination((pi[i] >> 4) & 0x0f)
 
-		if denom1 == NilDenomination {
+		if denom1 >= NilDenomination {
 			break
 		}
 
 		denom = append(denom, denom1)
 
-		denom2 := Denomination((pi[i] >> 4) & 0x0f)
-
-		if denom2 == NilDenomination {
+		denom2 := Denomination(pi[i] & 0x0f)
+		if denom2 >= NilDenomination {
 			break
 		}
 
@@ -209,17 +205,17 @@ func getCoins(pi [CompoundLen]byte) []Denomination {
 func getNumCoins(pi [CompoundLen]byte) uint64 {
 	numDenom := uint64(0)
 	for i := HashLen; i < CompoundLen; i++ {
-		denom1 := Denomination(pi[i] & 0x0f)
+		denom1 := Denomination((pi[i] >> 4) & 0x0f)
 
-		if denom1 == NilDenomination {
+		if denom1 >= NilDenomination {
 			break
 		}
 
 		numDenom++
 
-		denom2 := Denomination((pi[i] >> 4) & 0x0f)
+		denom2 := Denomination(pi[i] & 0x0f)
 
-		if denom2 == NilDenomination {
+		if denom2 >= NilDenomination {
 			break
 		}
 
