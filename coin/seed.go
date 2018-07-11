@@ -58,7 +58,7 @@ func NewSeed(denominations []Denomination) (Seed, error) {
 }
 
 // Produces a seed serialized from an array.  Does not verify the prefix.
-func SerializeSeed(protoSeed [BaseFrameLen]byte) (Seed, error) {
+func DeserializeSeed(protoSeed [BaseFrameLen]byte) (Seed, error) {
 	//Check that the header is correct
 	if protoSeed[HeaderLoc] != SeedType {
 		return Seed{}, ErrInvalidType

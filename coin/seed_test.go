@@ -153,36 +153,36 @@ func TestNewSeed_RNG(t *testing.T) {
 
 }
 
-//Test that SerializeSeed only returns a seed when a valid header is passed
+//Test that DeserializeSeed only returns a seed when a valid header is passed
 func TestSerializeSeed_Header(t *testing.T) {
 	var protoseed [BaseFrameLen]byte
 
 	for i := 0; i < math.MaxUint8; i++ {
 		protoseed[HeaderLoc] = byte(i)
 
-		_, err := SerializeSeed(protoseed)
+		_, err := DeserializeSeed(protoseed)
 
 		if (err == nil) != (byte(i) == SeedType) {
-			t.Errorf("SerializeSeed: Incorrect responce to headder %x", i)
+			t.Errorf("DeserializeSeed: Incorrect responce to headder %x", i)
 		}
 
 	}
 }
 
-//Test that SerializeSeed's output is an exact copy of its input
+//Test that DeserializeSeed's output is an exact copy of its input
 func TestSerializeSeed_Output(t *testing.T) {
 	var protoseed [BaseFrameLen]byte
 
 	protoseed[HeaderLoc] = SeedType
 
-	seed, err := SerializeSeed(protoseed)
+	seed, err := DeserializeSeed(protoseed)
 
 	if err != nil {
-		t.Errorf("SerializeSeed: returned error on seed creation: %s", err.Error())
+		t.Errorf("DeserializeSeed: returned error on seed creation: %s", err.Error())
 	}
 
 	if !reflect.DeepEqual([BaseFrameLen]byte(seed), protoseed) {
-		t.Errorf("SerializeSeed: Output not the same as input; Output: %x, Input: %x", seed, protoseed)
+		t.Errorf("DeserializeSeed: Output not the same as input; Output: %x, Input: %x", seed, protoseed)
 	}
 }
 

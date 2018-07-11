@@ -7,14 +7,14 @@ import (
 	"testing"
 )
 
-//Test that SerializeCompound only returns a seed when a valid header is passed
+//Test that DeserializeCompound only returns a seed when a valid header is passed
 func TestSerializeCompound_Header(t *testing.T) {
 	var protoCompound [BaseFrameLen]byte
 
 	for i := 0; i < math.MaxUint8; i++ {
 		protoCompound[HeaderLoc] = byte(i)
 
-		_, err := SerializeCompound(protoCompound)
+		_, err := DeserializeCompound(protoCompound)
 
 		if (err == nil) != (byte(i) == CompoundType) {
 			t.Errorf("protoCompound: Incorrect responce to headder %x", i)
@@ -23,20 +23,20 @@ func TestSerializeCompound_Header(t *testing.T) {
 	}
 }
 
-//Test that SerializeCompound's output is an exact copy of its input
+//Test that DeserializeCompound's output is an exact copy of its input
 func TestSerializeCompound_Output(t *testing.T) {
 	var protoCompound [BaseFrameLen]byte
 
 	protoCompound[HeaderLoc] = CompoundType
 
-	seed, err := SerializeCompound(protoCompound)
+	seed, err := DeserializeCompound(protoCompound)
 
 	if err != nil {
-		t.Errorf("SerializeSeed: returned error on seed creation: %s", err.Error())
+		t.Errorf("DeserializeSeed: returned error on seed creation: %s", err.Error())
 	}
 
 	if !reflect.DeepEqual([BaseFrameLen]byte(seed), protoCompound) {
-		t.Errorf("SerializeSeed: Output not the same as input; Output: %x, Input: %x", seed, protoCompound)
+		t.Errorf("DeserializeSeed: Output not the same as input; Output: %x, Input: %x", seed, protoCompound)
 	}
 }
 

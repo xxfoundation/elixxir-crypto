@@ -9,7 +9,7 @@ type Compound [BaseFrameLen]byte
 const CompoundType byte = 0xAA
 
 // Produces a compound serialized from an array.
-func SerializeCompound(protoCompound [BaseFrameLen]byte) (Compound, error) {
+func DeserializeCompound(protoCompound [BaseFrameLen]byte) (Compound, error) {
 	//Check that the header is correct
 	if protoCompound[HeaderLoc] != CompoundType {
 		return Compound{}, ErrInvalidType
