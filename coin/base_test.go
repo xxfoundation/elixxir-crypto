@@ -23,13 +23,13 @@ func TestGetCoins_Full(t *testing.T) {
 
 	if len(coins) != len(newCoins) {
 		t.Errorf("getCoins: Number of Coins returned does"+
-			" not equal nummer passed: Passed: %v, Returned: %v", len(coins),
+			" not equal number passed: Passed: %v, Returned: %v", len(coins),
 			len(newCoins))
 	}
 
 	if !reflect.DeepEqual(coins, newCoins) {
 		t.Errorf("getCoins: Coins returned not equal to"+
-			" those passed: Passed: %v, Recieved: %v", coins, newCoins)
+			" those passed: Passed: %v, Received: %v", coins, newCoins)
 	}
 }
 
@@ -78,7 +78,7 @@ func TestGetNumCoins_Full(t *testing.T) {
 
 	if uint64(len(coins)) != newCoins {
 		t.Errorf("getNumCoins: Number of Coins returned does"+
-			" not equal nummer passed: Passed: %v, Returned: %v", len(coins),
+			" not equal number passed: Passed: %v, Returned: %v", len(coins),
 			newCoins)
 	}
 }
@@ -102,7 +102,7 @@ func TestGetNumCoins_Partial(t *testing.T) {
 
 	if len(newCoins) != 1 {
 		t.Errorf("getNumCoins: Number of Coins returned does"+
-			" not equal nummer passed: Passed: %v, Returned: %v", len(coins),
+			" not equal number passed: Passed: %v, Returned: %v", len(coins),
 			len(newCoins))
 	}
 }

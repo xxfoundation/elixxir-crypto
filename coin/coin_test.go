@@ -14,7 +14,7 @@ func TestCoin_GetDenomination(t *testing.T) {
 
 		if coin.GetDenomination() != Denomination(i) {
 			t.Errorf("Coin.GetDenomination: Returned the incorrect denomination"+
-				" Expected %v, Recieved: %v", i, coin.GetDenomination())
+				" Expected %v, Received: %v", i, coin.GetDenomination())
 		}
 
 	}
@@ -32,7 +32,7 @@ func TestCoin_GetValue(t *testing.T) {
 
 		if coin.GetValue() != expectedValue {
 			t.Errorf("Coin.GetValue: Returned the incorrect value"+
-				" Expected %v, Recieved: %v", expectedValue, coin.GetValue())
+				" Expected %v, Received: %v", expectedValue, coin.GetValue())
 		}
 
 	}

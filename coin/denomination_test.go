@@ -11,7 +11,7 @@ func TestDenomination_ValueTooBig(t *testing.T) {
 
 	if d.Value() != 0 {
 		t.Errorf("Denomination.Value: Did not zero the output with too large"+
-			" of values; Expected: 0, Recieved: %v+", d.Value())
+			" of values; Expected: 0, Received: %v+", d.Value())
 	}
 }
 
@@ -34,7 +34,7 @@ func TestDenomination_ValueAllInputs(t *testing.T) {
 	for d := Denomination(0); d < Denomination(64); d++ {
 		if d.Value() != expectedOutputs[d] {
 			t.Errorf("Denomination.Value: Denomination %v's value does"+
-				" not match expected value: Expected: %v, Recieved: %v",
+				" not match expected value: Expected: %v, Received: %v",
 				d, expectedOutputs[d], d.Value())
 		}
 	}

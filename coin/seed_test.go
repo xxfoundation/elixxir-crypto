@@ -98,7 +98,7 @@ func TestNewSeed_DenominationPlacement(t *testing.T) {
 
 		if newDenom[i] != denom[i] {
 			t.Errorf("NewSeed: Placed Denomination does not match:"+
-				" Expected: %v, Recieved: %v", denom[i], newDenom[i])
+				" Expected: %v, Received: %v", denom[i], newDenom[i])
 		}
 	}
 }
@@ -119,7 +119,7 @@ func TestNewSeed_NilDenominationPlacement(t *testing.T) {
 	if len(newDenom) != 1 {
 		if err != nil {
 			t.Errorf("NewSeed: Partially filled denomination list did not"+
-				" return with the expected length: Expected %v, Recieved: %v",
+				" return with the expected length: Expected %v, Received: %v",
 				1, len(newDenom))
 		}
 	}
@@ -341,7 +341,7 @@ func TestSeed_ComputeCompound_Denominations(t *testing.T) {
 	compound := seed.ComputeCompound()
 
 	if !reflect.DeepEqual(compound[DenominationsStart:DenominationsEnd], seed[DenominationsStart:DenominationsEnd]) {
-		t.Errorf("Seed.ComputeCompound: Denominations not coppied correctly; Expected: %x, Recieved: %x", seed[DenominationsStart:DenominationsEnd], compound[DenominationsStart:DenominationsEnd])
+		t.Errorf("Seed.ComputeCompound: Denominations not copied correctly; Expected: %x, Received: %x", seed[DenominationsStart:DenominationsEnd], compound[DenominationsStart:DenominationsEnd])
 	}
 
 }
@@ -363,7 +363,7 @@ func TestSeed_ComputeCompound_HashSource(t *testing.T) {
 			}
 		} else {
 			if !reflect.DeepEqual(baseCompound[HashStart:HashEnd], compound[HashStart:HashEnd]) {
-				t.Errorf("Seed.ComputeCompound: edit of byte %v should not changed the hash but did", i)
+				t.Errorf("Seed.ComputeCompound: edit of byte %v should not have changed the hash but did", i)
 			}
 		}
 

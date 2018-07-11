@@ -198,7 +198,7 @@ func TestCompound_ComputeCoins_Denominations(t *testing.T) {
 
 		for indx, coin := range coinLst {
 			if coin.GetDenomination() != coins[indx] {
-				t.Errorf("Compound.ComputeCoins: coin denomination did not match: Expected: %v, Recieved: %v",
+				t.Errorf("Compound.ComputeCoins: coin denomination did not match: Expected: %v, Received: %v",
 					coin.GetDenomination(), coins[indx])
 			}
 		}
@@ -238,7 +238,7 @@ func TestCompound_ComputeCoins_Randomness(t *testing.T) {
 
 		for indx, coin := range coinLst {
 			if coin.GetDenomination() != coins[indx] {
-				t.Errorf("Compound.ComputeCoins: coin denomination did not match: Expected: %v, Recieved: %v",
+				t.Errorf("Compound.ComputeCoins: coin denomination did not match: Expected: %v, Received: %v",
 					coin.GetDenomination(), coins[indx])
 			}
 		}
