@@ -105,24 +105,36 @@ func TestNewSeed_DenominationPlacement(t *testing.T) {
 
 // Tests that unused denomination slots are filled with null denominations
 func TestNewSeed_NilDenominationPlacement(t *testing.T) {
-	denom := []Denomination{3}
 
-	seed, err := NewSeed(denom)
+	for i := uint64(1); i < MaxCoinsPerCompound; i++ {
+		denom := make([]Denomination, i)
 
-	if err != nil {
-		t.Errorf("NewSeed: Returned error with properly formatted "+
-			"NewSeed(): %s", err.Error())
-	}
+		seed, err := NewSeed(denom)
 
-	newDenom := getCoins(seed)
-
-	if len(newDenom) != 1 {
 		if err != nil {
-			t.Errorf("NewSeed: Partially filled denomination list did not"+
-				" return with the expected length: Expected %v, Received: %v",
-				1, len(newDenom))
+			t.Errorf("NewSeed: Returned error with properly formatted "+
+				"NewSeed(): %s", err.Error())
 		}
+
+		for j := DenominationsStart + i; j < DenominationsEnd; j++ {
+
+			denom1 := seed[j] & 0x0f
+
+			if denom1 != byte(NilDenomination) {
+				t.Errorf("NewSeed: Denomination at index %v should be nill but its %v with"+
+					"%v denominations on input, but isnt", 2*j, denom1, i)
+			}
+
+			denom2 := (seed[j] >> 4) & 0x0f
+
+			if denom2 != byte(NilDenomination) {
+				t.Errorf("NewSeed: Denomination at index %v should be nill but its %v with"+
+					"%v denominations on input, but isnt", 2*j+1, denom2, i)
+			}
+		}
+
 	}
+
 }
 
 //Randomness testing of NewSeed
@@ -341,7 +353,8 @@ func TestSeed_ComputeCompound_Denominations(t *testing.T) {
 	compound := seed.ComputeCompound()
 
 	if !reflect.DeepEqual(compound[DenominationsStart:DenominationsEnd], seed[DenominationsStart:DenominationsEnd]) {
-		t.Errorf("Seed.ComputeCompound: Denominations not copied correctly; Expected: %x, Received: %x", seed[DenominationsStart:DenominationsEnd], compound[DenominationsStart:DenominationsEnd])
+		t.Errorf("Seed.ComputeCompound: Denominations not copied correctly; Expected: %x, Received: %x",
+			seed[DenominationsStart:DenominationsEnd], compound[DenominationsStart:DenominationsEnd])
 	}
 
 }
