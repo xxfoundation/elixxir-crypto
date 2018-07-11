@@ -17,7 +17,7 @@ func TestSerializeCompound_Header(t *testing.T) {
 		_, err := DeserializeCompound(protoCompound)
 
 		if (err == nil) != (byte(i) == CompoundType) {
-			t.Errorf("protoCompound: Incorrect responce to headder %x", i)
+			t.Errorf("protoCompound: Incorrect response to header %x", i)
 		}
 
 	}

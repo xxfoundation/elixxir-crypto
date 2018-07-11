@@ -175,7 +175,7 @@ func TestSerializeSeed_Header(t *testing.T) {
 		_, err := DeserializeSeed(protoseed)
 
 		if (err == nil) != (byte(i) == SeedType) {
-			t.Errorf("DeserializeSeed: Incorrect responce to headder %x", i)
+			t.Errorf("DeserializeSeed: Incorrect response to header %x", i)
 		}
 
 	}
