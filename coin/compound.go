@@ -70,7 +70,7 @@ func (ci Compound) ComputeCoins() []Coin {
 
 		h.Write([]byte{imgPostfix})
 		imgPostfix++
-		imgByte := h.Sum(nil)[0:CoinLen]
+		imgByte := h.Sum(nil)[:CoinLen]
 		imgByte[CoinDenominationLoc] = (imgByte[CoinDenominationLoc] & 0xf0) | byte(dnom)
 
 		var img Coin
