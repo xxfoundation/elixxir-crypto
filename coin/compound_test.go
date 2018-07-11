@@ -181,13 +181,9 @@ func TestCompound_ComputeCoins_Denominations(t *testing.T) {
 
 		numCoins := (rng.Uint64() % (MaxCoinsPerCompound - 1)) + 1
 
-		expectedValue := uint64(0)
-
 		for i := uint64(0); i < numCoins; i++ {
 			coin := Denomination(rng.Uint64() % uint64(NilDenomination))
 			coins = append(coins, coin)
-
-			expectedValue += coin.Value()
 		}
 
 		seed, err := NewSeed(coins)
@@ -204,6 +200,60 @@ func TestCompound_ComputeCoins_Denominations(t *testing.T) {
 			if coin.GetDenomination() != coins[indx] {
 				t.Errorf("Compound.ComputeCoins: coin denomination did not match: Expected: %v, Recieved: %v",
 					coin.GetDenomination(), coins[indx])
+			}
+		}
+	}
+}
+
+//Shows that coins differ with different inputs
+func TestCompound_ComputeCoins_Randomness(t *testing.T) {
+	var coins []Denomination
+
+	src := rand.NewSource(42)
+	rng := rand.New(src)
+
+	var coinSuperList [][]Coin
+
+	for i := 0; i < 20; i++ {
+		coins = []Denomination{}
+
+		numCoins := (rng.Uint64() % (MaxCoinsPerCompound - 1)) + 1
+
+		for i := uint64(0); i < numCoins; i++ {
+			coin := Denomination(rng.Uint64() % uint64(NilDenomination))
+			coins = append(coins, coin)
+		}
+
+		seed, err := NewSeed(coins)
+
+		if err != nil {
+			t.Errorf("Compound.Value: returned error on seed creation: %s", err.Error())
+		}
+
+		compound := seed.ComputeCompound()
+
+		coinLst := compound.ComputeCoins()
+
+		coinSuperList = append(coinSuperList, coinLst)
+
+		for indx, coin := range coinLst {
+			if coin.GetDenomination() != coins[indx] {
+				t.Errorf("Compound.ComputeCoins: coin denomination did not match: Expected: %v, Recieved: %v",
+					coin.GetDenomination(), coins[indx])
+			}
+		}
+	}
+
+	for i := 0; i < 20; i++ {
+		for j := 0; j < 20; j++ {
+			if i != j {
+				for k := 0; k < len(coinSuperList[i]); k++ {
+					for l := 0; l < len(coinSuperList[j]); l++ {
+						if reflect.DeepEqual(coinSuperList[i][k], coinSuperList[j][l]) {
+							t.Errorf("Compound.ComputeCoins: Two Coins matched, which should be impossible")
+						}
+					}
+				}
 			}
 		}
 	}
