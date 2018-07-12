@@ -4,103 +4,36 @@ import (
 	"testing"
 )
 
-func TestCoinPreimagesAndImages(t *testing.T) {
-	numTestedCoins := 100
+// Exhaustively Tests GetDenomination
+func TestCoin_GetDenomination(t *testing.T) {
 
-	preimageslice := make([]Preimage, numTestedCoins)
-	var err error
+	var coin Coin
 
-	for i := 0; i < numTestedCoins; i++ {
+	for i := byte(0); i < byte(NumDenominations); i++ {
+		coin[CoinDenominationLoc] = i
 
-		denomination := uint8(uint64(i) % 8)
-
-		preimageslice[i], err = NewCoinPreimage(denomination)
-
-		if err != nil {
-			t.Errorf("NewCoinPreimage() failed: could not generate "+
-				"coin preimage #%v: %s", i, err.Error())
+		if coin.GetDenomination() != Denomination(i) {
+			t.Errorf("Coin.GetDenomination: Returned the incorrect denomination"+
+				" Expected %v, Received: %v", i, coin.GetDenomination())
 		}
 
-		dnm := uint8(preimageslice[i][CoinLen-1]) &^ DenominationMask
-		if (dnm &^ DenominationMask) != denomination {
-
-			t.Errorf("NewCoinPreimage() failed: appended denomination"+
-				" incorrect: for coin %v: Expected: %v, Recieved: %v", i, denomination,
-				dnm)
-		}
-
-	}
-
-	for i := 0; i < (numTestedCoins - 1); i++ {
-
-		denomination := uint8(i % 8)
-
-		if preimageslice[i].GetDenomination() != denomination {
-			t.Errorf("Preimage.GetDenomination("+
-				") failed: appended denomination"+
-				" incorrect: for coin %v: Expected: %v, Recieved: %v", i,
-				denomination, preimageslice[i].GetDenomination())
-		}
-
-		if comparePreimages(preimageslice[i], preimageslice[i+1]) {
-			t.Errorf("NewCoinPreimage() failed: preimage %v and %v "+
-				"match: %v, %v", i, i+i, preimageslice[i], preimageslice[i+1])
-		}
-	}
-
-	imageslice := make([]Image, numTestedCoins)
-
-	for i := 0; i < numTestedCoins; i++ {
-		denomination := uint8(i % 8)
-
-		imageslice[i] = preimageslice[i].ComputeImage()
-
-		if imageslice[i].GetDenomination() != denomination {
-			t.Errorf("Image.GetDenomination("+
-				") failed: appended denomination"+
-				" incorrect: for coin %v: Expected: %v, Recieved: %v", i,
-				denomination, imageslice[i].GetDenomination())
-		}
-	}
-
-	for i := 0; i < (numTestedCoins - 1); i++ {
-		if compareImages(imageslice[i], imageslice[i+1]) {
-			t.Errorf("CoinPreimage.ComputeImage() failed: image %v and %v "+
-				"match: %v, %v", i, i+i, imageslice[i], imageslice[i+1])
-		}
-	}
-
-	for i := 0; i < numTestedCoins; i++ {
-		if !imageslice[i].Verify(preimageslice[i]) {
-			t.Errorf("CoinImage.ComputeImage("+
-				") failed: image %v did not verify", i)
-		}
-	}
-
-	for i := 0; i < numTestedCoins; i++ {
-		if imageslice[i].Verify(preimageslice[numTestedCoins-i-1]) {
-			t.Errorf("CoinImage.ComputeImage("+
-				") failed: image %v and %v matched", i, numTestedCoins-i-1)
-		}
 	}
 }
 
-func comparePreimages(a, b Preimage) bool {
-	for i := 0; i < CoinLen; i++ {
-		if a[i] != b[i] {
-			return false
+// Exhaustively Tests GetValue
+func TestCoin_GetValue(t *testing.T) {
+
+	var coin Coin
+
+	for i := byte(0); i < byte(NumDenominations); i++ {
+		coin[CoinDenominationLoc] = i
+
+		expectedValue := uint64(1 << uint64(i))
+
+		if coin.GetValue() != expectedValue {
+			t.Errorf("Coin.GetValue: Returned the incorrect value"+
+				" Expected %v, Received: %v", expectedValue, coin.GetValue())
 		}
+
 	}
-
-	return true
-}
-
-func compareImages(a, b Image) bool {
-	for i := 0; i < CoinLen; i++ {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-
-	return true
 }
