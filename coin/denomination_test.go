@@ -39,3 +39,25 @@ func TestDenomination_ValueAllInputs(t *testing.T) {
 		}
 	}
 }
+
+func TestGenerateDenominationList_TooLong(t *testing.T) {
+	value := uint32(1<<30 - 1)
+
+	_, err := GenerateDenominationList(value)
+
+	if err != ErrInvalidValue {
+		t.Errorf("GenerateDenominationList: Did not return correct error"+
+			" for value of %v", value)
+	}
+}
+
+func TestGenerateDenominationList_Happy(t *testing.T) {
+	value := uint32(12)
+
+	_, err := GenerateDenominationList(value)
+
+	if err != nil {
+		t.Errorf("GenerateDenominationList: Returned error for valid input"+
+			" for value of %v", value)
+	}
+}
