@@ -1,5 +1,6 @@
 package coin
 
+/*
 import (
 	"crypto/sha256"
 	"gitlab.com/privategrity/crypto/cyclic"
@@ -125,3 +126,4 @@ func (seed Seed) ComputeCompound() Compound {
 
 	return compound
 }
+*/

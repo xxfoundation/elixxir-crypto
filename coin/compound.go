@@ -1,5 +1,6 @@
 package coin
 
+/*
 import "crypto/sha256"
 
 // A Compound contains the intermediate hash describing a series of coins
@@ -64,12 +65,13 @@ func (ci Compound) ComputeCoins() []Coin {
 
 	for _, dnom := range ci.GetCoins() {
 
-		if dnom == NilDenomination {
+		if dnom == 5 {
 			break
 		}
 
 		h.Write([]byte{imgPostfix})
 		imgPostfix++
+
 		imgByte := h.Sum(nil)[:CoinLen]
 		imgByte[CoinDenominationLoc] = (imgByte[CoinDenominationLoc] & 0xf0) | byte(dnom)
 
@@ -83,4 +85,4 @@ func (ci Compound) ComputeCoins() []Coin {
 	}
 
 	return imgLst
-}
+}*/

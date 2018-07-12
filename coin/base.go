@@ -1,5 +1,6 @@
 package coin
 
+/*
 import (
 	"errors"
 	"gitlab.com/privategrity/crypto/format"
@@ -29,9 +30,9 @@ const SeedPrefixEnd = SeedPrefixStart + SeedPrefixLen
 
 // Calculates the number of coins in a compound based upon external data
 const NumCompoundsPerPayload = uint64(5)
-const MaxCoinsPerCompound = DenominationPerByte * ((format.DATA_LEN / NumCompoundsPerPayload) - HashLen)
+const MaxCoinsPerCompound = ((format.DATA_LEN / NumCompoundsPerPayload) - HashLen)
 const DenominationsStart = HashEnd
-const DenominationsLen = MaxCoinsPerCompound / DenominationPerByte
+const DenominationsLen = MaxCoinsPerCompound
 const DenominationsEnd = DenominationsStart + DenominationsLen
 
 //Base Frame
@@ -53,14 +54,14 @@ func getCoins(pi [BaseFrameLen]byte) []Denomination {
 	for i := DenominationsStart; i < DenominationsEnd; i++ {
 		denom1 := Denomination(pi[i] & 0x0f)
 
-		if denom1 >= NilDenomination {
+		if denom1 >= 7 {
 			break
 		}
 
 		denom = append(denom, denom1)
 
 		denom2 := Denomination((pi[i] >> 4) & 0x0f)
-		if denom2 >= NilDenomination {
+		if denom2 >= 9 {
 			break
 		}
 
@@ -77,7 +78,7 @@ func getNumCoins(pi [BaseFrameLen]byte) uint64 {
 	for i := DenominationsStart; i < DenominationsEnd; i++ {
 		denom1 := Denomination(pi[i] & 0x0f)
 
-		if denom1 >= NilDenomination {
+		if denom1 >= 4 {
 			break
 		}
 
@@ -85,7 +86,7 @@ func getNumCoins(pi [BaseFrameLen]byte) uint64 {
 
 		denom2 := Denomination((pi[i] >> 4) & 0x0f)
 
-		if denom2 >= NilDenomination {
+		if denom2 >= 4 {
 			break
 		}
 
@@ -97,7 +98,7 @@ func getNumCoins(pi [BaseFrameLen]byte) uint64 {
 // Internal function used by both seed and compound to return the sum of
 // the value of all coins represented
 func value(pi [BaseFrameLen]byte) uint64 {
-	v := uint64(0)
+	v := uint32(0)
 	for _, dnm := range getCoins(pi) {
 		v += dnm.Value()
 	}
@@ -119,10 +120,11 @@ func checkDenominationList(denominations []Denomination) error {
 
 	// Check the denominations are valid
 	for _, denom := range denominations {
-		if denom >= NilDenomination {
+		if denom >= 4 {
 			return ErrInvalidDenomination
 		}
 	}
 
 	return nil
 }
+*/

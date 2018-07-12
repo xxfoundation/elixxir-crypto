@@ -1,5 +1,6 @@
 package coin
 
+/*
 // An individual coin in the system
 type Coin [CoinLen]byte
 
@@ -11,4 +12,4 @@ func (c Coin) GetDenomination() Denomination {
 // Returns the value of the coin
 func (c Coin) GetValue() uint64 {
 	return c.GetDenomination().Value()
-}
+}*/
