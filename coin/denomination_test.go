@@ -54,10 +54,21 @@ func TestGenerateDenominationList_TooLong(t *testing.T) {
 func TestGenerateDenominationList_Happy(t *testing.T) {
 	value := uint32(12)
 
-	_, err := GenerateDenominationList(value)
+	dl, err := GenerateDenominationList(value)
 
 	if err != nil {
 		t.Errorf("GenerateDenominationList: Returned error for valid input"+
 			" for value of %v", value)
+	}
+
+	resultValue := uint32(0)
+
+	for _, d := range dl {
+		resultValue += uint32(d.Value())
+	}
+
+	if resultValue != value {
+		t.Errorf("GenerateDenominationList: Value of denomination list"+
+			"not equal to input value. Input: %v  Output: %v", value, resultValue)
 	}
 }
