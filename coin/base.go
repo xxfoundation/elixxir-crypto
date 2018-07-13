@@ -129,10 +129,10 @@ func checkDenominationList(denominations []Denomination) error {
 
 //Checks if an array is a seed
 func IsSeed(s [BaseFrameLen]byte) bool {
-	return s[0] == SeedType
+	return s[HeaderLoc] == SeedType
 }
 
 //Checks if an array is a compound
 func IsCompound(s [BaseFrameLen]byte) bool {
-	return s[0] == CompoundType
+	return s[HeaderLoc] == CompoundType
 }
