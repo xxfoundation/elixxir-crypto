@@ -133,6 +133,6 @@ func IsSeed(s [BaseFrameLen]byte) bool {
 }
 
 //Checks if an array is a compound
-func IsCompound(s [BaseFrameLen]byte) bool {
-	return s[HeaderLoc] == CompoundType
+func IsCompound(c [BaseFrameLen]byte) bool {
+	return c[HeaderLoc] == CompoundType
 }

@@ -302,7 +302,7 @@ func TestIsCompound_False(t *testing.T) {
 func TestIsCompound_True(t *testing.T) {
 	var tst [BaseFrameLen]byte
 	tst[HeaderLoc] = CompoundType
-	if !IsSeed(tst) {
+	if !IsCompound(tst) {
 		t.Errorf("IsCompound: Returned false for unput %x which is a compound",
 			CompoundType)
 	}
