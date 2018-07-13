@@ -126,3 +126,13 @@ func checkDenominationList(denominations []Denomination) error {
 
 	return nil
 }
+
+//Checks if an array is a seed
+func IsSeed(s [BaseFrameLen]byte) bool {
+	return s[0] == SeedType
+}
+
+//Checks if an array is a compound
+func IsCompound(s [BaseFrameLen]byte) bool {
+	return s[0] == CompoundType
+}

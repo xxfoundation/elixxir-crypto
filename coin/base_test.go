@@ -1,6 +1,7 @@
 package coin
 
 import (
+	"math"
 	"math/rand"
 	"reflect"
 	"testing"
@@ -257,4 +258,54 @@ func TestCheckDenominationListFirst_ValidExhaustive(t *testing.T) {
 		}
 	}
 
+}
+
+//Tests that IsSeed returns false on all headers except for seed
+func TestIsSeed_False(t *testing.T) {
+	var tst [BaseFrameLen]byte
+	for i := byte(0); i < byte(math.MaxUint8); i++ {
+		if i != SeedType {
+			tst[0] = i
+			if IsSeed(tst) {
+				t.Errorf("IsSeed: Returned true for input %x which is not a seed",
+					i)
+			}
+
+		}
+	}
+}
+
+//Tests that IsSeed returns true for a seed header
+func TestIsSeed_True(t *testing.T) {
+	var tst [BaseFrameLen]byte
+	tst[0] = SeedType
+	if !IsSeed(tst) {
+		t.Errorf("IsSeed: Returned false for unput %x which is a seed",
+			SeedType)
+	}
+}
+
+//Tests that IsCompound returns false on all headers except for seed
+func TestIsCompound_False(t *testing.T) {
+	var tst [BaseFrameLen]byte
+	for i := byte(0); i < byte(math.MaxUint8); i++ {
+		if i != CompoundType {
+			tst[0] = i
+			if IsCompound(tst) {
+				t.Errorf("IsCompound: Returned true for input %x which is not a compound",
+					i)
+			}
+
+		}
+	}
+}
+
+//Tests that IsSeed returns true for a seed header
+func TestIsCompound_True(t *testing.T) {
+	var tst [BaseFrameLen]byte
+	tst[0] = CompoundType
+	if !IsSeed(tst) {
+		t.Errorf("IsCompound: Returned false for unput %x which is a compound",
+			CompoundType)
+	}
 }
