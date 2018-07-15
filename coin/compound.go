@@ -1,6 +1,5 @@
 package coin
 
-/*
 import "crypto/sha256"
 
 // A Compound contains the intermediate hash describing a series of coins
@@ -16,27 +15,13 @@ func DeserializeCompound(protoCompound [BaseFrameLen]byte) (Compound, error) {
 		return Compound{}, ErrInvalidType
 	}
 
-	//Check that the denomination list is valid
-	if err := checkDenominationList(getCoins(protoCompound)); err != nil {
-		return Compound{}, err
-	}
-
 	return Compound(protoCompound), nil
 }
 
-// Returns a list of the denominations of all coins defined in the Compound
-func (ci Compound) GetCoins() []Denomination {
-	return getCoins(ci)
-}
-
-// Returns the number of coins defined by the compound
-func (ci Compound) GetNumCoins() uint64 {
-	return getNumCoins(ci)
-}
-
 // Returns the value of all coins in the compound
-func (ci Compound) Value() uint64 {
-	return value(ci)
+func (c Compound) Value() uint64 {
+	dr, _ := DeserializeDenominationRegister(c[DenominationRegStart:DenominationRegEnd])
+	return dr.Value()
 }
 
 //Verify that a compound matches a seed
@@ -63,7 +48,11 @@ func (ci Compound) ComputeCoins() []Coin {
 
 	h.Write(cibytes)
 
-	for _, dnom := range ci.GetCoins() {
+	dr, _ := DeserializeDenominationRegister(ci[DenominationRegStart:DenominationRegEnd])
+
+	coins := dr.GetDenominationList()
+
+	for _, dnom := range coins {
 
 		if dnom == 5 {
 			break
@@ -73,7 +62,8 @@ func (ci Compound) ComputeCoins() []Coin {
 		imgPostfix++
 
 		imgByte := h.Sum(nil)[:CoinLen]
-		imgByte[CoinDenominationLoc] = (imgByte[CoinDenominationLoc] & 0xf0) | byte(dnom)
+		imgByte[CoinPrefixLoc] = ci[PrefixSourceLoc]
+		imgByte[CoinDenominationLoc] = (imgByte[CoinDenominationLoc] & ^DenominationMask) | byte(dnom)
 
 		var img Coin
 
@@ -85,4 +75,4 @@ func (ci Compound) ComputeCoins() []Coin {
 	}
 
 	return imgLst
-}*/
+}
