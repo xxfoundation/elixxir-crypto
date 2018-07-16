@@ -271,5 +271,4 @@ func TestSeed_ComputeCompound_HashSource(t *testing.T) {
 
 		base[i] = 0
 	}
-
 }
