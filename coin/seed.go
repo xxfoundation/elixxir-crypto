@@ -88,6 +88,13 @@ func (seed Seed) GetPrefix() []byte {
 	return seed[SeedPrefixStart:SeedPrefixEnd]
 }
 
+// Returns a copy of the seed
+func (seed Seed) Copy() Seed {
+	var cpy Seed
+	copy(cpy[:], seed[:])
+	return cpy
+}
+
 //Computes and returns a compound for a given seed
 func (seed Seed) ComputeCompound() Compound {
 	//Hash the seed

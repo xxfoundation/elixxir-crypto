@@ -48,12 +48,12 @@ const PrefixSourceLoc = HashStart
 // Returnable errors
 var ErrInvalidType = errors.New("incorrect type passed for serialization")
 
-//Checks if an array is a seed
+// Checks if an array is a seed
 func IsSeed(s []byte) bool {
 	return s[HeaderLoc] == SeedType
 }
 
-//Checks if an array is a compound
+// Checks if an array is a compound
 func IsCompound(c []byte) bool {
 	return c[HeaderLoc] == CompoundType
 }
