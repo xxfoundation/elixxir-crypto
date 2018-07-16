@@ -107,13 +107,13 @@ func TestConstructSleeve_Inputs(t *testing.T) {
 func TestSleeve_Mine(t *testing.T) {
 	cs := ConstructSleeve(nil, &Compound{})
 
-	if cs.Mine() != false {
+	if cs.IsMine() != false {
 		t.Errorf("Sleeve.Mine: Returned false when Mine should be true")
 	}
 
 	cs = ConstructSleeve(&Seed{}, &Compound{})
 
-	if cs.Mine() != true {
+	if cs.IsMine() != true {
 		t.Errorf("Sleeve.Mine: Returned true when Mine should be false")
 	}
 }

@@ -41,7 +41,7 @@ func ConstructSleeve(s *Seed, c *Compound) Sleeve {
 }
 
 // Tells the user if they own the coin
-func (cs Sleeve) Mine() bool {
+func (cs Sleeve) IsMine() bool {
 	return cs.seed != nil
 }
 
