@@ -67,6 +67,39 @@ func TestCompound_Value(t *testing.T) {
 	}
 }
 
+//Test of Compound.Copy showing correctness
+func TestCompound_Copy(t *testing.T) {
+
+	src := rand.NewSource(42)
+	rng := rand.New(src)
+
+	for i := 0; i < 100; i++ {
+
+		expectedValue := rng.Uint64() % uint64(MaxValueDenominationRegister)
+
+		seed, err := NewSeed(expectedValue)
+
+		if err != nil {
+			t.Errorf("Seed.Copy: returned error on seed creation: %s", err.Error())
+		}
+
+		compound := seed.ComputeCompound()
+
+		compoundCopy := compound.Copy()
+
+		if !reflect.DeepEqual(compound, compoundCopy) {
+			t.Errorf("compound.Copy: copied compound does not match original"+
+				"Expected: %v, Received: %v", compound, compoundCopy)
+		}
+
+		compound[0] = compound[0] + 10
+
+		if reflect.DeepEqual(seed, compoundCopy) {
+			t.Errorf("Compound.Copy: copy is linked to original ")
+		}
+	}
+}
+
 // Shows that verify only returns true when the seed and compound match
 func TestCompound_Verify(t *testing.T) {
 	numInTest := 20

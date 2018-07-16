@@ -182,9 +182,41 @@ func TestSeed_Value(t *testing.T) {
 		value := seed.Value()
 
 		if value != expectedValue {
-			t.Errorf("value: Value of multiple coins returned does not match expected"+
+			t.Errorf("Seed.Value: Value of multiple coins returned does not match expected"+
 				"Expected: %v, Received: %v", expectedValue, value)
 		}
+	}
+}
+
+//Test of Seed.Copy showing correctness
+func TestSeed_Copy(t *testing.T) {
+
+	src := rand.NewSource(42)
+	rng := rand.New(src)
+
+	for i := 0; i < 100; i++ {
+
+		expectedValue := rng.Uint64() % uint64(MaxValueDenominationRegister)
+
+		seed, err := NewSeed(expectedValue)
+
+		if err != nil {
+			t.Errorf("Seed.Copy: returned error on seed creation: %s", err.Error())
+		}
+
+		seedCopy := seed.Copy()
+
+		if !reflect.DeepEqual(seed, seedCopy) {
+			t.Errorf("Seed.Copy: copied seed does not match original"+
+				"Expected: %v, Received: %v", seed, seedCopy)
+		}
+
+		seed[0] = seed[0] + 10
+
+		if reflect.DeepEqual(seed, seedCopy) {
+			t.Errorf("Seed.Copy: copy is linked to original")
+		}
+
 	}
 }
 

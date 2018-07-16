@@ -24,6 +24,13 @@ func (c Compound) Value() uint64 {
 	return dr.Value()
 }
 
+// Returns a copy of the Compound
+func (c Compound) Copy() Compound {
+	var cpy Compound
+	copy(cpy[:], c[:])
+	return cpy
+}
+
 //Verify that a compound matches a seed
 func (cimg Compound) Verify(seed Seed) bool {
 	computedImage := seed.ComputeCompound()
