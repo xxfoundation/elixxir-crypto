@@ -5,17 +5,17 @@ import (
 	"testing"
 )
 
-// Exhaustively Tests GetPrefix
-func TestCoin_GetPrefix(t *testing.T) {
+// Exhaustively Tests Prefix
+func TestCoin_Prefix(t *testing.T) {
 
 	var coin Coin
 
 	for i := byte(0); i < byte(math.MaxUint8); i++ {
 		coin[CoinPrefixLoc] = i
 
-		if coin.GetPrefix() != i {
+		if coin.Prefix() != i {
 			t.Errorf("Coin.GetPrefix: Returned the incorrect prefix"+
-				" Expected %v, Received: %v", i, coin.GetPrefix())
+				" Expected %v, Received: %v", i, coin.Prefix())
 		}
 	}
 }

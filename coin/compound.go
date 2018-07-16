@@ -20,7 +20,7 @@ func DeserializeCompound(protoCompound [BaseFrameLen]byte) (Compound, error) {
 
 // Returns the value of all coins in the compound
 func (c Compound) Value() uint64 {
-	dr, _ := DeserializeDenominationRegister(c[DenominationRegStart:DenominationRegEnd])
+	dr, _ := DeserializeDenominationRegistry(c[DenominationRegStart:DenominationRegEnd])
 	return dr.Value()
 }
 
@@ -48,9 +48,9 @@ func (ci Compound) ComputeCoins() []Coin {
 
 	h.Write(cibytes)
 
-	dr, _ := DeserializeDenominationRegister(ci[DenominationRegStart:DenominationRegEnd])
+	dr, _ := DeserializeDenominationRegistry(ci[DenominationRegStart:DenominationRegEnd])
 
-	coins := dr.GetDenominationList()
+	coins := dr.List()
 
 	for _, dnom := range coins {
 

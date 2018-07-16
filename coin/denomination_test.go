@@ -33,28 +33,28 @@ func TestDenomination_ValueAllInputs(t *testing.T) {
 	}
 }
 
-//Tests MinMax values for DenominationRegisters
-func TestNewDenominationRegister_MinMax(t *testing.T) {
+//Tests MinMax values for DenominationRegistry
+func TestNewDenominationRegistry_MinMax(t *testing.T) {
 
 	tst := make([]byte, DenominationRegisterLen)
 
-	_, err := NewDenominationRegister(tst, 0)
+	_, err := NewDenominationRegistry(tst, 0)
 
 	if err == nil {
-		t.Errorf("NewDenominationRegister: passed an " +
+		t.Errorf("NewDenominationRegistry: passed an " +
 			"invalud value of 0 but no error returned")
 	}
 
-	_, err = NewDenominationRegister(tst, 1<<NumDenominations)
+	_, err = NewDenominationRegistry(tst, 1<<NumDenominations)
 
 	if err == nil {
-		t.Errorf("NewDenominationRegister: passed an " +
+		t.Errorf("NewDenominationRegistry: passed an " +
 			"invalud value of 2^16 but no error returned")
 	}
 }
 
-//Tests random happy path input values for DenominationRegisters
-func TestNewDenominationRegister_RandomValues(t *testing.T) {
+//Tests random happy path input values for DenominationRegistry
+func TestNewDenominationRegistry_RandomValues(t *testing.T) {
 
 	tst := make([]byte, DenominationRegisterLen)
 
@@ -63,55 +63,55 @@ func TestNewDenominationRegister_RandomValues(t *testing.T) {
 
 	for i := 0; i < 100; i++ {
 		expectedValue := rng.Uint64() % MaxValueDenominationRegister
-		dr, err := NewDenominationRegister(tst, expectedValue)
+		dr, err := NewDenominationRegistry(tst, expectedValue)
 
 		if err != nil {
-			t.Errorf("NewDenominationRegister: error returned with valid"+
+			t.Errorf("NewDenominationRegistry: error returned with valid"+
 				"consruction: %s", err.Error())
 		}
 
 		deconstructed := uint64(dr[0]) | (uint64(dr[1]) << 8) | (uint64(dr[2]) << 16)
 
 		if deconstructed != expectedValue {
-			t.Errorf("NewDenominationRegister: Incorrect return, "+
+			t.Errorf("NewDenominationRegistry: Incorrect return, "+
 				"Expected: %v Recieved: %v", expectedValue, deconstructed)
 		}
 	}
 }
 
-//Tests that NewDenominationRegister returns correct errors for invalid lengths
+//Tests that NewDenominationRegistry returns correct errors for invalid lengths
 func TestNewDenominationRegister_IncorrectLength(t *testing.T) {
 
 	tst := make([]byte, DenominationRegisterLen+1)
 
-	_, err := NewDenominationRegister(tst, 1)
+	_, err := NewDenominationRegistry(tst, 1)
 
 	if err != ErrIncorrectLen {
 		if err != nil {
-			t.Errorf("NewDenominationRegister: Incorrect return, " +
+			t.Errorf("NewDenominationRegistry: Incorrect return, " +
 				"no error for too long byte slice")
 		} else {
-			t.Errorf("NewDenominationRegister: Incorrect return, "+
+			t.Errorf("NewDenominationRegistry: Incorrect return, "+
 				"incorrect error for too long byte slice %s", err.Error())
 		}
 	}
 
 	tst = make([]byte, DenominationRegisterLen-1)
 
-	_, err = NewDenominationRegister(tst, 1)
+	_, err = NewDenominationRegistry(tst, 1)
 
 	if err != ErrIncorrectLen {
 		if err != nil {
-			t.Errorf("NewDenominationRegister: Incorrect return, " +
+			t.Errorf("NewDenominationRegistry: Incorrect return, " +
 				"no error for too short byte slice")
 		} else {
-			t.Errorf("NewDenominationRegister: Incorrect return, "+
+			t.Errorf("NewDenominationRegistry: Incorrect return, "+
 				"incorrect error for too short byte slice %s", err.Error())
 		}
 	}
 }
 
-//Tests that DeserializeDenominationRegister returns an error for incorrect lengths
+//Tests that DeserializeDenominationRegistry returns an error for incorrect lengths
 func TestDeserializeDenominationRegister_Happy(t *testing.T) {
 
 	src := rand.NewSource(42)
@@ -123,47 +123,47 @@ func TestDeserializeDenominationRegister_Happy(t *testing.T) {
 		serialized := []byte{byte(expectedValue & 0x00ff), byte((expectedValue >> 8) & 0x00ff),
 			byte((expectedValue >> 16) & 0x00ff)}
 
-		dr, err := DeserializeDenominationRegister(serialized)
+		dr, err := DeserializeDenominationRegistry(serialized)
 
 		if err != nil {
-			t.Errorf("NewDenominationRegister: error returned with valid"+
+			t.Errorf("NewDenominationRegistry: error returned with valid"+
 				"consruction: %s", err.Error())
 		}
 
 		if !reflect.DeepEqual([]byte(dr[:]), serialized) {
-			t.Errorf("NewDenominationRegister: Incorrect return, "+
+			t.Errorf("NewDenominationRegistry: Incorrect return, "+
 				"Expected: %v Recieved: %v", serialized, dr[:])
 		}
 	}
 }
 
-//Tests that DeserializeDenominationRegister returns correct values for randomized inputs
+//Tests that DeserializeDenominationRegistry returns correct values for randomized inputs
 func TestDeserializeDenominationRegister_IncorrectLength(t *testing.T) {
 
 	tst := make([]byte, DenominationRegisterLen+1)
 
-	_, err := DeserializeDenominationRegister(tst)
+	_, err := DeserializeDenominationRegistry(tst)
 
 	if err != ErrIncorrectLen {
 		if err != nil {
-			t.Errorf("NewDenominationRegister: Incorrect return, " +
+			t.Errorf("NewDenominationRegistry: Incorrect return, " +
 				"no error for too long byte slice")
 		} else {
-			t.Errorf("NewDenominationRegister: Incorrect return, "+
+			t.Errorf("NewDenominationRegistry: Incorrect return, "+
 				"incorrect error for too long byte slice %s", err.Error())
 		}
 	}
 
 	tst = make([]byte, DenominationRegisterLen-1)
 
-	_, err = DeserializeDenominationRegister(tst)
+	_, err = DeserializeDenominationRegistry(tst)
 
 	if err != ErrIncorrectLen {
 		if err != nil {
-			t.Errorf("NewDenominationRegister: Incorrect return, " +
+			t.Errorf("NewDenominationRegistry: Incorrect return, " +
 				"no error for too short byte slice")
 		} else {
-			t.Errorf("NewDenominationRegister: Incorrect return, "+
+			t.Errorf("NewDenominationRegistry: Incorrect return, "+
 				"incorrect error for too short byte slice %s", err.Error())
 		}
 	}
@@ -198,7 +198,7 @@ func TestDenominationRegister_BitState(t *testing.T) {
 	}
 }
 
-//Tests DenominationRegister.GetDenominationList
+//Tests DenominationRegister.List
 func TestDenominationRegister_GetDenominationList(t *testing.T) {
 	rng := rand.New(rand.NewSource(42))
 
@@ -215,18 +215,18 @@ func TestDenominationRegister_GetDenominationList(t *testing.T) {
 			}
 		}
 
-		dr, err := NewDenominationRegister(tst, value)
+		dr, err := NewDenominationRegistry(tst, value)
 
 		if err != nil {
-			t.Errorf("DenominationRegister.GetDenominationList: error "+
+			t.Errorf("DenominationRegister.List: error "+
 				"returned on DenominationRegister creation with vaild creator"+
 				": %s", err.Error())
 		}
 
-		dl := dr.GetDenominationList()
+		dl := dr.List()
 
 		if !reflect.DeepEqual(dl, expectedDenomLst) {
-			t.Errorf("DenominationRegister.GetDenominationList: returned "+
+			t.Errorf("DenominationRegister.List: returned "+
 				"Denomination Listed for value %v not equal to expected, Expected %v,"+
 				"Returned: %v", value, expectedDenomLst, dl)
 		}
@@ -242,7 +242,7 @@ func TestDenominationRegister_Value(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		value := rng.Uint64() % MaxValueDenominationRegister
 
-		dr, err := NewDenominationRegister(tst, value)
+		dr, err := NewDenominationRegistry(tst, value)
 
 		if err != nil {
 			t.Errorf("DenominationRegister.GetValue: error "+

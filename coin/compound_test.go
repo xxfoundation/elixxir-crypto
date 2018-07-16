@@ -121,9 +121,9 @@ func TestCompound_ComputeCoins_Denominations(t *testing.T) {
 
 		coinLst := compound.ComputeCoins()
 
-		dr, _ := DeserializeDenominationRegister(compound[DenominationRegStart:DenominationRegEnd])
+		dr, _ := DeserializeDenominationRegistry(compound[DenominationRegStart:DenominationRegEnd])
 
-		coins := dr.GetDenominationList()
+		coins := dr.List()
 
 		for indx, coin := range coinLst {
 			if coin.GetDenomination() != coins[indx] {
@@ -155,9 +155,9 @@ func TestCompound_ComputeCoins_Randomness(t *testing.T) {
 
 		coinLst := compound.ComputeCoins()
 
-		dr, _ := DeserializeDenominationRegister(compound[DenominationRegStart:DenominationRegEnd])
+		dr, _ := DeserializeDenominationRegistry(compound[DenominationRegStart:DenominationRegEnd])
 
-		coins := dr.GetDenominationList()
+		coins := dr.List()
 
 		coinSuperList = append(coinSuperList, coinLst)
 

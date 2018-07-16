@@ -14,7 +14,7 @@ const SeedType byte = 0x55
 // Creates a new randomized seed defining coins of the passed denominations
 func NewSeed(value uint64) (Seed, error) {
 
-	dr, err := NewDenominationRegister([]byte{0, 0, 0}, value)
+	dr, err := NewDenominationRegistry([]byte{0, 0, 0}, value)
 
 	//Check that the denominations are valid
 	if err != nil {
@@ -77,7 +77,7 @@ func (seed Seed) hashToCompound() []byte {
 
 // Returns the sum of the value of all coins defined by a seed
 func (seed Seed) Value() uint64 {
-	dr, _ := DeserializeDenominationRegister(seed[DenominationRegStart:DenominationRegEnd])
+	dr, _ := DeserializeDenominationRegistry(seed[DenominationRegStart:DenominationRegEnd])
 	return dr.Value()
 }
 

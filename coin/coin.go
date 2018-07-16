@@ -4,7 +4,7 @@ package coin
 type Coin [CoinLen]byte
 
 // Returns the prefix of the coin
-func (c Coin) GetPrefix() byte {
+func (c Coin) Prefix() byte {
 	return c[CoinPrefixLoc]
 }
 

@@ -30,7 +30,7 @@ func (d Denomination) Value() uint64 {
 type DenominationRegister []byte
 
 //Creates a new denomination register
-func NewDenominationRegister(protoregister []byte, value uint64) (DenominationRegister, error) {
+func NewDenominationRegistry(protoregister []byte, value uint64) (DenominationRegister, error) {
 	// Checked that the passed slice is the correct length
 	if uint64(len(protoregister)) != DenominationRegisterLen {
 		return DenominationRegister{}, ErrIncorrectLen
@@ -54,7 +54,8 @@ func NewDenominationRegister(protoregister []byte, value uint64) (DenominationRe
 	return DenominationRegister(protoregister), nil
 }
 
-func DeserializeDenominationRegister(protoregister []byte) (DenominationRegister, error) {
+// Creates a DenominationRegistry from a slice of the appropriate length
+func DeserializeDenominationRegistry(protoregister []byte) (DenominationRegister, error) {
 	// check that the slice is the correct length
 	if uint64(len(protoregister)) != DenominationRegisterLen {
 		return DenominationRegister{}, ErrIncorrectLen
@@ -63,11 +64,13 @@ func DeserializeDenominationRegister(protoregister []byte) (DenominationRegister
 	return DenominationRegister(protoregister), nil
 }
 
+// Returns the value of a specific bit in the DenominationRegistry
 func (dl DenominationRegister) BitState(bit uint8) bool {
 	return ((dl[bit/8] >> (bit % 8)) & 0x01) == 1
 }
 
-func (dl DenominationRegister) GetDenominationList() []Denomination {
+// Returns a list of all denominations represented by the DenominationRegistry
+func (dl DenominationRegister) List() []Denomination {
 	var denomoinationList []Denomination
 
 	for i := uint64(0); i < NumDenominations; i++ {
@@ -79,6 +82,7 @@ func (dl DenominationRegister) GetDenominationList() []Denomination {
 	return denomoinationList
 }
 
+// Returns the overall value of the coins represented by the DenominationRegistry
 func (dl DenominationRegister) Value() uint64 {
 	value := uint64(0)
 
