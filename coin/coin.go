@@ -14,6 +14,6 @@ func (c Coin) GetDenomination() Denomination {
 }
 
 // Returns the value of the coin
-func (c Coin) GetValue() uint64 {
+func (c Coin) Value() uint64 {
 	return c.GetDenomination().Value()
 }

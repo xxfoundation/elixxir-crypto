@@ -4,7 +4,7 @@ import (
 	"errors"
 )
 
-//Defines the properties of Deonominations
+//Defines the properties of Denominations
 const NumDenominations = uint64(24)
 
 const MaxValueDenominationRegister = uint64(1<<NumDenominations - 1)

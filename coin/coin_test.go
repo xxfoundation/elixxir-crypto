@@ -35,8 +35,8 @@ func TestCoin_GetDenomination(t *testing.T) {
 	}
 }
 
-// Exhaustively Tests GetValue
-func TestCoin_GetValue(t *testing.T) {
+// Exhaustively Tests Value
+func TestCoin_Value(t *testing.T) {
 
 	var coin Coin
 
@@ -45,9 +45,9 @@ func TestCoin_GetValue(t *testing.T) {
 
 		expectedValue := uint64(1 << uint64(i))
 
-		if coin.GetValue() != expectedValue {
+		if coin.Value() != expectedValue {
 			t.Errorf("Coin.GetValue: Returned the incorrect value"+
-				" Expected %v, Received: %v", expectedValue, coin.GetValue())
+				" Expected %v, Received: %v", expectedValue, coin.Value())
 		}
 	}
 }
