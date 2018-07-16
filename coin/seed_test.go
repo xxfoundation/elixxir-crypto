@@ -207,14 +207,14 @@ func TestSeed_Copy(t *testing.T) {
 		seedCopy := seed.Copy()
 
 		if !reflect.DeepEqual(seed, seedCopy) {
-			t.Errorf("Seed.Copy: copied seed does not match origonal"+
+			t.Errorf("Seed.Copy: copied seed does not match original"+
 				"Expected: %v, Received: %v", seed, seedCopy)
 		}
 
 		seed[0] = seed[0] + 10
 
 		if reflect.DeepEqual(seed, seedCopy) {
-			t.Errorf("Seed.Copy: copy is linked to origonal")
+			t.Errorf("Seed.Copy: copy is linked to original")
 		}
 
 	}
