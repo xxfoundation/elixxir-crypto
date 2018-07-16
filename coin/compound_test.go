@@ -95,7 +95,7 @@ func TestCompound_Copy(t *testing.T) {
 		compound[0] = compound[0] + 10
 
 		if reflect.DeepEqual(seed, compoundCopy) {
-			t.Errorf("Compound.Copy: copy is linked to origonal")
+			t.Errorf("Compound.Copy: copy is linked to original ")
 		}
 	}
 }
