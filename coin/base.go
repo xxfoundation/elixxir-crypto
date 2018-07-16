@@ -2,7 +2,6 @@ package coin
 
 import (
 	"errors"
-	"gitlab.com/privategrity/crypto/format"
 )
 
 // Header Definitions
@@ -28,111 +27,33 @@ const SeedPrefixStart = SeedRNGEnd
 const SeedPrefixEnd = SeedPrefixStart + SeedPrefixLen
 
 // Calculates the number of coins in a compound based upon external data
-const NumCompoundsPerPayload = uint64(5)
-const MaxCoinsPerCompound = DenominationPerByte * ((format.DATA_LEN / NumCompoundsPerPayload) - HashLen)
-const DenominationsStart = HashEnd
-const DenominationsLen = MaxCoinsPerCompound / DenominationPerByte
-const DenominationsEnd = DenominationsStart + DenominationsLen
+const DenominationRegStart = HashEnd
+const DenominationRegEnd = DenominationRegStart + DenominationRegisterLen
 
 //Base Frame
-const BaseFrameLen = HeaderLen + HashLen + DenominationsLen
+const BaseFrameLen = HeaderLen + HashLen + DenominationRegisterLen
 
-// Defines the size of a coin
-const CoinLen = HashLen + 1
-const CoinDenominationLoc = CoinLen - 1
-const CoinDenominationMask = 0x0F
+// Defines coin prefixes
+const CoinPrefixLen = uint64(1)
+const CoinPrefixLoc = uint64(0)
+
+const CoinHashStart = CoinPrefixLoc
+const CoinHashEnd = CoinHashStart + HashLen + 1
+const CoinDenominationLoc = CoinHashEnd - 1
+const CoinDenominationlen = uint64(1)
+const CoinLen = CoinPrefixLen + HashLen + CoinDenominationlen
+
+const PrefixSourceLoc = HashStart
 
 // Returnable errors
-var ErrZeroCoins = errors.New("no denominations passed")
-var ErrExcessiveCoins = errors.New("too many denominations passed")
 var ErrInvalidType = errors.New("incorrect type passed for serialization")
 
-// Internal function used by both seed and compound to return all Coins
-func getCoins(pi [BaseFrameLen]byte) []Denomination {
-	var denom []Denomination
-	for i := DenominationsStart; i < DenominationsEnd; i++ {
-		denom1 := Denomination(pi[i] & 0x0f)
-
-		if denom1 >= NilDenomination {
-			break
-		}
-
-		denom = append(denom, denom1)
-
-		denom2 := Denomination((pi[i] >> 4) & 0x0f)
-		if denom2 >= NilDenomination {
-			break
-		}
-
-		denom = append(denom, denom2)
-	}
-
-	return denom
-}
-
-// Internal function used by both seed and compound to return the number of
-// Coins
-func getNumCoins(pi [BaseFrameLen]byte) uint64 {
-	numDenom := uint64(0)
-	for i := DenominationsStart; i < DenominationsEnd; i++ {
-		denom1 := Denomination(pi[i] & 0x0f)
-
-		if denom1 >= NilDenomination {
-			break
-		}
-
-		numDenom++
-
-		denom2 := Denomination((pi[i] >> 4) & 0x0f)
-
-		if denom2 >= NilDenomination {
-			break
-		}
-
-		numDenom++
-	}
-	return numDenom
-}
-
-// Internal function used by both seed and compound to return the sum of
-// the value of all coins represented
-func value(pi [BaseFrameLen]byte) uint64 {
-	v := uint64(0)
-	for _, dnm := range getCoins(pi) {
-		v += dnm.Value()
-	}
-
-	return v
-}
-
-// Verifies that denominations in a seed or compound are all valid
-func checkDenominationList(denominations []Denomination) error {
-	// Check that denominations were passed
-	if len(denominations) == 0 {
-		return ErrZeroCoins
-	}
-
-	// Make sure that the number of subcoins does not exceed the maximum
-	if uint64(len(denominations)) > MaxCoinsPerCompound {
-		return ErrExcessiveCoins
-	}
-
-	// Check the denominations are valid
-	for _, denom := range denominations {
-		if denom >= NilDenomination {
-			return ErrInvalidDenomination
-		}
-	}
-
-	return nil
-}
-
 //Checks if an array is a seed
-func IsSeed(s [BaseFrameLen]byte) bool {
+func IsSeed(s []byte) bool {
 	return s[HeaderLoc] == SeedType
 }
 
 //Checks if an array is a compound
-func IsCompound(c [BaseFrameLen]byte) bool {
+func IsCompound(c []byte) bool {
 	return c[HeaderLoc] == CompoundType
 }

@@ -1,8 +1,24 @@
 package coin
 
 import (
+	"math"
 	"testing"
 )
+
+// Exhaustively Tests Prefix
+func TestCoin_Prefix(t *testing.T) {
+
+	var coin Coin
+
+	for i := byte(0); i < byte(math.MaxUint8); i++ {
+		coin[CoinPrefixLoc] = i
+
+		if coin.Prefix() != i {
+			t.Errorf("Coin.GetPrefix: Returned the incorrect prefix"+
+				" Expected %v, Received: %v", i, coin.Prefix())
+		}
+	}
+}
 
 // Exhaustively Tests GetDenomination
 func TestCoin_GetDenomination(t *testing.T) {
@@ -12,16 +28,15 @@ func TestCoin_GetDenomination(t *testing.T) {
 	for i := byte(0); i < byte(NumDenominations); i++ {
 		coin[CoinDenominationLoc] = i
 
-		if coin.GetDenomination() != Denomination(i) {
+		if coin.GetDenomination() != Denomination(i&DenominationMask) {
 			t.Errorf("Coin.GetDenomination: Returned the incorrect denomination"+
-				" Expected %v, Received: %v", i, coin.GetDenomination())
+				" Expected %v, Received: %v", i&DenominationMask, coin.GetDenomination())
 		}
-
 	}
 }
 
-// Exhaustively Tests GetValue
-func TestCoin_GetValue(t *testing.T) {
+// Exhaustively Tests Value
+func TestCoin_Value(t *testing.T) {
 
 	var coin Coin
 
@@ -30,10 +45,9 @@ func TestCoin_GetValue(t *testing.T) {
 
 		expectedValue := uint64(1 << uint64(i))
 
-		if coin.GetValue() != expectedValue {
+		if coin.Value() != expectedValue {
 			t.Errorf("Coin.GetValue: Returned the incorrect value"+
-				" Expected %v, Received: %v", expectedValue, coin.GetValue())
+				" Expected %v, Received: %v", expectedValue, coin.Value())
 		}
-
 	}
 }

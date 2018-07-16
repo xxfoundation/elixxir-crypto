@@ -8,7 +8,7 @@ import (
 )
 
 //Test that DeserializeCompound only returns a seed when a valid header is passed
-func TestSerializeCompound_Header(t *testing.T) {
+func TestDeserializeCompound_Header(t *testing.T) {
 	var protoCompound [BaseFrameLen]byte
 
 	for i := 0; i < math.MaxUint8; i++ {
@@ -24,7 +24,7 @@ func TestSerializeCompound_Header(t *testing.T) {
 }
 
 //Test that DeserializeCompound's output is an exact copy of its input
-func TestSerializeCompound_Output(t *testing.T) {
+func TestDeserializeCompound_Output(t *testing.T) {
 	var protoCompound [BaseFrameLen]byte
 
 	protoCompound[HeaderLoc] = CompoundType
@@ -40,80 +40,17 @@ func TestSerializeCompound_Output(t *testing.T) {
 	}
 }
 
-// Smoke Test of Compound.GetCoins, it calls the underlying value function which is fully tested
-func TestCompound_GetCoins(t *testing.T) {
-	var coins []Denomination
-
-	for i := uint64(0); i < MaxCoinsPerCompound; i++ {
-		coins = append(coins, Denomination(i)%NumDenominations)
-
-		seed, err := NewSeed(coins)
-
-		if err != nil {
-			t.Errorf("Compound.GetCoins: returned error on seed creation: %s", err.Error())
-		}
-
-		compound := seed.ComputeCompound()
-
-		newCoins := compound.GetCoins()
-
-		if !reflect.DeepEqual(coins, newCoins) {
-			t.Errorf("Compound.GetCoins: Coins returned do"+
-				" not match those passed: Passed: %v, Returned: %v", coins,
-				newCoins)
-		}
-
-	}
-}
-
-// Smoke Test of Compound.GetNumCoins, it calls the underlying value function which is fully tested
-func TestCompound_GetNumCoins(t *testing.T) {
-	var coins []Denomination
-
-	for i := uint64(0); i < MaxCoinsPerCompound; i++ {
-		coins = append(coins, Denomination(i)%NumDenominations)
-
-		seed, err := NewSeed(coins)
-
-		if err != nil {
-			t.Errorf("Compound.GetCoins: returned error on seed creation: %s", err.Error())
-		}
-
-		compound := seed.ComputeCompound()
-
-		numCoins := compound.GetNumCoins()
-
-		if numCoins != uint64(len(coins)) {
-			t.Errorf("Compound.GetNumCoins: Incorrect number of coins"+
-				" returned: Passed: %v, Returned: %v", len(coins),
-				numCoins)
-		}
-
-	}
-}
-
 // Smoke Test of Compound.Value, it calls the underlying value function which is fully tested
 func TestCompound_Value(t *testing.T) {
-	var coins []Denomination
 
 	src := rand.NewSource(42)
 	rng := rand.New(src)
 
 	for i := 0; i < 100; i++ {
-		coins = []Denomination{}
 
-		numCoins := (rng.Uint64() % (MaxCoinsPerCompound - 1)) + 1
+		expectedValue := rng.Uint64() % uint64(MaxValueDenominationRegister)
 
-		expectedValue := uint64(0)
-
-		for i := uint64(0); i < numCoins; i++ {
-			coin := Denomination(rng.Uint64() % uint64(NumDenominations))
-			coins = append(coins, coin)
-
-			expectedValue += coin.Value()
-		}
-
-		seed, err := NewSeed(coins)
+		seed, err := NewSeed(expectedValue)
 
 		if err != nil {
 			t.Errorf("Compound.Value: returned error on seed creation: %s", err.Error())
@@ -143,14 +80,9 @@ func TestCompound_Verify(t *testing.T) {
 	var err error
 
 	for i := 0; i < numInTest; i++ {
-		numCoins := Denomination(rng.Uint64() % MaxCoinsPerCompound)
-		var coins []Denomination
+		expectedValue := rng.Uint64() % uint64(MaxValueDenominationRegister)
 
-		for j := Denomination(0); j < numCoins; j++ {
-			coins = append(coins, Denomination(rng.Uint64()%uint64(NilDenomination)))
-		}
-
-		seedLst[i], err = NewSeed(coins)
+		seedLst[i], err = NewSeed(expectedValue)
 
 		if err != nil {
 			t.Errorf("Compound.Verify: returned error on seed creation: %s", err.Error())
@@ -171,22 +103,15 @@ func TestCompound_Verify(t *testing.T) {
 
 //Shows that coins that come out have the correct denominations
 func TestCompound_ComputeCoins_Denominations(t *testing.T) {
-	var coins []Denomination
 
 	src := rand.NewSource(42)
 	rng := rand.New(src)
 
 	for i := 0; i < 100; i++ {
-		coins = []Denomination{}
 
-		numCoins := (rng.Uint64() % (MaxCoinsPerCompound - 1)) + 1
+		expectedValue := rng.Uint64() % uint64(MaxValueDenominationRegister)
 
-		for i := uint64(0); i < numCoins; i++ {
-			coin := Denomination(rng.Uint64() % uint64(NilDenomination))
-			coins = append(coins, coin)
-		}
-
-		seed, err := NewSeed(coins)
+		seed, err := NewSeed(expectedValue)
 
 		if err != nil {
 			t.Errorf("Compound.Value: returned error on seed creation: %s", err.Error())
@@ -195,6 +120,10 @@ func TestCompound_ComputeCoins_Denominations(t *testing.T) {
 		compound := seed.ComputeCompound()
 
 		coinLst := compound.ComputeCoins()
+
+		dr, _ := DeserializeDenominationRegistry(compound[DenominationRegStart:DenominationRegEnd])
+
+		coins := dr.List()
 
 		for indx, coin := range coinLst {
 			if coin.GetDenomination() != coins[indx] {
@@ -207,24 +136,16 @@ func TestCompound_ComputeCoins_Denominations(t *testing.T) {
 
 //Shows that coins differ with different inputs
 func TestCompound_ComputeCoins_Randomness(t *testing.T) {
-	var coins []Denomination
-
 	src := rand.NewSource(42)
 	rng := rand.New(src)
 
 	var coinSuperList [][]Coin
 
 	for i := 0; i < 20; i++ {
-		coins = []Denomination{}
 
-		numCoins := (rng.Uint64() % (MaxCoinsPerCompound - 1)) + 1
+		expectedValue := rng.Uint64() % uint64(MaxValueDenominationRegister)
 
-		for i := uint64(0); i < numCoins; i++ {
-			coin := Denomination(rng.Uint64() % uint64(NilDenomination))
-			coins = append(coins, coin)
-		}
-
-		seed, err := NewSeed(coins)
+		seed, err := NewSeed(expectedValue)
 
 		if err != nil {
 			t.Errorf("Compound.Value: returned error on seed creation: %s", err.Error())
@@ -233,6 +154,10 @@ func TestCompound_ComputeCoins_Randomness(t *testing.T) {
 		compound := seed.ComputeCompound()
 
 		coinLst := compound.ComputeCoins()
+
+		dr, _ := DeserializeDenominationRegistry(compound[DenominationRegStart:DenominationRegEnd])
+
+		coins := dr.List()
 
 		coinSuperList = append(coinSuperList, coinLst)
 

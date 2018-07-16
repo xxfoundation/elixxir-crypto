@@ -2,7 +2,7 @@ package coin
 
 import (
 	"crypto/sha256"
-	"gitlab.com/privategrity/crypto/cyclic"
+	"gitlab.com/privategrity/crypto/csprng"
 )
 
 // A Seed contains the secret proving ownership of a series of coins
@@ -12,15 +12,19 @@ type Seed [BaseFrameLen]byte
 const SeedType byte = 0x55
 
 // Creates a new randomized seed defining coins of the passed denominations
-func NewSeed(denominations []Denomination) (Seed, error) {
+func NewSeed(value uint64) (Seed, error) {
+
+	dr, err := NewDenominationRegistry([]byte{0, 0, 0}, value)
 
 	//Check that the denominations are valid
-	if err := checkDenominationList(denominations); err != nil {
+	if err != nil {
 		return Seed{}, err
 	}
 
 	//Generate the seed
-	p, err := cyclic.GenerateRandomBytes(int(SeedRNGLen))
+	rng := csprng.SystemRNG{}
+	p := make([]byte, SeedRNGLen)
+	_, err = rng.Read(p)
 	if err != nil {
 		return Seed{}, err
 	}
@@ -35,15 +39,9 @@ func NewSeed(denominations []Denomination) (Seed, error) {
 		seed[SeedRNGStart+uint64(i)] = pi
 	}
 
-	//Append Nil Denominations to the Denomination List
-	for i := uint64(len(denominations)); i < MaxCoinsPerCompound; i++ {
-		denominations = append(denominations, NilDenomination)
-	}
-
-	//Append the denominations to the coin
-	for i := uint64(0); i < DenominationsLen; i++ {
-		// Packs two 4 bit denominations into 1 byte
-		seed[DenominationsStart+i] = byte(denominations[2*i+1]<<4 | denominations[2*i])
+	//Append the denomination register to the coin
+	for i := uint64(0); i < DenominationRegisterLen; i++ {
+		seed[DenominationRegStart+i] = dr[i]
 	}
 
 	//Compute the Compound hash
@@ -59,14 +57,10 @@ func NewSeed(denominations []Denomination) (Seed, error) {
 
 // Produces a seed deserialized from an array.  Does not verify the prefix.
 func DeserializeSeed(protoSeed [BaseFrameLen]byte) (Seed, error) {
+
 	//Check that the header is correct
 	if protoSeed[HeaderLoc] != SeedType {
 		return Seed{}, ErrInvalidType
-	}
-
-	//Check that the denomination list is valid
-	if err := checkDenominationList(getCoins(protoSeed)); err != nil {
-		return Seed{}, err
 	}
 
 	return Seed(protoSeed), nil
@@ -80,22 +74,13 @@ func (seed Seed) hashToCompound() []byte {
 
 	hashed := h.Sum(nil)
 
-	return hashed
+	return hashed[:HashLen]
 }
 
-// Returns a list of the denominations of all coins defined in the seed
-func (seed Seed) GetCoins() []Denomination {
-	return getCoins(seed)
-}
-
-// Returns the Number of coins defined by a seed
-func (seed Seed) GetNumCoins() uint64 {
-	return getNumCoins(seed)
-}
-
-// Returns the value of all coins defined by a seed
+// Returns the sum of the value of all coins defined by a seed
 func (seed Seed) Value() uint64 {
-	return value(seed)
+	dr, _ := DeserializeDenominationRegistry(seed[DenominationRegStart:DenominationRegEnd])
+	return dr.Value()
 }
 
 // Returns the prefix fo the seed
@@ -119,7 +104,7 @@ func (seed Seed) ComputeCompound() Compound {
 	}
 
 	//Copy the denominations over from the coin
-	for i := DenominationsStart; i < DenominationsEnd; i++ {
+	for i := DenominationRegStart; i < DenominationRegEnd; i++ {
 		compound[i] = seed[i]
 	}
 
