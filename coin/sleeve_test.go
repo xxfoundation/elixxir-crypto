@@ -162,7 +162,7 @@ func TestSleeve_Compound(t *testing.T) {
 
 		compound := seed.ComputeCompound()
 
-		cs := ConstructSleeve(&seed, nil)
+		cs := ConstructSleeve(&seed, &compound)
 
 		if !reflect.DeepEqual(compound, cs.Compound()) {
 			t.Errorf("Sleeve.Seed: returned compound not equal to passed compound; Passed: %v, Expected: %v",
