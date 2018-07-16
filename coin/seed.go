@@ -2,7 +2,7 @@ package coin
 
 import (
 	"crypto/sha256"
-	"gitlab.com/privategrity/crypto/cyclic"
+	"gitlab.com/privategrity/crypto/csprng"
 )
 
 // A Seed contains the secret proving ownership of a series of coins
@@ -22,7 +22,9 @@ func NewSeed(value uint64) (Seed, error) {
 	}
 
 	//Generate the seed
-	p, err := cyclic.GenerateRandomBytes(int(SeedRNGLen))
+	rng := csprng.SystemRNG{}
+	p := make([]byte, SeedRNGLen)
+	_, err = rng.Read(p)
 	if err != nil {
 		return Seed{}, err
 	}
