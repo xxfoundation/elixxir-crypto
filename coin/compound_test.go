@@ -158,12 +158,65 @@ func TestCompound_ComputeCoins_Denominations(t *testing.T) {
 
 		coins := dr.List()
 
+		resultingSum := uint64(0)
+
 		for indx, coin := range coinLst {
 			if coin.GetDenomination() != coins[indx] {
 				t.Errorf("Compound.ComputeCoins: coin denomination did not match: Expected: %v, Received: %v",
 					coin.GetDenomination(), coins[indx])
 			}
+			resultingSum += coin.Value()
 		}
+
+		if resultingSum != expectedValue {
+			t.Errorf("Compound.ComputeCoins: value of returned coins did not match input: Expected: %v, Received: %v",
+				expectedValue, resultingSum)
+		}
+	}
+}
+
+//Exaustivly shows that compouds of a single denomination create coins properly
+func TestCompound_ComputeCoins_SingleDenominations(t *testing.T) {
+
+	for i := uint64(0); i < NumDenominations; i++ {
+
+		expectedValue := uint64(1) << i
+
+		seed, err := NewSeed(expectedValue)
+
+		if err != nil {
+			t.Errorf("Compound.Value: returned error on seed creation: %s", err.Error())
+		}
+
+		compound := seed.ComputeCompound()
+
+		coinLst := compound.ComputeCoins()
+
+		if len(coinLst) != 1 {
+			t.Errorf("Compound.ComputeCoins: outputed incorrect number of coins for single denimination: Expected: %v, Received: %v",
+				1, len(coinLst))
+		}
+
+		dr, _ := DeserializeDenominationRegistry(compound[DenominationRegStart:DenominationRegEnd])
+
+		coins := dr.List()
+
+		resultingSum := uint64(0)
+
+		for indx, coin := range coinLst {
+			if coin.GetDenomination() != coins[indx] {
+				t.Errorf("Compound.ComputeCoins: coin denomination did not match: Expected: %v, Received: %v",
+					coin.GetDenomination(), coins[indx])
+			}
+			resultingSum += coin.Value()
+
+		}
+
+		if resultingSum != expectedValue {
+			t.Errorf("Compound.ComputeCoins: value of returned coins did not match input: Expected: %v, Received: %v",
+				expectedValue, resultingSum)
+		}
+
 	}
 }
 

@@ -60,11 +60,6 @@ func (ci Compound) ComputeCoins() []Coin {
 	coins := dr.List()
 
 	for _, dnom := range coins {
-
-		if dnom == 5 {
-			break
-		}
-
 		h.Write([]byte{imgPostfix})
 		imgPostfix++
 
