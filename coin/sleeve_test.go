@@ -207,7 +207,7 @@ func TestSleeve_GobEncodeDecode_NoGob(t *testing.T) {
 		t.Errorf("Sleeve.Encode/Decode: returned error on sleeve creation: %s", err.Error())
 	}
 
-	gob, err := (&s).GobEncode()
+	g, err := (&s).GobEncode()
 
 	if err != nil {
 		t.Errorf("Sleeve.Encode/Decode: returned error on sleeve encode: %s", err.Error())
@@ -215,7 +215,7 @@ func TestSleeve_GobEncodeDecode_NoGob(t *testing.T) {
 
 	sNew := &Sleeve{}
 
-	err = sNew.GobDecode(gob)
+	err = sNew.GobDecode(g)
 
 	if err != nil {
 		t.Errorf("Sleeve.Encode/Decode: returned error on sleeve decode: %s", err.Error())
@@ -228,8 +228,6 @@ func TestSleeve_GobEncodeDecode_NoGob(t *testing.T) {
 
 //Tests that gobbing of sleeves works
 func TestSleeve_GobEncodeDecode_Gob(t *testing.T) {
-	gob.Register(Sleeve{})
-
 	s, err := NewSleeve(10)
 
 	if err != nil {

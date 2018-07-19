@@ -2,6 +2,7 @@ package coin
 
 import (
 	"encoding/binary"
+	"encoding/gob"
 	"fmt"
 )
 
@@ -16,6 +17,11 @@ const GobValueLen = uint64(8)
 const GobValueEnd = GobValueStart + GobValueLen
 
 const GobLen = 2*BaseFrameLen + GobValueLen
+
+//Registers the gob
+func init() {
+	gob.Register(Sleeve{})
+}
 
 // Contains everything a wallet knows about a compound coin
 type Sleeve struct {
