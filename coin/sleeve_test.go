@@ -1,6 +1,8 @@
 package coin
 
 import (
+	"bytes"
+	"encoding/gob"
 	"math/rand"
 	"reflect"
 	"testing"
@@ -193,5 +195,71 @@ func TestSleeve_Value(t *testing.T) {
 		}
 
 		expectedValue = rng.Uint64() % uint64(MaxValueDenominationRegister)
+	}
+}
+
+//Tests that encoding and decoding work
+func TestSleeve_GobEncodeDecode_NoGob(t *testing.T) {
+
+	s, err := NewSleeve(10)
+
+	if err != nil {
+		t.Errorf("Sleeve.Encode/Decode: returned error on sleeve creation: %s", err.Error())
+	}
+
+	gob, err := (&s).GobEncode()
+
+	if err != nil {
+		t.Errorf("Sleeve.Encode/Decode: returned error on sleeve encode: %s", err.Error())
+	}
+
+	sNew := &Sleeve{}
+
+	err = sNew.GobDecode(gob)
+
+	if err != nil {
+		t.Errorf("Sleeve.Encode/Decode: returned error on sleeve decode: %s", err.Error())
+	}
+
+	if !reflect.DeepEqual(s, *sNew) {
+		t.Errorf("Sleeve.Encode/Decode: output sleeve difrent from input sleeve: input %v, output: %v", s, *sNew)
+	}
+}
+
+//Tests that gobbing of sleeves works
+func TestSleeve_GobEncodeDecode_Gob(t *testing.T) {
+	gob.Register(Sleeve{})
+
+	s, err := NewSleeve(10)
+
+	if err != nil {
+		t.Errorf("Sleeve.Encode/Decode: returned error on sleeve creation: %s", err.Error())
+	}
+
+	gobIO := bytes.NewBuffer([]byte{})
+
+	enc := gob.NewEncoder(gobIO)
+	dec := gob.NewDecoder(gobIO)
+
+	err = enc.Encode(&s)
+
+	if err != nil {
+		if err != nil {
+			t.Errorf("Sleeve.Encode: returned error on encoding: %s", err.Error())
+		}
+	}
+
+	var sNew Sleeve
+
+	err = dec.Decode(&sNew)
+
+	if err != nil {
+		if err != nil {
+			t.Errorf("Sleeve.Encode: returned error on decoding: %s", err.Error())
+		}
+	}
+
+	if !reflect.DeepEqual(s, sNew) {
+		t.Errorf("Sleeve.Encode/Decode: output sleeve difrent from input sleeve: input %v, output: %v", s, sNew)
 	}
 }
