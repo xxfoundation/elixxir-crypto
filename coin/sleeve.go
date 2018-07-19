@@ -21,6 +21,7 @@ const GobLen = 2*BaseFrameLen + GobValueLen
 //Registers the gob
 func init() {
 	gob.Register(Sleeve{})
+	gob.Register([]Sleeve{})
 }
 
 // Contains everything a wallet knows about a compound coin
