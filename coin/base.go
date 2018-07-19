@@ -46,7 +46,7 @@ const CoinLen = CoinPrefixLen + HashLen + CoinDenominationlen
 const PrefixSourceLoc = HashStart
 
 // Returnable errors
-var ErrInvalidType = errors.New("incorrect type passed for serialization")
+var ErrInvalidType = errors.New("incorrect type passed for coin serialization")
 
 // Checks if an array is a seed
 func IsSeed(s []byte) bool {
