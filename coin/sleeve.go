@@ -62,14 +62,27 @@ func (cs Sleeve) IsMine() bool {
 	return cs.seed != nil
 }
 
-//Returns a copy of the seed
-func (cs Sleeve) Seed() Seed {
-	return cs.seed.Copy()
+// Returns a pointer to a copy of the seed
+// Returns nil if there is no seed
+func (cs Sleeve) Seed() *Seed {
+	if cs.seed == nil {
+		return nil
+	}
+
+	seedCopy := cs.seed.Copy()
+
+	return &seedCopy
 }
 
-//Returns a copy of the seed pointer
-func (cs Sleeve) Compound() Compound {
-	return cs.compound.Copy()
+// Returns a pointer to a copy of the compound
+// Returns nil if there is no compound
+func (cs Sleeve) Compound() *Compound {
+	if cs.compound == nil {
+		return nil
+	}
+	compoundCopy := cs.compound.Copy()
+
+	return &compoundCopy
 }
 
 //Returns a copy of the value

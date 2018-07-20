@@ -138,11 +138,23 @@ func TestSleeve_Seed(t *testing.T) {
 
 		cs := ConstructSleeve(&seed, nil)
 
-		if !reflect.DeepEqual(seed, cs.Seed()) {
+		seedCopy := cs.Seed()
+
+		if !reflect.DeepEqual(seed, *seedCopy) {
 			t.Errorf("Sleeve.Seed: returned seed not equal to passed seed; Passed: %v, Expected: %v",
-				seed, cs.Seed())
+				seed, *seedCopy)
 		}
 
+	}
+}
+
+//Tests that the returned seed is nil when there is no seed
+func TestSleeve_Seed_Nil(t *testing.T) {
+
+	s := Sleeve{nil, nil, 0}
+
+	if s.Seed() != nil {
+		t.Errorf("Sleeve.Seed: returned a seed when it should be nil")
 	}
 }
 
@@ -166,10 +178,22 @@ func TestSleeve_Compound(t *testing.T) {
 
 		cs := ConstructSleeve(&seed, &compound)
 
-		if !reflect.DeepEqual(compound, cs.Compound()) {
+		compoundCopy := cs.Compound()
+
+		if !reflect.DeepEqual(compound, *compoundCopy) {
 			t.Errorf("Sleeve.Seed: returned compound not equal to passed compound; Passed: %v, Expected: %v",
-				compound, cs.Compound())
+				compound, *compoundCopy)
 		}
+	}
+}
+
+//Tests that the returned compound is nil when there is no seed
+func TestSleeve_Compound_Nil(t *testing.T) {
+
+	s := Sleeve{nil, nil, 0}
+
+	if s.Compound() != nil {
+		t.Errorf("Sleeve.Compound: returned a compound when it should be nil")
 	}
 }
 
@@ -246,7 +270,7 @@ func TestSleeve_GobEncodeDecode_NoGob_Nil(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(s, *sNew) {
-		t.Errorf("Sleeve.Encode/Decode: output sleeve difrent from input sleeve: input %v, output: %v", s, *sNew)
+		t.Errorf("Sleeve.Encode/Decode: output sleeve diffrent from input sleeve: input %v, output: %v", s, *sNew)
 	}
 }
 
@@ -282,6 +306,6 @@ func TestSleeve_GobEncodeDecode_Gob(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(s, sNew) {
-		t.Errorf("Sleeve.Encode/Decode: output sleeve difrent from input sleeve: input %v, output: %v", s, sNew)
+		t.Errorf("Sleeve.Encode/Decode: output sleeve diffrent from input sleeve: input %v, output: %v", s, sNew)
 	}
 }
