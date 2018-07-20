@@ -1,6 +1,7 @@
 package coin
 
 import (
+	"encoding/gob"
 	"errors"
 )
 
@@ -45,8 +46,22 @@ const CoinLen = CoinPrefixLen + HashLen + CoinDenominationlen
 
 const PrefixSourceLoc = HashStart
 
+// Type for invalid frames
+const NilType byte = 0xff
+
+// Storage of an invalid frame for comparison
+var NilBaseFrame [BaseFrameLen]byte
+
 // Returnable errors
 var ErrInvalidType = errors.New("incorrect type passed for coin serialization")
+
+//Registers the gob
+func init() {
+	gob.Register(Sleeve{})
+	gob.Register([]Sleeve{})
+
+	NilBaseFrame[HeaderLoc] = NilType
+}
 
 // Checks if an array is a seed
 func IsSeed(s []byte) bool {

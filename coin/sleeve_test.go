@@ -138,11 +138,23 @@ func TestSleeve_Seed(t *testing.T) {
 
 		cs := ConstructSleeve(&seed, nil)
 
-		if !reflect.DeepEqual(seed, cs.Seed()) {
+		seedCopy := cs.Seed()
+
+		if !reflect.DeepEqual(seed, *seedCopy) {
 			t.Errorf("Sleeve.Seed: returned seed not equal to passed seed; Passed: %v, Expected: %v",
-				seed, cs.Seed())
+				seed, *seedCopy)
 		}
 
+	}
+}
+
+//Tests that the returned seed is nil when there is no seed
+func TestSleeve_Seed_Nil(t *testing.T) {
+
+	s := Sleeve{nil, nil, 0}
+
+	if s.Seed() != nil {
+		t.Errorf("Sleeve.Seed: returned a seed when it should be nil")
 	}
 }
 
@@ -166,10 +178,22 @@ func TestSleeve_Compound(t *testing.T) {
 
 		cs := ConstructSleeve(&seed, &compound)
 
-		if !reflect.DeepEqual(compound, cs.Compound()) {
+		compoundCopy := cs.Compound()
+
+		if !reflect.DeepEqual(compound, *compoundCopy) {
 			t.Errorf("Sleeve.Seed: returned compound not equal to passed compound; Passed: %v, Expected: %v",
-				compound, cs.Compound())
+				compound, *compoundCopy)
 		}
+	}
+}
+
+//Tests that the returned compound is nil when there is no seed
+func TestSleeve_Compound_Nil(t *testing.T) {
+
+	s := Sleeve{nil, nil, 0}
+
+	if s.Compound() != nil {
+		t.Errorf("Sleeve.Compound: returned a compound when it should be nil")
 	}
 }
 
@@ -226,6 +250,30 @@ func TestSleeve_GobEncodeDecode_NoGob(t *testing.T) {
 	}
 }
 
+//Tests that encoding and decoding works when the elements on the sleeve are nil
+func TestSleeve_GobEncodeDecode_NoGob_Nil(t *testing.T) {
+
+	s := Sleeve{nil, nil, 0}
+
+	g, err := (&s).GobEncode()
+
+	if err != nil {
+		t.Errorf("Sleeve.Encode/Decode: returned error on sleeve encode: %s", err.Error())
+	}
+
+	sNew := &Sleeve{}
+
+	err = sNew.GobDecode(g)
+
+	if err != nil {
+		t.Errorf("Sleeve.Encode/Decode: returned error on sleeve decode: %s", err.Error())
+	}
+
+	if !reflect.DeepEqual(s, *sNew) {
+		t.Errorf("Sleeve.Encode/Decode: output sleeve diffrent from input sleeve: input %v, output: %v", s, *sNew)
+	}
+}
+
 //Tests that gobbing of sleeves works
 func TestSleeve_GobEncodeDecode_Gob(t *testing.T) {
 	s, err := NewSleeve(10)
@@ -258,6 +306,30 @@ func TestSleeve_GobEncodeDecode_Gob(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(s, sNew) {
-		t.Errorf("Sleeve.Encode/Decode: output sleeve difrent from input sleeve: input %v, output: %v", s, sNew)
+		t.Errorf("Sleeve.Encode/Decode: output sleeve diffrent from input sleeve: input %v, output: %v", s, sNew)
+	}
+}
+
+//Tests that gob decode errors out when the input is the wrong length
+func TestSleeve_GobDecode_Length(t *testing.T) {
+
+	sPtr := &Sleeve{}
+
+	tooShort := make([]byte, GobLen-1)
+
+	err := sPtr.GobDecode(tooShort)
+
+	if err != ErrIncorrectLen {
+		t.Errorf("Sleeve.Decode: did not error out with too short of input")
+
+	}
+
+	tooLong := make([]byte, GobLen+1)
+
+	err = sPtr.GobDecode(tooLong)
+
+	if err != ErrIncorrectLen {
+		t.Errorf("Sleeve.Decode: did not error out with too long of input")
+
 	}
 }
