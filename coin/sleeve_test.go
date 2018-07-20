@@ -309,3 +309,27 @@ func TestSleeve_GobEncodeDecode_Gob(t *testing.T) {
 		t.Errorf("Sleeve.Encode/Decode: output sleeve diffrent from input sleeve: input %v, output: %v", s, sNew)
 	}
 }
+
+//Tests that gob decode errors out when the input is the wrong length
+func TestSleeve_GobDecode_Length(t *testing.T) {
+
+	sPtr := &Sleeve{}
+
+	tooShort := make([]byte, GobLen-1)
+
+	err := sPtr.GobDecode(tooShort)
+
+	if err != ErrIncorrectLen {
+		t.Errorf("Sleeve.Decode: did not error out with too short of input")
+
+	}
+
+	tooLong := make([]byte, GobLen+1)
+
+	err = sPtr.GobDecode(tooLong)
+
+	if err != ErrIncorrectLen {
+		t.Errorf("Sleeve.Decode: did not error out with too long of input")
+
+	}
+}

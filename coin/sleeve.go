@@ -2,7 +2,6 @@ package coin
 
 import (
 	"encoding/binary"
-	"fmt"
 )
 
 const GobSeedStart = uint64(0)
@@ -118,7 +117,6 @@ func (cs *Sleeve) GobEncode() ([]byte, error) {
 func (cs *Sleeve) GobDecode(input []byte) error {
 
 	if uint64(len(input)) != (GobLen) {
-		fmt.Println(len(input))
 		return ErrIncorrectLen
 	}
 
