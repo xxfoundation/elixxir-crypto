@@ -2,7 +2,6 @@ package coin
 
 import (
 	"encoding/binary"
-	"encoding/gob"
 	"fmt"
 )
 
@@ -17,12 +16,6 @@ const GobValueLen = uint64(8)
 const GobValueEnd = GobValueStart + GobValueLen
 
 const GobLen = 2*BaseFrameLen + GobValueLen
-
-//Registers the gob
-func init() {
-	gob.Register(Sleeve{})
-	gob.Register([]Sleeve{})
-}
 
 // Contains everything a wallet knows about a compound coin
 type Sleeve struct {
@@ -88,8 +81,17 @@ func (cs Sleeve) Value() uint64 {
 func (cs *Sleeve) GobEncode() ([]byte, error) {
 	var output []byte
 
-	output = append(output, cs.seed[:]...)
-	output = append(output, cs.compound[:]...)
+	if cs.seed == nil {
+		output = append(output, NilBaseFrame[:]...)
+	} else {
+		output = append(output, cs.seed[:]...)
+	}
+
+	if cs.compound == nil {
+		output = append(output, NilBaseFrame[:]...)
+	} else {
+		output = append(output, cs.compound[:]...)
+	}
 
 	valuelist := make([]byte, 8)
 	binary.BigEndian.PutUint64(valuelist, cs.value)
@@ -114,7 +116,9 @@ func (cs *Sleeve) GobDecode(input []byte) error {
 	seed, err := DeserializeSeed(seedArr)
 
 	if err != nil {
-		return err
+		cs.seed = nil
+	} else {
+		cs.seed = &seed
 	}
 
 	var compoundArr [BaseFrameLen]byte
@@ -124,11 +128,11 @@ func (cs *Sleeve) GobDecode(input []byte) error {
 	compound, err := DeserializeCompound(compoundArr)
 
 	if err != nil {
-		return err
+		cs.compound = nil
+	} else {
+		cs.compound = &compound
 	}
 
-	cs.seed = &seed
-	cs.compound = &compound
 	cs.value = binary.BigEndian.Uint64(input[GobValueStart:GobValueEnd])
 
 	return nil

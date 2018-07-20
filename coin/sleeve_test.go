@@ -226,6 +226,30 @@ func TestSleeve_GobEncodeDecode_NoGob(t *testing.T) {
 	}
 }
 
+//Tests that encoding and decoding works when the elements on the sleeve are nil
+func TestSleeve_GobEncodeDecode_NoGob_Nil(t *testing.T) {
+
+	s := Sleeve{nil, nil, 0}
+
+	g, err := (&s).GobEncode()
+
+	if err != nil {
+		t.Errorf("Sleeve.Encode/Decode: returned error on sleeve encode: %s", err.Error())
+	}
+
+	sNew := &Sleeve{}
+
+	err = sNew.GobDecode(g)
+
+	if err != nil {
+		t.Errorf("Sleeve.Encode/Decode: returned error on sleeve decode: %s", err.Error())
+	}
+
+	if !reflect.DeepEqual(s, *sNew) {
+		t.Errorf("Sleeve.Encode/Decode: output sleeve difrent from input sleeve: input %v, output: %v", s, *sNew)
+	}
+}
+
 //Tests that gobbing of sleeves works
 func TestSleeve_GobEncodeDecode_Gob(t *testing.T) {
 	s, err := NewSleeve(10)
