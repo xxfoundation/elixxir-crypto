@@ -222,6 +222,34 @@ func TestSleeve_Value(t *testing.T) {
 	}
 }
 
+//Tests that IsNil returns the correct result for all configurations
+func TestSleeve_IsNil(t *testing.T) {
+	cs00 := Sleeve{nil, nil, 0}
+
+	if !cs00.IsNil() {
+		t.Errorf("Sleeve.IsNil: did not return nil when nil: %v", cs00)
+	}
+
+	cs01 := Sleeve{nil, &Compound{}, 0}
+
+	if cs01.IsNil() {
+		t.Errorf("Sleeve.IsNil: return nill when not nil: %v", cs01)
+	}
+
+	cs10 := Sleeve{&Seed{}, nil, 0}
+
+	if cs10.IsNil() {
+		t.Errorf("Sleeve.IsNil: return nill when not nil: %v", cs10)
+	}
+
+	cs11 := Sleeve{&Seed{}, &Compound{}, 0}
+
+	if cs11.IsNil() {
+		t.Errorf("Sleeve.IsNil: return nill when not nil: %v", cs11)
+	}
+
+}
+
 //Tests that encoding and decoding work
 func TestSleeve_GobEncodeDecode_NoGob(t *testing.T) {
 

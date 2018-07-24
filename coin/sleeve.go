@@ -89,6 +89,11 @@ func (cs Sleeve) Value() uint64 {
 	return cs.value
 }
 
+//Returns if the sleeve is nill
+func (cs Sleeve) IsNil() bool {
+	return cs.compound == nil && cs.seed == nil
+}
+
 //Turns the coin sleeve into a GOB
 func (cs *Sleeve) GobEncode() ([]byte, error) {
 	var output []byte
