@@ -28,9 +28,9 @@ func TestCoin_GetDenomination(t *testing.T) {
 	for i := byte(0); i < byte(NumDenominations); i++ {
 		coin[CoinDenominationLoc] = i
 
-		if coin.GetDenomination() != Denomination(i&DenominationMask) {
+		if coin.GetDenomination() != Denomination(i) {
 			t.Errorf("Coin.GetDenomination: Returned the incorrect denomination"+
-				" Expected %v, Received: %v", i&DenominationMask, coin.GetDenomination())
+				" Expected %v, Received: %v", i, coin.GetDenomination())
 		}
 	}
 }

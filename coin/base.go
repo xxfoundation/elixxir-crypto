@@ -11,7 +11,7 @@ const HeaderLoc = uint64(0)
 const HeaderEnd = HeaderLoc + HeaderLen
 
 // Hash Definitions for Compound
-const HashLenBits = uint64(160)
+const HashLenBits = uint64(256)
 const HashLen = HashLenBits / 8
 const HashStart = HeaderEnd
 const HashEnd = HashStart + HashLen
@@ -39,8 +39,8 @@ const CoinPrefixLen = uint64(1)
 const CoinPrefixLoc = uint64(0)
 
 const CoinHashStart = CoinPrefixLoc
-const CoinHashEnd = CoinHashStart + HashLen + 1
-const CoinDenominationLoc = CoinHashEnd - 1
+const CoinHashEnd = CoinHashStart + HashLen
+const CoinDenominationLoc = CoinHashEnd
 const CoinDenominationlen = uint64(1)
 const CoinLen = CoinPrefixLen + HashLen + CoinDenominationlen
 

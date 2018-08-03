@@ -10,8 +10,6 @@ const NumDenominations = uint64(24)
 const MaxValueDenominationRegister = uint64(1<<NumDenominations - 1)
 const DenominationRegisterLen = NumDenominations / 8
 
-const DenominationMask = byte(0x1f)
-
 // The denomination of a coin.
 // The value of the coin is 2^Denomination and the only valid denominations
 // are 0, 1, 2, 3, .... , 22, and 23

@@ -10,7 +10,7 @@ func (c Coin) Prefix() byte {
 
 // Returns the denomination of the coin
 func (c Coin) GetDenomination() Denomination {
-	return Denomination(c[CoinDenominationLoc] & (DenominationMask))
+	return Denomination(c[CoinDenominationLoc])
 }
 
 // Returns the value of the coin
