@@ -6,8 +6,8 @@ import (
 	"math/rand"
 )
 
-// Shuffles anything passed using a Fisher-Yates shuffle
-func Shuffle(seedSrc []byte, n int, swap func(i, j int)) {
+// Shuffles anything passed using a Fisher-Yates shuffle backed by a PRNG seeded by a passed slice
+func ShufflePRNG(seedSrc []byte, n int, swap func(i, j int)) {
 	// Skip empty lists or lists of only 1 element, they cannot be shuffled
 	if n <= 1 {
 		return

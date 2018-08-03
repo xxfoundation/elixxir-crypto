@@ -28,7 +28,7 @@ func TestShuffle(t *testing.T) {
 	for k := 0; k < reps; k++ {
 		seed := []byte{byte(k), byte(k >> 8), byte(k >> 16), byte(k >> 24), byte(k >> 32), byte(k >> 40),
 			byte(k >> 48), byte(k >> 56)}
-		Shuffle(seed, batch, func(i, j int) {
+		ShufflePRNG(seed, batch, func(i, j int) {
 			outInts[k][i], outInts[k][j] = outInts[k][j], outInts[k][i]
 		})
 	}
@@ -83,7 +83,7 @@ func TestShuffle(t *testing.T) {
 func TestShuffleLen1(t *testing.T) {
 	var testlst []uint64
 	testlst = append(testlst, 1)
-	Shuffle([]byte{1}, 1, func(i, j int) {
+	ShufflePRNG([]byte{1}, 1, func(i, j int) {
 		testlst[i], testlst[j] = testlst[j], testlst[i]
 	})
 }
