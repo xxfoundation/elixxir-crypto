@@ -63,15 +63,16 @@ func (ci Compound) ComputeCoins() []Coin {
 		h.Write([]byte{imgPostfix})
 		imgPostfix++
 
-		imgByte := h.Sum(nil)[:CoinLen]
-		imgByte[CoinPrefixLoc] = ci[PrefixSourceLoc]
-		imgByte[CoinDenominationLoc] = (imgByte[CoinDenominationLoc] & ^DenominationMask) | byte(dnom)
+		imgByte := h.Sum(nil)[:HashLen]
 
 		var img Coin
 
 		for i, b := range imgByte {
-			img[i] = b
+			img[uint64(i)+CoinHashStart] = b
 		}
+
+		img[CoinPrefixLoc] = ci[PrefixSourceLoc]
+		img[CoinDenominationLoc] = byte(dnom)
 
 		imgLst = append(imgLst, img)
 	}
