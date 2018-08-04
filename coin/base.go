@@ -37,8 +37,9 @@ const BaseFrameLen = HeaderLen + HashLen + DenominationRegisterLen
 // Defines coin prefixes
 const CoinPrefixLen = uint64(1)
 const CoinPrefixLoc = uint64(0)
+const CoinPrefixEnd = CoinPrefixLoc + CoinPrefixLen
 
-const CoinHashStart = CoinPrefixLoc
+const CoinHashStart = CoinPrefixEnd
 const CoinHashEnd = CoinHashStart + HashLen
 const CoinDenominationLoc = CoinHashEnd
 const CoinDenominationlen = uint64(1)
