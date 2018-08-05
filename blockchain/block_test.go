@@ -19,9 +19,13 @@ func TestGenerateOriginBlock(t *testing.T) {
 	if reflect.DeepEqual(b.hash, BlockHash{}) {
 		t.Errorf("GenerateOriginBlock: Origin Block returned empty hash: %v", b)
 	}
+
+	if b.id != 0 {
+		t.Errorf("GenerateOriginBlock: Origin Block has wrong block ID: %v", b.id)
+	}
 }
 
-//Shoes that the output of Nextblock is the correct lifecycle and only activates with the correct lifecycle
+//Shows that the output of Nextblock is the correct lifecycle and only activates with the correct lifecycle
 func TestBlock_NextBlock_Lifecycle(t *testing.T) {
 	ob := GenerateOriginBlock()
 
@@ -45,6 +49,23 @@ func TestBlock_NextBlock_Lifecycle(t *testing.T) {
 
 	if b.lifecycle != Raw {
 		t.Errorf("Block.NextBlock: Returned block with incorrect lifecycle state: %v", b.lifecycle)
+	}
+}
+
+//Shows the NextBlock increments the id properly
+func TestBlock_NextBlock_BlockID(t *testing.T) {
+	var err error
+	b := GenerateOriginBlock()
+
+	for i := uint64(0); i < uint64(100); i++ {
+		if b.id != i {
+			t.Errorf("Block.NextBlock: Block ID %v incorrect, reads as: %v", i, b.id)
+		}
+		b.lifecycle = Baked
+		b, err = b.NextBlock()
+		if err != nil {
+			t.Errorf("Block.NextBlock: error on valid block creation: %s", err.Error())
+		}
 	}
 }
 
@@ -280,6 +301,19 @@ func TestBlock_GetLifecycle(t *testing.T) {
 
 	if b.GetLifecycle() != Baked {
 		t.Errorf("Block.GetLifecycle: Did not return a lifecycle of Baked: %v", b.GetLifecycle())
+	}
+}
+
+// Shows that GetID returns the correct Block ID state
+func TestBlock_GetID(t *testing.T) {
+	b := Block{}
+
+	expectedBlockID := uint64(42)
+
+	b.id = expectedBlockID
+
+	if b.GetID() != expectedBlockID {
+		t.Errorf("Block.GetID: Did not return the correct ID: Expected: %v, Recieved: %v", expectedBlockID, b.GetID())
 	}
 }
 

@@ -16,6 +16,7 @@ type BlockHash [BlockHashLen]byte
 
 // A single block in the blockchain
 type Block struct {
+	id           uint64
 	hash         BlockHash
 	previousHash BlockHash
 	created      []coin.Coin
@@ -26,6 +27,7 @@ type Block struct {
 
 // a structure that holds a blockchain's data for easy serialization and deserialization
 type serialBlock struct {
+	ID           uint64
 	Hash         []byte
 	PreviousHash []byte
 	Created      [][]byte
@@ -35,6 +37,8 @@ type serialBlock struct {
 // Generates the origin block for the blockchain
 func GenerateOriginBlock() *Block {
 	b := Block{lifecycle: Raw}
+
+	b.id = 0
 
 	b.created = append(b.created, coin.Coin{})
 	b.destroyed = append(b.destroyed, coin.Coin{})
@@ -55,6 +59,8 @@ func (b *Block) NextBlock() (*Block, error) {
 	newBlock := Block{}
 
 	copy(newBlock.previousHash[:], b.hash[:])
+
+	newBlock.id = b.id + 1
 
 	b.mutex.Unlock()
 
@@ -137,6 +143,11 @@ func (b *Block) GetLifecycle() BlockLifecycle {
 	return blc
 }
 
+// Returns the ID of the block
+func (b *Block) GetID() uint64 {
+	return b.id
+}
+
 // Permutes the coins and hashes the block
 // Only runs if the lifecycle state is "Raw" and sets the state to "Baked"
 func (b *Block) Bake(seedList []coin.Seed) error {
@@ -184,6 +195,7 @@ func (b *Block) Serialize() ([]byte, error) {
 	}
 
 	pb := serialBlock{
+		ID:           b.id,
 		Hash:         b.hash[:],
 		PreviousHash: b.previousHash[:],
 	}
@@ -228,6 +240,8 @@ func Deserialize(sBlock []byte) (*Block, error) {
 		copy(newCoin[:], sb.Destroyed[i])
 		b.destroyed = append(b.destroyed, newCoin)
 	}
+
+	b.id = sb.ID
 
 	b.lifecycle = Baked
 	b.mutex.Unlock()
