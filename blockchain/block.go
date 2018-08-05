@@ -36,6 +36,7 @@ type serialBlock struct {
 }
 
 // Generates the origin block for the blockchain
+// TODO: get all the members to the team to add something to the origin block
 func GenerateOriginBlock() *Block {
 	b := Block{lifecycle: Raw}
 
