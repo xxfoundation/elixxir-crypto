@@ -416,3 +416,38 @@ func TestBlock_SerializeDeserialize(t *testing.T) {
 			"Origonal Coin: %v, Serial Coin: %v", block.destroyed[0], newBlock.destroyed[0])
 	}
 }
+
+func TestBlock_Serialize_Lifecycle(t *testing.T) {
+	b := Block{}
+
+	b.lifecycle = Raw
+	b.created = []coin.Coin{{}}
+	b.destroyed = []coin.Coin{{}}
+
+	_, err := b.Serialize()
+
+	if err != ErrBaked {
+		if err == nil {
+			t.Errorf("Block.Serialize: no error returned on invalid lifecycle")
+		} else {
+			t.Errorf("Block.Serialize: Incorrect error returned on invalid lifecycle: %s", err.Error())
+		}
+	}
+
+	b.lifecycle = Baked
+
+	_, err = b.Serialize()
+
+	if err != nil {
+		t.Errorf("Block.Serialize: error returned on valid serialization")
+	}
+}
+
+func TestDeserialize(t *testing.T) {
+	_, err := Deserialize([]byte{})
+
+	if err == nil {
+		t.Errorf("Deserialize: no error returned on invalid deseralization")
+	}
+
+}
