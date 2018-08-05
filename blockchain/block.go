@@ -148,7 +148,7 @@ func (b *Block) Bake(seedList []coin.Seed) error {
 	}
 
 	//Shuffle the elements
-	rawSeed := seedlistToSlice(seedList)
+	rawSeed := seedsToBytes(seedList)
 	shuffle.ShufflePRNG(rawSeed, len(b.created), func(i, j int) {
 		b.created[i], b.created[j] = b.created[j], b.created[i]
 	})
@@ -163,8 +163,8 @@ func (b *Block) Bake(seedList []coin.Seed) error {
 	//Hash the elements
 	h := sha256.New()
 	h.Write(b.previousHash[:])
-	h.Write(coinlistToSlice(b.created))
-	h.Write(coinlistToSlice(b.destroyed))
+	h.Write(coinsToBytes(b.created))
+	h.Write(coinsToBytes(b.destroyed))
 	hashBytes := h.Sum(nil)
 
 	copy(b.hash[:BlockHashLen], hashBytes[:BlockHashLen])
@@ -236,7 +236,7 @@ func Deserialize(sBlock []byte) (*Block, error) {
 }
 
 //Private Helper Functions
-func seedlistToSlice(seedList []coin.Seed) []byte {
+func seedsToBytes(seedList []coin.Seed) []byte {
 	var outBytes []byte
 
 	for _, s := range seedList {
@@ -246,7 +246,7 @@ func seedlistToSlice(seedList []coin.Seed) []byte {
 	return outBytes
 }
 
-func coinlistToSlice(coinList []coin.Coin) []byte {
+func coinsToBytes(coinList []coin.Coin) []byte {
 	var outBytes []byte
 
 	for _, c := range coinList {
