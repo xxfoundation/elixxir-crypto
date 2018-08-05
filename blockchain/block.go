@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"gitlab.com/privategrity/crypto/coin"
 	"gitlab.com/privategrity/crypto/shuffle"
+	"golang.org/x/crypto/blake2b"
 	"sync"
 )
 
@@ -160,11 +161,16 @@ func (b *Block) Bake(seedList []coin.Seed) error {
 
 	//Shuffle the elements
 	rawSeed := seedsToBytes(seedList)
+	hb, err := blake2b.New256(nil)
+	if err != nil {
+		return err
+	}
+
 	shuffle.ShufflePRNG(rawSeed, len(b.created), func(i, j int) {
 		b.created[i], b.created[j] = b.created[j], b.created[i]
 	})
 	//Hash the seed used for the destroy elements so the two lists aren't shuffled the same way
-	hb := sha256.New()
+
 	hb.Write(rawSeed)
 	destroySeed := hb.Sum(nil)
 	shuffle.ShufflePRNG(destroySeed, len(b.destroyed), func(i, j int) {
