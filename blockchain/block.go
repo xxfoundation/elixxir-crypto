@@ -11,8 +11,10 @@ import (
 const BlockHashLenBits = 256
 const BlockHashLen = BlockHashLenBits / 8
 
+// Array that holds hashes for the blockchain
 type BlockHash [BlockHashLen]byte
 
+// A single block in the blockchain
 type Block struct {
 	hash         BlockHash
 	previousHash BlockHash
@@ -22,6 +24,7 @@ type Block struct {
 	mutex        sync.Mutex
 }
 
+// a structure that holds a blockchain's data for easy serialization and deserialization
 type serialBlock struct {
 	Hash         []byte
 	PreviousHash []byte
@@ -29,6 +32,7 @@ type serialBlock struct {
 	Destroyed    [][]byte
 }
 
+// Generates the origin block for the blockchain
 func GenerateOriginBlock() *Block {
 	b := Block{lifecycle: Raw}
 
@@ -40,6 +44,7 @@ func GenerateOriginBlock() *Block {
 	return &b
 }
 
+// Creates the next block from the previous one
 func (b *Block) NextBlock() (*Block, error) {
 	b.mutex.Lock()
 	if b.lifecycle != Baked {
@@ -56,6 +61,7 @@ func (b *Block) NextBlock() (*Block, error) {
 	return &newBlock, nil
 }
 
+// Returns a copy of the created coins list
 func (b *Block) GetCreated() []coin.Coin {
 	b.mutex.Lock()
 	cCopy := make([]coin.Coin, len(b.created))
@@ -64,6 +70,8 @@ func (b *Block) GetCreated() []coin.Coin {
 	return cCopy
 }
 
+// Adds an element to the created coins list
+// Only works while the block is "Raw"
 func (b *Block) AddCreated(c []coin.Coin) error {
 	b.mutex.Lock()
 	if b.lifecycle != Raw {
@@ -78,6 +86,7 @@ func (b *Block) AddCreated(c []coin.Coin) error {
 	return nil
 }
 
+// Returns a copy of the destroyed coins list
 func (b *Block) GetDestroyed() []coin.Coin {
 	b.mutex.Lock()
 	cCopy := make([]coin.Coin, len(b.destroyed))
@@ -86,6 +95,8 @@ func (b *Block) GetDestroyed() []coin.Coin {
 	return cCopy
 }
 
+// Adds a coin to the destroyed coins list
+// Only works while the block is "Raw"
 func (b *Block) AddDestroyed(c []coin.Coin) error {
 	b.mutex.Lock()
 	if b.lifecycle != Raw {
@@ -100,6 +111,7 @@ func (b *Block) AddDestroyed(c []coin.Coin) error {
 	return nil
 }
 
+// Returns a copy of the block's hash
 func (b *Block) GetHash() BlockHash {
 	var rtnBH BlockHash
 	b.mutex.Lock()
@@ -108,6 +120,7 @@ func (b *Block) GetHash() BlockHash {
 	return rtnBH
 }
 
+// Returns a copy of the previous Block's hash
 func (b *Block) GetPreviousHash() BlockHash {
 	var rtnBH BlockHash
 	b.mutex.Lock()
@@ -116,6 +129,7 @@ func (b *Block) GetPreviousHash() BlockHash {
 	return rtnBH
 }
 
+// Returns the lifecycle state of the block
 func (b *Block) GetLifecycle() BlockLifecycle {
 	b.mutex.Lock()
 	blc := b.lifecycle
@@ -123,6 +137,8 @@ func (b *Block) GetLifecycle() BlockLifecycle {
 	return blc
 }
 
+// Permutes the coins and hashes the block
+// Only runs if the lifecycle state is "Raw" and sets the state to "Baked"
 func (b *Block) Bake(seedList []coin.Seed) error {
 	b.mutex.Lock()
 
@@ -160,6 +176,8 @@ func (b *Block) Bake(seedList []coin.Seed) error {
 	return nil
 }
 
+// Serializes the block and outputs a JSON string
+// Only runs when the block is "Baked"
 func (b *Block) Serialize() ([]byte, error) {
 	if b.lifecycle != Baked {
 		return []byte{}, ErrBaked
@@ -181,6 +199,7 @@ func (b *Block) Serialize() ([]byte, error) {
 	return json.Marshal(pb)
 }
 
+// Converts a serialized block to a block data structure
 func Deserialize(sBlock []byte) (*Block, error) {
 	sb := &serialBlock{}
 
@@ -217,7 +236,6 @@ func Deserialize(sBlock []byte) (*Block, error) {
 }
 
 //Private Helper Functions
-
 func seedlistToSlice(seedList []coin.Seed) []byte {
 	var outBytes []byte
 
