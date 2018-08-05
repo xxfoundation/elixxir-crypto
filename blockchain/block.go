@@ -116,6 +116,13 @@ func (b *Block) GetPreviousHash() BlockHash {
 	return rtnBH
 }
 
+func (b *Block) GetLifecycle() BlockLifecycle {
+	b.mutex.Lock()
+	blc := b.lifecycle
+	b.mutex.Unlock()
+	return blc
+}
+
 func (b *Block) Bake(seedList []coin.Seed) error {
 	b.mutex.Lock()
 
@@ -172,6 +179,41 @@ func (b *Block) Serialize() ([]byte, error) {
 	}
 
 	return json.Marshal(pb)
+}
+
+func Deserialize(sBlock []byte) (*Block, error) {
+	sb := &serialBlock{}
+
+	err := json.Unmarshal(sBlock, sb)
+
+	if err != nil {
+		return nil, err
+	}
+
+	b := Block{}
+
+	b.mutex.Lock()
+
+	copy(b.hash[:], sb.Hash)
+
+	copy(b.previousHash[:], sb.PreviousHash)
+
+	for i := range sb.Created {
+		newCoin := coin.Coin{}
+		copy(newCoin[:], sb.Created[i])
+		b.created = append(b.created, newCoin)
+	}
+
+	for i := range sb.Destroyed {
+		newCoin := coin.Coin{}
+		copy(newCoin[:], sb.Destroyed[i])
+		b.destroyed = append(b.destroyed, newCoin)
+	}
+
+	b.lifecycle = Baked
+	b.mutex.Unlock()
+
+	return &b, nil
 }
 
 //Private Helper Functions
