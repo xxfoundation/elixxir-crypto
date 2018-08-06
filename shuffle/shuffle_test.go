@@ -1,4 +1,4 @@
-package cyclic
+package shuffle
 
 import (
 	"math"

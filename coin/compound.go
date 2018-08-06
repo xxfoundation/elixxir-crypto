@@ -1,6 +1,8 @@
 package coin
 
-import "crypto/sha256"
+import (
+	"crypto/sha256"
+)
 
 // A Compound contains the intermediate hash describing a series of coins
 type Compound [BaseFrameLen]byte
