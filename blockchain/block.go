@@ -20,6 +20,7 @@ type Block struct {
 	id           uint64
 	hash         BlockHash
 	previousHash BlockHash
+	treeRoot     BlockHash
 	created      []coin.Coin
 	destroyed    []coin.Coin
 	lifecycle    BlockLifecycle
@@ -31,6 +32,7 @@ type serialBlock struct {
 	ID           uint64
 	Hash         []byte
 	PreviousHash []byte
+	TreeRoot     []byte
 	Created      [][]byte
 	Destroyed    [][]byte
 }
@@ -45,7 +47,7 @@ func GenerateOriginBlock() *Block {
 	b.created = append(b.created, coin.Coin{})
 	b.destroyed = append(b.destroyed, coin.Coin{})
 
-	b.Bake([]coin.Seed{coin.Seed{}})
+	b.Bake([]coin.Seed{coin.Seed{}}, BlockHash{})
 
 	return &b
 }
@@ -155,15 +157,31 @@ func (b *Block) GetID() uint64 {
 	return b.id
 }
 
+// Returns the treeRoot of the block
+func (b *Block) GetTreeRoot() (BlockHash, error) {
+	b.mutex.Lock()
+	if b.lifecycle != Baked {
+		b.mutex.Unlock()
+		return BlockHash{}, ErrBaked
+	}
+
+	var rtnTR BlockHash
+	copy(rtnTR[:], b.treeRoot[:])
+	b.mutex.Unlock()
+	return rtnTR, nil
+}
+
 // Permutes the coins and hashes the block
 // Only runs if the lifecycle state is "Raw" and sets the state to "Baked"
-func (b *Block) Bake(seedList []coin.Seed) error {
+func (b *Block) Bake(seedList []coin.Seed, treeRoot BlockHash) error {
 	b.mutex.Lock()
 
 	if b.lifecycle != Raw {
 		b.mutex.Unlock()
 		return ErrRaw
 	}
+
+	copy(b.treeRoot[:], treeRoot[:])
 
 	//Shuffle the elements
 	rawSeed := seedsToBytes(seedList)
@@ -186,6 +204,7 @@ func (b *Block) Bake(seedList []coin.Seed) error {
 	//Hash the elements
 	h := sha256.New()
 	h.Write(b.previousHash[:])
+	h.Write(treeRoot[:])
 	h.Write(coinsToBytes(b.created))
 	h.Write(coinsToBytes(b.destroyed))
 	hashBytes := h.Sum(nil)
@@ -210,6 +229,7 @@ func (b *Block) Serialize() ([]byte, error) {
 		ID:           b.id,
 		Hash:         b.hash[:],
 		PreviousHash: b.previousHash[:],
+		TreeRoot:     b.treeRoot[:],
 	}
 
 	for indx := range b.created {
@@ -240,6 +260,8 @@ func Deserialize(sBlock []byte) (*Block, error) {
 	copy(b.hash[:], sb.Hash)
 
 	copy(b.previousHash[:], sb.PreviousHash)
+
+	copy(b.treeRoot[:], sb.TreeRoot)
 
 	for i := range sb.Created {
 		newCoin := coin.Coin{}

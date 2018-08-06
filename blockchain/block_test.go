@@ -334,6 +334,44 @@ func TestBlock_GetID(t *testing.T) {
 	}
 }
 
+// Shows that GetTreeRoot only works when the state is correct and responds properly
+func TestBlock_GetTreeRooth(t *testing.T) {
+	b := Block{}
+
+	b.treeRoot[0] = 42
+	b.lifecycle = Raw
+
+	_, err := b.GetTreeRoot()
+
+	if err != ErrBaked {
+		if err == nil {
+			t.Errorf("Block.GetTreeRoot: No error returned when not baked")
+		} else {
+			t.Errorf("Block.GetTreeRoot: Incorrect error returned when not baked: %s", err.Error())
+		}
+	}
+
+	b.lifecycle = Baked
+
+	hashCopy, err := b.GetTreeRoot()
+
+	if err != nil {
+		t.Errorf("Block.GetTreeRoot: Error returned on valid call: %s", err.Error())
+	}
+
+	if !reflect.DeepEqual(b.treeRoot, hashCopy) {
+		t.Errorf("Block.GetTreeRoot: returned root not equal to stored root: Stored: %v, Returned: %v",
+			b.hash, hashCopy)
+	}
+
+	hashCopy[0] = 69
+
+	if reflect.DeepEqual(b.treeRoot, hashCopy) {
+		t.Errorf("Block.GetTreeRoot: editing returned root modifies stored root: Stored: %v, Returned: %v",
+			b.hash, hashCopy)
+	}
+}
+
 //TODO: Tests of Bake's cryptographic properties
 //Shows that bake works only with the correct lifecycle and it returns the correct lifecycle
 func TestBlock_Bake(t *testing.T) {
@@ -344,7 +382,10 @@ func TestBlock_Bake(t *testing.T) {
 	b.AddCreated([]coin.Coin{{}})
 	b.AddDestroyed([]coin.Coin{{}})
 
-	err := b.Bake([]coin.Seed{{}})
+	trExpected := BlockHash{}
+	trExpected[0] = 99
+
+	err := b.Bake([]coin.Seed{{}}, trExpected)
 
 	if err != nil {
 		t.Errorf("Block.Bake: Could not bake with valid lifecycle: %s", err.Error())
@@ -354,15 +395,22 @@ func TestBlock_Bake(t *testing.T) {
 		t.Errorf("Block.Bake: bake did not set the lifecycle to baked")
 	}
 
-	err = b.Bake([]coin.Seed{{}})
+	if !reflect.DeepEqual(b.treeRoot, trExpected) {
+		t.Errorf("Block.Bake: Stored tree root not the same as given tree root: Given: %v, Stored: %v",
+			trExpected, b.treeRoot)
+	}
+
+	err = b.Bake([]coin.Seed{{}}, BlockHash{})
 
 	if err != ErrRaw {
 		if err == nil {
 			t.Errorf("Block.Bake: no error retruned when baking a block at the wrong lifecycle")
 		} else {
-			t.Errorf("Block.Bake: incorrect error retruned when baking a block at the wrong lifecycle: %s", err.Error())
+			t.Errorf("Block.Bake: incorrect error retruned when baking a block at the wrong lifecycle: %s",
+				err.Error())
 		}
 	}
+
 }
 
 //Test that Serialize and Deseralize work correctly
@@ -424,7 +472,10 @@ func TestBlock_SerializeDeserialize(t *testing.T) {
 		block.AddDestroyed(coins)
 	}
 
-	err = block.Bake(seedList)
+	trExpected := BlockHash{}
+	trExpected[0] = 99
+
+	err = block.Bake(seedList, trExpected)
 
 	if err != nil {
 		t.Errorf("Block.Serialize: Error on bake: %s", err.Error())
@@ -474,6 +525,7 @@ func TestBlock_Serialize_Lifecycle(t *testing.T) {
 	b.lifecycle = Raw
 	b.created = []coin.Coin{{}}
 	b.destroyed = []coin.Coin{{}}
+	b.treeRoot[0] = 42
 
 	_, err := b.Serialize()
 
