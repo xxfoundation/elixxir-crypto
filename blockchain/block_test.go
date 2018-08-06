@@ -250,8 +250,25 @@ func TestBlock_GetHash(t *testing.T) {
 	b := Block{}
 
 	b.hash[0] = 42
+	b.lifecycle = Raw
 
-	hashCopy := b.GetHash()
+	_, err := b.GetHash()
+
+	if err != ErrBaked {
+		if err == nil {
+			t.Errorf("Block.GetHash: No error returned when not baked")
+		} else {
+			t.Errorf("Block.GetHash: Incorrect error returned when not baked: %s", err.Error())
+		}
+	}
+
+	b.lifecycle = Baked
+
+	hashCopy, err := b.GetHash()
+
+	if err != nil {
+		t.Errorf("Block.GetHash: Error returned on valid call: %s", err.Error())
+	}
 
 	if !reflect.DeepEqual(b.hash, hashCopy) {
 		t.Errorf("Block.GetHash: returned hash not equal to stored hash: Stored: %v, Returned: %v",

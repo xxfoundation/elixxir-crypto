@@ -120,12 +120,17 @@ func (b *Block) AddDestroyed(c []coin.Coin) error {
 }
 
 // Returns a copy of the block's hash
-func (b *Block) GetHash() BlockHash {
-	var rtnBH BlockHash
+func (b *Block) GetHash() (BlockHash, error) {
 	b.mutex.Lock()
+	if b.lifecycle != Baked {
+		b.mutex.Unlock()
+		return BlockHash{}, ErrBaked
+	}
+
+	var rtnBH BlockHash
 	copy(rtnBH[:], b.hash[:])
 	b.mutex.Unlock()
-	return rtnBH
+	return rtnBH, nil
 }
 
 // Returns a copy of the previous Block's hash
