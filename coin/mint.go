@@ -2,6 +2,7 @@ package coin
 
 import (
 	"math/rand"
+	jww "github.com/spf13/jwalterweatherman"
 )
 
 // REAL, PALPABLE DANGER INSIDE
@@ -21,6 +22,9 @@ import (
 // If you pass this function a total value that's less than the number of coins
 // allowed to hold that value, it will panic.
 func Mint(totalValue int64, seed int64, numCoins int64) []Sleeve {
+	jww.WARN.Printf("Danger! You're minting coins all willy-nilly. " +
+		"Be careful to not mint too many or you'll cause inflation. " +
+		"You should never do this except for testing and demos.")
 	if totalValue < numCoins {
 		panic("You're asking me to make fractional coins, which I cannot do!")
 	}
