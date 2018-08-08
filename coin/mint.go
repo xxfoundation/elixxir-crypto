@@ -1,57 +1,57 @@
 package coin
 
 import (
-	"math/rand"
 	jww "github.com/spf13/jwalterweatherman"
+	"math/rand"
 )
 
-// REAL, PALPABLE DANGER INSIDE
-// This file contains functionality for creating the actual tokens.
-// It's not meant for issuing coins in production, and you should never call
-// this, except for testing and demo purposes. STAY AWAY unless you're here to
-// delete this before a public release.
+// This function creates a deterministic set of coins for a particular PRNG
+// seed. The payments demo uses this to create coins for the users to move
+// around. If more than one compound coin is allowed, the function will
+// probably return compounds with steadily decreasing values. The payment bot
+// and clients will call this function with the same predetermined seed to
+// populate their wallets with compounds with a realistic distribution of
+// denominations. The seeds for all the coins that get created will therefore
+// be public, but the CUI and client command line will only mint the coins that
+// belong to the user they're running for.
 
-// This function creates a predictable set of coins for a particular PRNG seed.
-// The payments demo uses this to create coins for the users to move around.
-// If more than one coin is allowed, the function will return coins with different values.
-// The payment bot and clients will call this function with the same
-// predetermined seed. The seeds for all the coins that get created will
-// therefore be public, but we won't mint and use other users' coins in the demo
-// as a matter of courtesy.
+// To remove this once more robust functionality for issuing tokens is in
+// place, recursive grep ignoring case for Mint in
+// $GOPATH/gitlab.com/privategrity. Doing this should reveal the location of
+// all related functionality.
 
 // If you pass this function a total value that's less than the number of coins
 // allowed to hold that value, it will panic.
-func Mint(totalValue int64, seed int64, numCoins int64) []Sleeve {
-	jww.WARN.Printf("Danger! You're minting coins all willy-nilly. " +
-		"Be careful to not mint too many or you'll cause inflation. " +
-		"You should never do this except for testing and demos.")
-	if totalValue < numCoins {
-		panic("You're asking me to make fractional coins, which I cannot do!")
+func Mint(totalValue int64, prngSeed int64, numSleeves int64) []Sleeve {
+	jww.WARN.Printf("Minting %v compound coins. Don't do this except for demos"+
+		" or testing.", numSleeves)
+	if totalValue < numSleeves {
+		panic("Too many compound coins requested, not enough value for each of them")
 	}
-	r := rand.New(rand.NewSource(seed))
-	result := make([]Sleeve, 0, numCoins)
-	for numCoins > 0 {
+	r := rand.New(rand.NewSource(prngSeed))
+	result := make([]Sleeve, 0, numSleeves)
+	for numSleeves > 0 {
 		// Generate seed for this new coin
-		coinSeed := Seed{}
-		r.Read(coinSeed[:])
+		seed := Seed{}
+		r.Read(seed[:])
 		// Overwrite seed header
-		coinSeed[0] = SeedType
+		seed[0] = SeedType
 		// Overwrite value
-		value := getNextValue(r, totalValue, numCoins)
-		numCoins--
+		value := getNextValue(r, totalValue, numSleeves)
+		numSleeves--
 		totalValue -= int64(value)
-		NewDenominationRegistry(coinSeed[uint64(len(
-			coinSeed)) - DenominationRegisterLen:], value)
-		coinCompound := coinSeed.ComputeCompound()
-		result = append(result, ConstructSleeve(&coinSeed, &coinCompound))
+		NewDenominationRegistry(seed[uint64(len(
+			seed))-DenominationRegisterLen:], value)
+		compound := seed.ComputeCompound()
+		result = append(result, ConstructSleeve(&seed, &compound))
 	}
 	return result
 }
 
-func getNextValue(r *rand.Rand, totalValue int64, remainingCoins int64) uint64 {
+func getNextValue(r *rand.Rand, totalValue int64, remainingSleeves int64) uint64 {
 	// Never return too much value for the other coins to have no value
-	nextValue := uint64(r.Int63n(totalValue-(remainingCoins-1)) + 1)
-	if remainingCoins == 1 {
+	nextValue := uint64(r.Int63n(totalValue-(remainingSleeves-1)) + 1)
+	if remainingSleeves == 1 {
 		nextValue = uint64(totalValue)
 	}
 	if nextValue > MaxValueDenominationRegister {
