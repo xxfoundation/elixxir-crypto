@@ -5,7 +5,7 @@ import "testing"
 // Proves that Mint() returns the requested value in one coin
 func TestMint_OneCoin(t *testing.T) {
 	totalValue := int64(108926)
-	coins := Mint(totalValue, 6908132, 1)
+	coins := mint(totalValue, 6908132, 1)
 	if len(coins) != 1 {
 		t.Errorf("Expected to get one coin")
 	}
@@ -18,7 +18,7 @@ func TestMint_OneCoin(t *testing.T) {
 // Proves that Mint() returns only valid coins when we want many coins
 func TestMint_CentsOnly(t *testing.T) {
 	totalValue := int64(100)
-	coins := Mint(totalValue, 6908132, totalValue)
+	coins := mint(totalValue, 6908132, totalValue)
 	if int64(len(coins)) != totalValue {
 		t.Errorf("Expected to get %v coins, got %v coins instead",
 			totalValue, len(coins))
@@ -35,7 +35,7 @@ func TestMint_CentsOnly(t *testing.T) {
 func TestMint_Between(t *testing.T) {
 	totalValue := int64(2066958)
 	totalCoins := int64(10)
-	coins := Mint(totalValue, 25993819, totalCoins)
+	coins := mint(totalValue, 25993819, totalCoins)
 	if int64(len(coins)) != totalCoins {
 		t.Errorf("Expected to get %v coins, got %v coins instead",
 			totalCoins, len(coins))
@@ -55,7 +55,7 @@ func TestMint_Between(t *testing.T) {
 // requested value. This shouldn't occur in normal usage.
 func TestMint_Panic(t *testing.T) {
 	defer Catch("Mint", t)
-	Mint(1, 1, 15209889243)
+	mint(1, 1, 15209889243)
 }
 
 // Stolen shamelessly from GenerateSharedKey() test functions

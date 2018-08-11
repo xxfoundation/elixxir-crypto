@@ -24,9 +24,7 @@ import (
 
 // If you pass this function a total value that's less than the number of coins
 // allowed to hold that value, it will panic.
-func Mint(totalValue int64, prngSeed int64, numSleeves int64) []Sleeve {
-	jww.WARN.Printf("Minting %v compound coins. Don't do this except for demos"+
-		" or testing.", numSleeves)
+func mint(totalValue int64, prngSeed int64, numSleeves int64) []Sleeve {
 	if totalValue < numSleeves {
 		panic("Too many compound coins requested, not enough value for each of them")
 	}
@@ -67,6 +65,8 @@ func getNextValue(r *rand.Rand, totalValue int64, remainingSleeves int64) uint64
 // This isn't official currency, and should be considered counterfeit
 // This is in API because access to the user.ID type gives this code more meaning
 func MintUser(id uint64) []Sleeve {
+	jww.WARN.Printf("Minting new coins for user %v. " +
+		"Don't do this except for demos or testing.", id)
 	prngSeedGen, _ := hash.NewCMixHash()
 	prngSeedGen.Reset()
 	idBytes := make([]byte, 8)
@@ -76,5 +76,5 @@ func MintUser(id uint64) []Sleeve {
 	seed := int64(binary.BigEndian.Uint64(sum))
 	value := rand.New(rand.NewSource(seed)).Int63n(int64(MaxValueDenominationRegister))
 
-	return Mint(value, seed, 10)
+	return mint(value, seed, 10)
 }
