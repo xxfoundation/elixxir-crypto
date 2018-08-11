@@ -3,6 +3,8 @@ package coin
 import (
 	jww "github.com/spf13/jwalterweatherman"
 	"math/rand"
+	"gitlab.com/privategrity/crypto/hash"
+	"encoding/binary"
 )
 
 // This function creates a deterministic set of coins for a particular PRNG
@@ -59,4 +61,20 @@ func getNextValue(r *rand.Rand, totalValue int64, remainingSleeves int64) uint64
 	}
 
 	return nextValue
+}
+
+// Mints testing coins for demo/testing
+// This isn't official currency, and should be considered counterfeit
+// This is in API because access to the user.ID type gives this code more meaning
+func MintUser(id uint64) []Sleeve {
+	prngSeedGen, _ := hash.NewCMixHash()
+	prngSeedGen.Reset()
+	idBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(idBytes, id)
+	prngSeedGen.Write(idBytes)
+	sum := prngSeedGen.Sum(nil)
+	seed := int64(binary.BigEndian.Uint64(sum))
+	value := rand.New(rand.NewSource(seed)).Int63n(int64(MaxValueDenominationRegister))
+
+	return Mint(value, seed, 10)
 }

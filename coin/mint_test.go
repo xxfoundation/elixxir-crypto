@@ -66,3 +66,19 @@ func Catch(fn string, t *testing.T) {
 		t.Errorf("No panic was caught and it was expected to!")
 	}
 }
+
+func TestMintUser(t *testing.T) {
+	for user := 1; user < 100; user++ {
+		compoundCoins := MintUser(3)
+		totalValue := uint64(0)
+		for i := range compoundCoins {
+			totalValue += compoundCoins[i].value
+		}
+		if totalValue == 0 || totalValue > MaxValueDenominationRegister {
+			t.Errorf("Total value %v was out of expected range", totalValue)
+		}
+		if len(compoundCoins) != 10 {
+			t.Error("Expected exactly ten compound coins for this user")
+		}
+	}
+}
