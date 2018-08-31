@@ -3,6 +3,7 @@ package format
 import (
 	"gitlab.com/privategrity/crypto/cyclic"
 	"testing"
+	"gitlab.com/privategrity/crypto/id"
 )
 
 func TestMessagePayload(t *testing.T) {
@@ -31,21 +32,14 @@ func TestMessagePayload(t *testing.T) {
 	expectedSlices[2][1] = ([]byte(testStrings[2]))[DATA_LEN : 2*DATA_LEN]
 	expectedSlices[2][2] = ([]byte(testStrings[2]))[2*DATA_LEN:]
 
-	for i := 0; i < tests; i++ {
-		pldSlc, _ := NewPayload(uint64(i+1), testStrings[i])
+	for i := uint64(0); i < uint64(tests); i++ {
+		pldSlc, _ := NewPayload(id.NewUserIDFromUint(i+1, t), testStrings[i])
 
 		for indx, pld := range pldSlc {
-			if uint64(i+1) != pld.senderID.Uint64() {
+			if id.NewUserIDFromUint(i+1, t) != pld.GetSender() {
 				t.Errorf("Test of Payload failed on test %v:%v, sID did not "+
 					"match;\n  Expected: %v, Received: %v", i, indx, i,
-					pld.senderID.Uint64())
-			}
-
-			if uint64(i+1) != pld.GetSenderIDUint() {
-				t.Errorf("Test of Payload failed on test %v:%v, "+
-					"sID UINT did not "+
-					"match;\n  Expected: %v, Received: %v", i, indx, i,
-					pld.GetSenderIDUint())
+					pld.GetSender())
 			}
 
 			expct := cyclic.NewIntFromBytes(expectedSlices[i][indx])
@@ -98,20 +92,4 @@ func TestMessagePayload(t *testing.T) {
 
 	}
 
-}
-
-func compareByteSlices(a, b *[]byte) bool {
-	if len(*a) != len(*b) {
-		return false
-	}
-
-	for i := 0; i < len(*a); i++ {
-		if (*a)[i] != (*b)[i] {
-
-			return false
-		}
-
-	}
-
-	return true
 }

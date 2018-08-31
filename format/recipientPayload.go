@@ -4,17 +4,17 @@ import (
 	"errors"
 	"fmt"
 	"gitlab.com/privategrity/crypto/cyclic"
+	"gitlab.com/privategrity/crypto/id"
 )
 
 const (
-
 	// Length and Position of the Recipeint Initialization Vector
 	RIV_LEN   uint64 = 9
 	RIV_START uint64 = 0
 	RIV_END   uint64 = RIV_LEN
 
 	// Length and Position of the Recipient ID
-	RID_LEN   uint64 = 8
+	RID_LEN   uint64 = id.UserIDLen
 	RID_START uint64 = REMPTY_END
 	RID_END   uint64 = RID_START + RID_LEN
 
@@ -38,10 +38,10 @@ type Recipient struct {
 }
 
 //Builds a recipient payload object
-func NewRecipientPayload(ID uint64) (Recipient, error) {
-	if ID == 0 {
+func NewRecipientPayload(ID id.UserID) (Recipient, error) {
+	if ID == id.ZeroID {
 		return Recipient{}, errors.New(fmt.Sprintf(
-			"Cannot build Recipient Payload; Invalid Recipient ID: %v",
+			"Cannot build Recipient Payload; Invalid Recipient ID: %q",
 			ID))
 	}
 
@@ -49,7 +49,7 @@ func NewRecipientPayload(ID uint64) (Recipient, error) {
 	return Recipient{
 		cyclic.NewInt(0),
 		cyclic.NewInt(0),
-		cyclic.NewIntFromUInt(ID),
+		cyclic.NewIntFromBytes([]byte(ID)),
 		cyclic.NewInt(0),
 	}, nil
 }
@@ -76,11 +76,6 @@ func (r Recipient) GetRecipientInitVect() *cyclic.Int {
 // This ensures that while the data can be edited, it cant be reallocated
 func (r Recipient) GetRecipientMIC() *cyclic.Int {
 	return r.recipientMIC
-}
-
-//Returns the RecipientID as a uint64
-func (r Recipient) GetRecipientIDUint() uint64 {
-	return r.recipientID.Uint64()
 }
 
 // Returns the serialized recipient payload

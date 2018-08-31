@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"gitlab.com/privategrity/crypto/cyclic"
+	"gitlab.com/privategrity/crypto/id"
 )
 
 // Defines message structure.  Based the "Basic Message Structure" doc
@@ -29,12 +30,12 @@ const (
 type MessageInterface interface {
 	// Returns the message's sender ID
 	// (uint64) BigEndian serialized into a byte slice
-	GetSender() []byte
+	GetSender() id.UserID
 	// Returns the message payload
 	GetPayload() string
 	// Returns the message's recipient ID
 	// (uint64) BigEndian serialized into a byte slice
-	GetRecipient() []byte
+	GetRecipient() id.UserID
 }
 
 // Holds the payloads once they have been serialized
@@ -51,8 +52,8 @@ type Message struct {
 }
 
 //Returns a serialized sender ID for the message interface
-func (m Message) GetSender() []byte {
-	return m.senderID.LeftpadBytes(SID_LEN)
+func (m Message) GetSender() id.UserID {
+	return id.UserID(m.senderID.LeftpadBytes(SID_LEN))
 }
 
 //Returns the payload as a string for the message interface
@@ -61,12 +62,12 @@ func (m Message) GetPayload() string {
 }
 
 //Returns a serialized recipient id for the message interface
-func (m Message) GetRecipient() []byte {
-	return m.recipientID.LeftpadBytes(RID_LEN)
+func (m Message) GetRecipient() id.UserID {
+	return id.UserID(m.recipientID.LeftpadBytes(RID_LEN))
 }
 
 // Makes a new message for a certain sender and recipient
-func NewMessage(sender, recipient uint64, text string) ([]Message, error) {
+func NewMessage(sender, recipient id.UserID, text string) ([]Message, error) {
 
 	//build the recipient payload
 	recipientPayload, err := NewRecipientPayload(recipient)

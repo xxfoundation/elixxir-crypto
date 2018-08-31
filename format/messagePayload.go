@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"gitlab.com/privategrity/crypto/cyclic"
+	"gitlab.com/privategrity/crypto/id"
 )
 
 const (
-
 	// Length and Position of the Payload Initialization Vector
 	PIV_LEN   uint64 = 9
 	PIV_START uint64 = 0
@@ -18,7 +18,7 @@ const (
 	DATA_START uint64 = PIV_END
 	DATA_END   uint64 = DATA_START + DATA_LEN
 
-	SID_LEN   uint64 = 8
+	SID_LEN   uint64 = id.UserIDLen
 	SID_START uint64 = DATA_END
 	SID_END   uint64 = SID_START + SID_LEN
 
@@ -37,8 +37,8 @@ type Payload struct {
 
 // Makes a new message for a certain sender.
 // Splits the message into multiple if it is too long
-func NewPayload(sender uint64, text string) ([]Payload, error) {
-	if sender == 0 {
+func NewPayload(sender id.UserID, text string) ([]Payload, error) {
+	if sender == id.ZeroID {
 		return []Payload{}, errors.New(fmt.Sprintf(
 			"Cannot build Message Payload; Invalid Sender ID: %v",
 			sender))
@@ -63,7 +63,7 @@ func NewPayload(sender uint64, text string) ([]Payload, error) {
 	for _, datum := range dataLst {
 		payload := Payload{
 			cyclic.NewInt(0),
-			cyclic.NewIntFromUInt(sender),
+			cyclic.NewIntFromBytes([]byte(sender)),
 			cyclic.NewIntFromBytes(datum),
 			cyclic.NewInt(0)}
 		payloadLst = append(payloadLst, payload)
@@ -94,11 +94,6 @@ func (p Payload) GetData() *cyclic.Int {
 // This ensures that while the data can be edited, it cant be reallocated
 func (p Payload) GetPayloadMIC() *cyclic.Int {
 	return p.payloadMIC
-}
-
-//Returns the SenderID as a uint64
-func (p Payload) GetSenderIDUint() uint64 {
-	return p.senderID.Uint64()
 }
 
 // Returns the serialized message payload
