@@ -52,8 +52,11 @@ type Message struct {
 }
 
 //Returns a serialized sender ID for the message interface
+// FIXME Two copies for this isn't great
 func (m Message) GetSender() id.UserID {
-	return id.UserID(m.senderID.LeftpadBytes(SID_LEN))
+	var result id.UserID
+	copy(result[:], m.senderID.LeftpadBytes(SID_LEN))
+	return result
 }
 
 //Returns the payload as a string for the message interface
@@ -62,8 +65,11 @@ func (m Message) GetPayload() string {
 }
 
 //Returns a serialized recipient id for the message interface
+// FIXME Two copies for this isn't great
 func (m Message) GetRecipient() id.UserID {
-	return id.UserID(m.recipientID.LeftpadBytes(RID_LEN))
+	var result id.UserID
+	copy(result[:], m.recipientID.LeftpadBytes(RID_LEN))
+	return result
 }
 
 // Makes a new message for a certain sender and recipient

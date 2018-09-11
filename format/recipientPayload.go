@@ -49,7 +49,7 @@ func NewRecipientPayload(ID id.UserID) (Recipient, error) {
 	return Recipient{
 		cyclic.NewInt(0),
 		cyclic.NewInt(0),
-		cyclic.NewIntFromBytes([]byte(ID)),
+		cyclic.NewIntFromBytes(ID[:]),
 		cyclic.NewInt(0),
 	}, nil
 }

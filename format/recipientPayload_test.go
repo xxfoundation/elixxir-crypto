@@ -3,6 +3,7 @@ package format
 import (
 	"gitlab.com/privategrity/crypto/cyclic"
 	"testing"
+	"gitlab.com/privategrity/crypto/id"
 )
 
 func TestRecipientPayload(t *testing.T) {
@@ -24,7 +25,7 @@ func TestRecipientPayload(t *testing.T) {
 	var err error
 
 	for i := 0; i < numRecpts; i++ {
-		recipients[i], err = NewRecipientPayload(rids[i])
+		recipients[i], err = NewRecipientPayload(id.NewUserIDFromUint(rids[i], t))
 
 		if err != nil && rids[i] != 0 {
 			t.Errorf("Test of Recipient Payload failed on test %v, "+
@@ -43,13 +44,6 @@ func TestRecipientPayload(t *testing.T) {
 				"Recipient ID did not match;\n  Expected: %v, "+
 				"Recieved: %v ", i, rids[i],
 				recipients[i].GetRecipientID().Text(10))
-		}
-
-		if recipients[i].GetRecipientIDUint() != rids[i] {
-			t.Errorf("Test of Recipient Payload failed on test %v, "+
-				"Recipient ID UINT did not match;\n  Expected: %v, "+
-				"Recieved: %v ", i, rids[i],
-				recipients[i].GetRecipientIDUint())
 		}
 
 		recipients[i].recipientInitVect.Set(initVects[i])

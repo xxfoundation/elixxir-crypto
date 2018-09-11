@@ -10,11 +10,12 @@ import (
 	"fmt"
 	"gitlab.com/privategrity/crypto/cyclic"
 	"testing"
+	"gitlab.com/privategrity/crypto/id"
 )
 
 func TestNewMessage(t *testing.T) {
 
-	tests := 3
+	tests := uint64(3)
 
 	testStrings := make([]string, tests)
 
@@ -39,8 +40,10 @@ func TestNewMessage(t *testing.T) {
 	expectedSlices[2][1] = ([]byte(testStrings[2]))[DATA_LEN : 2*DATA_LEN]
 	expectedSlices[2][2] = ([]byte(testStrings[2]))[2*DATA_LEN:]
 
-	for i := 0; i < tests; i++ {
-		msglst, _ := NewMessage(uint64(i+1), uint64(i+1), testStrings[i])
+	for i := uint64(0); i < tests; i++ {
+		msglst, _ := NewMessage(id.NewUserIDFromUint(i+1, t),
+			id.NewUserIDFromUint(i+1, t),
+			testStrings[i])
 
 		for indx, msg := range msglst {
 

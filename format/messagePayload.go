@@ -63,7 +63,7 @@ func NewPayload(sender id.UserID, text string) ([]Payload, error) {
 	for _, datum := range dataLst {
 		payload := Payload{
 			cyclic.NewInt(0),
-			cyclic.NewIntFromBytes([]byte(sender)),
+			cyclic.NewIntFromBytes(sender[:]),
 			cyclic.NewIntFromBytes(datum),
 			cyclic.NewInt(0)}
 		payloadLst = append(payloadLst, payload)
@@ -82,6 +82,12 @@ func (p Payload) GetPayloadInitVect() *cyclic.Int {
 // This ensures that while the data can be edited, it cant be reallocated
 func (p Payload) GetSenderID() *cyclic.Int {
 	return p.senderID
+}
+
+func (p Payload) GetSender() id.UserID {
+	var result id.UserID
+	copy(result[:], p.senderID.LeftpadBytes(id.UserIDLen))
+	return result
 }
 
 // This function returns a pointer to the data payload
