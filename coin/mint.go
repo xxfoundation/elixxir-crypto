@@ -70,7 +70,7 @@ func MintUser(userId id.UserID) []Sleeve {
 		"Don't do this except for demos or testing.", userId)
 	prngSeedGen, _ := hash.NewCMixHash()
 	prngSeedGen.Reset()
-	prngSeedGen.Write([]byte(userId))
+	prngSeedGen.Write(userId[:])
 	sum := prngSeedGen.Sum(nil)
 	seed := int64(binary.BigEndian.Uint64(sum))
 	value := rand.New(rand.NewSource(seed)).Int63n(int64(MaxValueDenominationRegister))
