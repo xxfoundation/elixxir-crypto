@@ -30,12 +30,12 @@ const (
 type MessageInterface interface {
 	// Returns the message's sender ID
 	// (uint64) BigEndian serialized into a byte slice
-	GetSender() id.UserID
+	GetSender() *id.UserID
 	// Returns the message payload
 	GetPayload() string
 	// Returns the message's recipient ID
 	// (uint64) BigEndian serialized into a byte slice
-	GetRecipient() id.UserID
+	GetRecipient() *id.UserID
 }
 
 // Holds the payloads once they have been serialized
@@ -52,10 +52,8 @@ type Message struct {
 }
 
 //Returns a serialized sender ID for the message interface
-// FIXME Two copies for this isn't great
-func (m Message) GetSender() id.UserID {
-	var result id.UserID
-	copy(result[:], m.senderID.LeftpadBytes(SID_LEN))
+func (m Message) GetSender() *id.UserID {
+	result, _ := new(id.UserID).SetBytes(m.senderID.LeftpadBytes(SID_LEN))
 	return result
 }
 
@@ -66,14 +64,13 @@ func (m Message) GetPayload() string {
 
 //Returns a serialized recipient id for the message interface
 // FIXME Two copies for this isn't great
-func (m Message) GetRecipient() id.UserID {
-	var result id.UserID
-	copy(result[:], m.recipientID.LeftpadBytes(RID_LEN))
+func (m Message) GetRecipient() *id.UserID {
+	result, _ := new(id.UserID).SetBytes(m.recipientID.LeftpadBytes(RID_LEN))
 	return result
 }
 
 // Makes a new message for a certain sender and recipient
-func NewMessage(sender, recipient id.UserID, text string) ([]Message, error) {
+func NewMessage(sender, recipient *id.UserID, text string) ([]Message, error) {
 
 	//build the recipient payload
 	recipientPayload, err := NewRecipientPayload(recipient)

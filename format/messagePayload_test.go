@@ -36,7 +36,7 @@ func TestMessagePayload(t *testing.T) {
 		pldSlc, _ := NewPayload(id.NewUserIDFromUint(i+1, t), testStrings[i])
 
 		for indx, pld := range pldSlc {
-			if id.NewUserIDFromUint(i+1, t) != pld.GetSender() {
+			if *id.NewUserIDFromUint(i+1, t) != *pld.GetSender() {
 				t.Errorf("Test of Payload failed on test %v:%v, sID did not "+
 					"match;\n  Expected: %v, Received: %v", i, indx, i,
 					pld.GetSender())

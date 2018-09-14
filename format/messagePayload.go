@@ -37,8 +37,8 @@ type Payload struct {
 
 // Makes a new message for a certain sender.
 // Splits the message into multiple if it is too long
-func NewPayload(sender id.UserID, text string) ([]Payload, error) {
-	if sender == id.ZeroID {
+func NewPayload(sender *id.UserID, text string) ([]Payload, error) {
+	if *sender == *id.ZeroID {
 		return []Payload{}, errors.New(fmt.Sprintf(
 			"Cannot build Message Payload; Invalid Sender ID: %v",
 			sender))
@@ -84,9 +84,8 @@ func (p Payload) GetSenderID() *cyclic.Int {
 	return p.senderID
 }
 
-func (p Payload) GetSender() id.UserID {
-	var result id.UserID
-	copy(result[:], p.senderID.LeftpadBytes(id.UserIDLen))
+func (p Payload) GetSender() *id.UserID {
+	result, _ := new(id.UserID).SetBytes(p.senderID.LeftpadBytes(id.UserIDLen))
 	return result
 }
 

@@ -38,8 +38,8 @@ type Recipient struct {
 }
 
 //Builds a recipient payload object
-func NewRecipientPayload(ID id.UserID) (Recipient, error) {
-	if ID == id.ZeroID {
+func NewRecipientPayload(ID *id.UserID) (Recipient, error) {
+	if *ID == *id.ZeroID {
 		return Recipient{}, errors.New(fmt.Sprintf(
 			"Cannot build Recipient Payload; Invalid Recipient ID: %q",
 			ID))
