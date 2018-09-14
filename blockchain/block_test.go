@@ -385,7 +385,7 @@ func TestBlock_Bake(t *testing.T) {
 	trExpected := BlockHash{}
 	trExpected[0] = 99
 
-	err := b.Bake([]coin.Seed{{}}, trExpected)
+	err := b.Bake([]coin.Seed{{}}, trExpected, 8)
 
 	if err != nil {
 		t.Errorf("Block.Bake: Could not bake with valid lifecycle: %s", err.Error())
@@ -400,7 +400,7 @@ func TestBlock_Bake(t *testing.T) {
 			trExpected, b.treeRoot)
 	}
 
-	err = b.Bake([]coin.Seed{{}}, BlockHash{})
+	err = b.Bake([]coin.Seed{{}}, BlockHash{}, 8)
 
 	if err != ErrRaw {
 		if err == nil {
@@ -475,7 +475,7 @@ func TestBlock_SerializeDeserialize(t *testing.T) {
 	trExpected := BlockHash{}
 	trExpected[0] = 99
 
-	err = block.Bake(seedList, trExpected)
+	err = block.Bake(seedList, trExpected, 8)
 
 	if err != nil {
 		t.Errorf("Block.Serialize: Error on bake: %s", err.Error())
@@ -496,6 +496,10 @@ func TestBlock_SerializeDeserialize(t *testing.T) {
 
 	if !reflect.DeepEqual(block, newBlock) {
 		t.Errorf("Block.Deseralize/Block.Serialize: Deseralized block does not match Origonal Block")
+	}
+
+	if !reflect.DeepEqual(block.signatures, newBlock.signatures) {
+		t.Errorf("Block.Deseralize/Block.Serialize: Deseralized block signatures does not match Origonal Block signatures.  %v %v", block.signatures[0], newBlock.signatures[0])
 	}
 
 	if !reflect.DeepEqual(block.hash, newBlock.hash) {

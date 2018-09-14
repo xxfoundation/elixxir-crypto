@@ -1,11 +1,15 @@
 package blockchain
 
 import (
+	"crypto/dsa"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/json"
+	"fmt"
 	"gitlab.com/privategrity/crypto/coin"
 	"gitlab.com/privategrity/crypto/shuffle"
 	"golang.org/x/crypto/blake2b"
+	"os"
 	"sync"
 )
 
@@ -14,6 +18,16 @@ const BlockHashLen = BlockHashLenBits / 8
 
 // Array that holds hashes for the blockchain
 type BlockHash [BlockHashLen]byte
+
+var params *dsa.Parameters
+
+func init() {
+	params = new(dsa.Parameters)
+	if err := dsa.GenerateParameters(params, rand.Reader, dsa.L1024N160); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+}
 
 // A single block in the blockchain
 type Block struct {
@@ -25,6 +39,7 @@ type Block struct {
 	destroyed    []coin.Coin
 	lifecycle    BlockLifecycle
 	mutex        sync.Mutex
+	signatures   []DsaSigTuple
 }
 
 // a structure that holds a blockchain's data for easy serialization and deserialization
@@ -35,6 +50,12 @@ type serialBlock struct {
 	TreeRoot     []byte
 	Created      [][]byte
 	Destroyed    [][]byte
+	Signatures   []DsaSigTuple
+}
+
+type DsaSigTuple struct {
+	R []byte
+	S []byte
 }
 
 // Generates the origin block for the blockchain
@@ -47,7 +68,7 @@ func GenerateOriginBlock() *Block {
 	b.created = append(b.created, coin.Coin{})
 	b.destroyed = append(b.destroyed, coin.Coin{})
 
-	b.Bake([]coin.Seed{coin.Seed{}}, BlockHash{})
+	b.Bake([]coin.Seed{coin.Seed{}}, BlockHash{}, 8)
 
 	return &b
 }
@@ -173,7 +194,7 @@ func (b *Block) GetTreeRoot() (BlockHash, error) {
 
 // Permutes the coins and hashes the block
 // Only runs if the lifecycle state is "Raw" and sets the state to "Baked"
-func (b *Block) Bake(seedList []coin.Seed, treeRoot BlockHash) error {
+func (b *Block) Bake(seedList []coin.Seed, treeRoot BlockHash, numkeys int) error {
 	b.mutex.Lock()
 
 	if b.lifecycle != Raw {
@@ -211,6 +232,18 @@ func (b *Block) Bake(seedList []coin.Seed, treeRoot BlockHash) error {
 
 	copy(b.hash[:BlockHashLen], hashBytes[:BlockHashLen])
 
+	for i := 0; i < numkeys; i++ {
+		privatekey := new(dsa.PrivateKey)
+		privatekey.PublicKey.Parameters = *params
+		dsa.GenerateKey(privatekey, rand.Reader)
+		r, s, err := dsa.Sign(rand.Reader, privatekey, hashBytes[:BlockHashLen])
+		if err != nil {
+			return err
+		}
+		b.signatures = append(b.signatures,
+			DsaSigTuple{r.Bytes(), s.Bytes()})
+	}
+
 	//Set the lifecycle to baked
 	b.lifecycle = Baked
 
@@ -230,6 +263,7 @@ func (b *Block) Serialize() ([]byte, error) {
 		Hash:         b.hash[:],
 		PreviousHash: b.previousHash[:],
 		TreeRoot:     b.treeRoot[:],
+		Signatures:   b.signatures,
 	}
 
 	for indx := range b.created {
@@ -262,6 +296,8 @@ func Deserialize(sBlock []byte) (*Block, error) {
 	copy(b.previousHash[:], sb.PreviousHash)
 
 	copy(b.treeRoot[:], sb.TreeRoot)
+
+	b.signatures = sb.Signatures
 
 	for i := range sb.Created {
 		newCoin := coin.Coin{}
