@@ -19,6 +19,10 @@ import (
 // character in a string, for Unicode support. So it's possible to use normal
 // strings as an immutable container for bytes in all the languages we care
 // about supporting.
+// However, when marshaling strings into protobufs, you'll get errors when
+// the string isn't a valid UTF-8 string. So, the alternative underlying type
+// that you can use as a map key in Go is an array, and that's what the package
+// should use.
 type UserID [UserIDLen]byte
 
 // Length of IDs in bytes
@@ -39,14 +43,14 @@ func init() {
 const RegCodeLen = 5
 
 func (u *UserID) RegistrationCode() string {
-	return base32.StdEncoding.EncodeToString(UserHash(u))
+	return base32.StdEncoding.EncodeToString(userHash(u))
 }
 
-// UserHash generates a hash of the UID to be used as a registration code for
+// userHash generates a hash of the UID to be used as a registration code for
 // demos
 // TODO Should we use the full-length hash? Should we even be doing registration
 // like this?
-func UserHash(uid *UserID) []byte {
+func userHash(uid *UserID) []byte {
 	h, _ := hash.NewCMixHash()
 	h.Write(uid[:])
 	huid := h.Sum(nil)
@@ -78,18 +82,13 @@ func (u *UserID) SetUints(uints *[4]uint64) *UserID {
 	return u
 }
 
-// TODO What's better here: panic or error when not all bytes are filled out?
-// panic for now to make it easier to track stuff down
-// error later
 func (u *UserID) SetBytes(data []byte) (*UserID, error) {
 	bytesCopied := copy(u[:], data)
 	if bytesCopied != UserIDLen {
-		// TODO Before commit remove or jww-ize this panic
 		errString := fmt.Sprintf("id.UserID SetBytes(" +
 			") error: Not all bytes were set. You set the first %v bytes, " +
 			"but you need to set %v bytes. Current ID: %q", bytesCopied,
 			UserIDLen, *u)
-		panic(errString)
 		return nil, errors.New(errString)
 	}
 	return u, nil
