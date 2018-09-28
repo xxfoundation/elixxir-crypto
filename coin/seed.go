@@ -44,14 +44,6 @@ func NewSeed(value uint64) (Seed, error) {
 		seed[DenominationRegStart+i] = dr[i]
 	}
 
-	//Compute the Compound hash
-	compoundHash := seed.hashToCompound()
-
-	//Append the compound prefix to the seed
-	for i := uint64(0); i < SeedPrefixLen; i++ {
-		seed[SeedPrefixStart+i] = compoundHash[i]
-	}
-
 	return seed, nil
 }
 
@@ -81,11 +73,6 @@ func (seed Seed) hashToCompound() []byte {
 func (seed Seed) Value() uint64 {
 	dr, _ := DeserializeDenominationRegistry(seed[DenominationRegStart:DenominationRegEnd])
 	return dr.Value()
-}
-
-// Returns the prefix fo the seed
-func (seed Seed) GetPrefix() []byte {
-	return seed[SeedPrefixStart:SeedPrefixEnd]
 }
 
 // Returns a copy of the seed

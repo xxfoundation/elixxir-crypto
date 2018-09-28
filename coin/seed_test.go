@@ -220,25 +220,6 @@ func TestSeed_Copy(t *testing.T) {
 	}
 }
 
-// Tests that Seed.GetPrefix returns the correct bytes
-func TestSeed_GetPrefix(t *testing.T) {
-	var seed Seed
-
-	for i := byte(0); i < byte(BaseFrameLen); i++ {
-		seed[i] = i
-	}
-
-	expectedPrefix := seed[SeedPrefixStart:SeedPrefixEnd]
-
-	receivedPrefix := seed.GetPrefix()
-
-	if !reflect.DeepEqual(expectedPrefix, receivedPrefix) {
-		t.Errorf("Seed.GetPrefix: Returned prefix not equal to expected"+
-			"Expected: %v, Received: %v", expectedPrefix, receivedPrefix)
-	}
-
-}
-
 // Tests that the header in compound is correct
 func TestSeed_ComputeCompound_Header(t *testing.T) {
 	seed, err := NewSeed(1)
