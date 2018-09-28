@@ -1,15 +1,11 @@
 package blockchain
 
 import (
-	"crypto/dsa"
-	"crypto/rand"
 	"crypto/sha256"
 	"encoding/json"
-	"fmt"
 	"gitlab.com/privategrity/crypto/coin"
 	"gitlab.com/privategrity/crypto/shuffle"
 	"golang.org/x/crypto/blake2b"
-	"os"
 	"sync"
 )
 
@@ -18,16 +14,6 @@ const BlockHashLen = BlockHashLenBits / 8
 
 // Array that holds hashes for the blockchain
 type BlockHash [BlockHashLen]byte
-
-var params *dsa.Parameters
-
-func init() {
-	params = new(dsa.Parameters)
-	if err := dsa.GenerateParameters(params, rand.Reader, dsa.L1024N160); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-}
 
 // A single block in the blockchain
 type Block struct {
