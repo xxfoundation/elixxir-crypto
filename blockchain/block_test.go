@@ -385,7 +385,7 @@ func TestBlock_Bake(t *testing.T) {
 	trExpected := BlockHash{}
 	trExpected[0] = 99
 
-	err := b.Bake([]coin.Seed{{}}, trExpected, 8)
+	err := b.Bake([]coin.Seed{{}}, trExpected)
 
 	if err != nil {
 		t.Errorf("Block.Bake: Could not bake with valid lifecycle: %s", err.Error())
@@ -400,7 +400,7 @@ func TestBlock_Bake(t *testing.T) {
 			trExpected, b.treeRoot)
 	}
 
-	err = b.Bake([]coin.Seed{{}}, BlockHash{}, 8)
+	err = b.Bake([]coin.Seed{{}}, BlockHash{})
 
 	if err != ErrRaw {
 		if err == nil {
@@ -475,7 +475,7 @@ func TestBlock_SerializeDeserialize(t *testing.T) {
 	trExpected := BlockHash{}
 	trExpected[0] = 99
 
-	err = block.Bake(seedList, trExpected, 8)
+	err = block.Bake(seedList, trExpected)
 
 	if err != nil {
 		t.Errorf("Block.Serialize: Error on bake: %s", err.Error())

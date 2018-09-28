@@ -47,7 +47,7 @@ func GenerateOriginBlock() *Block {
 	b.created = append(b.created, coin.Coin{})
 	b.destroyed = append(b.destroyed, coin.Coin{})
 
-	b.Bake([]coin.Seed{coin.Seed{}}, BlockHash{}, 8)
+	b.Bake([]coin.Seed{coin.Seed{}}, BlockHash{})
 
 	return &b
 }
