@@ -39,7 +39,6 @@ type Block struct {
 	destroyed    []coin.Coin
 	lifecycle    BlockLifecycle
 	mutex        sync.Mutex
-	signatures   []DsaSigTuple
 }
 
 // a structure that holds a blockchain's data for easy serialization and deserialization
@@ -50,12 +49,6 @@ type serialBlock struct {
 	TreeRoot     []byte
 	Created      [][]byte
 	Destroyed    [][]byte
-	Signatures   []DsaSigTuple
-}
-
-type DsaSigTuple struct {
-	R []byte
-	S []byte
 }
 
 // Generates the origin block for the blockchain
@@ -232,18 +225,6 @@ func (b *Block) Bake(seedList []coin.Seed, treeRoot BlockHash, numkeys int) erro
 
 	copy(b.hash[:BlockHashLen], hashBytes[:BlockHashLen])
 
-	for i := 0; i < numkeys; i++ {
-		privatekey := new(dsa.PrivateKey)
-		privatekey.PublicKey.Parameters = *params
-		dsa.GenerateKey(privatekey, rand.Reader)
-		r, s, err := dsa.Sign(rand.Reader, privatekey, hashBytes[:BlockHashLen])
-		if err != nil {
-			return err
-		}
-		b.signatures = append(b.signatures,
-			DsaSigTuple{r.Bytes(), s.Bytes()})
-	}
-
 	//Set the lifecycle to baked
 	b.lifecycle = Baked
 
@@ -263,7 +244,6 @@ func (b *Block) Serialize() ([]byte, error) {
 		Hash:         b.hash[:],
 		PreviousHash: b.previousHash[:],
 		TreeRoot:     b.treeRoot[:],
-		Signatures:   b.signatures,
 	}
 
 	for indx := range b.created {
@@ -296,8 +276,6 @@ func Deserialize(sBlock []byte) (*Block, error) {
 	copy(b.previousHash[:], sb.PreviousHash)
 
 	copy(b.treeRoot[:], sb.TreeRoot)
-
-	b.signatures = sb.Signatures
 
 	for i := range sb.Created {
 		newCoin := coin.Coin{}

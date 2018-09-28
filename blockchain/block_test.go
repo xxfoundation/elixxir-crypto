@@ -498,10 +498,6 @@ func TestBlock_SerializeDeserialize(t *testing.T) {
 		t.Errorf("Block.Deseralize/Block.Serialize: Deseralized block does not match Origonal Block")
 	}
 
-	if !reflect.DeepEqual(block.signatures, newBlock.signatures) {
-		t.Errorf("Block.Deseralize/Block.Serialize: Deseralized block signatures does not match Origonal Block signatures.  %v %v", block.signatures[0], newBlock.signatures[0])
-	}
-
 	if !reflect.DeepEqual(block.hash, newBlock.hash) {
 		t.Errorf("Block.Deseralize/Block.Serialize: Deseralized hash does not match Origonal hash: "+
 			"Origonal Hash: %v, Serial Hash: %v", block.hash, newBlock.hash)

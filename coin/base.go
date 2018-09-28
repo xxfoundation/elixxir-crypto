@@ -22,11 +22,6 @@ const SeedRNGLen = SeedRNGLenBits / 8
 const SeedRNGStart = HeaderEnd
 const SeedRNGEnd = SeedRNGStart + SeedRNGLen
 
-// Prefix component Definitions for Seed
-const SeedPrefixLen = HashLen - SeedRNGLen
-const SeedPrefixStart = SeedRNGEnd
-const SeedPrefixEnd = SeedPrefixStart + SeedPrefixLen
-
 // Calculates the number of coins in a compound based upon external data
 const DenominationRegStart = HashEnd
 const DenominationRegEnd = DenominationRegStart + DenominationRegisterLen
@@ -34,16 +29,11 @@ const DenominationRegEnd = DenominationRegStart + DenominationRegisterLen
 //Base Frame
 const BaseFrameLen = HeaderLen + HashLen + DenominationRegisterLen
 
-// Defines coin prefixes
-const CoinPrefixLen = uint64(1)
-const CoinPrefixLoc = uint64(0)
-const CoinPrefixEnd = CoinPrefixLoc + CoinPrefixLen
-
-const CoinHashStart = CoinPrefixEnd
+const CoinHashStart = uint64(0)
 const CoinHashEnd = CoinHashStart + HashLen
 const CoinDenominationLoc = CoinHashEnd
 const CoinDenominationlen = uint64(1)
-const CoinLen = CoinPrefixLen + HashLen + CoinDenominationlen
+const CoinLen = CoinHashStart + HashLen + CoinDenominationlen
 
 const PrefixSourceLoc = HashStart
 

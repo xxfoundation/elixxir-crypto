@@ -1,24 +1,8 @@
 package coin
 
 import (
-	"math"
 	"testing"
 )
-
-// Exhaustively Tests Prefix
-func TestCoin_Prefix(t *testing.T) {
-
-	var coin Coin
-
-	for i := byte(0); i < byte(math.MaxUint8); i++ {
-		coin[CoinPrefixLoc] = i
-
-		if coin.Prefix() != i {
-			t.Errorf("Coin.GetPrefix: Returned the incorrect prefix"+
-				" Expected %v, Received: %v", i, coin.Prefix())
-		}
-	}
-}
 
 // Exhaustively Tests GetDenomination
 func TestCoin_GetDenomination(t *testing.T) {

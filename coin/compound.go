@@ -71,7 +71,6 @@ func (ci Compound) ComputeCoins() []Coin {
 
 		copy(img[CoinHashStart:CoinHashEnd], imgByte)
 
-		img[CoinPrefixLoc] = ci[PrefixSourceLoc]
 		img[CoinDenominationLoc] = byte(dnom)
 
 		imgLst = append(imgLst, img)
