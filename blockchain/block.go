@@ -173,7 +173,7 @@ func (b *Block) GetTreeRoot() (BlockHash, error) {
 
 // Permutes the coins and hashes the block
 // Only runs if the lifecycle state is "Raw" and sets the state to "Baked"
-func (b *Block) Bake(seedList []coin.Seed, treeRoot BlockHash, numkeys int) error {
+func (b *Block) Bake(seedList []coin.Seed, treeRoot BlockHash) error {
 	b.mutex.Lock()
 
 	if b.lifecycle != Raw {

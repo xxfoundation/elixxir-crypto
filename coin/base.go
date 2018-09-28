@@ -33,7 +33,7 @@ const CoinHashStart = uint64(0)
 const CoinHashEnd = CoinHashStart + HashLen
 const CoinDenominationLoc = CoinHashEnd
 const CoinDenominationlen = uint64(1)
-const CoinLen = CoinHashStart + HashLen + CoinDenominationlen
+const CoinLen = HashLen + CoinDenominationlen
 
 const PrefixSourceLoc = HashStart
 
