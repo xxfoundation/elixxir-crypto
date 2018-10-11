@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"math/big"
+	"math/rand"
 	"reflect"
 	"testing"
 )
@@ -1138,4 +1139,96 @@ func TestGob(t *testing.T) {
 			"Expected: %v; Recieved: %v ", inInt.Text(10), outInt.Text(10))
 	}
 
+}
+
+func TestInt_And(t *testing.T) {
+	src := rand.NewSource(42)
+	rng := rand.New(src)
+
+	pass := true
+
+	for i := 0; i < 100; i++ {
+		aInt := rng.Uint64()
+		bInt := rng.Uint64()
+
+		aCyclic := NewIntFromUInt(aInt)
+		bCyclic := NewIntFromUInt(bInt)
+
+		resultCyclic := NewInt(0).And(aCyclic, bCyclic)
+
+		pass = pass && resultCyclic.Uint64() == (aInt&bInt)
+	}
+
+	if !pass {
+		t.Errorf("CyclicInt.And: Did not act as expected")
+	}
+}
+
+func TestInt_Or(t *testing.T) {
+	src := rand.NewSource(42)
+	rng := rand.New(src)
+
+	pass := true
+
+	for i := 0; i < 100; i++ {
+		aInt := rng.Uint64()
+		bInt := rng.Uint64()
+
+		aCyclic := NewIntFromUInt(aInt)
+		bCyclic := NewIntFromUInt(bInt)
+
+		resultCyclic := NewInt(0).Or(aCyclic, bCyclic)
+
+		pass = pass && resultCyclic.Uint64() == (aInt|bInt)
+	}
+
+	if !pass {
+		t.Errorf("CyclicInt.Or: Did not act as expected")
+	}
+}
+
+func TestInt_LeftShift(t *testing.T) {
+	src := rand.NewSource(42)
+	rng := rand.New(src)
+
+	pass := true
+
+	for i := 0; i < 100; i++ {
+		aInt := rng.Uint64()
+
+		shift := rng.Uint64() % 63
+
+		aCyclic := NewIntFromUInt(aInt)
+
+		resultCyclic := NewInt(0).LeftShift(aCyclic, uint(shift))
+
+		pass = pass && resultCyclic.Uint64() == (aInt<<shift)
+	}
+
+	if !pass {
+		t.Errorf("CyclicInt.LeftShift: Did not act as expected")
+	}
+}
+
+func TestInt_RightShift(t *testing.T) {
+	src := rand.NewSource(42)
+	rng := rand.New(src)
+
+	pass := true
+
+	for i := 0; i < 100; i++ {
+		aInt := rng.Uint64()
+
+		shift := rng.Uint64() % 63
+
+		aCyclic := NewIntFromUInt(aInt)
+
+		resultCyclic := NewInt(0).RightShift(aCyclic, uint(shift))
+
+		pass = pass && resultCyclic.Uint64() == (aInt>>shift)
+	}
+
+	if !pass {
+		t.Errorf("CyclicInt.LeftShift: Did not act as expected")
+	}
 }

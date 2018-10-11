@@ -225,6 +225,30 @@ func (x *Int) Cmp(y *Int) (r int) {
 	return x.value.Cmp(y.value)
 }
 
+//RightShift shifts the value right by n bits
+func (z *Int) RightShift(x *Int, n uint) *Int {
+	z.value.Rsh(x.value, n)
+	return z
+}
+
+//LeftShift shifts the value left by n bits
+func (z *Int) LeftShift(x *Int, n uint) *Int {
+	z.value.Lsh(x.value, n)
+	return z
+}
+
+//Or computes the bitwise or operation between the Cyclic Ints
+func (z *Int) Or(x, y *Int) *Int {
+	z.value.Or(x.value, y.value)
+	return z
+}
+
+//And computes the bitwise and operation between the Cyclic Ints
+func (z *Int) And(x, y *Int) *Int {
+	z.value.And(x.value, y.value)
+	return z
+}
+
 // Text returns the string representation of x in the given base. Base
 // must be between 2 and 36, inclusive. The result uses the lower-case
 // letters 'a' to 'z' for digit values >= 10. No base prefix (such as
