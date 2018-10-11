@@ -152,13 +152,19 @@ func (g Group) RootCoprime(x, y, z *Int) *Int {
 func (g Group) FindSmallCoprimeInverse(z *Int, bits uint32) *Int {
 
 	// RNG that ensures the output is an odd number between 2 and 2^(
-	// bit*8)
+	// bit*8) that is not equal to p-1/2.  This must occur because for a proper
+	// modular inverse to exist within a group a number must have no common
+	// factors with the number that defines the group.  Normally that would not
+	// be a problem because the number that defines the group normally is a prime,
+	// but we are inverting within a group defined by the even number p-1 to find the
+	// modular exponential inverse, so the number must be chozen from a different set
 	max := NewInt(0).Sub(NewInt(0).LeftShift(NewInt(1), uint(bits)-2), NewInt(1))
 	rng := NewRandom(NewInt(2), max)
 
 	for true {
 		zinv := NewInt(0).Or(NewInt(0).LeftShift(rng.Rand(NewInt(0)), 1), NewInt(1))
 
+		// p-1 has one odd factor, (p-1)/2,  we must check that the generated number is not that
 		if zinv.Cmp(g.psub1Half) == 0 {
 			continue
 		}
