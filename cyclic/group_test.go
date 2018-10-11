@@ -458,9 +458,6 @@ func TestGroup_FindSmallCoprimeInverse(t *testing.T) {
 
 	group := NewGroup(p, s, g, rng)
 
-	//sizeSrc := rand.NewSource(42)
-	//sizeRNG := rand.New(sizeSrc)
-
 	for i := 0; i < 1000; i++ {
 		z := NewInt(0)
 

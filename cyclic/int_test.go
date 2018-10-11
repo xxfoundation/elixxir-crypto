@@ -1145,8 +1145,6 @@ func TestInt_And(t *testing.T) {
 	src := rand.NewSource(42)
 	rng := rand.New(src)
 
-	pass := true
-
 	for i := 0; i < 100; i++ {
 		aInt := rng.Uint64()
 		bInt := rng.Uint64()
@@ -1156,19 +1154,16 @@ func TestInt_And(t *testing.T) {
 
 		resultCyclic := NewInt(0).And(aCyclic, bCyclic)
 
-		pass = pass && resultCyclic.Uint64() == (aInt&bInt)
-	}
-
-	if !pass {
-		t.Errorf("CyclicInt.And: Did not act as expected")
+		if resultCyclic.Uint64() != (aInt & bInt) {
+			t.Errorf("CyclicInt.And: andd value not as expected: Expected: %v, Recieved: %v",
+				aInt&bInt, resultCyclic.Uint64())
+		}
 	}
 }
 
 func TestInt_Or(t *testing.T) {
 	src := rand.NewSource(42)
 	rng := rand.New(src)
-
-	pass := true
 
 	for i := 0; i < 100; i++ {
 		aInt := rng.Uint64()
@@ -1179,19 +1174,16 @@ func TestInt_Or(t *testing.T) {
 
 		resultCyclic := NewInt(0).Or(aCyclic, bCyclic)
 
-		pass = pass && resultCyclic.Uint64() == (aInt|bInt)
-	}
-
-	if !pass {
-		t.Errorf("CyclicInt.Or: Did not act as expected")
+		if resultCyclic.Uint64() != (aInt | bInt) {
+			t.Errorf("CyclicInt.Or: ored value not as expected: Expected: %v, Recieved: %v",
+				aInt|bInt, resultCyclic.Uint64())
+		}
 	}
 }
 
 func TestInt_LeftShift(t *testing.T) {
 	src := rand.NewSource(42)
 	rng := rand.New(src)
-
-	pass := true
 
 	for i := 0; i < 100; i++ {
 		aInt := rng.Uint64()
@@ -1202,19 +1194,17 @@ func TestInt_LeftShift(t *testing.T) {
 
 		resultCyclic := NewInt(0).LeftShift(aCyclic, uint(shift))
 
-		pass = pass && resultCyclic.Uint64() == (aInt<<shift)
+		if resultCyclic.Uint64() != (aInt << shift) {
+			t.Errorf("CyclicInt.LeftShift: shifted value not as expected: Expected: %v, Recieved: %v",
+				aInt<<shift, resultCyclic.Uint64())
+		}
 	}
 
-	if !pass {
-		t.Errorf("CyclicInt.LeftShift: Did not act as expected")
-	}
 }
 
 func TestInt_RightShift(t *testing.T) {
 	src := rand.NewSource(42)
 	rng := rand.New(src)
-
-	pass := true
 
 	for i := 0; i < 100; i++ {
 		aInt := rng.Uint64()
@@ -1225,10 +1215,10 @@ func TestInt_RightShift(t *testing.T) {
 
 		resultCyclic := NewInt(0).RightShift(aCyclic, uint(shift))
 
-		pass = pass && resultCyclic.Uint64() == (aInt>>shift)
+		if resultCyclic.Uint64() != (aInt >> shift) {
+			t.Errorf("CyclicInt.RightShift: shifted value not as expected: Expected: %v, Recieved: %v",
+				aInt>>shift, resultCyclic.Uint64())
+		}
 	}
 
-	if !pass {
-		t.Errorf("CyclicInt.LeftShift: Did not act as expected")
-	}
 }
