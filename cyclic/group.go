@@ -10,7 +10,6 @@ import (
 type Group struct {
 	prime       *Int
 	psub1       *Int
-	psub1Half   *Int
 	psub2       *Int
 	psub3       *Int
 	psub1factor *Int
@@ -28,10 +27,9 @@ func NewGroup(p *Int, s *Int, g *Int, rng Random) Group {
 	return Group{
 		prime:       p,
 		psub1:       NewInt(0).Sub(p, NewInt(1)),
-		psub1Half:   NewInt(0).RightShift(NewInt(0).Sub(p, NewInt(1)), 1),
 		psub2:       NewInt(0).Sub(p, NewInt(2)),
 		psub3:       NewInt(0).Sub(p, NewInt(3)),
-		psub1factor: NewInt(0).Div(NewInt(0).Sub(p, NewInt(1)), NewInt(2)),
+		psub1factor: NewInt(0).RightShift(NewInt(0).Sub(p, NewInt(1)), 1),
 
 		seed:   s,
 		random: NewInt(0),
@@ -165,7 +163,7 @@ func (g Group) FindSmallCoprimeInverse(z *Int, bits uint32) *Int {
 		zinv := NewInt(0).Or(NewInt(0).LeftShift(rng.Rand(NewInt(0)), 1), NewInt(1))
 
 		// p-1 has one odd factor, (p-1)/2,  we must check that the generated number is not that
-		if zinv.Cmp(g.psub1Half) == 0 {
+		if zinv.Cmp(g.psub1factor) == 0 {
 			continue
 		}
 
