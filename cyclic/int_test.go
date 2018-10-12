@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"math/big"
+	"math/rand"
 	"reflect"
 	"testing"
 )
@@ -1136,6 +1137,88 @@ func TestGob(t *testing.T) {
 	if inInt.Cmp(outInt) != 0 {
 		t.Errorf("GobEncoder/GobDecoder failed, "+
 			"Expected: %v; Recieved: %v ", inInt.Text(10), outInt.Text(10))
+	}
+
+}
+
+func TestInt_And(t *testing.T) {
+	src := rand.NewSource(42)
+	rng := rand.New(src)
+
+	for i := 0; i < 100; i++ {
+		aInt := rng.Uint64()
+		bInt := rng.Uint64()
+
+		aCyclic := NewIntFromUInt(aInt)
+		bCyclic := NewIntFromUInt(bInt)
+
+		resultCyclic := NewInt(0).And(aCyclic, bCyclic)
+
+		if resultCyclic.Uint64() != (aInt & bInt) {
+			t.Errorf("CyclicInt.And: andd value not as expected: Expected: %v, Recieved: %v",
+				aInt&bInt, resultCyclic.Uint64())
+		}
+	}
+}
+
+func TestInt_Or(t *testing.T) {
+	src := rand.NewSource(42)
+	rng := rand.New(src)
+
+	for i := 0; i < 100; i++ {
+		aInt := rng.Uint64()
+		bInt := rng.Uint64()
+
+		aCyclic := NewIntFromUInt(aInt)
+		bCyclic := NewIntFromUInt(bInt)
+
+		resultCyclic := NewInt(0).Or(aCyclic, bCyclic)
+
+		if resultCyclic.Uint64() != (aInt | bInt) {
+			t.Errorf("CyclicInt.Or: ored value not as expected: Expected: %v, Recieved: %v",
+				aInt|bInt, resultCyclic.Uint64())
+		}
+	}
+}
+
+func TestInt_LeftShift(t *testing.T) {
+	src := rand.NewSource(42)
+	rng := rand.New(src)
+
+	for i := 0; i < 100; i++ {
+		aInt := rng.Uint64()
+
+		shift := rng.Uint64() % 63
+
+		aCyclic := NewIntFromUInt(aInt)
+
+		resultCyclic := NewInt(0).LeftShift(aCyclic, uint(shift))
+
+		if resultCyclic.Uint64() != (aInt << shift) {
+			t.Errorf("CyclicInt.LeftShift: shifted value not as expected: Expected: %v, Recieved: %v",
+				aInt<<shift, resultCyclic.Uint64())
+		}
+	}
+
+}
+
+func TestInt_RightShift(t *testing.T) {
+	src := rand.NewSource(42)
+	rng := rand.New(src)
+
+	for i := 0; i < 100; i++ {
+		aInt := rng.Uint64()
+
+		shift := rng.Uint64() % 63
+
+		aCyclic := NewIntFromUInt(aInt)
+
+		resultCyclic := NewInt(0).RightShift(aCyclic, uint(shift))
+
+		if resultCyclic.Uint64() != (aInt >> shift) {
+			t.Errorf("CyclicInt.RightShift: shifted value not as expected: Expected: %v, Recieved: %v",
+				aInt>>shift, resultCyclic.Uint64())
+		}
 	}
 
 }

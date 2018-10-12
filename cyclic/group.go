@@ -10,6 +10,7 @@ import (
 type Group struct {
 	prime       *Int
 	psub1       *Int
+	psub1Half   *Int
 	psub2       *Int
 	psub3       *Int
 	psub1factor *Int
@@ -27,6 +28,7 @@ func NewGroup(p *Int, s *Int, g *Int, rng Random) Group {
 	return Group{
 		prime:       p,
 		psub1:       NewInt(0).Sub(p, NewInt(1)),
+		psub1Half:   NewInt(0).RightShift(NewInt(0).Sub(p, NewInt(1)), 1),
 		psub2:       NewInt(0).Sub(p, NewInt(2)),
 		psub3:       NewInt(0).Sub(p, NewInt(3)),
 		psub1factor: NewInt(0).Div(NewInt(0).Sub(p, NewInt(1)), NewInt(2)),
@@ -139,26 +141,33 @@ func (g Group) RootCoprime(x, y, z *Int) *Int {
 	return z
 }
 
-// Finds a number who's modular exponential inverse is bits length
+// Finds a number coprime with p-1 and who's modular exponential inverse is
+// the number of prescribed bits value. Bits must be greater than 1.
 // Only works when the prime is safe or strong
-// Using a smaller prime is acceptable because modular logarithm algorithm's
+// Using a smaller bytes length is acceptable because modular logarithm algorithm's
 // complexities derive primarily from the size of the prime defining the group
 // not the size of the exponent.  More information can be found here:
 // TODO: add link to doc
 
-func (g Group) FindSmallInverse(z *Int, bytes uint32) *Int {
+func (g Group) FindSmallCoprimeInverse(z *Int, bits uint32) *Int {
 
 	// RNG that ensures the output is an odd number between 2 and 2^(
-	// bytes*8)-1
-	max := NewInt(0).Sub(g.Exp(NewInt(2), NewInt(int64(bytes)*8-1),
-		NewInt(0)), NewInt(1))
-	rng := NewRandom(NewInt(1), max)
+	// bit*8) that is not equal to p-1/2.  This must occur because for a proper
+	// modular inverse to exist within a group a number must have no common
+	// factors with the number that defines the group.  Normally that would not
+	// be a problem because the number that defines the group normally is a prime,
+	// but we are inverting within a group defined by the even number p-1 to find the
+	// modular exponential inverse, so the number must be chozen from a different set
+	max := NewInt(0).Sub(NewInt(0).LeftShift(NewInt(1), uint(bits)-2), NewInt(1))
+	rng := NewRandom(NewInt(2), max)
 
 	for true {
-		// By multiplying up and adding one to an RNG in half the range,
-		// all odd numbers in the range are generated
-		zinv := NewInt(0).Add(NewInt(0).Mul(rng.Rand(NewInt(0)),
-			NewInt(2)), NewInt(1))
+		zinv := NewInt(0).Or(NewInt(0).LeftShift(rng.Rand(NewInt(0)), 1), NewInt(1))
+
+		// p-1 has one odd factor, (p-1)/2,  we must check that the generated number is not that
+		if zinv.Cmp(g.psub1Half) == 0 {
+			continue
+		}
 
 		z.ModInverse(zinv, g.psub1)
 
@@ -168,8 +177,9 @@ func (g Group) FindSmallInverse(z *Int, bytes uint32) *Int {
 		// Due to the fact that p is a safe prime, this means the value is
 		// coprime with p minus 1 because its only has one odd factor, which is
 		// also checked
+
 		if zbytes[len(zbytes)-1]&0x01 == 1 {
-			if z.Cmp(g.psub1factor) != 0 {
+			if zinv.Cmp(g.psub1factor) != 0 {
 				break
 			}
 		}

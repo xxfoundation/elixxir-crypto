@@ -1,6 +1,7 @@
 package cyclic
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -447,7 +448,7 @@ func TestGroup_RootCoprime(t *testing.T) {
 	println("RootCoprime", pass, "out of", tests, "tests passed.")
 }
 
-func TestGroup_FindSmallInverse(t *testing.T) {
+func TestGroup_FindSmallCoprimeInverse(t *testing.T) {
 	p := NewInt(1907)
 	s := NewInt(2)
 	g := NewInt(2)
@@ -462,14 +463,18 @@ func TestGroup_FindSmallInverse(t *testing.T) {
 
 		base := group.Random(NewInt(0))
 
-		group.FindSmallInverse(z, 1)
+		bits := uint32(8)
+
+		fmt.Println(bits)
+
+		group.FindSmallCoprimeInverse(z, bits)
 
 		zinv := NewInt(0).ModInverse(z, group.psub1)
 
-		if zinv.Cmp(NewInt(256)) != -1 {
+		if uint32(len(zinv.Bytes())*8) > bits {
 			t.Errorf("FindSmallExponent Error: Inverse too large on "+
-				"attempt %v; Expected: <%v, Recieved: %s", i, 256,
-				zinv.Text(10))
+				"attempt %v; Expected: <%v, Recieved: %v", i, bits,
+				uint32(len(zinv.Bytes())*8))
 		}
 
 		baseZ := NewInt(0)
