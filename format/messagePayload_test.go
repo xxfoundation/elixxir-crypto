@@ -9,7 +9,7 @@ import (
 func TestMessagePayload(t *testing.T) {
 	tests := 3
 
-	testStrings := make([]string, tests)
+	testStrings := make([][]byte, tests)
 
 	testStrings[0] = testText[0 : DATA_LEN/2]
 	testStrings[1] = testText[0:DATA_LEN]

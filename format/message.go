@@ -26,18 +26,6 @@ const (
 
 //TODO: generate ranges programmatic
 
-// Interface used to pass message data across gomobile bindings
-type MessageInterface interface {
-	// Returns the message's sender ID
-	// (uint64) BigEndian serialized into a byte slice
-	GetSender() *id.UserID
-	// Returns the message payload
-	GetPayload() string
-	// Returns the message's recipient ID
-	// (uint64) BigEndian serialized into a byte slice
-	GetRecipient() *id.UserID
-}
-
 // Holds the payloads once they have been serialized
 type MessageSerial struct {
 	Payload   *cyclic.Int
@@ -57,9 +45,9 @@ func (m Message) GetSender() *id.UserID {
 	return result
 }
 
-//Returns the payload as a string for the message interface
-func (m Message) GetPayload() string {
-	return string(m.data.Bytes())
+//Returns the payload for the message interface
+func (m Message) GetPayload() []byte {
+	return m.data.Bytes()
 }
 
 //Returns a serialized recipient id for the message interface
@@ -70,7 +58,7 @@ func (m Message) GetRecipient() *id.UserID {
 }
 
 // Makes a new message for a certain sender and recipient
-func NewMessage(sender, recipient *id.UserID, text string) ([]Message, error) {
+func NewMessage(sender, recipient *id.UserID, text []byte) ([]Message, error) {
 
 	//build the recipient payload
 	recipientPayload, err := NewRecipientPayload(recipient)

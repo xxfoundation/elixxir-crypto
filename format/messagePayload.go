@@ -37,7 +37,7 @@ type Payload struct {
 
 // Makes a new message for a certain sender.
 // Splits the message into multiple if it is too long
-func NewPayload(sender *id.UserID, text string) ([]Payload, error) {
+func NewPayload(sender *id.UserID, text []byte) ([]Payload, error) {
 	if *sender == *id.ZeroID {
 		return []Payload{}, errors.New(fmt.Sprintf(
 			"Cannot build Message Payload; Invalid Sender ID: %v",
@@ -46,16 +46,14 @@ func NewPayload(sender *id.UserID, text string) ([]Payload, error) {
 
 	// Split the payload into multiple sub-payloads if it is longer than the
 	// maximum allowed
-	data := []byte(text)
-
 	var dataLst [][]byte
 
-	for uint64(len(data)) > DATA_LEN {
-		dataLst = append(dataLst, data[0:DATA_LEN])
-		data = data[DATA_LEN:]
+	for uint64(len(text)) > DATA_LEN {
+		dataLst = append(dataLst, text[0:DATA_LEN])
+		text = text[DATA_LEN:]
 	}
 
-	dataLst = append(dataLst, data)
+	dataLst = append(dataLst, text)
 
 	//Create a message payload for every sub-payload
 	var payloadLst []Payload

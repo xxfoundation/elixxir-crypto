@@ -17,7 +17,7 @@ func TestNewMessage(t *testing.T) {
 
 	tests := uint64(3)
 
-	testStrings := make([]string, tests)
+	testStrings := make([][]byte, tests)
 
 	testStrings[0] = testText[0 : DATA_LEN/2]
 	testStrings[1] = testText[0:DATA_LEN]
@@ -142,7 +142,8 @@ func recipientEqual(r1 Recipient, r2 Recipient) (bool, string) {
 }
 
 //TODO: Test End cases, messages over 2x length, at max length, and others.
-var testText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed" +
+var testText = []byte("Lorem ipsum dolor sit amet, " +
+	"consectetur adipiscing elit. Sed" +
 	" maximus convallis libero in laoreet. Aenean venenatis auctor condimentum." +
 	" Suspendisse sed sapien purus. Ut molestie, mauris id porta ultrices, justo" +
 	" nisi bibendum diam, quis facilisis metus ipsum nec dui. Nunc turpis felis," +
@@ -170,4 +171,4 @@ var testText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed" +
 	" fermentum viverra dolor. Cras non iaculis augue, id euismod metus. In hac" +
 	" habitasse platea dictumst. Aenean convallis dignissim commodo. Duis ut" +
 	" ultricies turpis. Duis mollis finibus mi dignissim efficitur. Maecenas" +
-	" eleifend mi porttitor convallis sed."
+	" eleifend mi porttitor convallis sed.")
