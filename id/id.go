@@ -58,6 +58,8 @@ func userHash(uid *UserID) []byte {
 	return huid
 }
 
+const sizeofUint64 = 8
+
 // Only tests should use this method for compatibility with the old user ID
 // structure, as a utility method to easily create user IDs with the correct
 // length. So this func takes a testing.T.
@@ -67,7 +69,6 @@ func NewUserIDFromUint(newId uint64, t *testing.T) *UserID {
 	//t.Log("Warning: Creating a new user ID from uint. " +
 	//	"You should create user IDs some other way.")
 	var result UserID
-	const sizeofUint64 = 8
 	binary.BigEndian.PutUint64(result[UserIDLen - sizeofUint64:], newId)
 	return &result
 }

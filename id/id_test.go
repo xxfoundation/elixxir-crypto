@@ -8,12 +8,13 @@ import (
 )
 
 func TestUserID_RegistrationCode(t *testing.T) {
+	// EXPERIMENT
 	expected := "RUHPS2MI" // reg code for user 1
 	var id UserID
 	copy(id[len(id)-1:], []byte{0x01})
 	actual := id.RegistrationCode()
 	if actual != expected {
-		t.Errorf("Registration code differed from expected. Got %v, " +
+		t.Errorf("Registration code differed from expected. Got %v, "+
 			"expected %v", actual, expected)
 	}
 }
@@ -24,7 +25,7 @@ func TestNewUserIDFromUint(t *testing.T) {
 	intId := uint64(rand.Int63())
 	id := NewUserIDFromUint(intId, t)
 	// The first 64*3 bits should be left at zero
-	for i := 0; i < 8*3; i++ {
+	for i := 0; i < sizeofUint64*3; i++ {
 		if id[i] != 0 {
 			t.Error("A byte that should have been zero wasn't")
 		}
@@ -32,7 +33,7 @@ func TestNewUserIDFromUint(t *testing.T) {
 	// The last bits should be the same starting at the big end of the int ID
 	intIdBigEndian := make([]byte, 64/8)
 	binary.BigEndian.PutUint64(intIdBigEndian, intId)
-	if !bytes.Equal(intIdBigEndian, id[8*3:]) {
+	if !bytes.Equal(intIdBigEndian, id[sizeofUint64*3:]) {
 		t.Error("A byte that NewUserIDFromUint set wasn't identical to the" +
 			" uint64 input")
 	}
