@@ -42,10 +42,7 @@ func TestNewUserIDFromUint(t *testing.T) {
 func TestUserID_SetBytes(t *testing.T) {
 	idBytes := make([]byte, UserIDLen)
 	rand.Read(idBytes)
-	id, err := new(UserID).SetBytes(idBytes)
-	if err != nil {
-		t.Error(err.Error())
-	}
+	id := new(UserID).SetBytes(idBytes)
 	if !bytes.Equal(id[:], idBytes) {
 		t.Error("SetBytes didn't set all the bytes correctly")
 	}
@@ -53,12 +50,11 @@ func TestUserID_SetBytes(t *testing.T) {
 
 func TestUserID_SetBytes_Error(t *testing.T) {
 	var idBytes []byte
-	id, err := new(UserID).SetBytes(idBytes)
-	if err == nil {
-		t.Error("Didn't get an expected error from a too-short bytes")
+	id := new(UserID).SetBytes(idBytes)
+	if !Equal(id, ZeroID) {
+		t.Error("Got a non-zero ID out of setting the bytes, but shouldn't have")
 	}
 	if id != nil {
-		t.Error("Got an ID out of setting the bytes, but shouldn't have")
 	}
 }
 
@@ -75,10 +71,7 @@ func TestUserID_SetUints(t *testing.T) {
 func TestUserID_Bytes(t *testing.T) {
 	idBytes := make([]byte, UserIDLen)
 	rand.Read(idBytes)
-	id, err := new(UserID).SetBytes(idBytes)
-	if err != nil {
-		t.Error(err.Error())
-	}
+	id := new(UserID).SetBytes(idBytes)
 	if !bytes.Equal(idBytes, id.Bytes()) {
 		t.Error("Surprisingly, " +
 			"the Bytes() method didn't return an equivalent byteslice")

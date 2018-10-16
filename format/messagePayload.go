@@ -83,7 +83,7 @@ func (p Payload) GetSenderID() *cyclic.Int {
 }
 
 func (p Payload) GetSender() *id.UserID {
-	result, _ := new(id.UserID).SetBytes(p.senderID.LeftpadBytes(id.UserIDLen))
+	result := new(id.UserID).SetBytes(p.senderID.LeftpadBytes(id.UserIDLen))
 	return result
 }
 

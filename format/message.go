@@ -41,7 +41,7 @@ type Message struct {
 
 //Returns a serialized sender ID for the message interface
 func (m Message) GetSender() *id.UserID {
-	result, _ := new(id.UserID).SetBytes(m.senderID.LeftpadBytes(SID_LEN))
+	result := new(id.UserID).SetBytes(m.senderID.LeftpadBytes(SID_LEN))
 	return result
 }
 
@@ -53,7 +53,7 @@ func (m Message) GetPayload() []byte {
 //Returns a serialized recipient id for the message interface
 // FIXME Two copies for this isn't great
 func (m Message) GetRecipient() *id.UserID {
-	result, _ := new(id.UserID).SetBytes(m.recipientID.LeftpadBytes(RID_LEN))
+	result := new(id.UserID).SetBytes(m.recipientID.LeftpadBytes(RID_LEN))
 	return result
 }
 

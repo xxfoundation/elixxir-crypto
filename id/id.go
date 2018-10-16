@@ -11,9 +11,11 @@ import (
 	"gitlab.com/privategrity/crypto/hash"
 	"testing"
 	"encoding/binary"
-	"fmt"
-	"errors"
 )
+
+// Length of IDs in bytes
+// 256 bits
+const UserIDLen = 32
 
 // Most string types in most languages (with C excepted) support 0 as a
 // character in a string, for Unicode support. So it's possible to use normal
@@ -25,16 +27,12 @@ import (
 // should use.
 type UserID [UserIDLen]byte
 
-// Length of IDs in bytes
-// 256 bits
-const UserIDLen = 32
-
 // Use this if you don't want to have to populate user ids for this manually
 var ZeroID *UserID
 
 func init() {
 	// A zero ID should have all its bytes set to zero
-	ZeroID, _ = new(UserID).SetBytes(make([]byte, UserIDLen))
+	ZeroID = new(UserID).SetBytes(make([]byte, UserIDLen))
 }
 
 // Length of registration code in raw bytes
@@ -83,18 +81,24 @@ func (u *UserID) SetUints(uints *[4]uint64) *UserID {
 	return u
 }
 
-func (u *UserID) SetBytes(data []byte) (*UserID, error) {
-	bytesCopied := copy(u[:], data)
-	if bytesCopied != UserIDLen {
-		errString := fmt.Sprintf("id.UserID SetBytes(" +
-			") error: Not all bytes were set. You set the first %v bytes, " +
-			"but you need to set %v bytes. Current ID: %q", bytesCopied,
-			UserIDLen, *u)
-		return nil, errors.New(errString)
+// Returns a user ID set to the contents of the byte slice if the byte slice
+// has the correct length
+// Otherwise, returns a user ID that's all zeroes
+func (u *UserID) SetBytes(data []byte) *UserID {
+	if len(data) != UserIDLen {
+		// Return a user ID with all zeroes which should get rejected somewhere
+		// along the line due to cryptographic properties that the system provides
+		return new(UserID)
+	} else {
+		copy(u[:], data)
+		return u
 	}
-	return u, nil
 }
 
 func (u *UserID) Bytes() []byte {
 	return u[:]
+}
+
+func Equal(lhs *UserID, rhs *UserID) bool {
+	return *lhs == *rhs
 }
