@@ -40,6 +40,8 @@ func init() {
 // 8 character long reg codes when base-32 encoded currently with length of 5
 const RegCodeLen = 5
 
+// This is a stopgap to be able to register fake users for fake demos.
+// Replace ASAP!
 func (u *UserID) RegistrationCode() string {
 	return base32.StdEncoding.EncodeToString(userHash(u))
 }
@@ -95,10 +97,12 @@ func (u *UserID) SetBytes(data []byte) *UserID {
 	}
 }
 
+// Utility function to convert a user ID to a byte slice
 func (u *UserID) Bytes() []byte {
 	return u[:]
 }
 
+// Utility function to determine whether two user IDs are equal
 func Equal(lhs *UserID, rhs *UserID) bool {
 	return *lhs == *rhs
 }
