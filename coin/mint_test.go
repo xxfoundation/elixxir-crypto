@@ -70,9 +70,11 @@ func Catch(fn string, t *testing.T) {
 	}
 }
 
-func TestMintUser(t *testing.T) {
+// Proves that for a certain set of users,
+// the value is all within some acceptable range
+func TestMintArbitrarily(t *testing.T) {
 	for user := 1; user < 100; user++ {
-		compoundCoins := MintUser(id.NewUserIDFromUint(3, t))
+		compoundCoins := MintArbitrarily(id.NewUserIDFromUint(3, t)[:])
 		totalValue := uint64(0)
 		for i := range compoundCoins {
 			totalValue += compoundCoins[i].value
