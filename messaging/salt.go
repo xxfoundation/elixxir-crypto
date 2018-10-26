@@ -11,7 +11,7 @@ import (
 	"gitlab.com/privategrity/crypto/csprng"
 )
 
-// NewSalt creates a byteslize of `size` using the provided output from the
+// NewSalt creates a byte slice of `size` using the provided output from the
 // given cryptographically secure pseudo-random number generator
 func NewSalt(csprng csprng.Source, size int) []byte {
 	b := make([]byte, size)
