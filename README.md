@@ -16,6 +16,11 @@ problems as you can.
 At some point we need to reimplement everything in this library with 
 constant-time implementations.
 
+## Running tests
+
+First, make sure the dependencies are installed by running `glide up`. Then,
+run `go test ./...`
+
 ## Project structure
 
 `blockchain` contains the implementation of our simple blockchain.
