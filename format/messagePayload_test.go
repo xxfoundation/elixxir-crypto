@@ -33,7 +33,7 @@ func TestMessagePayload(t *testing.T) {
 	expectedSlices[2][2] = ([]byte(testStrings[2]))[2*DATA_LEN:]
 
 	for i := uint64(0); i < uint64(tests); i++ {
-		pldSlc, _ := NewPayload(id.NewUserIDFromUint(i+1, t), testStrings[i])
+		pldSlc := NewPayload(id.NewUserIDFromUint(i+1, t), testStrings[i])
 
 		for indx, pld := range pldSlc {
 			if *id.NewUserIDFromUint(i+1, t) != *pld.GetSender() {

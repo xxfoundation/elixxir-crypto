@@ -1,8 +1,6 @@
 package format
 
 import (
-	"errors"
-	"fmt"
 	"gitlab.com/privategrity/crypto/cyclic"
 	"gitlab.com/privategrity/crypto/id"
 )
@@ -37,13 +35,7 @@ type Payload struct {
 
 // Makes a new message for a certain sender.
 // Splits the message into multiple if it is too long
-func NewPayload(sender *id.UserID, text []byte) ([]Payload, error) {
-	if *sender == *id.ZeroID {
-		return []Payload{}, errors.New(fmt.Sprintf(
-			"Cannot build Message Payload; Invalid Sender ID: %v",
-			sender))
-	}
-
+func NewPayload(sender *id.UserID, text []byte) []Payload {
 	// Split the payload into multiple sub-payloads if it is longer than the
 	// maximum allowed
 	var dataLst [][]byte
@@ -67,7 +59,7 @@ func NewPayload(sender *id.UserID, text []byte) ([]Payload, error) {
 		payloadLst = append(payloadLst, payload)
 	}
 
-	return payloadLst, nil
+	return payloadLst
 }
 
 // This function returns a pointer to the Payload Initialization Vector

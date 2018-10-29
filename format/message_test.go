@@ -11,6 +11,8 @@ import (
 	"gitlab.com/privategrity/crypto/cyclic"
 	"testing"
 	"gitlab.com/privategrity/crypto/id"
+	"math/rand"
+	"bytes"
 )
 
 func TestNewMessage(t *testing.T) {
@@ -172,3 +174,81 @@ var testText = []byte("Lorem ipsum dolor sit amet, " +
 	" habitasse platea dictumst. Aenean convallis dignissim commodo. Duis ut" +
 	" ultricies turpis. Duis mollis finibus mi dignissim efficitur. Maecenas" +
 	" eleifend mi porttitor convallis sed.")
+
+// Proves that NewMessage returns an error in the correct cases
+func TestNewMessage_Errors(t *testing.T) {
+	// Use new id.UserID because using id.
+	// ZeroID would result in the pointers being equal as well
+	// The test should rely on comparing the underlying data,
+	// not the memory address
+	// Creating message designated for sending to zero user ID should fail
+	_, err := NewMessage(new(id.UserID), new(id.UserID), []byte("some text"))
+	if err == nil {
+		t.Error("Didn't get an expected error from creating new message to" +
+			" zero user")
+	}
+
+	// However, message designated for sending from zero user ID should
+	// create successfully. Populating the sender ID should be optional for some
+	// use cases (untraceable return address, for example.) At the time of
+	// writing, the infrastructure required to support communications that don't
+	// specify a return ID hasn't been built.
+	_, err2 := NewMessage(new(id.UserID), id.NewUserIDFromUint(5,
+		t), []byte("some more text"))
+	if err2 != nil {
+		t.Errorf("Got an unexpected error from creating new message from zero"+
+			" user: %v", err2.Error())
+	}
+}
+
+// Proves that the data you get out of the payload is equal to the data you
+// put in
+func TestMessage_GetPayload(t *testing.T) {
+	rng := rand.New(rand.NewSource(87321))
+	data := make([]byte, DATA_LEN)
+	_, err := rng.Read(data)
+	if err != nil {
+		t.Errorf("Got error from data generation: %s", err.Error())
+	}
+	msg := Message{
+		Payload: Payload{
+			data: cyclic.NewIntFromBytes(data),
+		},
+		Recipient: Recipient{},
+	}
+	if !bytes.Equal(data, msg.GetPayload()) {
+		t.Errorf("Message payload was %q, expected %q", msg.GetPayload(), data)
+	}
+}
+
+func TestMessage_GetRecipient(t *testing.T) {
+	recipient := make([]byte, RID_LEN)
+	rng := rand.New(rand.NewSource(9319))
+	_, err := rng.Read(recipient)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	msg := Message{Payload: Payload{},
+		Recipient: Recipient{
+			recipientID: cyclic.NewIntFromBytes(recipient),
+		}}
+	if !bytes.Equal(recipient, msg.GetRecipient()[:]) {
+		t.Errorf("Message recipient was %q, expected %q",
+			*msg.GetRecipient(), recipient)
+	}
+}
+
+func TestMessage_GetSender(t *testing.T) {
+	sender := make([]byte, SID_LEN)
+	rng := rand.New(rand.NewSource(9812))
+	_, err := rng.Read(sender)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	msg := Message{Payload: Payload{senderID: cyclic.NewIntFromBytes(sender)},
+		Recipient: Recipient{}}
+	if !bytes.Equal(sender, msg.GetSender()[:]) {
+		t.Errorf("Message sender was %q, expected %q",
+			*msg.GetSender(), sender)
+	}
+}

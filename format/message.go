@@ -71,14 +71,7 @@ func NewMessage(sender, recipient *id.UserID, text []byte) ([]Message, error) {
 	}
 
 	//Build the message Payloads
-	messagePayload, err := NewPayload(sender, text)
-
-	if err != nil {
-		err = errors.New(fmt.Sprintf(
-			"Unable to build message due to message error: %s",
-			err.Error()))
-		return nil, err
-	}
+	messagePayload := NewPayload(sender, text)
 
 	messageList := make([]Message, len(messagePayload))
 
