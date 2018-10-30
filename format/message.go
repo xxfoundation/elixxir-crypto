@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"gitlab.com/privategrity/crypto/cyclic"
+	"gitlab.com/privategrity/crypto/id"
 )
 
 // Defines message structure.  Based the "Basic Message Structure" doc
@@ -25,18 +26,6 @@ const (
 
 //TODO: generate ranges programmatic
 
-// Interface used to pass message data across gomobile bindings
-type MessageInterface interface {
-	// Returns the message's sender ID
-	// (uint64) BigEndian serialized into a byte slice
-	GetSender() []byte
-	// Returns the message payload
-	GetPayload() string
-	// Returns the message's recipient ID
-	// (uint64) BigEndian serialized into a byte slice
-	GetRecipient() []byte
-}
-
 // Holds the payloads once they have been serialized
 type MessageSerial struct {
 	Payload   *cyclic.Int
@@ -51,22 +40,25 @@ type Message struct {
 }
 
 //Returns a serialized sender ID for the message interface
-func (m Message) GetSender() []byte {
-	return m.senderID.LeftpadBytes(SID_LEN)
+func (m Message) GetSender() *id.UserID {
+	result := new(id.UserID).SetBytes(m.senderID.LeftpadBytes(SID_LEN))
+	return result
 }
 
-//Returns the payload as a string for the message interface
-func (m Message) GetPayload() string {
-	return string(m.data.Bytes())
+//Returns the payload for the message interface
+func (m Message) GetPayload() []byte {
+	return m.data.Bytes()
 }
 
 //Returns a serialized recipient id for the message interface
-func (m Message) GetRecipient() []byte {
-	return m.recipientID.LeftpadBytes(RID_LEN)
+// FIXME Two copies for this isn't great
+func (m Message) GetRecipient() *id.UserID {
+	result := new(id.UserID).SetBytes(m.recipientID.LeftpadBytes(RID_LEN))
+	return result
 }
 
 // Makes a new message for a certain sender and recipient
-func NewMessage(sender, recipient uint64, text string) ([]Message, error) {
+func NewMessage(sender, recipient *id.UserID, text []byte) ([]Message, error) {
 
 	//build the recipient payload
 	recipientPayload, err := NewRecipientPayload(recipient)
@@ -79,14 +71,7 @@ func NewMessage(sender, recipient uint64, text string) ([]Message, error) {
 	}
 
 	//Build the message Payloads
-	messagePayload, err := NewPayload(sender, text)
-
-	if err != nil {
-		err = errors.New(fmt.Sprintf(
-			"Unable to build message due to message error: %s",
-			err.Error()))
-		return nil, err
-	}
+	messagePayload := NewPayload(sender, text)
 
 	messageList := make([]Message, len(messagePayload))
 

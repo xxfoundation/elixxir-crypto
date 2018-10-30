@@ -64,14 +64,12 @@ func getNextValue(r *rand.Rand, totalValue int64, remainingSleeves int64) uint64
 // Mints testing coins for demo/testing
 // This isn't official currency, and should be considered counterfeit
 // This is in API because access to the user.ID type gives this code more meaning
-func MintUser(id uint64) []Sleeve {
-	jww.WARN.Printf("Minting new coins for user %v. " +
-		"Don't do this except for demos or testing.", id)
+func MintArbitrarily(hashee []byte) []Sleeve {
+	jww.WARN.Printf("Minting new coins for byte slice %q. " +
+		"Don't do this except for demos or testing.", hashee)
 	prngSeedGen, _ := hash.NewCMixHash()
 	prngSeedGen.Reset()
-	idBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(idBytes, id)
-	prngSeedGen.Write(idBytes)
+	prngSeedGen.Write(hashee)
 	sum := prngSeedGen.Sum(nil)
 	seed := int64(binary.BigEndian.Uint64(sum))
 	value := rand.New(rand.NewSource(seed)).Int63n(int64(MaxValueDenominationRegister))

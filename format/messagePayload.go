@@ -1,13 +1,11 @@
 package format
 
 import (
-	"errors"
-	"fmt"
 	"gitlab.com/privategrity/crypto/cyclic"
+	"gitlab.com/privategrity/crypto/id"
 )
 
 const (
-
 	// Length and Position of the Payload Initialization Vector
 	PIV_LEN   uint64 = 9
 	PIV_START uint64 = 0
@@ -18,7 +16,7 @@ const (
 	DATA_START uint64 = PIV_END
 	DATA_END   uint64 = DATA_START + DATA_LEN
 
-	SID_LEN   uint64 = 8
+	SID_LEN   uint64 = id.UserIDLen
 	SID_START uint64 = DATA_END
 	SID_END   uint64 = SID_START + SID_LEN
 
@@ -37,25 +35,17 @@ type Payload struct {
 
 // Makes a new message for a certain sender.
 // Splits the message into multiple if it is too long
-func NewPayload(sender uint64, text string) ([]Payload, error) {
-	if sender == 0 {
-		return []Payload{}, errors.New(fmt.Sprintf(
-			"Cannot build Message Payload; Invalid Sender ID: %v",
-			sender))
-	}
-
+func NewPayload(sender *id.UserID, text []byte) []Payload {
 	// Split the payload into multiple sub-payloads if it is longer than the
 	// maximum allowed
-	data := []byte(text)
-
 	var dataLst [][]byte
 
-	for uint64(len(data)) > DATA_LEN {
-		dataLst = append(dataLst, data[0:DATA_LEN])
-		data = data[DATA_LEN:]
+	for uint64(len(text)) > DATA_LEN {
+		dataLst = append(dataLst, text[0:DATA_LEN])
+		text = text[DATA_LEN:]
 	}
 
-	dataLst = append(dataLst, data)
+	dataLst = append(dataLst, text)
 
 	//Create a message payload for every sub-payload
 	var payloadLst []Payload
@@ -63,13 +53,13 @@ func NewPayload(sender uint64, text string) ([]Payload, error) {
 	for _, datum := range dataLst {
 		payload := Payload{
 			cyclic.NewInt(0),
-			cyclic.NewIntFromUInt(sender),
+			cyclic.NewIntFromBytes(sender[:]),
 			cyclic.NewIntFromBytes(datum),
 			cyclic.NewInt(0)}
 		payloadLst = append(payloadLst, payload)
 	}
 
-	return payloadLst, nil
+	return payloadLst
 }
 
 // This function returns a pointer to the Payload Initialization Vector
@@ -84,6 +74,11 @@ func (p Payload) GetSenderID() *cyclic.Int {
 	return p.senderID
 }
 
+func (p Payload) GetSender() *id.UserID {
+	result := new(id.UserID).SetBytes(p.senderID.LeftpadBytes(id.UserIDLen))
+	return result
+}
+
 // This function returns a pointer to the data payload
 // This ensures that while the data can be edited, it cant be reallocated
 func (p Payload) GetData() *cyclic.Int {
@@ -94,11 +89,6 @@ func (p Payload) GetData() *cyclic.Int {
 // This ensures that while the data can be edited, it cant be reallocated
 func (p Payload) GetPayloadMIC() *cyclic.Int {
 	return p.payloadMIC
-}
-
-//Returns the SenderID as a uint64
-func (p Payload) GetSenderIDUint() uint64 {
-	return p.senderID.Uint64()
 }
 
 // Returns the serialized message payload

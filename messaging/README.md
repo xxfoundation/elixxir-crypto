@@ -15,8 +15,8 @@ should be done here, except for conversion of the encrypted message types
 to the comms messages used for transmitting data.
 
 
-NOTE: This will replace parts of the forward, format, verification, and
-schema modules in the original code base.
+NOTE: This will replace parts of the forward, format, and verification
+modules in the original code base.
 
 ### Usage
 

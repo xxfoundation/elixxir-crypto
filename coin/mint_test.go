@@ -1,6 +1,9 @@
 package coin
 
-import "testing"
+import (
+	"testing"
+	"gitlab.com/privategrity/crypto/id"
+)
 
 // Proves that Mint() returns the requested value in one coin
 func TestMint_OneCoin(t *testing.T) {
@@ -46,7 +49,7 @@ func TestMint_Between(t *testing.T) {
 		actualValue += coins[i].Value()
 	}
 	if actualValue != uint64(totalValue) {
-		t.Errorf("Actual value didn't match expected value. Got: %v, " +
+		t.Errorf("Actual value didn't match expected value. Got: %v, "+
 			"expected %v", actualValue, totalValue)
 	}
 }
@@ -67,9 +70,11 @@ func Catch(fn string, t *testing.T) {
 	}
 }
 
-func TestMintUser(t *testing.T) {
+// Proves that for a certain set of users,
+// the value is all within some acceptable range
+func TestMintArbitrarily(t *testing.T) {
 	for user := 1; user < 100; user++ {
-		compoundCoins := MintUser(3)
+		compoundCoins := MintArbitrarily(id.NewUserIDFromUint(3, t)[:])
 		totalValue := uint64(0)
 		for i := range compoundCoins {
 			totalValue += compoundCoins[i].value

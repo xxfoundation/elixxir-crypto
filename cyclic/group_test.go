@@ -103,6 +103,21 @@ func TestInside(t *testing.T) {
 	println("Inside()", pass, "out of", tests, "tests passed.")
 }
 
+// This test proves that group.Random() probably never generates a random number
+// outside of the cyclic group
+func TestRandomInsidePanic(t *testing.T) {
+	p := NewInt(5)
+	s := NewInt(3)
+	min := NewInt(0)
+	max := NewInt(1000)
+	rng := NewRandom(min, max)
+	g := NewInt(4)
+	group := NewGroup(p, s, g, rng)
+	for i := 0; i < 100000; i++ {
+		group.Random(NewInt(0))
+	}
+}
+
 func TestInverse(t *testing.T) {
 	p := NewInt(17)
 	s := NewInt(15)
@@ -247,6 +262,28 @@ func TestGetP(t *testing.T) {
 	if actual.Cmp(p) != 0 {
 		t.Errorf("TestGetP failed, expected: '%v', got: '%v'",
 			p.Text(10), actual.Text(10))
+	} else {
+		pass++
+	}
+	println("GetP()", pass, "out of", tests, "tests passed.")
+}
+
+func TestGetPSub1(t *testing.T) {
+	// setup test group and generator
+	p := NewInt(17)
+	s := NewInt(15)
+	min := NewInt(2)
+	max := NewInt(1000)
+	rng := NewRandom(min, max)
+	g := NewInt(29)
+	group := NewGroup(p, s, g, rng)
+	actual := group.GetPSub1(NewInt(0))
+	ps1 := NewInt(16)
+	tests := 1
+	pass := 0
+	if actual.Cmp(ps1) != 0 {
+		t.Errorf("TestGetP failed, expected: '%v', got: '%v'",
+			ps1.Text(10), actual.Text(10))
 	} else {
 		pass++
 	}
