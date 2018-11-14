@@ -1,4 +1,4 @@
-privategrity/crypto
+elixxir/crypto
 -------------------
 
 [![pipeline status](https://gitlab.com/elixxir/crypto/badges/master/pipeline.svg)](https://gitlab.com/elixxir/crypto/commits/master)

@@ -1,4 +1,4 @@
-# privategrity/crypto/messaging
+# elixxir/crypto/messaging
 
 TBD: This is a proposed redesign and is aspirational at the moment.
 
