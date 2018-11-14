@@ -7,7 +7,7 @@
 package messaging
 
 import (
-	"gitlab.com/privategrity/crypto/csprng"
+	"gitlab.com/elixxir/crypto/csprng"
 	"testing"
 )
 

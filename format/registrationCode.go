@@ -3,8 +3,8 @@ package format
 import (
 	"errors"
 	"fmt"
-	"gitlab.com/privategrity/crypto/cyclic"
-	"gitlab.com/privategrity/crypto/hash"
+	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/elixxir/crypto/hash"
 )
 
 const REGCODE_LEN uint64 = 32

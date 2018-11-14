@@ -1,8 +1,8 @@
 package format
 
 import (
-	"gitlab.com/privategrity/crypto/cyclic"
-	"gitlab.com/privategrity/crypto/hash"
+	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/elixxir/crypto/hash"
 	"math"
 	"reflect"
 	"testing"

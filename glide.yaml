@@ -1,4 +1,4 @@
-package: gitlab.com/privategrity/crypto
+package: gitlab.com/elixxir/crypto
 import:
 - package: golang.org/x/crypto
   subpackages:

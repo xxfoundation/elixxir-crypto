@@ -3,7 +3,7 @@ package forward
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"gitlab.com/privategrity/crypto/hash"
+	"gitlab.com/elixxir/crypto/hash"
 	"testing"
 )
 

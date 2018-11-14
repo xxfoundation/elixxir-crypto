@@ -8,9 +8,9 @@ package format
 
 import (
 	"fmt"
-	"gitlab.com/privategrity/crypto/cyclic"
+	"gitlab.com/elixxir/crypto/cyclic"
 	"testing"
-	"gitlab.com/privategrity/crypto/id"
+	"gitlab.com/elixxir/crypto/id"
 	"math/rand"
 	"bytes"
 )

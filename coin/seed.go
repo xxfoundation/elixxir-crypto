@@ -2,7 +2,7 @@ package coin
 
 import (
 	"crypto/sha256"
-	"gitlab.com/privategrity/crypto/csprng"
+	"gitlab.com/elixxir/crypto/csprng"
 )
 
 // A Seed contains the secret proving ownership of a series of coins

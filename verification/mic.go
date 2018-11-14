@@ -1,7 +1,7 @@
 package verification
 
 import (
-	"gitlab.com/privategrity/crypto/hash"
+	"gitlab.com/elixxir/crypto/hash"
 )
 
 func GenerateMIC(hashee [][]byte, length uint64) []byte {

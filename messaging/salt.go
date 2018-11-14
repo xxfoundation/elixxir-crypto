@@ -8,7 +8,7 @@ package messaging
 
 import (
 	jww "github.com/spf13/jwalterweatherman"
-	"gitlab.com/privategrity/crypto/csprng"
+	"gitlab.com/elixxir/crypto/csprng"
 )
 
 // NewSalt creates a byte slice of `size` using the provided output from the

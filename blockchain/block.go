@@ -3,8 +3,8 @@ package blockchain
 import (
 	"crypto/sha256"
 	"encoding/json"
-	"gitlab.com/privategrity/crypto/coin"
-	"gitlab.com/privategrity/crypto/shuffle"
+	"gitlab.com/elixxir/crypto/coin"
+	"gitlab.com/elixxir/crypto/shuffle"
 	"golang.org/x/crypto/blake2b"
 	"sync"
 )

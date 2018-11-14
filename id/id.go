@@ -8,7 +8,7 @@ package id
 
 import (
 	"encoding/base32"
-	"gitlab.com/privategrity/crypto/hash"
+	"gitlab.com/elixxir/crypto/hash"
 	"testing"
 	"encoding/binary"
 )

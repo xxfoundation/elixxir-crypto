@@ -2,7 +2,7 @@ package diffieHellman
 
 import (
 	jww "github.com/spf13/jwalterweatherman"
-	"gitlab.com/privategrity/crypto/cyclic"
+	"gitlab.com/elixxir/crypto/cyclic"
 )
 
 // CreateDHKeyPair is a function that receives the generator and prime and

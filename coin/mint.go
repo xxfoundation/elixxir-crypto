@@ -3,7 +3,7 @@ package coin
 import (
 	jww "github.com/spf13/jwalterweatherman"
 	"math/rand"
-	"gitlab.com/privategrity/crypto/hash"
+	"gitlab.com/elixxir/crypto/hash"
 	"encoding/binary"
 )
 
@@ -19,7 +19,7 @@ import (
 
 // To remove this once more robust functionality for issuing tokens is in
 // place, recursive grep ignoring case for Mint in
-// $GOPATH/gitlab.com/privategrity. Doing this should reveal the location of
+// $GOPATH/gitlab.com/elixxir. Doing this should reveal the location of
 // all related functionality.
 
 // If you pass this function a total value that's less than the number of coins

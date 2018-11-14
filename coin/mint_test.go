@@ -2,7 +2,7 @@ package coin
 
 import (
 	"testing"
-	"gitlab.com/privategrity/crypto/id"
+	"gitlab.com/elixxir/crypto/id"
 )
 
 // Proves that Mint() returns the requested value in one coin

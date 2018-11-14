@@ -2,7 +2,7 @@ package blockchain
 
 import (
 	"fmt"
-	"gitlab.com/privategrity/crypto/coin"
+	"gitlab.com/elixxir/crypto/coin"
 	"math/rand"
 	"reflect"
 	"testing"

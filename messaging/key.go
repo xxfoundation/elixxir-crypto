@@ -8,9 +8,9 @@ package messaging
 
 import (
 	"crypto/sha256"
-	"gitlab.com/privategrity/crypto/cyclic"
-	"gitlab.com/privategrity/crypto/forward"
-	"gitlab.com/privategrity/crypto/hash"
+	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/elixxir/crypto/forward"
+	"gitlab.com/elixxir/crypto/hash"
 )
 
 // NewEncryptionKey combines the salt with the baseKey to generate
