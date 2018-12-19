@@ -8,7 +8,6 @@ package cyclic
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"encoding/gob"
 	"math/big"
 	"math/rand"
@@ -1188,43 +1187,6 @@ func TestInt_Or(t *testing.T) {
 	}
 }
 
-func TestInt_Xor(t *testing.T) {
-	src := rand.NewSource(42)
-	rng := rand.New(src)
-
-	for i := 0; i < 100; i++ {
-		aInt := rng.Uint64()
-		bInt := rng.Uint64()
-
-		aCyclic := NewIntFromUInt(aInt)
-		bCyclic := NewIntFromUInt(bInt)
-
-		resultCyclic := NewInt(0).Xor(aCyclic, bCyclic)
-
-		if resultCyclic.Uint64() != (aInt ^ bInt) {
-			t.Errorf("CyclicInt.Xor: xored value not as expected: Expected: %v, Recieved: %v",
-				aInt|bInt, resultCyclic.Uint64())
-		}
-	}
-}
-
-func BenchmarkInt_Xor(b *testing.B) {
-	src := rand.NewSource(42)
-	rng := rand.New(src)
-	var aCyclics []*Int
-	var bCyclics []*Int
-
-	for i := 0; i < b.N; i++ {
-		aCyclics = append(aCyclics, NewIntFromUInt(rng.Uint64()))
-		bCyclics = append(bCyclics, NewIntFromUInt(rng.Uint64()))
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		NewInt(0).Xor(aCyclics[i], bCyclics[i])
-	}
-}
-
 func TestInt_LeftShift(t *testing.T) {
 	src := rand.NewSource(42)
 	rng := rand.New(src)
@@ -1265,24 +1227,4 @@ func TestInt_RightShift(t *testing.T) {
 		}
 	}
 
-}
-
-func BenchmarkSha256(b *testing.B) {
-	var strings [][]byte
-	h := sha256.New()
-
-	r := rand.New(rand.NewSource(42))
-	s := make([]byte, 32)
-
-	for i := 0; i < b.N; i++ {
-		r.Read(s)
-		strings = append(strings, s)
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		h.Reset()
-		h.Write(strings[i])
-		h.Sum(nil)
-	}
 }

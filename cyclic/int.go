@@ -249,12 +249,6 @@ func (z *Int) Or(x, y *Int) *Int {
 	return z
 }
 
-//Xor computes the bitwise xor operation between the Cyclic Ints
-func (z *Int) Xor(x, y *Int) *Int {
-	z.value.Xor(x.value, y.value)
-	return z
-}
-
 //And computes the bitwise and operation between the Cyclic Ints
 func (z *Int) And(x, y *Int) *Int {
 	z.value.And(x.value, y.value)
