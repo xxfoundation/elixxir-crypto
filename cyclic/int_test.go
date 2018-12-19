@@ -1203,7 +1203,7 @@ func TestInt_Xor(t *testing.T) {
 
 		if resultCyclic.Uint64() != (aInt ^ bInt) {
 			t.Errorf("CyclicInt.Xor: xored value not as expected: Expected: %v, Recieved: %v",
-				aInt|bInt, resultCyclic.Uint64())
+				aInt^bInt, resultCyclic.Uint64())
 		}
 	}
 }
@@ -1215,8 +1215,11 @@ func BenchmarkInt_Xor(b *testing.B) {
 	var bCyclics []*Int
 
 	for i := 0; i < b.N; i++ {
-		aCyclics = append(aCyclics, NewIntFromUInt(rng.Uint64()))
-		bCyclics = append(bCyclics, NewIntFromUInt(rng.Uint64()))
+		byteField := make([]byte, 256)
+		rng.Read(byteField)
+		aCyclics = append(aCyclics, NewIntFromBytes(byteField))
+		rng.Read(byteField)
+		bCyclics = append(bCyclics, NewIntFromBytes(byteField))
 	}
 
 	b.ResetTimer()
