@@ -7,6 +7,7 @@
 package verification
 
 import (
+	"bytes"
 	"gitlab.com/elixxir/crypto/hash"
 )
 
@@ -32,11 +33,5 @@ func CheckMic(hasheeList [][]byte, mic []byte) bool {
 
 	newmic := GenerateMIC(hasheeList, uint64(len(mic)))
 
-	for i := 0; i < len(mic); i++ {
-		if newmic[i] != mic[i] {
-			return false
-		}
-	}
-
-	return true
+	return bytes.Equal(mic, newmic)
 }
