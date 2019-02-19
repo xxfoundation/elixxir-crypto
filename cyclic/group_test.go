@@ -651,18 +651,24 @@ func TestGroup_FindSmallCoprimeInverse(t *testing.T) {
 
 	group := NewGroup(p, s, g, rng)
 
-	for i := 0; i < 1000; i++ {
+	num := 1000
+
+	totalBitLen := 0
+
+	bits := uint32(256)
+
+	for i := 0; i < num; i++ {
 		z := NewInt(0)
 
 		base := group.Random(NewInt(0))
-
-		bits := uint32(256)
 
 		group.FindSmallCoprimeInverse(z, bits)
 
 		zinv := NewInt(0).ModInverse(z, group.psub1)
 
-		if uint32(len(zinv.Bytes())*8) < bits/2 {
+		totalBitLen += len(zinv.Bytes())*8
+
+		if  len(zinv.Bytes())*8 > int(bits) {
 			t.Errorf("FindSmallExponent Error: Inverse too large on "+
 				"attempt %v; Expected: <%v, Recieved: %v", i, bits,
 				uint32(len(zinv.Bytes())*8))
@@ -676,11 +682,24 @@ func TestGroup_FindSmallCoprimeInverse(t *testing.T) {
 
 		basecalc = group.RootCoprime(baseZ, z, basecalc)
 
+
+
 		if base.Cmp(basecalc) != 0 {
 			t.Errorf("FindSmallExponent Error: Result incorrect"+
 				" on attempt %v; Expected: %s, Recieved: %s", i, base.Text(10),
 				basecalc.Text(10))
 		}
 	}
+
+
+	avgBitLen := float32(totalBitLen) / float32(num)
+
+	if float32(avgBitLen) < 0.98*float32(bits){
+		t.Errorf("FindSmallExponent Error: Inverses are not the correct length on average "+
+			"; Expected: ~%v, Recieved: %v", 0.95*float32(bits), avgBitLen)
+	}
+
+
+
 
 }
