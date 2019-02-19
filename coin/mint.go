@@ -7,10 +7,10 @@
 package coin
 
 import (
-	jww "github.com/spf13/jwalterweatherman"
-	"math/rand"
-	"gitlab.com/elixxir/crypto/hash"
 	"encoding/binary"
+	jww "github.com/spf13/jwalterweatherman"
+	"gitlab.com/elixxir/crypto/hash"
+	"math/rand"
 )
 
 // This function creates a deterministic set of coins for a particular PRNG
@@ -71,8 +71,9 @@ func getNextValue(r *rand.Rand, totalValue int64, remainingSleeves int64) uint64
 // This isn't official currency, and should be considered counterfeit
 // This is in API because access to the user.ID type gives this code more meaning
 const NumArbitraryCompounds = 10
+
 func MintArbitrarily(hashee []byte) []Sleeve {
-	jww.WARN.Printf("Minting new coins for byte slice %q. " +
+	jww.WARN.Printf("Minting new coins for byte slice %q. "+
 		"Don't do this except for demos or testing.", hashee)
 	prngSeedGen, _ := hash.NewCMixHash()
 	prngSeedGen.Reset()
