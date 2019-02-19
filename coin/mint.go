@@ -70,6 +70,7 @@ func getNextValue(r *rand.Rand, totalValue int64, remainingSleeves int64) uint64
 // Mints testing coins for demo/testing
 // This isn't official currency, and should be considered counterfeit
 // This is in API because access to the user.ID type gives this code more meaning
+const NumArbitraryCompounds = 10
 func MintArbitrarily(hashee []byte) []Sleeve {
 	jww.WARN.Printf("Minting new coins for byte slice %q. " +
 		"Don't do this except for demos or testing.", hashee)
@@ -80,5 +81,5 @@ func MintArbitrarily(hashee []byte) []Sleeve {
 	seed := int64(binary.BigEndian.Uint64(sum))
 	value := rand.New(rand.NewSource(seed)).Int63n(int64(MaxValueDenominationRegister))
 
-	return mint(value, seed, 10)
+	return mint(value, seed, NumArbitraryCompounds)
 }

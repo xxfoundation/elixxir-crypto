@@ -8,7 +8,6 @@ package coin
 
 import (
 	"testing"
-	"gitlab.com/elixxir/crypto/id"
 )
 
 // Proves that Mint() returns the requested value in one coin
@@ -80,7 +79,9 @@ func Catch(fn string, t *testing.T) {
 // the value is all within some acceptable range
 func TestMintArbitrarily(t *testing.T) {
 	for user := 1; user < 100; user++ {
-		compoundCoins := MintArbitrarily(id.NewUserIDFromUint(3, t)[:])
+		userId := make([]byte, 32)
+		userId[len(userId)-1] = byte(user)
+		compoundCoins := MintArbitrarily(userId)
 		totalValue := uint64(0)
 		for i := range compoundCoins {
 			totalValue += compoundCoins[i].value
@@ -88,7 +89,7 @@ func TestMintArbitrarily(t *testing.T) {
 		if totalValue == 0 || totalValue > MaxValueDenominationRegister {
 			t.Errorf("Total value %v was out of expected range", totalValue)
 		}
-		if len(compoundCoins) != 10 {
+		if len(compoundCoins) != NumArbitraryCompounds {
 			t.Error("Expected exactly ten compound coins for this user")
 		}
 	}
