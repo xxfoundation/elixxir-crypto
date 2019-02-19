@@ -89,7 +89,7 @@ func TestMintArbitrarily(t *testing.T) {
 		if totalValue == 0 || totalValue > MaxValueDenominationRegister {
 			t.Errorf("Total value %v was out of expected range", totalValue)
 		}
-		if len(compoundCoins) != 10 {
+		if len(compoundCoins) != NumArbitraryCompounds {
 			t.Error("Expected exactly ten compound coins for this user")
 		}
 	}
