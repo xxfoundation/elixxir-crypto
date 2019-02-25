@@ -7,6 +7,7 @@
 package nonce
 
 import (
+	"encoding/hex"
 	"testing"
 	"time"
 )
@@ -15,6 +16,7 @@ const (
 	NormalTTL    = uint(10)
 	NormalTTLStr = "10m0s"
 	ShortTTL     = uint(1)
+	NumTests     = int(1000)
 	TimeWindow   = 100*time.Millisecond
 )
 
@@ -31,6 +33,37 @@ func TestNewNonce(t *testing.T) {
 
 	if !n.IsValid() {
 		t.Errorf("Nonce was just created, so it should be valid")
+	}
+}
+
+// Test new Nonce repeated times and see if random values repeat
+func TestNewNonceMultiple(t *testing.T) {
+	tmap := make(map[string]bool)
+
+	for i := 0; i < NumTests; i++ {
+		n := NewNonce(NormalTTL)
+		tmap[hex.EncodeToString(n.Bytes())] = true
+	}
+
+	if len(tmap) < NumTests {
+		t.Errorf("At least two nonces out of %d have the same value", NumTests)
+	}
+}
+
+// Test new Nonce generation with various TTLs
+func TestNewNonceVarious(t *testing.T) {
+	for i := 0; i < NumTests; i++ {
+		n := NewNonce(ShortTTL+uint(i))
+
+		val := n.Bytes()
+
+		if len(val) != NonceLen {
+			t.Errorf("TestNewNonce: Nonce size is %d bytes instead of %d", len(val), NonceLen)
+		}
+
+		if !n.IsValid() {
+			t.Errorf("Nonce was just created, so it should be valid")
+		}
 	}
 }
 
