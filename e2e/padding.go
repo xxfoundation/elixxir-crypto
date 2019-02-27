@@ -3,13 +3,11 @@ package e2e
 import (
 	"errors"
 	"io"
-	//"crypto/internal/randutil"
+    "crypto/rand"
 )
 
 func Pad(msg []byte, encMsgLen int) (encMsg []byte, err error) {
-	//randutil.MaybeReadByte(rand)
-
-	return pad(nil, msg, encMsgLen)
+	return  pad( rand.Reader, msg, encMsgLen)
 }
 
 // Impl. of PKCS 1.5 random non-zero padding as defined in RFC 3447 7.2.1
