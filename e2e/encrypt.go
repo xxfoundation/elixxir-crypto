@@ -16,10 +16,8 @@ func Encrypt(g cyclic.Group, key, msg *cyclic.Int) (*cyclic.Int, error) {
 		return cyclic.NewInt(0), err
 	}
 
-	product := cyclic.NewInt(0)
-
 	// Modular multiply the key with the padded message
-	product = g.Mul(key, cyclic.NewIntFromBytes(encMsg), product)
+	product := g.Mul(key, cyclic.NewIntFromBytes(encMsg), cyclic.NewInt(0))
 
 	// Return the result
 	return product, nil
@@ -34,10 +32,8 @@ func Decrypt(g cyclic.Group, key, encMsg *cyclic.Int) *cyclic.Int {
 	// Modular invert the key under the group
 	keyInv = g.Inverse(key, keyInv)
 
-	product := cyclic.NewInt(0)
-
 	// Modular multiply the inverted key with the message
-	product = g.Mul(keyInv, encMsg, product)
+	product := g.Mul(keyInv, encMsg, cyclic.NewInt(0))
 
 	// Return the result
 	return product
