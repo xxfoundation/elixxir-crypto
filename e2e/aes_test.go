@@ -39,7 +39,10 @@ func TestEncryptCore(t *testing.T) {
 	ptext, _ := hex.DecodeString(TEST_VECTOR_PLAINTEXT)
 	ctext, _ := hex.DecodeString(TEST_VECTOR_CIPHERTEXT)
 
-	result, err := encryptCore(key, iv, ptext)
+	var iv_arr [AESBlockSize]byte
+	copy(iv_arr[:], iv)
+
+	result, err := encryptCore(key, iv_arr, ptext)
 
 	if err != nil {
 		t.Errorf("AES Encryption Core returned error: %s", err.Error())
@@ -57,7 +60,10 @@ func TestDecryptCore(t *testing.T) {
 	ptext, _ := hex.DecodeString(TEST_VECTOR_PLAINTEXT)
 	ctext, _ := hex.DecodeString(TEST_VECTOR_CIPHERTEXT)
 
-	result, err := decryptCore(key, iv, ctext)
+	var iv_arr [AESBlockSize]byte
+	copy(iv_arr[:], iv)
+
+	result, err := decryptCore(key, iv_arr, ctext)
 
 	if err != nil {
 		t.Errorf("AES Decryption Core returned error: %s", err.Error())
@@ -75,12 +81,7 @@ func TestDecryptCore(t *testing.T) {
 // Test Encryption core with bad arguments
 func TestEncryptCore_BadArgs(t *testing.T) {
 	key, _ := hex.DecodeString(TEST_VECTOR_KEY)
-	ivs := [][]byte{
-		[]byte("ABCDEFGHIJKLMNOP"),
-		[]byte("1234"),
-		[]byte(""),
-		nil,
-	}
+	iv, _ := hex.DecodeString(TEST_VECTOR_IV)
 	ptext := [][]byte{
 		[]byte("0123456789ABCDEF"),
 		[]byte("01234"),
@@ -88,11 +89,14 @@ func TestEncryptCore_BadArgs(t *testing.T) {
 		nil,
 	}
 
-	tests := len(ptext) * len(ivs)
+	var iv_arr [AESBlockSize]byte
+	copy(iv_arr[:], iv)
+
+	tests := len(ptext)
 	pass := 0
 
 	for i := 0; i < tests; i++ {
-		result, err := encryptCore(key, ivs[i%len(ivs)], ptext[i/len(ivs)])
+		result, err := encryptCore(key, iv_arr, ptext[i])
 
 		if i == 0 {
 			if err != nil {
@@ -114,12 +118,7 @@ func TestEncryptCore_BadArgs(t *testing.T) {
 // Test Decryption core with bad arguments
 func TestDecryptCore_BadArgs(t *testing.T) {
 	key, _ := hex.DecodeString(TEST_VECTOR_KEY)
-	ivs := [][]byte{
-		[]byte("ABCDEFGHIJKLMNOP"),
-		[]byte("1234"),
-		[]byte(""),
-		nil,
-	}
+	iv, _ := hex.DecodeString(TEST_VECTOR_IV)
 	ptext := [][]byte{
 		[]byte("0123456789ABCDEF"),
 		[]byte("01234"),
@@ -127,11 +126,14 @@ func TestDecryptCore_BadArgs(t *testing.T) {
 		nil,
 	}
 
-	tests := len(ptext) * len(ivs)
+	var iv_arr [AESBlockSize]byte
+	copy(iv_arr[:], iv)
+
+	tests := len(ptext)
 	pass := 0
 
 	for i := 0; i < tests; i++ {
-		result, err := decryptCore(key, ivs[i%len(ivs)], ptext[i/len(ivs)])
+		result, err := decryptCore(key, iv_arr, ptext[i])
 
 		if i == 0 {
 			if err != nil {
@@ -166,8 +168,7 @@ const (
 	TEST_KEY_256 = "386ac152fb0234d7e7b76d69bd13e92734e299c6f07db78112ac37e4ef4d8605"
 	TEST_KEY_248 = "fe6cd9428ecd3b7b91c01e26eb8429f53d71418f01e5d96068a6f443efd55c"
 	TEST_KEY_128 = "636fc269a3346655ed376756e1533009"
-	TEST_IV_128  = "0123456789ABCDEF"
-	TEST_IV_120  = "123456789ABCDEF"
+	TEST_IV      = "0123456789ABCDEF"
 	TEST_CIPHER  = "0123456789ABCDEFabcdefghijklmno"
 	NUM_TESTS    = int(10000)
 )
@@ -275,40 +276,6 @@ func TestEncAES_Args(t *testing.T) {
 	println("TestEncAES_Args()", pass, "out of", tests, "tests passed.")
 }
 
-// Test AES encryption with various IV sizes
-func TestEncAES_IVs(t *testing.T) {
-	key := cyclic.NewIntFromString(TEST_KEY_2048, 16)
-	ivs := [][]byte{
-		[]byte(TEST_IV_128),
-		[]byte(TEST_IV_120),
-		[]byte(""),
-		nil,
-	}
-	ptext := []byte(TEST_MSG)
-
-	tests := len(ivs)
-	pass := 0
-
-	for i := 0; i < tests; i++ {
-		ciphertext, err := EncryptAES256WithIV(key, ivs[i], ptext)
-
-		if i == 0 {
-			if err != nil {
-				t.Errorf("AES Encryption with IV returned error: %s", err.Error())
-			} else {
-				pass++
-			}
-		} else {
-			if ciphertext != nil || err == nil {
-				t.Errorf("AES Encryption with IV should have returned error")
-			} else {
-				pass++
-			}
-		}
-	}
-	println("TestEncAES_IVs()", pass, "out of", tests, "tests passed.")
-}
-
 // Test AES decryption with various arguments
 func TestDecAES_Args(t *testing.T) {
 	key := cyclic.NewIntFromString(TEST_KEY_256, 16)
@@ -356,44 +323,30 @@ func TestDecAES_Args(t *testing.T) {
 	println("TestDecAES_Keys()", pass, "out of", tests, "tests passed.")
 }
 
-// Test AES decryption with various IV sizes
-func TestDecAES_IVs(t *testing.T) {
+// Test AES encryption/decryption with fixed IV
+func TestEncAES_IVs(t *testing.T) {
 	key := cyclic.NewIntFromString(TEST_KEY_2048, 16)
-	ivs := [][]byte{
-		[]byte(TEST_IV_128),
-		[]byte(TEST_IV_120),
-		[]byte(""),
-		nil,
-	}
+	iv := []byte(TEST_IV)
 	ptext := []byte(TEST_MSG)
 
-	ciphertext, err := EncryptAES256WithIV(key, ivs[0], ptext)
+	var iv_arr [AESBlockSize]byte
+	copy(iv_arr[:], iv)
+
+	ciphertext, err := EncryptAES256WithIV(key, iv_arr, ptext)
 
 	if err != nil {
-		t.Errorf("AES Encryption returned error: %s", err.Error())
+		t.Errorf("AES EncryptionWithIV returned error: %s", err.Error())
 	}
 
-	tests := len(ivs)
-	pass := 0
+	result, err := DecryptAES256WithIV(key, iv_arr, ciphertext)
 
-	for i := 0; i < tests; i++ {
-		result, err := DecryptAES256WithIV(key, ivs[i], ciphertext)
-
-		if i == 0 {
-			if err != nil {
-				t.Errorf("AES Decryption with IV returned error: %s", err.Error())
-			} else {
-				pass++
-			}
-		} else {
-			if result != nil || err == nil {
-				t.Errorf("AES Decryption with IV should have returned error")
-			} else {
-				pass++
-			}
-		}
+	if err != nil {
+		t.Errorf("AES DecryptionWithIV returned error: %s", err.Error())
 	}
-	println("TestEncAES_IVs()", pass, "out of", tests, "tests passed.")
+
+	if !bytes.Equal(ptext, result) {
+		t.Errorf("Plaintext after encryption/decryption doesn't match with original!")
+	}
 }
 
 //---------------------------------- Test random inputs ------------------------------------------//
