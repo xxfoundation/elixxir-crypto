@@ -27,6 +27,7 @@ var ErrPaddingTerminator = errors.New("padding terminator invalid")
 
 // PKCS 1.5 Pad using crypto.rand.Reader
 func Pad(msg []byte, encMsgLen int) (encMsg []byte, err error) {
+	// Client shouldn't need to choose RNG so use crypto.rand.Reader here
 	return pad(msg, encMsgLen, rand.Reader)
 }
 
