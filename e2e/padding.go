@@ -102,12 +102,6 @@ func Unpad(encMsg []byte) (msg []byte, err error) {
 
 	// Extract message after padding
 	msg = encMsg[termInd+1:]
-	msgLen := len(msg)
-
-	// Check that message is not too long
-	if msgLen > encMsgLen - MinPaddingLen {
-		return nil, ErrMessageTooLong
-	}
 
 	return msg, nil
 }
