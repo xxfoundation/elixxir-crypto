@@ -167,3 +167,48 @@ func TestNonZeroRandomBytesPanicsOnImmediateReaderError(t *testing.T) {
 
 	nonZeroRandomBytes(s, &r)
 }
+
+func TestUnpadSmallEncodedMsg(t *testing.T) {
+	encMsg := []byte("toosmall")
+
+	_, err := Unpad(encMsg)
+
+	if len(encMsg) >= MinPaddingLen {
+		t.Errorf("This message exceeds the minimium pad len so test cannot proceed")
+	}
+
+	if err == nil {
+		t.Errorf("Small encoded message (less than min size) should return an error")
+	}
+}
+
+func TestUnpadEncodedMsgPrefix(t *testing.T) {
+	validPrefix := []byte{0x00, 0x02, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x00, 0x01, 0x01}
+	invalidPrefix1 := []byte{0xAB, 0x02, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x00, 0x01, 0x01}
+	invalidPrefix2 := []byte{0x00, 0xAB, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x00, 0x01, 0x01}
+	invalidPrefix3 := []byte{0xCD, 0xAB, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x00, 0x01, 0x01}
+
+	_, err := Unpad(validPrefix)
+
+	if err != nil {
+		t.Errorf("Valid prefix returned an error on unpad")
+	}
+
+	_, err = Unpad(invalidPrefix1)
+
+	if err == nil {
+		t.Errorf("Invalid prefix did not return an error on unpad")
+	}
+
+	_, err = Unpad(invalidPrefix2)
+
+	if err == nil {
+		t.Errorf("Invalid prefix did not return an error on unpad")
+	}
+
+	_, err = Unpad(invalidPrefix3)
+
+	if err == nil {
+		t.Errorf("Invalid prefix did not return an error on unpad")
+	}
+}

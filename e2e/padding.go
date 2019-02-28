@@ -87,13 +87,15 @@ func Unpad(encMsg []byte) (msg []byte, err error) {
 
 	// Search for first zero octet after min. padding string and panic if not found.
 	termInd := 0
-	for i, oct := range encMsg[MinPaddingLen:] {
-		if oct == 0x00 {
+	for i := MinPaddingLen; i < len(encMsg); i++ {
+		if encMsg[i] == 0x00 {
 			jww.INFO.Printf("found end of padding in encoded message at %v", termInd)
 			termInd = i
 			break
 		}
 	}
+
+	// If unable to find terminator then return an error
 	if termInd == 0 {
 		return nil, ErrPaddingTerminator
 	}
