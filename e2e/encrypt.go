@@ -33,7 +33,7 @@ func Decrypt(g cyclic.Group, key, encMsg *cyclic.Int) (*cyclic.Int, error) {
 	product := g.Mul(keyInv, encMsg, cyclic.NewInt(0))
 
 	// Remove the padding from the message
-	unPadMsg, err := Unpad(product.Bytes())
+	unPadMsg, err := Unpad(produc.LeftpadBytes(format.TOTAL_LEN))
 
 	// Return if an error occurred
 	if err != nil {
