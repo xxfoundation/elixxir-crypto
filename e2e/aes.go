@@ -11,6 +11,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"errors"
+	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
 	"gitlab.com/elixxir/crypto/cyclic"
 )
@@ -18,11 +19,20 @@ import (
 const AES256KeyLen = 32
 const AESBlockSize = aes.BlockSize
 
+var ErrKeyTooShort = errors.New("Key is too short (< 32 bytes)")
+var ErrBadPlaintext = errors.New("Plaintext is nil, empty or is not padded to blocksize")
+var ErrBadCiphertext = errors.New("Ciphertext is nil, empty or is not multiple of blocksize")
+var ErrBadArgs = errors.New("Key and/or plaintext/ciphertext are nil")
+var ErrCiphertextTooShort = errors.New("Ciphertext is too short (< 32 bytes)")
+var ErrCantPad = errors.New("Error while padding plaintext")
+var ErrCantUnpad = errors.New("Error while unpadding plaintext")
+var ErrBadPadding = errors.New("Bad padding in plaintext")
+
 // Helper function to apply PKCS #7 padding to plaintext
-func pkcs7PadAES(ptext []byte) []byte {
+func pkcs7PadAES(ptext []byte) ([]byte, error) {
 	size := len(ptext)
 	if ptext == nil || size == 0 {
-		return nil
+		return nil, ErrCantPad
 	}
 
 	npad := AESBlockSize - (size % AESBlockSize)
@@ -30,29 +40,29 @@ func pkcs7PadAES(ptext []byte) []byte {
 	copy(paddedText, ptext)
 	copy(paddedText[size:], bytes.Repeat([]byte{byte(npad)}, npad))
 
-	return paddedText
+	return paddedText, nil
 }
 
 // Helper function to remove PKCS #7 padding from decrypted text
-func pkcs7UnpadAES(padtext []byte) []byte {
+func pkcs7UnpadAES(padtext []byte) ([]byte, error) {
 	size := len(padtext)
 	if padtext == nil || size == 0 {
-		return nil
+		return nil, ErrCantUnpad
 	}
 
 	padByte := padtext[size-1]
 	nPads := int(padByte)
 	if nPads == 0 || nPads > size {
-		return nil
+		return nil, ErrBadPadding
 	}
 
 	for i := 0; i < nPads; i++ {
 		if padtext[size-nPads+i] != padByte {
-			return nil
+			return nil, ErrBadPadding
 		}
 	}
 
-	return padtext[:size-nPads]
+	return padtext[:size-nPads], nil
 }
 
 // Internal function with AES Encryption core
@@ -61,19 +71,19 @@ func pkcs7UnpadAES(padtext []byte) []byte {
 // plaintext must be padded correctly
 func encryptCore(key []byte, iv [AESBlockSize]byte, plaintext []byte) ([]byte, error) {
 	if len(key) < AES256KeyLen {
-		return nil, errors.New("Key is too small")
+		return nil, ErrKeyTooShort
 	}
 
 	actualKey := key[:AES256KeyLen]
 
 	size := len(plaintext)
 	if plaintext == nil || size == 0 || size%AESBlockSize != 0 {
-		return nil, errors.New("Plaintext is nil, empty or is not padded to blocksize")
+		return nil, ErrBadPlaintext
 	}
 
 	block, err := aes.NewCipher(actualKey)
 	if err != nil {
-		return nil, errors.New("Error creating AES block cipher")
+		jww.FATAL.Panicf("Error creating AES block cipher")
 	}
 
 	ciphertext := make([]byte, len(plaintext))
@@ -90,19 +100,19 @@ func encryptCore(key []byte, iv [AESBlockSize]byte, plaintext []byte) ([]byte, e
 // Padding is not removed from plaintext, caller should be in charge of that
 func decryptCore(key []byte, iv [AESBlockSize]byte, ciphertext []byte) ([]byte, error) {
 	if len(key) < AES256KeyLen {
-		return nil, errors.New("Key is too small")
+		return nil, ErrKeyTooShort
 	}
 
 	actualKey := key[:AES256KeyLen]
 
 	size := len(ciphertext)
 	if ciphertext == nil || size == 0 || size%AESBlockSize != 0 {
-		return nil, errors.New("Ciphertext is nil, empty or is not multiple of blocksize")
+		return nil, ErrBadCiphertext
 	}
 
 	block, err := aes.NewCipher(actualKey)
 	if err != nil {
-		return nil, errors.New("Error creating AES block cipher")
+		jww.FATAL.Panicf("Error creating AES block cipher")
 	}
 
 	decryptor := cipher.NewCBCDecrypter(block, iv[:])
@@ -121,13 +131,13 @@ func decryptCore(key []byte, iv [AESBlockSize]byte, ciphertext []byte) ([]byte, 
 // Returns ciphertext if no error, otherwise nil and err
 func EncryptAES256WithIV(key *cyclic.Int, iv [AESBlockSize]byte, plaintext []byte) ([]byte, error) {
 	if key == nil || plaintext == nil {
-		return nil, errors.New("Key and/or plaintext are nil")
+		return nil, ErrBadArgs
 	}
 
 	kBytes := key.Bytes()
-	plaintext = pkcs7PadAES(plaintext)
-	if plaintext == nil {
-		return nil, errors.New("Error padding plaintext")
+	plaintext, err := pkcs7PadAES(plaintext)
+	if err != nil {
+		return nil, err
 	}
 
 	return encryptCore(kBytes, iv, plaintext)
@@ -144,7 +154,7 @@ func EncryptAES256WithIV(key *cyclic.Int, iv [AESBlockSize]byte, plaintext []byt
 // Returns decrypted plaintext if no error, otherwise nil and err
 func DecryptAES256WithIV(key *cyclic.Int, iv [AESBlockSize]byte, ciphertext []byte) ([]byte, error) {
 	if key == nil || ciphertext == nil {
-		return nil, errors.New("Key and/or ciphertext are nil")
+		return nil, ErrBadArgs
 	}
 
 	kBytes := key.Bytes()
@@ -153,12 +163,7 @@ func DecryptAES256WithIV(key *cyclic.Int, iv [AESBlockSize]byte, ciphertext []by
 		return nil, err
 	}
 
-	plaintext = pkcs7UnpadAES(plaintext)
-	if plaintext == nil {
-		return nil, errors.New("Error unpadding plaintext")
-	}
-
-	return plaintext, nil
+	return pkcs7UnpadAES(plaintext)
 }
 
 // Encrypt the plaintext using AES256 with the passed key
@@ -174,7 +179,7 @@ func EncryptAES256(key *cyclic.Int, plaintext []byte) ([]byte, error) {
 	randGen := csprng.SystemRNG{}
 	size, err := randGen.Read(iv)
 	if err != nil || size != len(iv) {
-		return nil, errors.New("Error generating IV")
+		jww.FATAL.Panicf("Could not generate IV: %v", err.Error())
 	}
 
 	var iv_arr [AESBlockSize]byte
@@ -200,7 +205,7 @@ func EncryptAES256(key *cyclic.Int, plaintext []byte) ([]byte, error) {
 // Returns decrypted plaintext if no error, otherwise nil and err
 func DecryptAES256(key *cyclic.Int, ciphertext []byte) ([]byte, error) {
 	if len(ciphertext) < 2*AESBlockSize {
-		return nil, errors.New("Ciphertext minimum length not met")
+		return nil, ErrCiphertextTooShort
 	}
 
 	var iv_arr [AESBlockSize]byte
