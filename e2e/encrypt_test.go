@@ -7,22 +7,44 @@ import (
 )
 
 func TestEncrypt(t *testing.T) {
-	p := cyclic.NewInt(1000000010101111111)
-	s := cyclic.NewInt(192395897203)
+	// Create group
+	primeString := "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
+		"29024E088A67CC74020BBEA63B139B22514A08798E3404DD" +
+		"EF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245" +
+		"E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7ED" +
+		"EE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3D" +
+		"C2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F" +
+		"83655D23DCA3AD961C62F356208552BB9ED529077096966D" +
+		"670C354E4ABC9804F1746C08CA18217C32905E462E36CE3B" +
+		"E39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9" +
+		"DE2BCBF6955817183995497CEA956AE515D2261898FA0510" +
+		"15728E5A8AACAA68FFFFFFFFFFFFFFFF"
+
+	p := cyclic.NewIntFromString(primeString, 16)
 	min := cyclic.NewInt(2)
 	max := cyclic.NewInt(0)
 	max.Mul(p, cyclic.NewInt(1000))
-	g := cyclic.NewInt(5)
+	seed := cyclic.NewInt(42)
 	rng := cyclic.NewRandom(min, max)
-	grp := cyclic.NewGroup(p, s, g, rng)
+	g := cyclic.NewInt(2)
+	grp := cyclic.NewGroup(p, seed, g, rng)
 
-	key := cyclic.NewInt(258063489345)
-	msg := cyclic.NewInt(258063489345)
+	key := cyclic.NewInt(3)
+	msg := cyclic.NewInt(4)
 
 	encMsg, err := Encrypt(grp, key, msg)
 
-	fmt.Println(&encMsg)
-	fmt.Println(err)
+	fmt.Printf("encMsg: %#v\n", *encMsg)
+	fmt.Printf("encMsg: %#v\n", (*encMsg).Int64())
+	fmt.Printf("err:    %#v\n", err)
+
+	dncMsg, err := Decrypt(grp, key, encMsg)
+
+	fmt.Printf("encMsg: %#v\n", dncMsg)
+	if dncMsg != nil {
+		fmt.Printf("encMsg: %#v\n", dncMsg.Int64())
+	}
+	fmt.Printf("err:    %#v\n", err)
 
 	if err == nil {
 		t.Errorf("TestEncrypt() returned an error\n\treceived: %v\n\texpected: %v", err, nil)
