@@ -67,6 +67,7 @@ func pkcs7UnpadAES(padtext []byte) ([]byte, error) {
 
 // Internal function with AES Encryption core
 // key must have the size needed, and if it is bigger, the MSBs are used
+// NOTE: this is not an issue since we assume that entropy is properly distributed in the key
 // IV must be 16 bytes
 // plaintext must be padded correctly
 func encryptCore(key []byte, iv [AESBlockSize]byte, plaintext []byte) ([]byte, error) {
@@ -96,6 +97,7 @@ func encryptCore(key []byte, iv [AESBlockSize]byte, plaintext []byte) ([]byte, e
 
 // Internal function with AES Decryption core
 // key must have the size needed, and if it is bigger, the MSBs are used
+// NOTE: this is not an issue since we assume that entropy is properly distributed in the key
 // IV must be 16 bytes
 // Padding is not removed from plaintext, caller should be in charge of that
 func decryptCore(key []byte, iv [AESBlockSize]byte, ciphertext []byte) ([]byte, error) {
@@ -123,8 +125,8 @@ func decryptCore(key []byte, iv [AESBlockSize]byte, ciphertext []byte) ([]byte, 
 
 // Encrypt the plaintext using AES256 with the passed key and IV
 // Plaintext is assumed to be unpadded, as padding is added internally
-// Key should be 256bits or bigger. If bigger, the 256 MSBs are taken
-// as the key
+// Key should be 256bits or bigger. If bigger, the 256 MSBs are taken as the key
+// NOTE: this is not an issue since we assume that entropy is properly distributed in the key
 // IV must be 16 bytes, and it is recommended to be the MSBs of the
 // key fingerprint
 // Key and plaintext can't be nil nor empty
@@ -145,8 +147,8 @@ func EncryptAES256WithIV(key *cyclic.Int, iv [AESBlockSize]byte, plaintext []byt
 
 // Decrypt a ciphertext using AES256 with the passed key and IV
 // Ciphertext is assumed to not have the IV, and to be padded
-// Key should be 256bits or bigger. If bigger, the 256 MSBs are taken
-// as the key
+// Key should be 256bits or bigger. If bigger, the 256 MSBs are taken as the key
+// NOTE: this is not an issue since we assume that entropy is properly distributed in the key
 // IV must be 16 bytes, and it is recommended to be the MSBs of the
 // key fingerprint
 // Key and ciphertext can't be nil nor empty
@@ -168,8 +170,8 @@ func DecryptAES256WithIV(key *cyclic.Int, iv [AESBlockSize]byte, ciphertext []by
 
 // Encrypt the plaintext using AES256 with the passed key
 // Plaintext is assumed to be unpadded, as padding is added internally
-// Key should be 256bits or bigger. If bigger, the 256 MSBs are taken
-// as the key
+// Key should be 256bits or bigger. If bigger, the 256 MSBs are taken as the key
+// NOTE: this is not an issue since we assume that entropy is properly distributed in the key
 // Key and plaintext can't be nil nor empty
 // IV is generated internally and returned as first 16 bytes of the ciphertext
 // Returns ciphertext if no error, otherwise nil and err
@@ -198,8 +200,8 @@ func EncryptAES256(key *cyclic.Int, plaintext []byte) ([]byte, error) {
 
 // Decrypt a ciphertext using AES256 with the passed key
 // Ciphertext is assumed to start with the IV
-// Key should be 256bits or bigger. If bigger, the 256 MSBs are taken
-// as the key
+// Key should be 256bits or bigger. If bigger, the 256 MSBs are taken as the key
+// NOTE: this is not an issue since we assume that entropy is properly distributed in the key
 // key and ciphertext can't be nil nor empty
 // Padding and IV are removed internally
 // Returns decrypted plaintext if no error, otherwise nil and err
