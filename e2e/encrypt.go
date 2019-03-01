@@ -16,7 +16,7 @@ func Encrypt(g cyclic.Group, key *cyclic.Int, msg []byte) ([]byte, error) {
 func encrypt(g cyclic.Group, key *cyclic.Int, msg []byte,
 	rand io.Reader) ([]byte, error) {
 	// Get the padded message
-	encMsg, err := pad(msg, format.TOTAL_LEN, rand)
+	encMsg, err := pad(msg, int(format.TOTAL_LEN), rand)
 
 	// Return if an error occurred
 	if err != nil {
