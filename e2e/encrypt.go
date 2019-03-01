@@ -1,15 +1,22 @@
 package e2e
 
 import (
+	"crypto/rand"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/primitives/format"
+	"io"
 )
+
+// Calls encrypt() with crypto.rand.Reader.
+func Encrypt(g cyclic.Group, key, msg *cyclic.Int) (*cyclic.Int, error) {
+	return encrypt(g, key, msg, rand.Reader)
+}
 
 // Modular multiplies the specified key and padded message under the passed
 // group.
-func Encrypt(g cyclic.Group, key, msg *cyclic.Int) (*cyclic.Int, error) {
+func encrypt(g cyclic.Group, key, msg *cyclic.Int, rand io.Reader) (*cyclic.Int, error) {
 	// Get the padded message
-	encMsg, err := Pad(msg.Bytes(), format.TOTAL_LEN)
+	encMsg, err := pad(msg.Bytes(), format.TOTAL_LEN, rand)
 
 	// Return if an error occurred
 	if err != nil {
@@ -33,7 +40,7 @@ func Decrypt(g cyclic.Group, key, encMsg *cyclic.Int) (*cyclic.Int, error) {
 	product := g.Mul(keyInv, encMsg, cyclic.NewInt(0))
 
 	// Remove the padding from the message
-	unPadMsg, err := Unpad(produc.LeftpadBytes(format.TOTAL_LEN))
+	unPadMsg, err := Unpad(product.LeftpadBytes(uint64(format.TOTAL_LEN)))
 
 	// Return if an error occurred
 	if err != nil {
