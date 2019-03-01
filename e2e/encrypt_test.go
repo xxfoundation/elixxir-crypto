@@ -12,6 +12,7 @@ import (
 
 var grp cyclic.Group
 
+// Build global group for tests to utilise
 func TestMain(m *testing.M) {
 	// Create group
 	primeString := "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
@@ -37,8 +38,9 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
+// Tests the functionality of Encrypt() and Decrypt() by encrypting a message
+// and check that it is the same when decrypting
 func TestEncryptDecrypt(t *testing.T) {
-
 	// Create key and message
 	key := cyclic.NewInt(3)
 	msg := []byte{5, 12, 11}
@@ -58,6 +60,7 @@ func TestEncryptDecrypt(t *testing.T) {
 	}
 }
 
+// Checks that leading zeroes in a message are not stripped
 func TestEncryptDecrypt_LeadingZeroes(t *testing.T) {
 
 	// Create key and message
@@ -79,6 +82,8 @@ func TestEncryptDecrypt_LeadingZeroes(t *testing.T) {
 	}
 }
 
+// Ensures that encrypted messages are consistency encrypted to the same value
+// (when replacing the random number generater with a pseudo one)
 func TestEncrypt_Consistency(t *testing.T) {
 	// Set up expected values with base64 encoding
 	expectedMsgs := []string{
@@ -129,6 +134,7 @@ func TestEncrypt_Consistency(t *testing.T) {
 	}
 }
 
+// Checks that Encrypt() correctly responds to errors
 func TestEncrypt_ErrorOnLongMessage(t *testing.T) {
 	// Create key and message
 	rand.Seed(42)
@@ -149,6 +155,7 @@ func TestEncrypt_ErrorOnLongMessage(t *testing.T) {
 	}
 }
 
+// Checks that Decrypt() correctly responds to errors
 func TestDecrypt_ErrorOnPaddingPrefix(t *testing.T) {
 	// Create key and message
 	rand.Seed(42)
