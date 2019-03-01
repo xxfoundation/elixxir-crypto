@@ -12,8 +12,7 @@ func Encrypt(g cyclic.Group, key, msg *cyclic.Int) (*cyclic.Int, error) {
 	return encrypt(g, key, msg, rand.Reader)
 }
 
-// Modular multiplies the specified key and padded message under the passed
-// group.
+// Modular multiplies the key and padded message under the passed group.
 func encrypt(g cyclic.Group, key, msg *cyclic.Int, rand io.Reader) (*cyclic.Int, error) {
 	// Get the padded message
 	encMsg, err := pad(msg.Bytes(), format.TOTAL_LEN, rand)
