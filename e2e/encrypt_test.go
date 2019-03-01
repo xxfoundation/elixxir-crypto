@@ -58,6 +58,27 @@ func TestEncryptDecrypt(t *testing.T) {
 	}
 }
 
+func TestEncryptDecrypt_LeadingZeroes(t *testing.T) {
+
+	// Create key and message
+	key := cyclic.NewInt(3)
+	msg := []byte{0, 0, 11, 5, 255, 0}
+
+	// Encrypt key
+	encMsg, err := Encrypt(grp, key, msg)
+
+	if err != nil {
+		t.Errorf("Encrypt() produced an unexpected error\n\treceived: %v\n\texpected: %v", err, nil)
+	}
+
+	// Decrypt key
+	dncMsg, err := Decrypt(grp, key, encMsg)
+
+	if !reflect.DeepEqual(dncMsg, msg) {
+		t.Errorf("Encrypt() did not encrypt the message correctly\n\treceived: %v\n\texpected: %v", dncMsg, msg)
+	}
+}
+
 func TestEncrypt_Consistency(t *testing.T) {
 	// Set up expected values with base64 encoding
 	expectedMsgs := []string{
