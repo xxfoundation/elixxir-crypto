@@ -42,10 +42,8 @@ cyclic group.
 `diffieHellman` implements a Diffie-Hellman key exchange. At the time of 
 writing, this is dead code.
 
-`format` includes the parts of the message format that both the server and 
-the client library make use of. This includes fields for nonce and MIC for 
-both the recipient and payload. This package is a candidate for inclusion in 
-the new `primitives` repo.
+`e2e` contains functions used in the end-to-end encryption algorithm, including
+the end-to-end key rotation.
 
 `forward` derives new keys within the cyclic group from salts and a base key.
 
