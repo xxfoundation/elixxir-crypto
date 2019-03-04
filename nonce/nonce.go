@@ -25,7 +25,7 @@ type Nonce struct {
 	TTL        time.Duration
 }
 
-// Generate a fresh nonce with the given TTL in minutes
+// Generate a fresh nonce with the given TTL in seconds
 func NewNonce(ttl uint) Nonce {
 	if ttl == 0 {
 		jww.FATAL.Panicf("TTL cannot be 0")
@@ -37,7 +37,7 @@ func NewNonce(ttl uint) Nonce {
 		jww.FATAL.Panicf("Could not generate nonce: %v", err.Error())
 	}
 	newNonce := Nonce{GenTime: time.Now(),
-		TTL: time.Duration(ttl) * time.Minute}
+		TTL: time.Duration(ttl) * time.Second}
 	copy(newNonce.Value[:], newValue)
 	newNonce.ExpiryTime = newNonce.GenTime.Add(newNonce.TTL)
 	return newNonce
