@@ -13,11 +13,14 @@ import (
 )
 
 const (
-	NormalTTL    = uint(10)
+	NormalTTL    = uint(600)
 	NormalTTLStr = "10m0s"
+	OtherTTL     = uint(75)
+	OtherTTLStr  = "1m15s"
 	ShortTTL     = uint(1)
-	NumTests     = int(1000)
-	TimeWindow   = 100*time.Millisecond
+	ShortTTLStr  = "1s"
+	NumTests     = int(10000)
+	TimeWindow   = 10 * time.Millisecond
 )
 
 // Test new Nonce generation
@@ -53,7 +56,7 @@ func TestNewNonceMultiple(t *testing.T) {
 // Test new Nonce generation with various TTLs
 func TestNewNonceVarious(t *testing.T) {
 	for i := 0; i < NumTests; i++ {
-		n := NewNonce(ShortTTL+uint(i))
+		n := NewNonce(ShortTTL + uint(i))
 
 		val := n.Bytes()
 
@@ -79,11 +82,32 @@ func TestNewNoncePanic(t *testing.T) {
 
 // Test TTL correctly set
 func TestNonceTTLStr(t *testing.T) {
-	n := NewNonce(NormalTTL)
-
-	if ttlStr := n.TTLStr(); ttlStr != NormalTTLStr {
-		t.Errorf("Nonce TTL is %s instead of %s", ttlStr, NormalTTLStr)
+	ttls := []uint{
+		NormalTTL,
+		OtherTTL,
+		ShortTTL,
 	}
+
+	expected := []string{
+		NormalTTLStr,
+		OtherTTLStr,
+		ShortTTLStr,
+	}
+
+	tests := len(ttls)
+	pass := 0
+
+	for i := 0; i < tests; i++ {
+		n := NewNonce(ttls[i])
+
+		if ttlStr := n.TTLStr(); ttlStr != expected[i] {
+			t.Errorf("Nonce TTL is %s instead of %s", ttlStr, expected[i])
+		} else {
+			pass++
+		}
+	}
+
+	println("TestNonceTTLStr()", pass, "out of", tests, "tests passed.")
 }
 
 // Test Generation Time correctly generated
@@ -106,7 +130,7 @@ func TestNonceExpiryTime(t *testing.T) {
 
 	if calcTime := genTime.Add(ttl); !calcTime.Equal(expTime) {
 		t.Errorf("Nonce expiry time %s doesn't match with generation time %s + TTL %s: %s",
-			     n.ExpiryTimeStr(), n.GenTimeStr(), n.TTLStr(), calcTime.Format(time.RFC3339))
+			n.ExpiryTimeStr(), n.GenTimeStr(), n.TTLStr(), calcTime.Format(time.RFC3339))
 	}
 }
 
@@ -114,7 +138,7 @@ func TestNonceExpiryTime(t *testing.T) {
 func TestNonceExpiration(t *testing.T) {
 	n := NewNonce(ShortTTL)
 
-	wait := time.After(time.Duration(ShortTTL)*time.Minute + TimeWindow)
+	wait := time.After(time.Duration(ShortTTL)*time.Second + TimeWindow)
 	select {
 	case <-wait:
 	}
