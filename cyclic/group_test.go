@@ -751,3 +751,25 @@ func TestGroup_FindSmallCoprimeInverse_UnsafeGroup(t *testing.T) {
 		}
 	}
 }
+
+func TestGroup_FindSmallCoprimeInverse_Panic(t *testing.T) {
+	p := NewInt(101)
+	s := NewInt(2)
+	g := NewInt(2)
+	min := NewInt(2)
+	max := NewInt(1000)
+	rng := NewRandom(min, max)
+
+	group := NewGroup(p, s, g, rng)
+	z := NewInt(1)
+
+	bits := uint32(7)
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("FindSmallCoprimeInverse should panic on bits >= log2(g.prime)")
+		}
+	}()
+
+	group.FindSmallCoprimeInverse(z, bits)
+}

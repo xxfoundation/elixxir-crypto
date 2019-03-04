@@ -129,6 +129,8 @@ func (z *Int) Mod(x, m *Int) *Int {
 // ModInverse sets x to the multiplicative inverse of z in the ring
 // ℤ/nℤ and returns x. If rng and n are not relatively prime, the result is
 // undefined.
+// TODO Panic if ModInverse returns nil, meaning that z and m are not
+// relatively prime
 func (x *Int) ModInverse(z, m *Int) *Int {
 	x.value.ModInverse(z.value, m.value)
 	return x
