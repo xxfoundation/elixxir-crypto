@@ -703,3 +703,51 @@ func TestGroup_FindSmallCoprimeInverse(t *testing.T) {
 
 
 }
+
+func TestGroup_FindSmallCoprimeInverse_UnsafeGroup(t *testing.T) {
+	p := NewInt(101)
+	s := NewInt(2)
+	g := NewInt(2)
+	min := NewInt(2)
+	max := NewInt(1000)
+	rng := NewRandom(min, max)
+
+	group := NewGroup(p, s, g, rng)
+	one := NewInt(1)
+	num := 1000
+
+	bits := uint32(6)
+
+	for i := 0; i < num; i++ {
+		z := NewInt(1)
+
+		base := group.Random(NewInt(0))
+
+		// z will be unchanged if a number with no inverse is returned
+		for z.Cmp(one) == 0 {
+			group.FindSmallCoprimeInverse(z, bits)
+		}
+
+		zinv := NewInt(0).ModInverse(z, group.psub1)
+
+		if  zinv.BitLen() > int(bits) {
+			t.Errorf("FindSmallExponent Error: Inverse too large on "+
+				"attempt %v; Expected: <%v, Recieved: %v", i, bits,
+				zinv.BitLen())
+		}
+
+		baseZ := NewInt(0)
+
+		group.Exp(base, z, baseZ)
+
+		basecalc := NewInt(0)
+
+		basecalc = group.RootCoprime(baseZ, z, basecalc)
+
+		if base.Cmp(basecalc) != 0 {
+			t.Errorf("FindSmallExponent Error: Result incorrect"+
+				" on attempt %v; Expected: %s, Recieved: %s", i, base.Text(10),
+				basecalc.Text(10))
+		}
+	}
+}
