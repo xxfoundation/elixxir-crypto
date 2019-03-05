@@ -152,8 +152,14 @@ func (g Group) RootCoprime(x, y, z *Int) *Int {
 // complexities derive primarily from the size of the prime defining the group
 // not the size of the exponent.  More information can be found here:
 // TODO: add link to doc
+// The function will panic if bits >= log2(g.prime), so the caller MUST use
+// a correct value of bits
 
 func (g Group) FindSmallCoprimeInverse(z *Int, bits uint32) *Int {
+	if bits >= uint32(g.prime.BitLen()) {
+		jww.FATAL.Panicf("Requested bits: %d is greater than" +
+			" or equal to group's prime: %d", bits, g.prime.BitLen())
+	}
 
 	// RNG that ensures the output is an odd number between 2 and 2^(
 	// bit*8) that is not equal to p-1/2.  This must occur because for a proper
