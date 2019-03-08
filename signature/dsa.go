@@ -19,7 +19,7 @@ const (
 )
 
 func CustomDSAParams(P, Q, G *cyclic.Int) *DSAParameters {
-	return &DSAParameters{dsa.Parameters{P:P.GetBigInt(), Q:Q.GetBigInt(), G:G.GetBigInt()}}
+	return &DSAParameters{dsa.Parameters{P: P.GetBigInt(), Q: Q.GetBigInt(), G: G.GetBigInt()}}
 }
 
 func NewDSAParams(rng io.Reader, pSize ParameterSizes) *DSAParameters {
