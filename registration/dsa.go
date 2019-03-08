@@ -1,11 +1,7 @@
 package registration
 
 import (
-	"bufio"
-	"bytes"
 	"crypto/dsa"
-	"encoding/gob"
-	"io"
 )
 
 type DSAParameters struct {
@@ -17,26 +13,18 @@ func (p DSAParameters) ParametersMetadata() string {
 }
 
 func (p DSAParameters) GobDecode(b []byte) error {
-	reader := bufio.NewReader(b)
-
-	dec := gob.NewDecoder(reader)
-
-	return dec.Decode(p.params)
+	return decode(b, p.params)
 }
 
 func (p DSAParameters) GobEncode() ([]byte, error) {
-	var buffer bytes.Buffer
-
-	enc := gob.NewEncoder(&buffer)
-
-	err := enc.Encode(p.params)
-
-	return buffer.Bytes(), err
+	return encode(p.params)
 }
 
 type DSAPrivateKey struct {
 	privateKey dsa.PrivateKey
 }
+
+
 
 type DSAPublicKey struct {
 	publicKey dsa.PublicKey
