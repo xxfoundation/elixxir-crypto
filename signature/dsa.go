@@ -100,8 +100,8 @@ func (p *DSAPrivateKey) Sign(data []byte, rng io.Reader) (*DSASignature, error) 
 
 }
 
-func (p *DSAPrivateKey) GetKey()*cyclic.Int{
-	return cyclic.NewIntFromBigInt(p.key.X)
+func (p *DSAPrivateKey) GetKey() dsa.PrivateKey {
+	return p.key
 }
 
 type DSAPublicKey struct {
