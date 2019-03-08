@@ -10,16 +10,15 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/sha256"
 	"errors"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
-	"gitlab.com/elixxir/crypto/cyclic"
 )
 
 const AES256KeyLen = 32
 const AESBlockSize = aes.BlockSize
 
-var ErrKeyTooShort = errors.New("Key is too short (< 32 bytes)")
 var ErrBadPlaintext = errors.New("Plaintext is nil, empty or is not padded to blocksize")
 var ErrBadCiphertext = errors.New("Ciphertext is nil, empty or is not multiple of blocksize")
 var ErrBadArgs = errors.New("Key and/or plaintext/ciphertext are nil")
@@ -66,23 +65,16 @@ func pkcs7UnpadAES(padtext []byte) ([]byte, error) {
 }
 
 // Internal function with AES Encryption core
-// key must have the size needed, and if it is bigger, the MSBs are used
-// NOTE: this is not an issue since we assume that entropy is properly distributed in the key
+// Key must be 32 bytes
 // IV must be 16 bytes
 // plaintext must be padded correctly
-func encryptCore(key []byte, iv [AESBlockSize]byte, plaintext []byte) ([]byte, error) {
-	if len(key) < AES256KeyLen {
-		return nil, ErrKeyTooShort
-	}
-
-	actualKey := key[:AES256KeyLen]
-
+func encryptCore(key [AES256KeyLen]byte, iv [AESBlockSize]byte, plaintext []byte) ([]byte, error) {
 	size := len(plaintext)
 	if plaintext == nil || size == 0 || size%AESBlockSize != 0 {
 		return nil, ErrBadPlaintext
 	}
 
-	block, err := aes.NewCipher(actualKey)
+	block, err := aes.NewCipher(key[:])
 	if err != nil {
 		jww.FATAL.Panicf("Error creating AES block cipher")
 	}
@@ -96,23 +88,16 @@ func encryptCore(key []byte, iv [AESBlockSize]byte, plaintext []byte) ([]byte, e
 }
 
 // Internal function with AES Decryption core
-// key must have the size needed, and if it is bigger, the MSBs are used
-// NOTE: this is not an issue since we assume that entropy is properly distributed in the key
+// Key must be 32 bytes
 // IV must be 16 bytes
 // Padding is not removed from plaintext, caller should be in charge of that
-func decryptCore(key []byte, iv [AESBlockSize]byte, ciphertext []byte) ([]byte, error) {
-	if len(key) < AES256KeyLen {
-		return nil, ErrKeyTooShort
-	}
-
-	actualKey := key[:AES256KeyLen]
-
+func decryptCore(key [AES256KeyLen]byte, iv [AESBlockSize]byte, ciphertext []byte) ([]byte, error) {
 	size := len(ciphertext)
 	if ciphertext == nil || size == 0 || size%AESBlockSize != 0 {
 		return nil, ErrBadCiphertext
 	}
 
-	block, err := aes.NewCipher(actualKey)
+	block, err := aes.NewCipher(key[:])
 	if err != nil {
 		jww.FATAL.Panicf("Error creating AES block cipher")
 	}
@@ -125,42 +110,42 @@ func decryptCore(key []byte, iv [AESBlockSize]byte, ciphertext []byte) ([]byte, 
 
 // Encrypt the plaintext using AES256 with the passed key and IV
 // Plaintext is assumed to be unpadded, as padding is added internally
-// Key should be 256bits or bigger. If bigger, the 256 MSBs are taken as the key
-// NOTE: this is not an issue since we assume that entropy is properly distributed in the key
-// IV must be 16 bytes, and it is recommended to be the MSBs of the
-// key fingerprint
+// Key can have any size, as internally it is hashed to generate the actual key
+// IV must be 16 bytes, and it is recommended to be the MSBs of the key fingerprint
 // Key and plaintext can't be nil nor empty
 // Returns ciphertext if no error, otherwise nil and err
-func EncryptAES256WithIV(key *cyclic.Int, iv [AESBlockSize]byte, plaintext []byte) ([]byte, error) {
+func EncryptAES256WithIV(key []byte, iv [AESBlockSize]byte, plaintext []byte) ([]byte, error) {
 	if key == nil || plaintext == nil {
 		return nil, ErrBadArgs
 	}
 
-	kBytes := key.Bytes()
 	plaintext, err := pkcs7PadAES(plaintext)
 	if err != nil {
 		return nil, err
 	}
 
-	return encryptCore(kBytes, iv, plaintext)
+	h := sha256.New()
+	var key_arr [AES256KeyLen]byte
+	copy(key_arr[:], h.Sum(key))
+	return encryptCore(key_arr, iv, plaintext)
 }
 
 // Decrypt a ciphertext using AES256 with the passed key and IV
 // Ciphertext is assumed to not have the IV, and to be padded
-// Key should be 256bits or bigger. If bigger, the 256 MSBs are taken as the key
-// NOTE: this is not an issue since we assume that entropy is properly distributed in the key
-// IV must be 16 bytes, and it is recommended to be the MSBs of the
-// key fingerprint
+// Key can have any size, as internally it is hashed to generate the actual key
+// IV must be 16 bytes, and it is recommended to be the MSBs of the key fingerprint
 // Key and ciphertext can't be nil nor empty
 // Padding is removed internally
 // Returns decrypted plaintext if no error, otherwise nil and err
-func DecryptAES256WithIV(key *cyclic.Int, iv [AESBlockSize]byte, ciphertext []byte) ([]byte, error) {
+func DecryptAES256WithIV(key []byte, iv [AESBlockSize]byte, ciphertext []byte) ([]byte, error) {
 	if key == nil || ciphertext == nil {
 		return nil, ErrBadArgs
 	}
 
-	kBytes := key.Bytes()
-	plaintext, err := decryptCore(kBytes, iv, ciphertext)
+	h := sha256.New()
+	var key_arr [AES256KeyLen]byte
+	copy(key_arr[:], h.Sum(key))
+	plaintext, err := decryptCore(key_arr, iv, ciphertext)
 	if err != nil {
 		return nil, err
 	}
@@ -170,12 +155,11 @@ func DecryptAES256WithIV(key *cyclic.Int, iv [AESBlockSize]byte, ciphertext []by
 
 // Encrypt the plaintext using AES256 with the passed key
 // Plaintext is assumed to be unpadded, as padding is added internally
-// Key should be 256bits or bigger. If bigger, the 256 MSBs are taken as the key
-// NOTE: this is not an issue since we assume that entropy is properly distributed in the key
+// Key can have any size, as internally it is hashed to generate the actual key
 // Key and plaintext can't be nil nor empty
 // IV is generated internally and returned as first 16 bytes of the ciphertext
 // Returns ciphertext if no error, otherwise nil and err
-func EncryptAES256(key *cyclic.Int, plaintext []byte) ([]byte, error) {
+func EncryptAES256(key, plaintext []byte) ([]byte, error) {
 	// Generate IV
 	iv := make([]byte, AESBlockSize)
 	randGen := csprng.SystemRNG{}
@@ -200,12 +184,11 @@ func EncryptAES256(key *cyclic.Int, plaintext []byte) ([]byte, error) {
 
 // Decrypt a ciphertext using AES256 with the passed key
 // Ciphertext is assumed to start with the IV
-// Key should be 256bits or bigger. If bigger, the 256 MSBs are taken as the key
-// NOTE: this is not an issue since we assume that entropy is properly distributed in the key
-// key and ciphertext can't be nil nor empty
+// Key can have any size, as internally it is hashed to generate the actual key
+// Key and ciphertext can't be nil nor empty
 // Padding and IV are removed internally
 // Returns decrypted plaintext if no error, otherwise nil and err
-func DecryptAES256(key *cyclic.Int, ciphertext []byte) ([]byte, error) {
+func DecryptAES256(key, ciphertext []byte) ([]byte, error) {
 	if len(ciphertext) < 2*AESBlockSize {
 		return nil, ErrCiphertextTooShort
 	}
