@@ -12,9 +12,14 @@ import (
 	"time"
 )
 
-// Length of Nonce in bytes
-// 256 bits
-const NonceLen = 32
+const (
+	// Length of Nonce in bytes
+	// 256 bits
+	NonceLen = 32
+
+	// TTL of registration nonce in seconds
+	RegistrationTTL = 180
+)
 
 type Value [NonceLen]byte
 
