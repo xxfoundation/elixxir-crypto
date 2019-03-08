@@ -8,6 +8,8 @@ import (
 	"testing"
 )
 
+// Test GenUserID normal operation with a randomly
+// generated public key and a fixed salt
 func TestGenUserID(t *testing.T) {
 	params := signature.NewDSAParams(rand.Reader, signature.L2048N256)
 	privKey := params.PrivateKeyGen(rand.Reader)
@@ -20,6 +22,7 @@ func TestGenUserID(t *testing.T) {
 	}
 }
 
+// Test GenUserID panics with empty byte slice salt
 func TestGenUserID_EmptySalt(t *testing.T) {
 	params := signature.NewDSAParams(rand.Reader, signature.L2048N256)
 	privKey := params.PrivateKeyGen(rand.Reader)
@@ -34,6 +37,7 @@ func TestGenUserID_EmptySalt(t *testing.T) {
 	GenUserID(pubKey, salt)
 }
 
+// Test GenUserID panics with nil salt
 func TestGenUserID_NilSalt(t *testing.T) {
 	params := signature.NewDSAParams(rand.Reader, signature.L2048N256)
 	privKey := params.PrivateKeyGen(rand.Reader)
@@ -47,6 +51,7 @@ func TestGenUserID_NilSalt(t *testing.T) {
 	GenUserID(pubKey, nil)
 }
 
+// Test GenUserID panics with empty byte slice public key
 func TestGenUserID_EmptyKey(t *testing.T) {
 	params := signature.NewDSAParams(rand.Reader, signature.L2048N256)
 	privKey := params.PrivateKeyGen(rand.Reader)
@@ -63,6 +68,7 @@ func TestGenUserID_EmptyKey(t *testing.T) {
 	GenUserID(pubKey, salt)
 }
 
+// Test GenUserID panics with nil public key
 func TestGenUserID_NilKey(t *testing.T) {
 	salt := []byte("0123456789ABCDEF0123456789ABCDEF")
 
@@ -74,6 +80,9 @@ func TestGenUserID_NilKey(t *testing.T) {
 	GenUserID(nil, salt)
 }
 
+// Test GenUserID normal operation with randomly
+// generated public keys and salts, making sure
+// that no repeated userIDs are generated
 func TestGenUserID_Random(t *testing.T) {
 	params := signature.NewDSAParams(rand.Reader, signature.L1024N160)
 
