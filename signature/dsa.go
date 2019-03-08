@@ -65,6 +65,22 @@ func (p *DSAParameters) GetQ()*cyclic.Int{
 	return cyclic.NewIntFromBigInt(p.params.Q)
 }
 
+func (k *DSAPublicKey) GetG() *cyclic.Int{
+	return cyclic.NewIntFromBigInt(k.key.G)
+}
+
+func (k *DSAPublicKey) GetP() *cyclic.Int{
+	return cyclic.NewIntFromBigInt(k.key.P)
+}
+
+func (k *DSAPublicKey) GetQ() *cyclic.Int{
+	return cyclic.NewIntFromBigInt(k.key.Q)
+}
+
+func (k *DSAPublicKey) GetY() *cyclic.Int{
+	return cyclic.NewIntFromBigInt(k.key.Y)
+}
+
 type DSAPrivateKey struct {
 	key dsa.PrivateKey
 }
