@@ -26,8 +26,6 @@ type PrivateKey interface {
 }
 
 type Scheme interface {
-	SchemeMetadata() string
-	EncoderDecoder
 	KeyGen(Parameters) (PublicKey, PrivateKey)
 	Sign([]byte, PrivateKey) []byte
 	Verify([]byte, PublicKey) bool
