@@ -1,12 +1,12 @@
 package signature
 
 import (
+	"bytes"
 	"crypto/dsa"
+	"encoding/gob"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"io"
-	"encoding/gob"
-	"bytes"
 )
 
 type ParameterSizes dsa.ParameterSizes
@@ -19,7 +19,7 @@ const (
 )
 
 func CustomDSAParams(P, Q, G *cyclic.Int) *DSAParameters {
-	return &DSAParameters{dsa.Parameters{P.GetBigInt(), Q.GetBigInt(), G.GetBigInt()}}
+	return &DSAParameters{dsa.Parameters{P:P.GetBigInt(), Q:Q.GetBigInt(), G:G.GetBigInt()}}
 }
 
 func NewDSAParams(rng io.Reader, pSize ParameterSizes) *DSAParameters {
@@ -53,31 +53,31 @@ func (p *DSAParameters) PrivateKeyGen(rng io.Reader) *DSAPrivateKey {
 	return &pk
 }
 
-func (p *DSAParameters) GetG()*cyclic.Int{
+func (p *DSAParameters) GetG() *cyclic.Int {
 	return cyclic.NewIntFromBigInt(p.params.G)
 }
 
-func (p *DSAParameters) GetP()*cyclic.Int{
+func (p *DSAParameters) GetP() *cyclic.Int {
 	return cyclic.NewIntFromBigInt(p.params.P)
 }
 
-func (p *DSAParameters) GetQ()*cyclic.Int{
+func (p *DSAParameters) GetQ() *cyclic.Int {
 	return cyclic.NewIntFromBigInt(p.params.Q)
 }
 
-func (k *DSAPublicKey) GetG() *cyclic.Int{
+func (k *DSAPublicKey) GetG() *cyclic.Int {
 	return cyclic.NewIntFromBigInt(k.key.G)
 }
 
-func (k *DSAPublicKey) GetP() *cyclic.Int{
+func (k *DSAPublicKey) GetP() *cyclic.Int {
 	return cyclic.NewIntFromBigInt(k.key.P)
 }
 
-func (k *DSAPublicKey) GetQ() *cyclic.Int{
+func (k *DSAPublicKey) GetQ() *cyclic.Int {
 	return cyclic.NewIntFromBigInt(k.key.Q)
 }
 
-func (k *DSAPublicKey) GetY() *cyclic.Int{
+func (k *DSAPublicKey) GetY() *cyclic.Int {
 	return cyclic.NewIntFromBigInt(k.key.Y)
 }
 
@@ -100,15 +100,35 @@ func (p *DSAPrivateKey) Sign(data []byte, rng io.Reader) (*DSASignature, error) 
 
 }
 
-func (p *DSAPrivateKey) GetKey() dsa.PrivateKey {
-	return p.key
+func (p *DSAPrivateKey) GetKey() *cyclic.Int {
+	return cyclic.NewIntFromBigInt(p.key.X)
+}
+
+func (dsaKey *DSAPrivateKey) GetPublicKey() *cyclic.Int {
+	return cyclic.NewIntFromBigInt(dsaKey.key.PublicKey.Y)
+}
+
+func (dsaKey *DSAPrivateKey) GetParams() (p, q, g *cyclic.Int) {
+	p = cyclic.NewIntFromBigInt(dsaKey.key.P)
+	q = cyclic.NewIntFromBigInt(dsaKey.key.Q)
+	g = cyclic.NewIntFromBigInt(dsaKey.key.G)
+	return p, q, g
+}
+
+func ReconstructPrivateKey(publicKey *DSAPublicKey, privateKey *cyclic.Int) *DSAPrivateKey {
+	pk := &DSAPrivateKey{}
+
+	pk.key.PublicKey = publicKey.key
+	pk.key.X = privateKey.GetBigInt()
+
+	return pk
 }
 
 type DSAPublicKey struct {
 	key dsa.PublicKey
 }
 
-func ReconstructPublicKey(p *DSAParameters, key *cyclic.Int)*DSAPublicKey{
+func ReconstructPublicKey(p *DSAParameters, key *cyclic.Int) *DSAPublicKey {
 	pk := &DSAPublicKey{}
 	pk.key.Parameters = p.params
 	pk.key.Y = key.GetBigInt()
@@ -120,7 +140,7 @@ func (p *DSAPublicKey) Verify(hash []byte, sig DSASignature) bool {
 	return dsa.Verify(&p.key, hash, sig.R.GetBigInt(), sig.S.GetBigInt())
 }
 
-func (p *DSAPublicKey) GetKey()*cyclic.Int{
+func (p *DSAPublicKey) GetKey() *cyclic.Int {
 	return cyclic.NewIntFromBigInt(p.key.Y)
 }
 
