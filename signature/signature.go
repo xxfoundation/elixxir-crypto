@@ -1,4 +1,4 @@
-package registration
+package signature
 
 
 import (
@@ -8,29 +8,28 @@ import (
 )
 
 type EncoderDecoder interface {
+	Name() string
 	gob.GobEncoder
 	gob.GobDecoder
 }
 
-type Parameters interface {
-	ParametersMetadata() string
-	EncoderDecoder
-}
 
-type PublicKey interface {
-	PublicKeyMetadata() string
+type NewParameters func(...interface{})Parameters
+
+type Parameters interface {
+	PrivateKeyGen(...interface{}) PrivateKey
 	EncoderDecoder
 }
 
 type PrivateKey interface {
-	PrivateKeyMetadata() string
+	PublicKeyGen(...interface{}) PublicKey
+	Sign([]byte, ...interface{})(interface{},error)
 	EncoderDecoder
 }
 
-type Scheme interface {
-	KeyGen(Parameters) (PublicKey, PrivateKey)
-	Sign([]byte, PrivateKey) []byte
-	Verify([]byte, PublicKey) bool
+type PublicKey interface {
+	Verify([]byte)bool
+	EncoderDecoder
 }
 
 func decode(b []byte, e interface{}) error {
