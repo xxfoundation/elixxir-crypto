@@ -25,8 +25,8 @@ func NewInt(x int64) *Int {
 
 // Creates a cyclic int from a passed big int
 //Fixme: write a damn test
-func NewIntFromBigInt(int2 *big.Int)*Int{
-	return &Int{int2}
+func NewIntFromBigInt(x *big.Int)*Int{
+	return &Int{x}
 }
 
 // NewIntFromBytes creates a new Int initialized from a byte buffer
