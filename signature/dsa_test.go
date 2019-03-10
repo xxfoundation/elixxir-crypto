@@ -117,10 +117,12 @@ func TestPrivateKeyGenValid(t *testing.T) {
 
 	privateKey := params.PrivateKeyGen(r2)
 
-	privateKey.GetKey()
+	k := privateKey.GetKey()
 
-	privateKey.GetKey()
-	// Debug here to ensure its right pk
+	if k.Int64() != 6619692607800168046 {
+		t.Errorf("Invalid private key generated")
+	}
+
 }
 
 //func TestPrivateKeyGenPanic(t *testing.T) {
