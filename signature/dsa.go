@@ -18,8 +18,8 @@ const (
 	L3072N256
 )
 
-func CustomDSAParams(P, Q, G *cyclic.Int) *DSAParameters {
-	return &DSAParameters{dsa.Parameters{P: P.GetBigInt(), Q: Q.GetBigInt(), G: G.GetBigInt()}}
+func CustomDSAParams(sizes ParameterSizes, P, Q, G *cyclic.Int) *DSAParameters {
+	return &DSAParameters{ dsa.Parameters{P: P.GetBigInt(), Q: Q.GetBigInt(), G: G.GetBigInt()}, sizes}
 }
 
 func NewDSAParams(rng io.Reader, pSize ParameterSizes) *DSAParameters {
@@ -29,7 +29,7 @@ func NewDSAParams(rng io.Reader, pSize ParameterSizes) *DSAParameters {
 	err := dsa.GenerateParameters(&dsaParams.params, rng, dsa.ParameterSizes(pSize))
 
 	if err != nil {
-		jww.FATAL.Panicf("Unable to generate parameters", err.Error())
+		jww.FATAL.Panicf("Unable to generate parameters")
 	}
 
 	return &dsaParams
@@ -37,17 +37,25 @@ func NewDSAParams(rng io.Reader, pSize ParameterSizes) *DSAParameters {
 
 type DSAParameters struct {
 	params dsa.Parameters
+	sizes ParameterSizes
 }
 
 func (p *DSAParameters) PrivateKeyGen(rng io.Reader) *DSAPrivateKey {
 
 	pk := DSAPrivateKey{}
 	pk.key.Parameters = p.params
+	pk.key.Q = p.params.Q
 
-	err := dsa.GenerateKey(&pk.key, rng)
+	err := dsa.GenerateParameters(&pk.key.Parameters, rng, (dsa.ParameterSizes)(p.sizes) )
 
 	if err != nil {
-		jww.FATAL.Panicf("Unable to generate DSA private key", err.Error())
+		jww.FATAL.Panicf("Unable to generate DSA params")
+	}
+
+	err = dsa.GenerateKey(&pk.key, rng)
+
+	if err != nil {
+		jww.FATAL.Panicf("Unable to generate DSA private key")
 	}
 
 	return &pk
