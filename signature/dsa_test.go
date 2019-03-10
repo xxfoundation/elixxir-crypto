@@ -125,44 +125,47 @@ func TestPrivateKeyGenValid(t *testing.T) {
 
 }
 
-//func TestPrivateKeyGenPanic(t *testing.T) {
-//	defer func() {
-//		if r := recover(); r == nil {
-//			t.Errorf("AlwaysErrorReader should panic on reader error!")
-//		}
-//	}()
-//
-//	r := AlwaysErrorReader{}
-//	params := DSAParameters{}
-//
-//	params.PrivateKeyGen(&r)
-//}
-//
-//func TestDSAParamsGetters(t *testing.T) {
-//
-//	r := rand.New(rand.NewSource(0))
-//
-//	params := NewDSAParams(r, L1024N160)
-//
-//	// Verify
-//	params.GetG()
-//
-//	params.GetP()
-//
-//	params.GetQ()
-//
-//	r = rand.New(rand.NewSource(1))
-//
-//	params = NewDSAParams(r, L2048N224)
-//
-//	// Verify
-//	params.GetG()
-//
-//	params.GetP()
-//
-//	params.GetQ()
-//
-//}
+func TestPrivateKeyGenPanic(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("AlwaysErrorReader should panic on reader error!")
+		}
+	}()
+
+	r := AlwaysErrorReader{}
+	params := DSAParameters{}
+
+	params.PrivateKeyGen(&r)
+}
+
+func TestDSAParamsGetters(t *testing.T) {
+
+	r := rand.New(rand.NewSource(0))
+
+	params := NewDSAParams(r, L1024N160)
+
+	// Verify
+
+	p := params.GetP()
+	q := params.GetQ()
+	g := params.GetG()
+
+	pActual := p.TextVerbose(16, 40)
+	if pActual != "d99d2415ea76c2d9853e10285f47c26e644cb3e3..." {
+		t.Errorf("Invalid p")
+	}
+
+	qActual := q.TextVerbose(16, 40)
+	if qActual != "9a67144642e88f4b76cdabfa7a9c828765081f9d" {
+		t.Errorf("Invalid p")
+	}
+
+	gActual := g.TextVerbose(16, 40)
+	if gActual != "82b9856ebad01214503a5bfe28c5cda17e455c21..." {
+		t.Errorf("Invalid p")
+	}
+
+}
 //
 //func TestDSAPublicKeyGetters(t *testing.T) {
 //	r := rand.New(rand.NewSource(0))
