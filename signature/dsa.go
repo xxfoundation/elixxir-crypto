@@ -19,7 +19,7 @@ const (
 )
 
 func CustomDSAParams(P, Q, G *cyclic.Int) *DSAParameters {
-	return &DSAParameters{ dsa.Parameters{P: P.GetBigInt(), Q: Q.GetBigInt(), G: G.GetBigInt()}}
+	return &DSAParameters{dsa.Parameters{P: P.GetBigInt(), Q: Q.GetBigInt(), G: G.GetBigInt()}}
 }
 
 func NewDSAParams(rng io.Reader, pSizes ParameterSizes) *DSAParameters {
@@ -45,7 +45,7 @@ func (p *DSAParameters) PrivateKeyGen(rng io.Reader, pSizes ParameterSizes) *DSA
 	pk.key.Parameters = p.params
 	pk.key.Q = p.params.Q
 
-	err := dsa.GenerateParameters(&pk.key.Parameters, rng, (dsa.ParameterSizes)(pSizes) )
+	err := dsa.GenerateParameters(&pk.key.Parameters, rng, (dsa.ParameterSizes)(pSizes))
 
 	if err != nil {
 		jww.FATAL.Panicf("Unable to generate DSA params")
@@ -73,7 +73,7 @@ func (p *DSAParameters) GetQ() *cyclic.Int {
 }
 
 func (k *DSAPublicKey) GetParams() *DSAParameters {
-	return &DSAParameters{ params: k.key.Parameters }
+	return &DSAParameters{params: k.key.Parameters}
 }
 
 func (k *DSAPublicKey) GetY() *cyclic.Int {
