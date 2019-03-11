@@ -86,7 +86,7 @@ func TestGenUserID_NilKey(t *testing.T) {
 func TestGenUserID_Random(t *testing.T) {
 	params := signature.NewDSAParams(rand.Reader, signature.L1024N160)
 
-	tests := 10000
+	tests := 100
 
 	userMap := make(map[string]bool)
 

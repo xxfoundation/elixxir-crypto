@@ -15,7 +15,10 @@ import (
 	"testing"
 )
 
-func TestCustomDSAParams(t *testing.T) {
+
+// Test CustomDSA Param generation accessors
+// to ensure P, Q, G values are stored correctly internally
+func TestCustomDSAParams_Accessors(t *testing.T) {
 
 	var pExpected, qExpected, gExpected int64 = 1, 1, 1
 
@@ -91,6 +94,7 @@ func (r *AlwaysErrorReader) Read(b []byte) (int, error) {
 	return 1, errors.New("external system error")
 }
 
+// Test NewDSAParams to ensure a panic occurs on external rng failure
 func TestNewDSAParamsPanic(t *testing.T) {
 
 	defer func() {
@@ -104,14 +108,15 @@ func TestNewDSAParamsPanic(t *testing.T) {
 
 }
 
-func TestPrivateKeyGenValid(t *testing.T) {
+// Test PrivateKeyGen from params generates a valid private key
+func TestPrivateKeyGen_Valid(t *testing.T) {
 
 	source := rand.NewSource(42)
 	rand := rand.New(source)
 
-	p := cyclic.NewInt(1)
-	q := cyclic.NewInt(2)
-	g := cyclic.NewInt(3)
+	p := fromHex("A9B5B793FB4785793D246BAE77E8FF63CA52F442DA763C440259919FE1BC1D6065A9350637A04F75A2F039401D49F08E066C4D275A5A65DA5684BC563C14289D7AB8A67163BFBF79D85972619AD2CFF55AB0EE77A9002B0EF96293BDD0F42685EBB2C66C327079F6C98000FBCB79AACDE1BC6F9D5C7B1A97E3D9D54ED7951FEF")
+	q := fromHex("E1D3391245933D68A0714ED34BBCB7A1F422B9C1")
+	g := fromHex("634364FC25248933D01D1993ECABD0657CC0CB2CEED7ED2E3E8AECDFCDC4A25C3B15E9E3B163ACA2984B5539181F3EFF1A5E8903D71D5B95DA4F27202B77D2C44B430BB53741A8D59A8F86887525C9F2A6A5980A195EAA7F2FF910064301DEF89D3AA213E1FAC7768D89365318E370AF54A112EFBA9246D9158386BA1B4EEFDA")
 
 	sizes := L1024N160
 
@@ -119,15 +124,45 @@ func TestPrivateKeyGenValid(t *testing.T) {
 
 	privateKey := params.PrivateKeyGen(rand, sizes)
 
-	k := privateKey.GetKey()
+	k := privateKey.GetKey().TextVerbose(10,16)
 
-	if k.Int64() != 6619692607800168046 {
+	if k != "4769794528446378..." {
 		t.Errorf("Invalid private key generated")
 	}
 
 }
 
-func TestPrivateKeyGenPanic(t *testing.T) {
+func TestPrivateKey_HasValidParams(t *testing.T) {
+	source := rand.NewSource(42)
+	rand := rand.New(source)
+
+	sizes := L1024N160
+
+	params := NewDSAParams(rand, sizes)
+	pExp := params.GetP().TextVerbose(10, 16)
+	qExp := params.GetQ().TextVerbose(10, 16)
+	gExp := params.GetG().TextVerbose(10, 16)
+
+	privateKey := params.PrivateKeyGen(rand, sizes)
+
+	p, q, g := privateKey.GetParams()
+	pActual := p.TextVerbose(10, 16)
+	qActual := q.TextVerbose(10, 16)
+	gActual := g.TextVerbose(10, 16)
+
+	if pExp != pActual {
+		t.Errorf("P value doesn't match in accessor")
+	}
+	if qExp != qActual {
+		t.Errorf("Q value doesn't match in accessor")
+	}
+	if gExp != gActual {
+		t.Errorf("G value doesn't match in accessor")
+	}
+}
+
+// Test PrivateKeyGen panics on external rng failure
+func TestPrivateKeyGen_Panic(t *testing.T) {
 	defer func() {
 		if r := recover(); r == nil {
 			t.Errorf("AlwaysErrorReader should panic on reader error!")
@@ -140,7 +175,8 @@ func TestPrivateKeyGenPanic(t *testing.T) {
 	params.PrivateKeyGen(&r, L1024N160)
 }
 
-func TestDSAParamsGetters(t *testing.T) {
+// Test that DSAParams has valid values for accessors
+func TestDSAParams_Accessors(t *testing.T) {
 
 	r := rand.New(rand.NewSource(0))
 
@@ -208,14 +244,17 @@ func TestDSAPublicKeyGetters(t *testing.T) {
 
 }
 
-func TestDSAPublicKeyGen(t *testing.T) {
+// Generate a public key from a private key and make sure
+// it is consistent when getting from privKey and pubKey obj
+func TestPublicKeyGen_Consistent(t *testing.T) {
 
+	expectedPubKey := "3316816248309085..."
 	source := rand.NewSource(42)
 	rand := rand.New(source)
 
-	p := cyclic.NewInt(1)
-	q := cyclic.NewInt(2)
-	g := cyclic.NewInt(3)
+	p := fromHex("A9B5B793FB4785793D246BAE77E8FF63CA52F442DA763C440259919FE1BC1D6065A9350637A04F75A2F039401D49F08E066C4D275A5A65DA5684BC563C14289D7AB8A67163BFBF79D85972619AD2CFF55AB0EE77A9002B0EF96293BDD0F42685EBB2C66C327079F6C98000FBCB79AACDE1BC6F9D5C7B1A97E3D9D54ED7951FEF")
+	q := fromHex("E1D3391245933D68A0714ED34BBCB7A1F422B9C1")
+	g := fromHex("634364FC25248933D01D1993ECABD0657CC0CB2CEED7ED2E3E8AECDFCDC4A25C3B15E9E3B163ACA2984B5539181F3EFF1A5E8903D71D5B95DA4F27202B77D2C44B430BB53741A8D59A8F86887525C9F2A6A5980A195EAA7F2FF910064301DEF89D3AA213E1FAC7768D89365318E370AF54A112EFBA9246D9158386BA1B4EEFDA")
 
 	sizes := L1024N160
 
@@ -225,14 +264,20 @@ func TestDSAPublicKeyGen(t *testing.T) {
 
 	pubKey := privateKey.PublicKeyGen()
 
-	pubKeyVal := privateKey.GetPublicKey()
-	pubKeyVal2 := pubKey.GetY()
-	if pubKeyVal2.TextVerbose(10, 16) != pubKeyVal.TextVerbose(10, 16) {
-		t.Errorf("Public key generation failed")
+	pubKeyFromPrivateKey := privateKey.GetPublicKey().TextVerbose(10, 16)
+	pubKeyYValue := pubKey.GetY().TextVerbose(10, 16)
+
+	if pubKeyFromPrivateKey != expectedPubKey {
+		t.Errorf("Public key accessed from private key is not correct")
+	}
+
+	if pubKeyYValue != expectedPubKey {
+		t.Errorf("Public key accessed from pubKey objcet is not correct")
 	}
 
 }
 
+// Test helper which converts a hex string into a cyclic int
 func fromHex(s string) *cyclic.Int {
 	result, ok := new(big.Int).SetString(s, 16)
 
@@ -243,6 +288,8 @@ func fromHex(s string) *cyclic.Int {
 	return cyclic.NewIntFromBigInt(result)
 }
 
+// Sign and verify that has param, pub & priv key values ported from go sdk dsa impl. tests.
+// It creates a pub key structre and then a priv key from params and passes it to sign and verify helper
 func TestSignAndVerify(t *testing.T) {
 
 	p := fromHex("A9B5B793FB4785793D246BAE77E8FF63CA52F442DA763C440259919FE1BC1D6065A9350637A04F75A2F039401D49F08E066C4D275A5A65DA5684BC563C14289D7AB8A67163BFBF79D85972619AD2CFF55AB0EE77A9002B0EF96293BDD0F42685EBB2C66C327079F6C98000FBCB79AACDE1BC6F9D5C7B1A97E3D9D54ED7951FEF")
@@ -262,6 +309,7 @@ func TestSignAndVerify(t *testing.T) {
 
 }
 
+// Helper which verifies a hash is signed correctly by a priv key
 func testSignAndVerify(t *testing.T, i int, priv *DSAPrivateKey) {
 
 	hashed := []byte("testing")
@@ -280,4 +328,81 @@ func testSignAndVerify(t *testing.T, i int, priv *DSAPrivateKey) {
 		t.Errorf("%d: Verify failed", i)
 	}
 
+}
+
+// Test ported from SDK dsa impl. to ensure we don't hit an inf. loop
+func TestSigningWithDegenerateKeys(t *testing.T) {
+	// Signing with degenerate private keys should not cause an infinite
+	// loop.
+	badKeys := []struct {
+		p, q, g, y, x string
+	}{
+		{"00", "01", "00", "00", "00"},
+		{"01", "ff", "00", "00", "00"},
+	}
+
+	for i, test := range badKeys {
+
+		p := fromHex(test.p)
+		q := fromHex(test.q)
+		g := fromHex(test.g)
+
+		y := fromHex(test.y)
+		x := fromHex(test.x)
+
+		params := CustomDSAParams(p, q, g)
+
+		pubKey := ReconstructPublicKey(params, y)
+
+		privKey := ReconstructPrivateKey(pubKey, x)
+
+
+		hashed := []byte("testing")
+
+		_, err := privKey.Sign(hashed, cryptoRand.Reader)
+
+		if err == nil {
+			t.Errorf("#%d: unexpected success", i)
+		}
+
+	}
+}
+
+// Ported from SDK to test different parameter sizes for param generation
+func TestParameterGeneration(t *testing.T) {
+	testParameterGeneration(t, L1024N160, 1024, 160)
+	testParameterGeneration(t, L2048N224, 2048, 224)
+	testParameterGeneration(t, L2048N256, 2048, 256)
+	testParameterGeneration(t, L3072N256, 3072, 256)
+}
+
+func testParameterGeneration(t *testing.T, sizes ParameterSizes, L, N int) {
+
+	r := rand.New(rand.NewSource(0))
+
+	params := NewDSAParams(r, sizes)
+
+	if params.GetP().BitLen() != L {
+		t.Errorf("%d: params.BitLen got:%d want:%d", int(sizes), params.GetP().BitLen(), L)
+	}
+
+	if params.GetQ().BitLen() != N {
+		t.Errorf("%d: q.BitLen got:%d want:%d", int(sizes), params.GetQ().BitLen(), L)
+	}
+
+	one := new(big.Int)
+	one.SetInt64(1)
+	pm1 := new(big.Int).Sub(params.GetP().GetBigInt(), one)
+	quo, rem := new(big.Int).DivMod(pm1, params.GetQ().GetBigInt(), new(big.Int))
+	if rem.Sign() != 0 {
+		t.Errorf("%d: p-1 mod q != 0", int(sizes))
+	}
+	x := new(big.Int).Exp(params.GetG().GetBigInt(), quo, params.GetP().GetBigInt())
+	if x.Cmp(one) == 0 {
+		t.Errorf("%d: invalid generator", int(sizes))
+	}
+
+	privKey := params.PrivateKeyGen(cryptoRand.Reader, sizes)
+
+	testSignAndVerify(t, int(sizes), privKey)
 }

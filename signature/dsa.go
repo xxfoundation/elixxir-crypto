@@ -43,15 +43,8 @@ func (p *DSAParameters) PrivateKeyGen(rng io.Reader, pSizes ParameterSizes) *DSA
 
 	pk := DSAPrivateKey{}
 	pk.key.Parameters = p.params
-	pk.key.Q = p.params.Q
 
-	err := dsa.GenerateParameters(&pk.key.Parameters, rng, (dsa.ParameterSizes)(pSizes))
-
-	if err != nil {
-		jww.FATAL.Panicf("Unable to generate DSA params")
-	}
-
-	err = dsa.GenerateKey(&pk.key, rng)
+	err := dsa.GenerateKey(&pk.key, rng)
 
 	if err != nil {
 		jww.FATAL.Panicf("Unable to generate DSA private key")
