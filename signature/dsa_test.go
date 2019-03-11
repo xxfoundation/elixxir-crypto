@@ -104,18 +104,18 @@ func TestNewDSAParamsPanic(t *testing.T) {
 
 func TestPrivateKeyGenValid(t *testing.T) {
 
-	//r := rand.New(rand.NewSource(0))
-
-	s2 := rand.NewSource(42)
-	r2 := rand.New(s2)
+	source := rand.NewSource(42)
+	rand := rand.New(source)
 
 	p := cyclic.NewInt(1)
 	q := cyclic.NewInt(2)
 	g := cyclic.NewInt(3)
 
-	params := CustomDSAParams(L1024N160, p, q, g)
+	sizes := L1024N160
 
-	privateKey := params.PrivateKeyGen(r2)
+	params := CustomDSAParams(sizes, p, q, g)
+
+	privateKey := params.PrivateKeyGen(rand, sizes)
 
 	k := privateKey.GetKey()
 
@@ -135,7 +135,7 @@ func TestPrivateKeyGenPanic(t *testing.T) {
 	r := AlwaysErrorReader{}
 	params := DSAParameters{}
 
-	params.PrivateKeyGen(&r)
+	params.PrivateKeyGen(&r, L1024N160)
 }
 
 func TestDSAParamsGetters(t *testing.T) {
@@ -157,51 +157,81 @@ func TestDSAParamsGetters(t *testing.T) {
 
 	qActual := q.TextVerbose(16, 40)
 	if qActual != "9a67144642e88f4b76cdabfa7a9c828765081f9d" {
-		t.Errorf("Invalid p")
+		t.Errorf("Invalid q")
 	}
 
 	gActual := g.TextVerbose(16, 40)
 	if gActual != "82b9856ebad01214503a5bfe28c5cda17e455c21..." {
-		t.Errorf("Invalid p")
+		t.Errorf("Invalid g")
 	}
 
 }
-//
-//func TestDSAPublicKeyGetters(t *testing.T) {
-//	r := rand.New(rand.NewSource(0))
-//
-//	params := NewDSAParams(r, L1024N160)
-//
-//	// Verify
-//	params.GetG()
-//	params.GetP()
-//	params.GetQ()
-//
-//	r = rand.New(rand.NewSource(1))
-//
-//	params = NewDSAParams(r, L2048N224)
-//
-//	// Verify
-//	params.GetG()
-//	params.GetP()
-//	params.GetQ()
-//}
-//
-//func TestDSAPublicKeyGen(t *testing.T) {
-//	r := rand.New(rand.NewSource(0))
-//
-//	params := DSAParameters{}
-//
-//	privateKey := params.PrivateKeyGen(r) // copy from this point int memory or use crypto/dsa_test.go ex
-//
-//	privateKey.GetKey()
-//
-//	// y := privateKey.PublicKeyGen().key.Y
-//
-//	// check if y is valid!
-//
-//}
-//
+
+func TestDSAPublicKeyGetters(t *testing.T) {
+	r := rand.New(rand.NewSource(0))
+
+	params := NewDSAParams(r, L1024N160)
+
+	key := cyclic.NewInt(500)
+
+	pubKey := ReconstructPublicKey(params, key)
+
+	actualParams := pubKey.GetParams()
+
+	p := actualParams.GetP()
+	q := actualParams.GetQ()
+	g := actualParams.GetG()
+
+	y := pubKey.GetY()
+
+	pActual := p.TextVerbose(16, 40)
+	if pActual != "d99d2415ea76c2d9853e10285f47c26e644cb3e3..." {
+		t.Errorf("Invalid p")
+	}
+
+	qActual := q.TextVerbose(16, 40)
+	if qActual != "9a67144642e88f4b76cdabfa7a9c828765081f9d" {
+		t.Errorf("Invalid q")
+	}
+
+	gActual := g.TextVerbose(16, 40)
+	if gActual != "82b9856ebad01214503a5bfe28c5cda17e455c21..." {
+		t.Errorf("Invalid g")
+	}
+
+	yActual := y.TextVerbose(16, 40)
+	if yActual != "1f4" {
+		t.Errorf("Invalid y")
+	}
+
+
+}
+
+func TestDSAPublicKeyGen(t *testing.T) {
+
+	source := rand.NewSource(42)
+	rand := rand.New(source)
+
+	p := cyclic.NewInt(1)
+	q := cyclic.NewInt(2)
+	g := cyclic.NewInt(3)
+
+	sizes := L1024N160
+
+	params := CustomDSAParams(sizes, p, q, g)
+
+	privateKey := params.PrivateKeyGen(rand, sizes)
+
+	pubKey := privateKey.PublicKeyGen()
+
+	pubKeyVal := privateKey.GetPublicKey()
+	pubKeyVal2 := pubKey.GetY()
+	if pubKeyVal2.TextVerbose(10, 16) != pubKeyVal.TextVerbose(10,16) {
+		t.Errorf("Public key generation failed")
+	}
+
+}
+
 //func fromHex(s string) *cyclic.Int {
 //	result, ok := new(big.Int).SetString(s, 16)
 //
