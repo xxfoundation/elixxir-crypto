@@ -15,7 +15,7 @@ import (
 )
 
 // See length checking in RFC 3447 7.2.1-1
-const MinPaddingStringLen= 8
+const MinPaddingStringLen = 8
 const NumFixedPaddingLen = 3
 const MinPaddingLen = MinPaddingStringLen + NumFixedPaddingLen
 
@@ -35,7 +35,7 @@ func Pad(msg []byte, encMsgLen int) (encMsg []byte, err error) {
 func pad(msg []byte, encMsgLen int, rand io.Reader) (encMsg []byte, err error) {
 	msgLen := len(msg)
 
-	if msgLen > encMsgLen - MinPaddingLen {
+	if msgLen > encMsgLen-MinPaddingLen {
 		return nil, ErrMessageTooLong
 	}
 
@@ -56,7 +56,7 @@ func pad(msg []byte, encMsgLen int, rand io.Reader) (encMsg []byte, err error) {
 	encMsg[termInd] = 0x00
 
 	// Get region in encoded message buffer and copy the message into buffer
-	msgBuffer := encMsg[encMsgLen - msgLen:]
+	msgBuffer := encMsg[encMsgLen-msgLen:]
 	copy(msgBuffer, msg)
 
 	return encMsg, nil
@@ -79,7 +79,7 @@ func Unpad(encMsg []byte) (msg []byte, err error) {
 	}
 
 	// Check that the smallest possible padding string contains non-zero octets.
-	minPaddingStr := encMsg[2:MinPaddingLen-1]
+	minPaddingStr := encMsg[2 : MinPaddingLen-1]
 	for _, oct := range minPaddingStr {
 		if oct == 0x00 {
 			return nil, ErrPaddingContainsZero
@@ -88,7 +88,7 @@ func Unpad(encMsg []byte) (msg []byte, err error) {
 
 	// Search for first zero octet after min. padding string and panic if not found.
 	termInd := 0
-	for i := MinPaddingLen; i < len(encMsg); i++ {
+	for i := MinPaddingLen - 1; i < len(encMsg); i++ {
 		if encMsg[i] == 0x00 {
 			jww.INFO.Printf("found end of padding in encoded message at %v", termInd)
 			termInd = i
