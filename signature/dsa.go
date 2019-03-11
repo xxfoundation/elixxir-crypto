@@ -1,9 +1,7 @@
 package signature
 
 import (
-	"bytes"
 	"crypto/dsa"
-	"encoding/gob"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"io"
@@ -141,56 +139,55 @@ type DSASignature struct {
 	S *cyclic.Int
 }
 
-// Gob encode/decode
-
-func decode(b []byte, e interface{}) error {
-	var buffer bytes.Buffer
-
-	buffer.Read(b)
-
-	dec := gob.NewDecoder(&buffer)
-
-	return dec.Decode(e)
-}
-
-func encode(e interface{}) ([]byte, error) {
-	var buffer bytes.Buffer
-
-	enc := gob.NewEncoder(&buffer)
-
-	err := enc.Encode(e)
-
-	return buffer.Bytes(), err
-}
-
-func (p *DSAParameters) GobDecode(b []byte) error {
-	return decode(b, &p.params)
-}
-
-func (p *DSAParameters) GobEncode() ([]byte, error) {
-	return encode(p.params)
-}
-
-func (p *DSAPrivateKey) GobDecode(b []byte) error {
-	return decode(b, &p.key)
-}
-
-func (p *DSAPrivateKey) GobEncode() ([]byte, error) {
-	return encode(p.key)
-}
-
-func (p *DSAPublicKey) GobDecode(b []byte) error {
-	return decode(b, &p.key)
-}
-
-func (p *DSAPublicKey) GobEncode() ([]byte, error) {
-	return encode(p.key)
-}
-
-func (p *DSASignature) GobDecode(b []byte) error {
-	return decode(b, &p)
-}
-
-func (p *DSASignature) GobEncode() ([]byte, error) {
-	return encode(p)
-}
+// TODO: Add tests for Gob encode/decode and uncomment impl.
+//func decode(b []byte, e interface{}) error {
+//	var buffer bytes.Buffer
+//
+//	buffer.Read(b)
+//
+//	dec := gob.NewDecoder(&buffer)
+//
+//	return dec.Decode(e)
+//}
+//
+//func encode(e interface{}) ([]byte, error) {
+//	var buffer bytes.Buffer
+//
+//	enc := gob.NewEncoder(&buffer)
+//
+//	err := enc.Encode(e)
+//
+//	return buffer.Bytes(), err
+//}
+//
+//func (p *DSAParameters) GobDecode(b []byte) error {
+//	return decode(b, &p.params)
+//}
+//
+//func (p *DSAParameters) GobEncode() ([]byte, error) {
+//	return encode(p.params)
+//}
+//
+//func (p *DSAPrivateKey) GobDecode(b []byte) error {
+//	return decode(b, &p.key)
+//}
+//
+//func (p *DSAPrivateKey) GobEncode() ([]byte, error) {
+//	return encode(p.key)
+//}
+//
+//func (p *DSAPublicKey) GobDecode(b []byte) error {
+//	return decode(b, &p.key)
+//}
+//
+//func (p *DSAPublicKey) GobEncode() ([]byte, error) {
+//	return encode(p.key)
+//}
+//
+//func (p *DSASignature) GobDecode(b []byte) error {
+//	return decode(b, &p)
+//}
+//
+//func (p *DSASignature) GobEncode() ([]byte, error) {
+//	return encode(p)
+//}
