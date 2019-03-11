@@ -18,7 +18,7 @@ const (
 	L3072N256
 )
 
-func CustomDSAParams(sizes ParameterSizes, P, Q, G *cyclic.Int) *DSAParameters {
+func CustomDSAParams(P, Q, G *cyclic.Int) *DSAParameters {
 	return &DSAParameters{ dsa.Parameters{P: P.GetBigInt(), Q: Q.GetBigInt(), G: G.GetBigInt()}}
 }
 

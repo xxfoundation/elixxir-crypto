@@ -7,8 +7,10 @@
 package signature
 
 import (
+	cryptoRand "crypto/rand"
 	"errors"
 	"gitlab.com/elixxir/crypto/cyclic"
+	"math/big"
 	"math/rand"
 	"testing"
 )
@@ -21,7 +23,7 @@ func TestCustomDSAParams(t *testing.T) {
 	q := cyclic.NewInt(qExpected)
 	g := cyclic.NewInt(gExpected)
 
-	dsaParams := CustomDSAParams(L1024N160, p, q, g)
+	dsaParams := CustomDSAParams(p, q, g)
 
 	pActual := dsaParams.params.P.Int64()
 	qActual := dsaParams.params.Q.Int64()
@@ -43,7 +45,7 @@ func TestCustomDSAParams(t *testing.T) {
 	q = cyclic.NewInt(qExpected)
 	g = cyclic.NewInt(gExpected)
 
-	dsaParams = CustomDSAParams(L1024N160, p, q, g)
+	dsaParams = CustomDSAParams(p, q, g)
 
 	pActual = dsaParams.params.P.Int64()
 	qActual = dsaParams.params.Q.Int64()
@@ -65,7 +67,7 @@ func TestCustomDSAParams(t *testing.T) {
 	q = cyclic.NewInt(qExpected)
 	g = cyclic.NewInt(gExpected)
 
-	dsaParams = CustomDSAParams(L1024N160, p, q, g)
+	dsaParams = CustomDSAParams( p, q, g)
 
 	pActual = dsaParams.params.P.Int64()
 	qActual = dsaParams.params.Q.Int64()
@@ -113,7 +115,7 @@ func TestPrivateKeyGenValid(t *testing.T) {
 
 	sizes := L1024N160
 
-	params := CustomDSAParams(sizes, p, q, g)
+	params := CustomDSAParams(p, q, g)
 
 	privateKey := params.PrivateKeyGen(rand, sizes)
 
@@ -218,7 +220,7 @@ func TestDSAPublicKeyGen(t *testing.T) {
 
 	sizes := L1024N160
 
-	params := CustomDSAParams(sizes, p, q, g)
+	params := CustomDSAParams( p, q, g)
 
 	privateKey := params.PrivateKeyGen(rand, sizes)
 
@@ -232,56 +234,56 @@ func TestDSAPublicKeyGen(t *testing.T) {
 
 }
 
-//func fromHex(s string) *cyclic.Int {
-//	result, ok := new(big.Int).SetString(s, 16)
-//
-//	if !ok {
-//		panic(s)
-//	}
-//
-//	return cyclic.NewIntFromBigInt(result)
-//}
-//
-//func TestSignAndVerify(t *testing.T) {
-//
-//	p := fromHex("A9B5B793FB4785793D246BAE77E8FF63CA52F442DA763C440259919FE1BC1D6065A9350637A04F75A2F039401D49F08E066C4D275A5A65DA5684BC563C14289D7AB8A67163BFBF79D85972619AD2CFF55AB0EE77A9002B0EF96293BDD0F42685EBB2C66C327079F6C98000FBCB79AACDE1BC6F9D5C7B1A97E3D9D54ED7951FEF")
-//	q := fromHex("E1D3391245933D68A0714ED34BBCB7A1F422B9C1")
-//	g := fromHex("634364FC25248933D01D1993ECABD0657CC0CB2CEED7ED2E3E8AECDFCDC4A25C3B15E9E3B163ACA2984B5539181F3EFF1A5E8903D71D5B95DA4F27202B77D2C44B430BB53741A8D59A8F86887525C9F2A6A5980A195EAA7F2FF910064301DEF89D3AA213E1FAC7768D89365318E370AF54A112EFBA9246D9158386BA1B4EEFDA")
-//
-//	params := CustomDSAParams(p, q, g)
-//
-//	y := fromHex("32969E5780CFE1C849A1C276D7AEB4F38A23B591739AA2FE197349AEEBD31366AEE5EB7E6C6DDB7C57D02432B30DB5AA66D9884299FAA72568944E4EEDC92EA3FBC6F39F53412FBCC563208F7C15B737AC8910DBC2D9C9B8C001E72FDC40EB694AB1F06A5A2DBD18D9E36C66F31F566742F11EC0A52E9F7B89355C02FB5D32D2")
-//
-//	ReconstructPublicKey(params, y) // publicKey := ReconstructPublicKey(params, y)
-//
-//	//x := X: fromHex("5078D4D29795CBE76D3AACFE48C9AF0BCDBEE91A")
-//	//
-//	//privateKey := ReconstructPrivateKey(publicKey, x)
-//	//
-//	//testSignAndVerify(t, 0, &priv)
-//
-//}
-//
-//func testSignAndVerify(t *testing.T, i int, priv *DSAPrivateKey) {
-//
-//	hashed := []byte("testing")
-//
-//	signature, err := priv.Sign(hashed, cryptoRand.Reader)
-//
-//	if err != nil {
-//		t.Errorf("%d: error signing: %s", i, err)
-//		return
-//	}
-//
-//	publicKey := priv.PublicKeyGen()
-//
-//	if !publicKey.Verify(hashed, *signature) {
-//
-//		t.Errorf("%d: Verify failed", i)
-//	}
-//
-//}
-//
+func fromHex(s string) *cyclic.Int {
+	result, ok := new(big.Int).SetString(s, 16)
+
+	if !ok {
+		panic(s)
+	}
+
+	return cyclic.NewIntFromBigInt(result)
+}
+
+func TestSignAndVerify(t *testing.T) {
+
+	p := fromHex("A9B5B793FB4785793D246BAE77E8FF63CA52F442DA763C440259919FE1BC1D6065A9350637A04F75A2F039401D49F08E066C4D275A5A65DA5684BC563C14289D7AB8A67163BFBF79D85972619AD2CFF55AB0EE77A9002B0EF96293BDD0F42685EBB2C66C327079F6C98000FBCB79AACDE1BC6F9D5C7B1A97E3D9D54ED7951FEF")
+	q := fromHex("E1D3391245933D68A0714ED34BBCB7A1F422B9C1")
+	g := fromHex("634364FC25248933D01D1993ECABD0657CC0CB2CEED7ED2E3E8AECDFCDC4A25C3B15E9E3B163ACA2984B5539181F3EFF1A5E8903D71D5B95DA4F27202B77D2C44B430BB53741A8D59A8F86887525C9F2A6A5980A195EAA7F2FF910064301DEF89D3AA213E1FAC7768D89365318E370AF54A112EFBA9246D9158386BA1B4EEFDA")
+
+
+	y := fromHex("32969E5780CFE1C849A1C276D7AEB4F38A23B591739AA2FE197349AEEBD31366AEE5EB7E6C6DDB7C57D02432B30DB5AA66D9884299FAA72568944E4EEDC92EA3FBC6F39F53412FBCC563208F7C15B737AC8910DBC2D9C9B8C001E72FDC40EB694AB1F06A5A2DBD18D9E36C66F31F566742F11EC0A52E9F7B89355C02FB5D32D2")
+	x := fromHex("5078D4D29795CBE76D3AACFE48C9AF0BCDBEE91A")
+
+	params := CustomDSAParams(p, q, g)
+
+	pubKey := ReconstructPublicKey(params, y)
+
+	privKey := ReconstructPrivateKey(pubKey, x)
+
+	testSignAndVerify(t, 0, privKey)
+
+}
+
+func testSignAndVerify(t *testing.T, i int, priv *DSAPrivateKey) {
+
+	hashed := []byte("testing")
+
+	signature, err := priv.Sign(hashed, cryptoRand.Reader)
+
+	if err != nil {
+		t.Errorf("%d: error signing: %s", i, err)
+		return
+	}
+
+	publicKey := priv.PublicKeyGen()
+
+	if !publicKey.Verify(hashed, *signature) {
+
+		t.Errorf("%d: Verify failed", i)
+	}
+
+}
+
 //func TestSigningWithDegenerateKeys(t *testing.T) {
 //
 //	// Signing with degenerate private keys should not cause an infinite
