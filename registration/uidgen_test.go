@@ -3,7 +3,7 @@ package registration
 import (
 	"crypto/rand"
 	"encoding/hex"
-	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/elixxir/crypto/csprng"
 	"gitlab.com/elixxir/crypto/signature"
 	"testing"
 )
@@ -80,9 +80,6 @@ func TestGenUserID_NilKey(t *testing.T) {
 	GenUserID(nil, salt)
 }
 
-// Test GenUserID normal operation with randomly
-// generated public keys and salts, making sure
-// that no repeated userIDs are generated
 func TestGenUserID_Random(t *testing.T) {
 	params := signature.NewDSAParams(rand.Reader, signature.L1024N160)
 
@@ -90,10 +87,16 @@ func TestGenUserID_Random(t *testing.T) {
 
 	userMap := make(map[string]bool)
 
+
 	for i := 0; i < tests; i++ {
 		privKey := params.PrivateKeyGen(rand.Reader, signature.L2048N256)
 		pubKey := privKey.PublicKeyGen()
-		salt, _ := cyclic.GenerateRandomBytes(32)
+
+		csprig := csprng.NewSystemRNG()
+		salt := make([]byte, 32)
+		csprig.Read(salt)
+
+
 		user := GenUserID(pubKey, salt)
 		if user == nil {
 			t.Errorf("UserID Generation failed")
