@@ -7,7 +7,9 @@
 package diffieHellman
 
 import (
+	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
+	"gitlab.com/elixxir/crypto/csprng"
 	"gitlab.com/elixxir/crypto/cyclic"
 )
 
@@ -23,7 +25,16 @@ func CreateDHKeyPair(group *cyclic.Group) (*cyclic.Int, *cyclic.Int) {
 
 	//256 bits
 	size := 32
-	k1, _ := cyclic.GenerateRandomKey(size)
+
+	csprig := csprng.NewSystemRNG()
+
+	k1 := make([]byte, size)
+
+	_, err := csprig.Read(k1)
+
+	if err != nil {
+		panic(fmt.Sprintf("Key RNG in Diffie Hellman Failed: %s", err.Error()))
+	}
 
 	privateKey := cyclic.NewIntFromBytes(k1)
 
