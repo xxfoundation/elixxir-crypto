@@ -51,7 +51,7 @@ func NewDecryptionKey(salt []byte, baseKey *cyclic.Int, group *cyclic.Group) *cy
 	y := h2.Sum(nil)
 
 	// Expand Key
-	z := forward.ExpandKey(y, salt)
+	z := forward.ExpandKey(group, y)
 
 	r := cyclic.NewIntFromBytes(z)
 

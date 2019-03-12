@@ -40,14 +40,14 @@ var grp = cyclic.NewGroup(prime, cyclic.NewInt(5), cyclic.NewInt(4),
 	rng)
 var baseKey = cyclic.NewIntFromString("a906df88f30d6afbfa6165a50cc9e208d16b34e70b367068dc5d6bd6e155b2c3", 16)
 var salt = []byte("fdecfa52a8ad1688dbfa7d16df74ebf27e535903c469cefc007ebbe1ee895064")
-var expectStr = "fdd1808f3d6365df5e9c2ee544ab9d1fce112810b46d30da9cbb3df0ed6" +
-	"e4fb2e1a50ee51bce71b6999b0db13eecae53bf6eeff10a874384838eaa6ee46358e94cc40" +
-	"e57f15fa99aef721109edbba9b04b0d453dcc758e34f87e64d770dd08c9dc6b26f8b3bd66c" +
-	"882451346454a2c7703dae2d2c3169a74442d44bf63c68d303d84436274fa9775c55982841" +
-	"e18a0ab514ae7f571c6ef8c2fdf3f03ef416cf89529e1bc27da93cbffddf36554b9d84d24c" +
-	"76dfb404d73b109e9c5f0c664817e1a3a34ec2a82aa95d1b4003bedb38bb03e79c132a47ea" +
-	"de625d98ab53f39161621ee73661bdd98b7f81ae5b168253c3a357f8faaacdbce8b6cef697" +
-	"0f6e28bf6"
+var expectStr = "2e4c99e14e0b1cd18c08467c395a4d5c0eb594507595041a5cfa83eb2f5791f3" +
+	"db46c933040d4c9862b91539fb8bc75e0b84ed07dd6a760dda6baec8c5f3f119" +
+	"eff00a0bdd6bc712c43e3f98d34cde6f6234191b1c68b9b2d9a80ad7652513ca" +
+	"f0bae5fc3070bd921c914a67d55005ce624c0140782cbe8ab55327e21ba03283" +
+	"79cfadda661d835be329125fa237e9848af469b4b68cc922f994d404e3f8818f" +
+	"9c84ef9e6a6b2efbfdc5f24ec7cd346775225b4abe84d202b479b91d19399ab2" +
+	"16dc3f7961fcc499f4287323c2a96df0127ab4f4ab64be76ca2906a49ad4ee3f" +
+	"0240f80a881177b9ed4a903dc5667473cec67ab4d52c7f73f019311e6ccf9a75"
 
 // Test for functionality of NewDecryptionKey using pre-canned values
 func TestNewDecryptionKey(t *testing.T) {

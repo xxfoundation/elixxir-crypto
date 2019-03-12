@@ -8,21 +8,33 @@ package forward
 
 import (
 	"crypto/sha512"
-	"golang.org/x/crypto/pbkdf2"
+	jww "github.com/spf13/jwalterweatherman"
+	"gitlab.com/elixxir/crypto/cyclic"
+	"golang.org/x/crypto/hkdf"
 	"hash"
 )
 
-// ExpandKey is a function that receives a key and a salt and expands such key to a specific size
+// ExpandKey is a function that receives a key and expands such key to a specific size
 // This implementation returns a 2048 bit-size key (or 256 bytes)
-func ExpandKey(key []byte, salt []byte) []byte {
-
-	return pbkdf2.Key(key, salt, 1, 256, sha512.New)
+func ExpandKey(g *cyclic.Group, key []byte) []byte {
+	keyGen := hkdf.Expand(sha512.New, key, nil)
+	keyInt := cyclic.NewInt(0)
+	expandedKey := make([]byte, g.GetP(nil).BitLen()>>3)
+	// Make sure generated key is in the group
+	for !g.Inside(keyInt) {
+		size, err := keyGen.Read(expandedKey)
+		if err != nil || size != len(expandedKey) {
+			jww.FATAL.Panicf("Could not expand key: %v", err.Error())
+		}
+		keyInt.SetBytes(expandedKey)
+	}
+	return expandedKey
 }
 
 // UpdateKey is a function that updates the current Key to be used to encrypt/decrypt
 // This function receives a base key generated during the registration and adds entropy by using
 // two different hash functions and then expands the output from the hash functions to generate a bigger key
-func UpdateKey(baseKey, salt []byte, b hash.Hash, h hash.Hash) []byte {
+func UpdateKey(g *cyclic.Group, baseKey, salt []byte, b hash.Hash, h hash.Hash) []byte {
 
 	// Append the base key and the received salt to generate a random input
 	a := append(baseKey, salt...)
@@ -38,7 +50,7 @@ func UpdateKey(baseKey, salt []byte, b hash.Hash, h hash.Hash) []byte {
 	y := h.Sum(nil)
 
 	// Expand Key
-	z := ExpandKey(y, salt)
+	z := ExpandKey(g, y)
 
 	return z
 }
