@@ -41,8 +41,10 @@ func TestExpandKey(t *testing.T) {
 
 	key := []byte("a906df88f30d6afbfa6165a50cc9e208d16b34e70b367068dc5d6bd6e155b2c3")
 
-	x1 := ExpandKey(&grp, []byte("key"))
-	x2 := ExpandKey(&grp, key)
+	b, _ := hash.NewCMixHash()
+	x1 := ExpandKey(b, &grp, []byte("key"))
+	b.Reset()
+	x2 := ExpandKey(b, &grp, key)
 
 	if len(x1) != 256 {
 		t.Errorf("TestExpandKey(): Error with the resulting key size")

@@ -8,6 +8,7 @@ package messaging
 
 import (
 	"crypto/sha256"
+	"crypto/sha512"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/forward"
 	"gitlab.com/elixxir/crypto/hash"
@@ -51,7 +52,8 @@ func NewDecryptionKey(salt []byte, baseKey *cyclic.Int, group *cyclic.Group) *cy
 	y := h2.Sum(nil)
 
 	// Expand Key
-	z := forward.ExpandKey(group, y)
+	// Use SHA512
+	z := forward.ExpandKey(sha512.New(), group, y)
 
 	r := cyclic.NewIntFromBytes(z)
 

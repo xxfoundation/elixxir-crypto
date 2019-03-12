@@ -16,8 +16,13 @@ import (
 
 // ExpandKey is a function that receives a key and expands such key to a specific size
 // This implementation returns a 2048 bit-size key (or 256 bytes)
-func ExpandKey(g *cyclic.Group, key []byte) []byte {
-	keyGen := hkdf.Expand(sha512.New, key, nil)
+func ExpandKey(h hash.Hash, g *cyclic.Group, key []byte) []byte {
+	// The Hash will be created outside the function, so need to wrap
+	// it into a function to pass to HKDF.Expand
+	var foo = func() hash.Hash {
+		return h
+	}
+	keyGen := hkdf.Expand(foo, key, nil)
 	keyInt := cyclic.NewInt(0)
 	expandedKey := make([]byte, g.GetP(nil).BitLen()>>3)
 	// Make sure generated key is in the group
@@ -50,7 +55,8 @@ func UpdateKey(g *cyclic.Group, baseKey, salt []byte, b hash.Hash, h hash.Hash) 
 	y := h.Sum(nil)
 
 	// Expand Key
-	z := ExpandKey(g, y)
+	// Use SHA512
+	z := ExpandKey(sha512.New(), g, y)
 
 	return z
 }
