@@ -39,10 +39,12 @@ func TestEncryptCore(t *testing.T) {
 	ptext, _ := hex.DecodeString(TEST_VECTOR_PLAINTEXT)
 	ctext, _ := hex.DecodeString(TEST_VECTOR_CIPHERTEXT)
 
+	var key_arr [AES256KeyLen]byte
+	copy(key_arr[:], key)
 	var iv_arr [AESBlockSize]byte
 	copy(iv_arr[:], iv)
 
-	result, err := encryptCore(key, iv_arr, ptext)
+	result, err := encryptCore(key_arr, iv_arr, ptext)
 
 	if err != nil {
 		t.Errorf("AES Encryption Core returned error: %s", err.Error())
@@ -60,10 +62,12 @@ func TestDecryptCore(t *testing.T) {
 	ptext, _ := hex.DecodeString(TEST_VECTOR_PLAINTEXT)
 	ctext, _ := hex.DecodeString(TEST_VECTOR_CIPHERTEXT)
 
+	var key_arr [AES256KeyLen]byte
+	copy(key_arr[:], key)
 	var iv_arr [AESBlockSize]byte
 	copy(iv_arr[:], iv)
 
-	result, err := decryptCore(key, iv_arr, ctext)
+	result, err := decryptCore(key_arr, iv_arr, ctext)
 
 	if err != nil {
 		t.Errorf("AES Decryption Core returned error: %s", err.Error())
@@ -89,6 +93,8 @@ func TestEncryptCore_BadArgs(t *testing.T) {
 		nil,
 	}
 
+	var key_arr [AES256KeyLen]byte
+	copy(key_arr[:], key)
 	var iv_arr [AESBlockSize]byte
 	copy(iv_arr[:], iv)
 
@@ -96,7 +102,7 @@ func TestEncryptCore_BadArgs(t *testing.T) {
 	pass := 0
 
 	for i := 0; i < tests; i++ {
-		result, err := encryptCore(key, iv_arr, ptext[i])
+		result, err := encryptCore(key_arr, iv_arr, ptext[i])
 
 		if i == 0 {
 			if err != nil {
@@ -126,6 +132,8 @@ func TestDecryptCore_BadArgs(t *testing.T) {
 		nil,
 	}
 
+	var key_arr [AES256KeyLen]byte
+	copy(key_arr[:], key)
 	var iv_arr [AESBlockSize]byte
 	copy(iv_arr[:], iv)
 
@@ -133,7 +141,7 @@ func TestDecryptCore_BadArgs(t *testing.T) {
 	pass := 0
 
 	for i := 0; i < tests; i++ {
-		result, err := decryptCore(key, iv_arr, ptext[i])
+		result, err := decryptCore(key_arr, iv_arr, ptext[i])
 
 		if i == 0 {
 			if err != nil {
@@ -177,7 +185,7 @@ const (
 
 // Test AES encryption/decryption with 256bit key
 func TestEncDecAES_256Key(t *testing.T) {
-	key := cyclic.NewIntFromString(TEST_KEY_256, 16)
+	key, _ := hex.DecodeString(TEST_KEY_256)
 	plaintext := []byte(TEST_MSG)
 	ciphertext, err := EncryptAES256(key, plaintext)
 
@@ -198,7 +206,7 @@ func TestEncDecAES_256Key(t *testing.T) {
 
 // Test AES encryption/decryption with 2048bit key
 func TestEncDecAES_2048Key(t *testing.T) {
-	key := cyclic.NewIntFromString(TEST_KEY_2048, 16)
+	key, _ := hex.DecodeString(TEST_KEY_2048)
 	plaintext := []byte(TEST_MSG)
 	ciphertext, err := EncryptAES256(key, plaintext)
 
@@ -219,7 +227,7 @@ func TestEncDecAES_2048Key(t *testing.T) {
 
 // Test AES encryption/decryption with different keys
 func TestEncDecAES_BadKey(t *testing.T) {
-	key := cyclic.NewIntFromString(TEST_KEY_2048, 16)
+	key, _ := hex.DecodeString(TEST_KEY_2048)
 	plaintext := []byte(TEST_MSG)
 	ciphertext, err := EncryptAES256(key, plaintext)
 
@@ -227,7 +235,7 @@ func TestEncDecAES_BadKey(t *testing.T) {
 		t.Errorf("AES Encryption returned error: %s", err.Error())
 	}
 
-	badkey := cyclic.NewIntFromString(TEST_KEY_256, 16)
+	badkey, _ := hex.DecodeString(TEST_KEY_256)
 	result, err := DecryptAES256(badkey, ciphertext)
 
 	if result != nil || err == nil {
@@ -239,11 +247,11 @@ func TestEncDecAES_BadKey(t *testing.T) {
 
 // Test AES encryption with various arguments
 func TestEncAES_Args(t *testing.T) {
-	keys := []*cyclic.Int{
-		cyclic.NewIntFromString(TEST_KEY_256, 16),
-		cyclic.NewIntFromString(TEST_KEY_248, 16),
-		cyclic.NewIntFromString(TEST_KEY_128, 16),
-		cyclic.NewIntFromString("", 16),
+	keys := [][]byte{
+		cyclic.NewIntFromString(TEST_KEY_256, 16).Bytes(),
+		cyclic.NewIntFromString(TEST_KEY_248, 16).Bytes(),
+		cyclic.NewIntFromString(TEST_KEY_128, 16).Bytes(),
+		[]byte(""),
 		nil,
 	}
 
@@ -259,15 +267,15 @@ func TestEncAES_Args(t *testing.T) {
 	for i := 0; i < tests; i++ {
 		ciphertext, err := EncryptAES256(keys[i%len(keys)], ptext[i/len(keys)])
 
-		if i == 0 {
-			if err != nil {
-				t.Errorf("AES Encryption returned error: %s", err.Error())
+		if i%len(keys) == 4 || i/len(keys) > 0 {
+			if ciphertext != nil || err == nil {
+				t.Errorf("AES Encryption should have returned error")
 			} else {
 				pass++
 			}
 		} else {
-			if ciphertext != nil || err == nil {
-				t.Errorf("AES Encryption should have returned error")
+			if err != nil {
+				t.Errorf("AES Encryption returned error: %s", err.Error())
 			} else {
 				pass++
 			}
@@ -278,7 +286,7 @@ func TestEncAES_Args(t *testing.T) {
 
 // Test AES decryption with various arguments
 func TestDecAES_Args(t *testing.T) {
-	key := cyclic.NewIntFromString(TEST_KEY_256, 16)
+	key, _ := hex.DecodeString(TEST_KEY_256)
 	plaintext := []byte(TEST_MSG)
 	ciphertext, err := EncryptAES256(key, plaintext)
 
@@ -286,11 +294,9 @@ func TestDecAES_Args(t *testing.T) {
 		t.Errorf("AES Encryption returned error: %s", err.Error())
 	}
 
-	keys := []*cyclic.Int{
-		cyclic.NewIntFromString(TEST_KEY_256, 16),
-		cyclic.NewIntFromString(TEST_KEY_248, 16),
-		cyclic.NewIntFromString(TEST_KEY_128, 16),
-		cyclic.NewIntFromString("", 16),
+	keys := [][]byte{
+		cyclic.NewIntFromString(TEST_KEY_256, 16).Bytes(),
+		[]byte(""),
 		nil}
 
 	ctext := [][]byte{
@@ -325,7 +331,7 @@ func TestDecAES_Args(t *testing.T) {
 
 // Test AES encryption/decryption with fixed IV
 func TestEncAES_IVs(t *testing.T) {
-	key := cyclic.NewIntFromString(TEST_KEY_2048, 16)
+	key, _ := hex.DecodeString(TEST_KEY_2048)
 	iv := []byte(TEST_IV)
 	ptext := []byte(TEST_MSG)
 
@@ -352,7 +358,6 @@ func TestEncAES_IVs(t *testing.T) {
 //---------------------------------- Test random inputs ------------------------------------------//
 
 // Loop test AES encryption/decryption with random inputs
-// Some key sizes will not work
 func TestEncDecAES_Random(t *testing.T) {
 	keyGen := cyclic.NewRandom(cyclic.NewInt(28), cyclic.NewInt(512))
 	textGen := cyclic.NewRandom(cyclic.NewInt(1), cyclic.NewInt(4096))
@@ -363,43 +368,33 @@ func TestEncDecAES_Random(t *testing.T) {
 
 	for i := 0; i < tests; i++ {
 		keyGen.Rand(randSize)
-		keyBytes, _ := cyclic.GenerateRandomKey(int(randSize.Int64()))
-		key := cyclic.NewIntFromBytes(keyBytes)
+		key, _ := cyclic.GenerateRandomKey(int(randSize.Int64()))
 
 		textGen.Rand(randSize)
 		plaintext, _ := cyclic.GenerateRandomBytes(int(randSize.Int64()))
 
 		ciphertext, err := EncryptAES256(key, plaintext)
 
-		if len(keyBytes) < AES256KeyLen {
-			if ciphertext != nil || err == nil {
-				t.Errorf("AES Encryption should have returned error")
-			} else {
-				pass++
-			}
+		if err != nil {
+			t.Errorf("AES Encryption returned error: %s", err.Error())
+		}
+
+		result, err := DecryptAES256(key, ciphertext)
+
+		if err != nil {
+			t.Errorf("AES Decryption returned error: %s", err.Error())
+		} else if !bytes.Equal(plaintext, result) {
+			t.Errorf("Plaintext after encryption/decryption doesn't match with original!")
 		} else {
-			if err != nil {
-				t.Errorf("AES Encryption returned error: %s", err.Error())
-			}
-
-			result, err := DecryptAES256(key, ciphertext)
-
-			if err != nil {
-				t.Errorf("AES Decryption returned error: %s", err.Error())
-			} else if !bytes.Equal(plaintext, result) {
-				t.Errorf("Plaintext after encryption/decryption doesn't match with original!")
-			} else {
-				pass++
-			}
+			pass++
 		}
 	}
 	println("TestEncDecAES_Random()", pass, "out of", tests, "tests passed.")
 }
 
-// Loop test AES encryption/decryption with increasing plaintext sizes
-// to test all paddings
+// Loop test AES encryption/decryption with increasing plaintext sizes to test all paddings
 func TestEncDecAES_AllPaddings(t *testing.T) {
-	key := cyclic.NewIntFromString(TEST_KEY_2048, 16)
+	key, _ := hex.DecodeString(TEST_KEY_2048)
 
 	tests := NUM_TESTS
 	pass := 0

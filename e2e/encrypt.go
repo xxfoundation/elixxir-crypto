@@ -27,7 +27,7 @@ func encrypt(g cyclic.Group, key *cyclic.Int, msg []byte,
 	product := g.Mul(key, cyclic.NewIntFromBytes(encMsg), cyclic.NewInt(0))
 
 	// Return the result
-	return product.Bytes(), nil
+	return product.LeftpadBytes(uint64(format.TOTAL_LEN)), nil
 }
 
 // Modular inverts the key under the passed group and modular multiplies it with
