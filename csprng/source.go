@@ -6,6 +6,9 @@
 
 package csprng
 
+//Defines the constructor of a source
+type SourceConstructor func() Source
+
 // Source is the common interface for all cryptographically secure random number
 // generators
 type Source interface {
