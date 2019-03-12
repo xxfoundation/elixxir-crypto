@@ -9,6 +9,7 @@ package e2e
 import (
 	"bytes"
 	"encoding/hex"
+	"gitlab.com/elixxir/crypto/csprng"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"testing"
 )
@@ -368,10 +369,18 @@ func TestEncDecAES_Random(t *testing.T) {
 
 	for i := 0; i < tests; i++ {
 		keyGen.Rand(randSize)
-		key, _ := cyclic.GenerateRandomKey(int(randSize.Int64()))
+
+		csprig := csprng.NewSystemRNG()
+
+		key := make([]byte, randSize.Int64())
+
+		csprig.Read(key)
 
 		textGen.Rand(randSize)
-		plaintext, _ := cyclic.GenerateRandomBytes(int(randSize.Int64()))
+
+		plaintext := make([]byte, randSize.Int64())
+
+		csprig.Read(plaintext)
 
 		ciphertext, err := EncryptAES256(key, plaintext)
 
@@ -400,7 +409,12 @@ func TestEncDecAES_AllPaddings(t *testing.T) {
 	pass := 0
 
 	for i := 1; i <= NUM_TESTS; i++ {
-		plaintext, _ := cyclic.GenerateRandomBytes(i)
+
+		csprig := csprng.NewSystemRNG()
+
+		plaintext := make([]byte, i)
+
+		csprig.Read(plaintext)
 
 		ciphertext, err := EncryptAES256(key, plaintext)
 

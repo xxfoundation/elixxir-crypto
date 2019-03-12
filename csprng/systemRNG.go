@@ -13,6 +13,11 @@ import (
 // SystemRNG uses the golang CSPRNG
 type SystemRNG struct{}
 
+//Gets the systemRNG as the interface
+func NewSystemRNG() Source {
+	return &SystemRNG{}
+}
+
 // Read calls the crypto/rand Read function and returns the values
 func (s *SystemRNG) Read(b []byte) (int, error) {
 	return rand.Read(b)
