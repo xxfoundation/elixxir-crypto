@@ -41,6 +41,31 @@ func TestNewInt(t *testing.T) {
 
 }
 
+//TestNewIntFromBigInt checks if the NewIntFromBigInt function returns a cyclic Int with
+//the same value of the passed BigInt
+func TestNewIntFromBigInt(t *testing.T) {
+	tests := 1
+
+	pass := 0
+
+	expected := big.NewInt(int64(42))
+
+	actual := NewInt(int64(42))
+
+	actualData := actual.Int64()
+	expectedData := expected.Int64()
+
+	if actualData != expectedData {
+		t.Errorf("Test of NewInt failed, expected: '%v', got: '%v'",
+			actualData, expectedData)
+	} else {
+		pass++
+	}
+
+	println("NewInt()", pass, "out of", tests, "tests passed.")
+
+}
+
 // TestNewIntFromBytes makes sure that we can get the same byte string
 // out of a new Int that we put into it
 func TestNewIntFromBytes(t *testing.T) {

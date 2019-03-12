@@ -23,6 +23,12 @@ func NewInt(x int64) *Int {
 	return s
 }
 
+// Creates a cyclic int from a passed big int
+//Fixme: write a damn test
+func NewIntFromBigInt(x *big.Int)*Int{
+	return &Int{x}
+}
+
 // NewIntFromBytes creates a new Int initialized from a byte buffer
 func NewIntFromBytes(buf []byte) *Int {
 	s := new(Int)
@@ -303,6 +309,10 @@ func (x *Int) GobEncode() ([]byte, error) {
 	return x.value.Bytes(), nil
 }
 
+func (x *Int) GetBigInt() *big.Int{
+	return x.value
+}
+
 // CONSTANTS
 
 // A 4128bit int, meant to be the size of post moded cyclic ints.
@@ -369,3 +379,5 @@ func cycInt(n *big.Int) *Int {
 	c.value = n
 	return c
 }
+
+
