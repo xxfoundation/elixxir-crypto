@@ -85,18 +85,16 @@ func TestGenUserID_Random(t *testing.T) {
 
 	tests := 100
 
+
 	userMap := make(map[string]bool)
+	csprig := csprng.NewSystemRNG()
 
 
 	for i := 0; i < tests; i++ {
 		privKey := params.PrivateKeyGen(rand.Reader, signature.L2048N256)
 		pubKey := privKey.PublicKeyGen()
-
-		csprig := csprng.NewSystemRNG()
 		salt := make([]byte, 32)
 		csprig.Read(salt)
-
-
 		user := GenUserID(pubKey, salt)
 		if user == nil {
 			t.Errorf("UserID Generation failed")
