@@ -179,6 +179,7 @@ func (g Group) FindSmallCoprimeInverse(z *Int, bits uint32) *Int {
 			continue
 		}
 
+		//Modulo inverse zinv and check that the inverse exists
 		if z.ModInverse(zinv, g.psub1) == nil {
 			continue
 		}
