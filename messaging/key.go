@@ -38,11 +38,11 @@ func NewDecryptionKey(salt []byte, baseKey *cyclic.Int, group *cyclic.Group) *cy
 	h2 := sha256.New()
 
 	a := baseKey.Bytes()
-	a = append(a, salt...)
 
 	//Blake2b Hash of the result of previous stage (base key + salt)
 	h1.Reset()
 	h1.Write(a)
+	h1.Write(salt)
 	x := h1.Sum(nil)
 
 	//Different Hash (SHA256) of the previous result to add entropy
