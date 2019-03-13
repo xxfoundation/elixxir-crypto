@@ -178,8 +178,8 @@ func (g Group) FindSmallCoprimeInverse(z *Int, bits uint32) *Int {
 		if zinv.Cmp(g.psub1factor) == 0 {
 			continue
 		}
-		rtn := z.ModInverse(zinv, g.psub1)
-		if rtn == nil {
+
+		if z.ModInverse(zinv, g.psub1) == nil {
 			continue
 		}
 
