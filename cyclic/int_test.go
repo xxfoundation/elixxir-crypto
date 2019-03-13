@@ -586,7 +586,7 @@ func TestModInverse_Fail(t *testing.T) {
 	rtn := b.ModInverse(a, p)
 
 	if rtn != nil {
-		t.Errorf("ModInverse() did not panic with invalid input")
+		t.Errorf("ModInverse() did not fail with invalid input")
 	}
 }
 
