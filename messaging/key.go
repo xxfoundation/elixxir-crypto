@@ -8,8 +8,8 @@ package messaging
 
 import (
 	"crypto/sha256"
+	"crypto/sha512"
 	"gitlab.com/elixxir/crypto/cyclic"
-	"gitlab.com/elixxir/crypto/forward"
 	"gitlab.com/elixxir/crypto/hash"
 )
 
@@ -38,11 +38,11 @@ func NewDecryptionKey(salt []byte, baseKey *cyclic.Int, group *cyclic.Group) *cy
 	h2 := sha256.New()
 
 	a := baseKey.Bytes()
-	a = append(a, salt...)
 
 	//Blake2b Hash of the result of previous stage (base key + salt)
 	h1.Reset()
 	h1.Write(a)
+	h1.Write(salt)
 	x := h1.Sum(nil)
 
 	//Different Hash (SHA256) of the previous result to add entropy
@@ -51,7 +51,8 @@ func NewDecryptionKey(salt []byte, baseKey *cyclic.Int, group *cyclic.Group) *cy
 	y := h2.Sum(nil)
 
 	// Expand Key
-	z := forward.ExpandKey(y, salt)
+	// Use SHA512
+	z := hash.ExpandKey(sha512.New(), group, y)
 
 	r := cyclic.NewIntFromBytes(z)
 
