@@ -157,7 +157,7 @@ func (g Group) RootCoprime(x, y, z *Int) *Int {
 
 func (g Group) FindSmallCoprimeInverse(z *Int, bits uint32) *Int {
 	if bits >= uint32(g.prime.BitLen()) {
-		jww.FATAL.Panicf("Requested bits: %d is greater than" +
+		jww.FATAL.Panicf("Requested bits: %d is greater than"+
 			" or equal to group's prime: %d", bits, g.prime.BitLen())
 	}
 
@@ -179,7 +179,10 @@ func (g Group) FindSmallCoprimeInverse(z *Int, bits uint32) *Int {
 			continue
 		}
 
-		z.ModInverse(zinv, g.psub1)
+		//Modulo inverse zinv and check that the inverse exists
+		if z.ModInverse(zinv, g.psub1) == nil {
+			continue
+		}
 
 		zbytes := z.Bytes()
 

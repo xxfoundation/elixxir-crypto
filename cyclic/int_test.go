@@ -577,6 +577,19 @@ func TestModInverse(t *testing.T) {
 
 }
 
+//Tests that the ModInverse function panics when no inverse can be found
+func TestModInverse_Fail(t *testing.T) {
+
+	p := NewInt(100)
+	a := NewInt(20)
+	b := NewInt(1)
+	rtn := b.ModInverse(a, p)
+
+	if rtn != nil {
+		t.Errorf("ModInverse() did not fail with invalid input")
+	}
+}
+
 //TestAdd checks if the Add function returns correct results
 func TestAdd(t *testing.T) {
 	type testStructure struct {

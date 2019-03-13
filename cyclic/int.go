@@ -25,7 +25,7 @@ func NewInt(x int64) *Int {
 
 // Creates a cyclic int from a passed big int
 //Fixme: write a damn test
-func NewIntFromBigInt(x *big.Int)*Int{
+func NewIntFromBigInt(x *big.Int) *Int {
 	return &Int{x}
 }
 
@@ -138,7 +138,10 @@ func (z *Int) Mod(x, m *Int) *Int {
 // TODO Panic if ModInverse returns nil, meaning that z and m are not
 // relatively prime
 func (x *Int) ModInverse(z, m *Int) *Int {
-	x.value.ModInverse(z.value, m.value)
+	rtn := x.value.ModInverse(z.value, m.value)
+	if rtn == nil {
+		return nil
+	}
 	return x
 }
 
@@ -309,7 +312,7 @@ func (x *Int) GobEncode() ([]byte, error) {
 	return x.value.Bytes(), nil
 }
 
-func (x *Int) GetBigInt() *big.Int{
+func (x *Int) GetBigInt() *big.Int {
 	return x.value
 }
 
@@ -379,5 +382,3 @@ func cycInt(n *big.Int) *Int {
 	c.value = n
 	return c
 }
-
-
