@@ -20,24 +20,22 @@ const (
 		"cdc392fed7267caef8398e817512ee46aedf6019b6d82a1d9040204d09873d78"
 	TEST_USERID    = 42
 	TEST_PARTNERID = 11
-	EXPECTED_KEY   = "e80f2642f97925105606e0e31d83051159192affa61a3d42901eb46deea78eb6" +
-		"222885219dcd1e8b58d38df7652a8e98018663da60c5a69b5376b136de600a70" +
-		"199b8b08573528a184f25d1caddb0be7aa9355942a7b21d6c82fefd129559cb9" +
-		"3d4c9ef01197038870df04f233dc6185a60b2e38ff2decd181d63bff2e63f8a1" +
-		"6b69a4263497d68a10b33557c9fd109df1ade76b7138516e77f6d6ea5043f371" +
-		"4ef4d02d715f11511ec1cca1cdd3e2eac3e8b6cf431880e6cd28e1882aad94bb" +
-		"15529b2726164f3c13c8459a66c98d6d272373766d3f287f3fba17c74183b2df" +
-		"9d5d91c662a8ef9aa5e01a9da32897c1ca30437e17e1fe3b05ed58a3dfee5a2a"
+	EXPECTED_KEY   = "73612b3df0defe6fa5227dce1180f1b540d50d6647da2a334753d4b316adc1ac" +
+		"bc7b2dd89519e04d072eb8fa973e1567625a07e20d6fc4ed4c3146121f43f5a0" +
+		"35660fa38995dbe77238dd92b981c4e8a1d351a793b57644afba38272b6c87df" +
+		"2ad83c39fa8881ba066860e8fffa9dbb11dc991d8553045cf4c961145e57f4a6" +
+		"6664860bdc72491492fb890685d30c7832dc8ac822b62c1b8a69991d3b0e1412" +
+		"893d8ce8c18ff7c82332d1cd1a1a207fb3d100eadb0b8de8a8bc9d7d40cc0661" +
+		"75eb5d1dea4cd6e93303922ac470a29f09eb841affa1f285282c9c224aa8790c" +
+		"c07fc8026ef843c25db983a5bb8944cfa8d8b93a8e04b8e9876b2998c2d8bea8"
 )
 
 // Test for consistency with hardcoded values
 func TestDeriveSingleKey(t *testing.T) {
 	userID := id.NewUserFromUint(TEST_USERID, t)
-	partnerID := id.NewUserFromUint(TEST_PARTNERID, t)
 	key := cyclic.NewIntFromString(TEST_DHKEY, 16)
 	data := append([]byte{}, key.Bytes()...)
 	data = append(data, userID.Bytes()...)
-	data = append(data, partnerID.Bytes()...)
 	result := deriveSingleKey(sha256.New(), &grp, data, 0)
 	expected := cyclic.NewIntFromString(EXPECTED_KEY, 16)
 	actual := cyclic.NewIntFromBytes(result)
@@ -46,40 +44,65 @@ func TestDeriveSingleKey(t *testing.T) {
 	}
 }
 
-// Test both functions with same arguments
+// Test both functions with various arguments
 func TestDeriveKeys_DeriveReKeys(t *testing.T) {
 	userID := id.NewUserFromUint(TEST_USERID, t)
 	partnerID := id.NewUserFromUint(TEST_PARTNERID, t)
 	key := cyclic.NewIntFromString(TEST_DHKEY, 16)
-	n_keys := uint(1000)
 
-	type testFun func(a *cyclic.Group, b *cyclic.Int, c, d *id.User, e uint) []*cyclic.Int
+	nkeys := []uint{10000, 0}
+	total := func(a []uint) (s int) {
+		for _, n := range a {
+			s+= int(n)
+		}
+		return s
+	}(nkeys)
+
+	ids := []*id.User{userID, partnerID}
+	emerg := []bool{false, true}
+	type testFun func(a *cyclic.Group, b *cyclic.Int, c *id.User, d bool, e uint) []*cyclic.Int
 	fut := []testFun{DeriveKeys, DeriveReKeys}
 
+	pass := 0
+	tests := len(nkeys) * len(ids) * len(emerg) * len(fut)
+
+	expectedKeys := (tests/len(nkeys)) * (total)
+	testmap := make(map[string]bool)
 	var genKeys = []*cyclic.Int{}
-	for _, f := range fut {
-		genKeys = f(&grp, key, userID, partnerID, n_keys)
 
-		// Check array of keys and if the size matches with requested
-		if genKeys == nil {
-			t.Errorf("Generated Array of Keys is nil")
-		} else if uint(len(genKeys)) != n_keys {
-			t.Errorf("Requested %d keys but got %d instead", n_keys, len(genKeys))
-		}
+	for _, n := range nkeys {
+		for _, id := range ids {
+			for _, e := range emerg {
+				for _, f := range fut {
+					genKeys = f(&grp, key, id, e, n)
 
-		testmap := make(map[string]bool)
-		// Check each key
-		for _, k := range genKeys {
-			if k == nil {
-				t.Errorf("One generated Key is nil")
-			} else if !grp.Inside(k) {
-				t.Errorf("Generated key is not inside the group")
+					// Check array of keys and if the size matches with requested
+					if genKeys == nil {
+						t.Errorf("Generated Array of Keys is nil")
+					} else if uint(len(genKeys)) != n {
+						t.Errorf("Requested %d keys but got %d instead", n, len(genKeys))
+					} else {
+						// Check each key
+						for _, k := range genKeys {
+							if k == nil {
+								t.Errorf("One generated Key is nil")
+							} else if !grp.Inside(k) {
+								t.Errorf("Generated key is not inside the group")
+							} else {
+								testmap[hex.EncodeToString(k.Bytes())] = true
+							}
+						}
+						pass++
+					}
+				}
 			}
-			testmap[hex.EncodeToString(k.Bytes())] = true
-		}
-
-		if uint(len(testmap)) < n_keys {
-			t.Errorf("At least two Keys out of %d have the same value", n_keys)
 		}
 	}
+
+	// Confirm all generated keys are different
+	if len(testmap) != expectedKeys {
+		t.Errorf("Expected %d different keys, but got %d", expectedKeys, len(testmap))
+	}
+
+	println("TestDeriveKeys_DeriveReKeys()", pass, "out of", tests, "tests passed.")
 }

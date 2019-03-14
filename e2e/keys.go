@@ -9,6 +9,8 @@ import (
 	"hash"
 )
 
+const EMERGENCY_KEY_STR = "EMERGENCY"
+
 // This function derives a single key by calling ExpandKey using the passed hash
 // The basekey data is the blake2b hash of passed data and id
 func deriveSingleKey(h hash.Hash, g *cyclic.Group, data []byte, id uint) []byte {
@@ -24,13 +26,15 @@ func deriveSingleKey(h hash.Hash, g *cyclic.Group, data []byte, id uint) []byte 
 // It creates the data bytes by concatenating dhkeyID, user and partnerID
 // and then loops calls to deriveSingleKey
 func deriveKeysCore(h hash.Hash, g *cyclic.Group, dhkey *cyclic.Int,
-	userID, partnerID *id.User, num uint) []*cyclic.Int {
+	userID *id.User, emergency bool, nkeys uint) []*cyclic.Int {
 	data := append([]byte{}, dhkey.Bytes()...)
 	data = append(data, userID.Bytes()...)
-	data = append(data, partnerID.Bytes()...)
-	keys := make([]*cyclic.Int, num)
+	if emergency {
+		data = append(data, []byte(EMERGENCY_KEY_STR)...)
+	}
+	keys := make([]*cyclic.Int, nkeys)
 	var i uint
-	for i = 0; i < num; i++ {
+	for i = 0; i < nkeys; i++ {
 		keys[i] = cyclic.NewIntFromBytes(deriveSingleKey(h, g, data, i))
 	}
 	return keys
@@ -38,15 +42,21 @@ func deriveKeysCore(h hash.Hash, g *cyclic.Group, dhkey *cyclic.Int,
 
 // This function derives num keys using blake2b as the hash function
 // for key expansion
-func DeriveKeys(g *cyclic.Group, dhkey *cyclic.Int,
-	userID, partnerID *id.User, num uint) []*cyclic.Int {
+// UserID should be your own for generating encryption keys
+// or the receiving userID for generating decryption keys
+// Set emergency to true to generate emergency keys
+func DeriveKeys(g *cyclic.Group, dhkey *cyclic.Int, userID *id.User,
+	emergency bool, nkeys uint) []*cyclic.Int {
 	h, _ := hash2.NewCMixHash()
-	return deriveKeysCore(h, g, dhkey, userID, partnerID, num)
+	return deriveKeysCore(h, g, dhkey, userID, emergency, nkeys)
 }
 
 // This function derives num keys using sha256 as the hash function
 // for key expansion
-func DeriveReKeys(g *cyclic.Group, dhkey *cyclic.Int,
-	userID, partnerID *id.User, num uint) []*cyclic.Int {
-	return deriveKeysCore(sha256.New(), g, dhkey, userID, partnerID, num)
+// UserID should be your own for generating encryption keys
+// or the receiving userID for generating decryption keys
+// Set emergency to true to generate emergency keys
+func DeriveReKeys(g *cyclic.Group, dhkey *cyclic.Int, userID *id.User,
+	emergency bool, nkeys uint) []*cyclic.Int {
+	return deriveKeysCore(sha256.New(), g, dhkey, userID, emergency, nkeys)
 }
