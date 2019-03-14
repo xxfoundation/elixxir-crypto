@@ -53,7 +53,7 @@ func TestDeriveKeys_DeriveReKeys(t *testing.T) {
 	nkeys := []uint{10000, 0}
 	total := func(a []uint) (s int) {
 		for _, n := range a {
-			s+= int(n)
+			s += int(n)
 		}
 		return s
 	}(nkeys)
@@ -66,7 +66,7 @@ func TestDeriveKeys_DeriveReKeys(t *testing.T) {
 	pass := 0
 	tests := len(nkeys) * len(ids) * len(emerg) * len(fut)
 
-	expectedKeys := (tests/len(nkeys)) * (total)
+	expectedKeys := (tests / len(nkeys)) * (total)
 	testmap := make(map[string]bool)
 	var genKeys = []*cyclic.Int{}
 
