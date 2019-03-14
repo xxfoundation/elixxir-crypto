@@ -28,3 +28,24 @@ func IsUnencrypted(m *format.Message) bool {
 	// Return true if the byte slices are equal
 	return bytes.Equal(payloadHash, keyFingerprint[:])
 }
+
+// Sets up the condition where the message would be determined to be unencrypted
+// by setting the key fingerprint to the hash of the message payload.
+func SetUnencrypted(m *format.Message) {
+	// Create new hash
+	h, err := hash.NewCMixHash()
+
+	if err != nil {
+		jww.ERROR.Printf("Failed to create hash: %v", err)
+	}
+
+	// Hash the message payload
+	h.Write(m.SerializePayload())
+	payloadHash := h.Sum(nil)
+
+	// Create fingerprint from the payload hash
+	keyFingerprint := format.NewFingerprint(payloadHash)
+
+	// Set the fingerprint
+	m.SetKeyFingerprint(*keyFingerprint)
+}
