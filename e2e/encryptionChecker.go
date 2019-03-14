@@ -15,7 +15,7 @@ func IsUnencrypted(m *format.Message) bool {
 	h, err := hash.NewCMixHash()
 
 	if err != nil {
-		jww.ERROR.Printf("Failed to create hash: %v", err)
+		jww.ERROR.Panicf("Failed to create hash: %v", err)
 	}
 
 	// Hash the message payload
@@ -36,7 +36,7 @@ func SetUnencrypted(m *format.Message) {
 	h, err := hash.NewCMixHash()
 
 	if err != nil {
-		jww.ERROR.Printf("Failed to create hash: %v", err)
+		jww.ERROR.Panicf("Failed to create hash: %v", err)
 	}
 
 	// Hash the message payload
