@@ -38,9 +38,8 @@ func TestDeriveSingleKey(t *testing.T) {
 	data = append(data, userID.Bytes()...)
 	result := deriveSingleKey(sha256.New(), &grp, data, 0)
 	expected := cyclic.NewIntFromString(EXPECTED_KEY, 16)
-	actual := cyclic.NewIntFromBytes(result)
-	if actual.Cmp(expected) != 0 {
-		t.Errorf("Generated Key %v doesn't match expected %v", actual.Text(16), EXPECTED_KEY)
+	if result.Cmp(expected) != 0 {
+		t.Errorf("Generated Key %v doesn't match expected %v", result.Text(16), EXPECTED_KEY)
 	}
 }
 
@@ -105,4 +104,33 @@ func TestDeriveKeys_DeriveReKeys(t *testing.T) {
 	}
 
 	println("TestDeriveKeys_DeriveReKeys()", pass, "out of", tests, "tests passed.")
+}
+
+// Test both functions with same arguments to explicitly show they produce different keys
+func TestDeriveKeys_DeriveReKeys_Differ(t *testing.T) {
+	userID := id.NewUserFromUint(TEST_USERID, t)
+	key := cyclic.NewIntFromString(TEST_DHKEY, 16)
+	nkeys := uint(100)
+	type testFun func(a *cyclic.Group, b *cyclic.Int, c *id.User, d bool, e uint) []*cyclic.Int
+	fut := []testFun{DeriveKeys, DeriveReKeys}
+
+	var genKeys = make([][]*cyclic.Int, len(fut))
+
+	for i, f := range fut {
+		genKeys[i] = f(&grp, key, userID, false, nkeys)
+
+		// Check array of keys and if the size matches with requested
+		if genKeys[i] == nil {
+			t.Errorf("Generated Array of Keys is nil")
+		} else if uint(len(genKeys[i])) != nkeys {
+			t.Errorf("Requested %d keys but got %d instead", nkeys, len(genKeys))
+		}
+	}
+
+	// Directly compare each key
+	for i:=0; i<int(nkeys); i++ {
+		if genKeys[0][i].Cmp(genKeys[1][i]) == 0 {
+			t.Errorf("Keys are the same when generated with different functions")
+		}
+	}
 }
