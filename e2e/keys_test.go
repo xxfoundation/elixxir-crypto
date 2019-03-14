@@ -30,6 +30,8 @@ const (
 		"c07fc8026ef843c25db983a5bb8944cfa8d8b93a8e04b8e9876b2998c2d8bea8"
 )
 
+type testFun func(a *cyclic.Group, b *cyclic.Int, c *id.User, d uint) []*cyclic.Int
+
 // Test for consistency with hardcoded values
 func TestDeriveSingleKey(t *testing.T) {
 	userID := id.NewUserFromUint(TEST_USERID, t)
@@ -44,7 +46,7 @@ func TestDeriveSingleKey(t *testing.T) {
 }
 
 // Test both functions with various arguments
-func TestDeriveKeys_DeriveReKeys(t *testing.T) {
+func TestDeriveKeys_DeriveEmergencyKeys(t *testing.T) {
 	userID := id.NewUserFromUint(TEST_USERID, t)
 	partnerID := id.NewUserFromUint(TEST_PARTNERID, t)
 	key := cyclic.NewIntFromString(TEST_DHKEY, 16)
@@ -58,12 +60,10 @@ func TestDeriveKeys_DeriveReKeys(t *testing.T) {
 	}(nkeys)
 
 	ids := []*id.User{userID, partnerID}
-	emerg := []bool{false, true}
-	type testFun func(a *cyclic.Group, b *cyclic.Int, c *id.User, d bool, e uint) []*cyclic.Int
-	fut := []testFun{DeriveKeys, DeriveReKeys}
+	fut := []testFun{DeriveKeys, DeriveEmergencyKeys}
 
 	pass := 0
-	tests := len(nkeys) * len(ids) * len(emerg) * len(fut)
+	tests := len(nkeys) * len(ids) * len(fut)
 
 	expectedKeys := (tests / len(nkeys)) * (total)
 	testmap := make(map[string]bool)
@@ -71,28 +71,26 @@ func TestDeriveKeys_DeriveReKeys(t *testing.T) {
 
 	for _, n := range nkeys {
 		for _, id := range ids {
-			for _, e := range emerg {
-				for _, f := range fut {
-					genKeys = f(&grp, key, id, e, n)
+			for _, f := range fut {
+				genKeys = f(&grp, key, id, n)
 
-					// Check array of keys and if the size matches with requested
-					if genKeys == nil {
-						t.Errorf("Generated Array of Keys is nil")
-					} else if uint(len(genKeys)) != n {
-						t.Errorf("Requested %d keys but got %d instead", n, len(genKeys))
-					} else {
-						// Check each key
-						for _, k := range genKeys {
-							if k == nil {
-								t.Errorf("One generated Key is nil")
-							} else if !grp.Inside(k) {
-								t.Errorf("Generated key is not inside the group")
-							} else {
-								testmap[hex.EncodeToString(k.Bytes())] = true
-							}
+				// Check array of keys and if the size matches with requested
+				if genKeys == nil {
+					t.Errorf("Generated Array of Keys is nil")
+				} else if uint(len(genKeys)) != n {
+					t.Errorf("Requested %d keys but got %d instead", n, len(genKeys))
+				} else {
+					// Check each key
+					for _, k := range genKeys {
+						if k == nil {
+							t.Errorf("One generated Key is nil")
+						} else if !grp.Inside(k) {
+							t.Errorf("Generated key is not inside the group")
+						} else {
+							testmap[hex.EncodeToString(k.Bytes())] = true
 						}
-						pass++
 					}
+					pass++
 				}
 			}
 		}
@@ -103,21 +101,19 @@ func TestDeriveKeys_DeriveReKeys(t *testing.T) {
 		t.Errorf("Expected %d different keys, but got %d", expectedKeys, len(testmap))
 	}
 
-	println("TestDeriveKeys_DeriveReKeys()", pass, "out of", tests, "tests passed.")
+	println("TestDeriveKeys_DeriveEmergencyKeys()", pass, "out of", tests, "tests passed.")
 }
 
 // Test both functions with same arguments to explicitly show they produce different keys
-func TestDeriveKeys_DeriveReKeys_Differ(t *testing.T) {
+func TestDeriveKeys_DeriveEmergencyKeys_Differ(t *testing.T) {
 	userID := id.NewUserFromUint(TEST_USERID, t)
 	key := cyclic.NewIntFromString(TEST_DHKEY, 16)
 	nkeys := uint(100)
-	type testFun func(a *cyclic.Group, b *cyclic.Int, c *id.User, d bool, e uint) []*cyclic.Int
-	fut := []testFun{DeriveKeys, DeriveReKeys}
-
+	fut := []testFun{DeriveKeys, DeriveEmergencyKeys}
 	var genKeys = make([][]*cyclic.Int, len(fut))
 
 	for i, f := range fut {
-		genKeys[i] = f(&grp, key, userID, false, nkeys)
+		genKeys[i] = f(&grp, key, userID, nkeys)
 
 		// Check array of keys and if the size matches with requested
 		if genKeys[i] == nil {
