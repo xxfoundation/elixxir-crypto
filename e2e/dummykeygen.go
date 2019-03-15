@@ -7,18 +7,20 @@ import (
 	"gitlab.com/elixxir/primitives/id"
 )
 
-func CombinedHash(ida *id.User, idb *id.User, grp cyclic.Group) *cyclic.Int {
+// Generates a key from two user ids by appending hashes
+// ordered by the larger user id
+func combinedHash(userA *id.User, userB *id.User, grp cyclic.Group) *cyclic.Int {
 
 	h, _ := hash.NewCMixHash()
 
 	// Create combined key by appending the smaller slice
 	var combKey []byte
-	as := ida.Bytes()
-	bs := idb.Bytes()
+	as := userA.Bytes()
+	bs := userB.Bytes()
 	if bytes.Compare(as, bs) >= 0 {
-		combKey = append(ida.Bytes(), idb.Bytes()...)
+		combKey = append(userA.Bytes(), userB.Bytes()...)
 	} else {
-		combKey = append(idb.Bytes(), ida.Bytes()...)
+		combKey = append(userB.Bytes(), userA.Bytes()...)
 	}
 
 	expKey := hash.ExpandKey(h, &grp, combKey)
@@ -27,13 +29,13 @@ func CombinedHash(ida *id.User, idb *id.User, grp cyclic.Group) *cyclic.Int {
 
 }
 
+// Generates keys for all combinations of users for the current user
 func KeyGen(currentUser id.User, users []id.User, grp cyclic.Group) []cyclic.Int {
 	keys := make([]cyclic.Int, len(users))
 
 	for i, user := range users {
-		keys[i]  = *CombinedHash(&currentUser, &user, grp)
+		keys[i]  = *combinedHash(&currentUser, &user, grp)
 	}
 
 	return keys
 }
-
