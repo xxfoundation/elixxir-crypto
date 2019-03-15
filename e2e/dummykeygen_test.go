@@ -7,15 +7,13 @@ import (
 	"testing"
 )
 
-
-
 // Test to ensure the number of keys equals the number of users to combine with
 func TestDummyKeyGen_ValidNumKeys(t *testing.T) {
 
 	grp := generateGroup()
 	currUser := generateUsers([]uint64{12345})[0]
 
-	userIds := []uint64{1,2,3,4,5,6}
+	userIds := []uint64{1, 2, 3, 4, 5, 6}
 	users := generateUsers(userIds)
 
 	keys := KeyGen(currUser, users, grp)
@@ -23,14 +21,14 @@ func TestDummyKeyGen_ValidNumKeys(t *testing.T) {
 		t.Errorf("Wrong number of keys generated")
 	}
 
-	userIds = []uint64{1,2,3,4,5,6,7,8,9,10}
+	userIds = []uint64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	users = generateUsers(userIds)
 	keys = KeyGen(currUser, users, grp)
 	if len(keys) != len(users) {
 		t.Errorf("Wrong number of keys generated")
 	}
 
-	userIds = []uint64{8,9,10}
+	userIds = []uint64{8, 9, 10}
 	users = generateUsers(userIds)
 	keys = KeyGen(currUser, users, grp)
 	if len(keys) != len(users) {
@@ -45,12 +43,12 @@ func TestDummyKeyGen_KeysMatch(t *testing.T) {
 	grp := generateGroup()
 	currUser := generateUsers([]uint64{12345})[0]
 
-	userIds := []uint64{1,2,3,4,5,6}
+	userIds := []uint64{1, 2, 3, 4, 5, 6}
 	users := generateUsers(userIds)
 
 	keys1 := KeyGen(currUser, users, grp)
 
-	userIds = []uint64{6,5,4,3,2,1}
+	userIds = []uint64{6, 5, 4, 3, 2, 1}
 	users = generateUsers(userIds)
 
 	keys2 := KeyGen(currUser, users, grp)
