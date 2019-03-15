@@ -125,8 +125,9 @@ func EncryptAES256WithIV(key []byte, iv [AESBlockSize]byte, plaintext []byte) ([
 	}
 
 	h := sha256.New()
+	h.Write(key)
 	var key_arr [AES256KeyLen]byte
-	copy(key_arr[:], h.Sum(key))
+	copy(key_arr[:], h.Sum(nil))
 	return encryptCore(key_arr, iv, plaintext)
 }
 
@@ -143,8 +144,9 @@ func DecryptAES256WithIV(key []byte, iv [AESBlockSize]byte, ciphertext []byte) (
 	}
 
 	h := sha256.New()
+	h.Write(key)
 	var key_arr [AES256KeyLen]byte
-	copy(key_arr[:], h.Sum(key))
+	copy(key_arr[:], h.Sum(nil))
 	plaintext, err := decryptCore(key_arr, iv, ciphertext)
 	if err != nil {
 		return nil, err
