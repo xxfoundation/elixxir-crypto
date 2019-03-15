@@ -36,10 +36,10 @@ func combinedHash(userA *id.User, userB *id.User, grp *cyclic.Group) *cyclic.Int
 }
 
 // Generates keys for all combinations of users for the current user
-func KeyGen(currentUser *id.User, users []id.User, grp *cyclic.Group) *[]cyclic.Int {
-	keys := make([]cyclic.Int, len(users))
+func KeyGen(currentUser *id.User, users *[]id.User, grp *cyclic.Group) *[]cyclic.Int {
+	keys := make([]cyclic.Int, len(*users))
 
-	for i, user := range users {
+	for i, user := range *users {
 		keys[i] = *combinedHash(currentUser, &user, grp)
 	}
 
