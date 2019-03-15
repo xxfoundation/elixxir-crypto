@@ -19,21 +19,21 @@ func TestDummyKeyGen_ValidNumKeys(t *testing.T) {
 	userIds := []uint64{1, 2, 3, 4, 5, 6}
 	users := generateUsers(userIds, t)
 
-	keys := *KeyGen(currUser, users, &grp)
+	keys := KeyGen(currUser, users, &grp)
 	if len(keys) != len(users) {
 		t.Errorf("Wrong number of keys generated")
 	}
 
 	userIds = []uint64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	users = generateUsers(userIds, t)
-	keys = *KeyGen(currUser, users, &grp)
+	keys = KeyGen(currUser, users, &grp)
 	if len(keys) != len(users) {
 		t.Errorf("Wrong number of keys generated")
 	}
 
 	userIds = []uint64{8, 9, 10}
 	users = generateUsers(userIds, t)
-	keys = *KeyGen(currUser, users, &grp)
+	keys = KeyGen(currUser, users, &grp)
 	if len(keys) != len(users) {
 		t.Errorf("Wrong number of keys generated")
 	}
@@ -48,16 +48,16 @@ func TestDummyKeyGen_KeysMatch(t *testing.T) {
 	userIds := []uint64{1, 2, 3, 4, 5, 6}
 	users := generateUsers(userIds, t)
 
-	keys1 := *KeyGen(currUser, users, &grp)
+	keys1 := KeyGen(currUser, users, &grp)
 
 	userIds = []uint64{6, 5, 4, 3, 2, 1}
 	users = generateUsers(userIds, t)
 
-	keys2 := *KeyGen(currUser, users, &grp)
+	keys2 := KeyGen(currUser, users, &grp)
 
 	l := len(keys1)
 	for i, v := range keys1 {
-		if v.Cmp(&keys2[l-i-1]) != 0 {
+		if v.Cmp(keys2[l-i-1]) != 0 {
 			t.Errorf("Key mismatch")
 		}
 	}
