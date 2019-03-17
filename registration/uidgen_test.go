@@ -12,7 +12,7 @@ import (
 // generated public key and a fixed salt
 func TestGenUserID(t *testing.T) {
 	params := signature.NewDSAParams(rand.Reader, signature.L2048N256)
-	privKey := params.PrivateKeyGen(rand.Reader, signature.L2048N256)
+	privKey := params.PrivateKeyGen(rand.Reader)
 	pubKey := privKey.PublicKeyGen()
 	salt := []byte("0123456789ABCDEF0123456789ABCDEF")
 
@@ -25,7 +25,7 @@ func TestGenUserID(t *testing.T) {
 // Test GenUserID panics with empty byte slice salt
 func TestGenUserID_EmptySalt(t *testing.T) {
 	params := signature.NewDSAParams(rand.Reader, signature.L2048N256)
-	privKey := params.PrivateKeyGen(rand.Reader, signature.L2048N256)
+	privKey := params.PrivateKeyGen(rand.Reader)
 	pubKey := privKey.PublicKeyGen()
 	salt := []byte("")
 
@@ -40,7 +40,7 @@ func TestGenUserID_EmptySalt(t *testing.T) {
 // Test GenUserID panics with nil salt
 func TestGenUserID_NilSalt(t *testing.T) {
 	params := signature.NewDSAParams(rand.Reader, signature.L2048N256)
-	privKey := params.PrivateKeyGen(rand.Reader, signature.L2048N256)
+	privKey := params.PrivateKeyGen(rand.Reader)
 	pubKey := privKey.PublicKeyGen()
 
 	defer func() {
@@ -54,7 +54,7 @@ func TestGenUserID_NilSalt(t *testing.T) {
 // Test GenUserID panics with empty byte slice public key
 func TestGenUserID_EmptyKey(t *testing.T) {
 	params := signature.NewDSAParams(rand.Reader, signature.L2048N256)
-	privKey := params.PrivateKeyGen(rand.Reader, signature.L2048N256)
+	privKey := params.PrivateKeyGen(rand.Reader)
 	pubKey := privKey.PublicKeyGen()
 	salt := []byte("0123456789ABCDEF0123456789ABCDEF")
 
@@ -85,13 +85,11 @@ func TestGenUserID_Random(t *testing.T) {
 
 	tests := 100
 
-
 	userMap := make(map[string]bool)
 	csprig := csprng.NewSystemRNG()
 
-
 	for i := 0; i < tests; i++ {
-		privKey := params.PrivateKeyGen(rand.Reader, signature.L2048N256)
+		privKey := params.PrivateKeyGen(rand.Reader)
 		pubKey := privKey.PublicKeyGen()
 		salt := make([]byte, 32)
 		csprig.Read(salt)

@@ -15,7 +15,6 @@ import (
 	"testing"
 )
 
-
 // Test CustomDSA Param generation accessors
 // to ensure P, Q, G values are stored correctly internally
 func TestCustomDSAParams_Accessors(t *testing.T) {
@@ -118,13 +117,11 @@ func TestPrivateKeyGen_Valid(t *testing.T) {
 	q := fromHex("E1D3391245933D68A0714ED34BBCB7A1F422B9C1")
 	g := fromHex("634364FC25248933D01D1993ECABD0657CC0CB2CEED7ED2E3E8AECDFCDC4A25C3B15E9E3B163ACA2984B5539181F3EFF1A5E8903D71D5B95DA4F27202B77D2C44B430BB53741A8D59A8F86887525C9F2A6A5980A195EAA7F2FF910064301DEF89D3AA213E1FAC7768D89365318E370AF54A112EFBA9246D9158386BA1B4EEFDA")
 
-	sizes := L1024N160
-
 	params := CustomDSAParams(p, q, g)
 
-	privateKey := params.PrivateKeyGen(rand, sizes)
+	privateKey := params.PrivateKeyGen(rand)
 
-	k := privateKey.GetKey().TextVerbose(10,16)
+	k := privateKey.GetKey().TextVerbose(10, 16)
 
 	if k != "4769794528446378..." {
 		t.Errorf("Invalid private key generated")
@@ -143,7 +140,7 @@ func TestPrivateKey_HasValidParams(t *testing.T) {
 	qExp := params.GetQ().TextVerbose(10, 16)
 	gExp := params.GetG().TextVerbose(10, 16)
 
-	privateKey := params.PrivateKeyGen(rand, sizes)
+	privateKey := params.PrivateKeyGen(rand)
 
 	p, q, g := privateKey.GetParams()
 	pActual := p.TextVerbose(10, 16)
@@ -172,7 +169,7 @@ func TestPrivateKeyGen_Panic(t *testing.T) {
 	r := AlwaysErrorReader{}
 	params := DSAParameters{}
 
-	params.PrivateKeyGen(&r, L1024N160)
+	params.PrivateKeyGen(&r)
 }
 
 // Test that DSAParams has valid values for accessors
@@ -256,11 +253,9 @@ func TestPublicKeyGen_Consistent(t *testing.T) {
 	q := fromHex("E1D3391245933D68A0714ED34BBCB7A1F422B9C1")
 	g := fromHex("634364FC25248933D01D1993ECABD0657CC0CB2CEED7ED2E3E8AECDFCDC4A25C3B15E9E3B163ACA2984B5539181F3EFF1A5E8903D71D5B95DA4F27202B77D2C44B430BB53741A8D59A8F86887525C9F2A6A5980A195EAA7F2FF910064301DEF89D3AA213E1FAC7768D89365318E370AF54A112EFBA9246D9158386BA1B4EEFDA")
 
-	sizes := L1024N160
-
 	params := CustomDSAParams(p, q, g)
 
-	privateKey := params.PrivateKeyGen(rand, sizes)
+	privateKey := params.PrivateKeyGen(rand)
 
 	pubKey := privateKey.PublicKeyGen()
 
@@ -356,7 +351,6 @@ func TestSigningWithDegenerateKeys(t *testing.T) {
 
 		privKey := ReconstructPrivateKey(pubKey, x)
 
-
 		hashed := []byte("testing")
 
 		_, err := privKey.Sign(hashed, cryptoRand.Reader)
@@ -402,7 +396,7 @@ func testParameterGeneration(t *testing.T, sizes ParameterSizes, L, N int) {
 		t.Errorf("%d: invalid generator", int(sizes))
 	}
 
-	privKey := params.PrivateKeyGen(cryptoRand.Reader, sizes)
+	privKey := params.PrivateKeyGen(cryptoRand.Reader)
 
 	testSignAndVerify(t, int(sizes), privKey)
 }

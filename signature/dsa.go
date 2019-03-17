@@ -37,7 +37,7 @@ type DSAParameters struct {
 	params dsa.Parameters
 }
 
-func (p *DSAParameters) PrivateKeyGen(rng io.Reader, pSizes ParameterSizes) *DSAPrivateKey {
+func (p *DSAParameters) PrivateKeyGen(rng io.Reader) *DSAPrivateKey {
 
 	pk := DSAPrivateKey{}
 	pk.key.Parameters = p.params
