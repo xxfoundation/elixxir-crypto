@@ -217,7 +217,7 @@ func TestDSAPublicKeyGetters(t *testing.T) {
 	q := actualParams.GetQ()
 	g := actualParams.GetG()
 
-	y := pubKey.GetY()
+	y := pubKey.GetKey()
 
 	pActual := p.TextVerbose(16, 40)
 	if pActual != "d99d2415ea76c2d9853e10285f47c26e644cb3e3..." {
@@ -260,7 +260,7 @@ func TestPublicKeyGen_Consistent(t *testing.T) {
 	pubKey := privateKey.PublicKeyGen()
 
 	pubKeyFromPrivateKey := privateKey.GetPublicKey().TextVerbose(10, 16)
-	pubKeyYValue := pubKey.GetY().TextVerbose(10, 16)
+	pubKeyYValue := pubKey.GetKey().TextVerbose(10, 16)
 
 	if pubKeyFromPrivateKey != expectedPubKey {
 		t.Errorf("Public key accessed from private key is not correct")

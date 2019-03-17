@@ -67,10 +67,6 @@ func (k *DSAPublicKey) GetParams() *DSAParameters {
 	return &DSAParameters{params: k.key.Parameters}
 }
 
-func (k *DSAPublicKey) GetY() *cyclic.Int {
-	return cyclic.NewIntFromBigInt(k.key.Y)
-}
-
 type DSAPrivateKey struct {
 	key dsa.PrivateKey
 }
