@@ -356,6 +356,41 @@ func TestEncAES_IVs(t *testing.T) {
 	}
 }
 
+// Test that AES encryption is hashing the key correctly internally
+// Note that if AES decryption is doing the hash wrong, any other test
+// that does encrypt/decrypt will fail because the wrong key will be used
+// on decryption, resulting in an error
+func TestAESEnc_Hash(t *testing.T) {
+	key, _ := hex.DecodeString(TEST_KEY_2048)
+	iv := []byte(TEST_IV)
+	ptext := []byte(TEST_MSG)
+	ptext, _ = pkcs7PadAES(ptext)
+
+	var iv_arr [AESBlockSize]byte
+	copy(iv_arr[:], iv)
+
+	var badKey [AES256KeyLen]byte
+	copy(badKey[:], key)
+
+	// If the hash is broken internally, the key used will be simply the
+	// truncated key, so use that in encrypt core to set target
+	// wrong ciphertext
+	badCiphertext, err := encryptCore(badKey, iv_arr, ptext)
+	if err != nil {
+		t.Errorf("AES Encryption Core returned error: %s", err.Error())
+	}
+
+	ciphertext, err := EncryptAES256WithIV(key, iv_arr, ptext)
+
+	if err != nil {
+		t.Errorf("AES EncryptionWithIV returned error: %s", err.Error())
+	}
+
+	if bytes.Contains(ciphertext, badCiphertext) {
+		t.Errorf("AES EncryptionWithIV is not correctly hashing the key")
+	}
+}
+
 //---------------------------------- Test random inputs ------------------------------------------//
 
 // Loop test AES encryption/decryption with random inputs
