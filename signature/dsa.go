@@ -1,7 +1,9 @@
 package signature
 
 import (
+	"bytes"
 	"crypto/dsa"
+	"encoding/gob"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/large"
 	"io"
@@ -81,6 +83,72 @@ func (p *DSAParameters) PrivateKeyGen(rng io.Reader) *DSAPrivateKey {
 	return &pk
 }
 
+// Returns a byte slice representing the encoding of DSAParameters for the
+// transmission to a GobDecode().
+func (p *DSAParameters) GobEncode() ([]byte, error) {
+	// Anonymous structure
+	s := struct {
+		P []byte
+		Q []byte
+		G []byte
+	}{
+		p.params.P.Bytes(),
+		p.params.Q.Bytes(),
+		p.params.G.Bytes(),
+	}
+
+	var buf bytes.Buffer
+
+	// Create new encoder that will transmit the buffer
+	enc := gob.NewEncoder(&buf)
+
+	// Transmit the data
+	err := enc.Encode(s)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+// Overwrites the receiver, which must be a pointer, with DSAParameters
+// represented by the byte slice, which was written by GobEncode().
+func (p *DSAParameters) GobDecode(b []byte) error {
+	// , empty structure
+	s := struct {
+		P []byte
+		Q []byte
+		G []byte
+	}{
+		[]byte{},
+		[]byte{},
+		[]byte{},
+	}
+
+	var buf bytes.Buffer
+
+	// Write bytes to the buffer
+	buf.Write(b)
+
+	// Create new decoder that reads from the buffer
+	dec := gob.NewDecoder(&buf)
+
+	// Receive and decode data
+	err := dec.Decode(&s)
+
+	if err != nil {
+		return err
+	}
+
+	// Convert decoded bytes and put into empty structure
+	p.params.P = large.NewIntFromBytes(s.P).BigInt()
+	p.params.Q = large.NewIntFromBytes(s.Q).BigInt()
+	p.params.G = large.NewIntFromBytes(s.G).BigInt()
+
+	return nil
+}
+
 func (p *DSAParameters) GetG() large.Int {
 	return large.NewIntFromBigInt(p.params.G)
 }
@@ -105,6 +173,82 @@ func (p *DSAPrivateKey) PublicKeyGen() *DSAPublicKey {
 	return &DSAPublicKey{p.key.PublicKey}
 }
 
+// Returns a byte slice representing the encoding of DSAPrivateKey for the
+// transmission to a GobDecode().
+func (p *DSAPrivateKey) GobEncode() ([]byte, error) {
+	// Anonymous structure that flattens nested structures
+	s := struct {
+		P []byte
+		Q []byte
+		G []byte
+		Y []byte
+		X []byte
+	}{
+		p.key.PublicKey.Parameters.P.Bytes(),
+		p.key.PublicKey.Parameters.Q.Bytes(),
+		p.key.PublicKey.Parameters.G.Bytes(),
+		p.key.PublicKey.Y.Bytes(),
+		p.key.X.Bytes(),
+	}
+
+	var buf bytes.Buffer
+
+	// Create new encoder that will transmit the buffer
+	enc := gob.NewEncoder(&buf)
+
+	// Transmit the data
+	err := enc.Encode(s)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+// Overwrites the receiver, which must be a pointer, with DSAPrivateKey
+// represented by the byte slice, which was written by GobEncode().
+func (p *DSAPrivateKey) GobDecode(b []byte) error {
+	// Anonymous, empty, flat structure
+	s := struct {
+		P []byte
+		Q []byte
+		G []byte
+		X []byte
+		Y []byte
+	}{
+		[]byte{},
+		[]byte{},
+		[]byte{},
+		[]byte{},
+		[]byte{},
+	}
+
+	var buf bytes.Buffer
+
+	// Write bytes to the buffer
+	buf.Write(b)
+
+	// Create new decoder that reads from the buffer
+	dec := gob.NewDecoder(&buf)
+
+	// Receive and decode data
+	err := dec.Decode(&s)
+
+	if err != nil {
+		return err
+	}
+
+	// Convert decoded bytes and put into empty structure
+	p.key.PublicKey.Parameters.P = large.NewIntFromBytes(s.P).BigInt()
+	p.key.PublicKey.Parameters.Q = large.NewIntFromBytes(s.Q).BigInt()
+	p.key.PublicKey.Parameters.G = large.NewIntFromBytes(s.G).BigInt()
+	p.key.PublicKey.Y = large.NewIntFromBytes(s.Y).BigInt()
+	p.key.X = large.NewIntFromBytes(s.X).BigInt()
+
+	return nil
+}
+
 func (p *DSAPrivateKey) Sign(data []byte, rng io.Reader) (*DSASignature, error) {
 
 	r, s, err := dsa.Sign(rng, &p.key, data)
@@ -122,17 +266,6 @@ func (p *DSAPrivateKey) Sign(data []byte, rng io.Reader) (*DSASignature, error) 
 
 func (p *DSAPrivateKey) GetKey() large.Int {
 	return large.NewIntFromBigInt(p.key.X)
-}
-
-func (dsaKey *DSAPrivateKey) GetPublicKey() large.Int {
-	return large.NewIntFromBigInt(dsaKey.key.PublicKey.Y)
-}
-
-func (dsaKey *DSAPrivateKey) GetParams() (p, q, g large.Int) {
-	p = large.NewIntFromBigInt(dsaKey.key.P)
-	q = large.NewIntFromBigInt(dsaKey.key.Q)
-	g = large.NewIntFromBigInt(dsaKey.key.G)
-	return p, q, g
 }
 
 func ReconstructPrivateKey(publicKey *DSAPublicKey, privateKey large.Int) *DSAPrivateKey {
@@ -156,6 +289,79 @@ func ReconstructPublicKey(p *DSAParameters, key large.Int) *DSAPublicKey {
 	return pk
 }
 
+// Returns a byte slice representing the encoding of DSAPublicKey for the
+// transmission to a GobDecode().
+func (p *DSAPublicKey) GobEncode() ([]byte, error) {
+	// Anonymous structure that flattens nested structures
+	s := struct {
+		P []byte
+		Q []byte
+		G []byte
+		Y []byte
+	}{
+		p.key.Parameters.P.Bytes(),
+		p.key.Parameters.Q.Bytes(),
+		p.key.Parameters.G.Bytes(),
+		p.key.Y.Bytes(),
+	}
+
+	var buf bytes.Buffer
+
+	// Create new encoder that will transmit the buffer
+	enc := gob.NewEncoder(&buf)
+
+	// Transmit the data
+	err := enc.Encode(s)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+// Overwrites the receiver, which must be a pointer, with DSAPublicKey
+// represented by the byte slice, which was written by GobEncode().
+func (p *DSAPublicKey) GobDecode(b []byte) error {
+	// Anonymous, empty, flat structure
+	s := struct {
+		P []byte
+		Q []byte
+		G []byte
+		X []byte
+		Y []byte
+	}{
+		[]byte{},
+		[]byte{},
+		[]byte{},
+		[]byte{},
+		[]byte{},
+	}
+
+	var buf bytes.Buffer
+
+	// Write bytes to the buffer
+	buf.Write(b)
+
+	// Create new decoder that reads from the buffer
+	dec := gob.NewDecoder(&buf)
+
+	// Receive and decode data
+	err := dec.Decode(&s)
+
+	if err != nil {
+		return err
+	}
+
+	// Convert decoded bytes and put into empty structure
+	p.key.Parameters.P = large.NewIntFromBytes(s.P).BigInt()
+	p.key.Parameters.Q = large.NewIntFromBytes(s.Q).BigInt()
+	p.key.Parameters.G = large.NewIntFromBytes(s.G).BigInt()
+	p.key.Y = large.NewIntFromBytes(s.Y).BigInt()
+
+	return nil
+}
+
 func (p *DSAPublicKey) Verify(hash []byte, sig DSASignature) bool {
 	return dsa.Verify(&p.key, hash, sig.R.BigInt(), sig.S.BigInt())
 }
@@ -168,56 +374,3 @@ type DSASignature struct {
 	R large.Int
 	S large.Int
 }
-
-// TODO: Add tests for Gob encode/decode and uncomment impl.
-//func decode(b []byte, e interface{}) error {
-//	var buffer bytes.Buffer
-//
-//	buffer.Read(b)
-//
-//	dec := gob.NewDecoder(&buffer)
-//
-//	return dec.Decode(e)
-//}
-//
-//func encode(e interface{}) ([]byte, error) {
-//	var buffer bytes.Buffer
-//
-//	enc := gob.NewEncoder(&buffer)
-//
-//	err := enc.Encode(e)
-//
-//	return buffer.Bytes(), err
-//}
-//
-//func (p *DSAParameters) GobDecode(b []byte) error {
-//	return decode(b, &p.params)
-//}
-//
-//func (p *DSAParameters) GobEncode() ([]byte, error) {
-//	return encode(p.params)
-//}
-//
-//func (p *DSAPrivateKey) GobDecode(b []byte) error {
-//	return decode(b, &p.key)
-//}
-//
-//func (p *DSAPrivateKey) GobEncode() ([]byte, error) {
-//	return encode(p.key)
-//}
-//
-//func (p *DSAPublicKey) GobDecode(b []byte) error {
-//	return decode(b, &p.key)
-//}
-//
-//func (p *DSAPublicKey) GobEncode() ([]byte, error) {
-//	return encode(p.key)
-//}
-//
-//func (p *DSASignature) GobDecode(b []byte) error {
-//	return decode(b, &p)
-//}
-//
-//func (p *DSASignature) GobEncode() ([]byte, error) {
-//	return encode(p)
-//}
