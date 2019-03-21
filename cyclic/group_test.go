@@ -21,8 +21,9 @@ func TestNewGroup(t *testing.T) {
 	max := large.NewInt(0)
 	max.Mul(p, large.NewInt(1000))
 	g := large.NewInt(5)
+	q := large.NewInt(1283)
 	rng := NewRandom(min, max)
-	actual := NewGroup(p, s, g, rng)
+	actual := NewGroup(p, s, g, q, rng)
 
 	type testStruct struct {
 		prime large.Int
@@ -53,8 +54,9 @@ func TestNewInt(t *testing.T) {
 	max := large.NewInt(0)
 	max.Mul(p, large.NewInt(1000))
 	g := large.NewInt(5)
+	q := large.NewInt(1283)
 	rng := NewRandom(min, max)
-	grp := NewGroup(p, s, g, rng)
+	grp := NewGroup(p, s, g, q, rng)
 
 	expected := large.NewInt(42)
 	actual := grp.NewInt(42)
@@ -76,8 +78,9 @@ func TestNewIntFromLargeInt(t *testing.T) {
 	max := large.NewInt(0)
 	max.Mul(p, large.NewInt(1000))
 	g := large.NewInt(5)
+	q := large.NewInt(1283)
 	rng := NewRandom(min, max)
-	grp := NewGroup(p, s, g, rng)
+	grp := NewGroup(p, s, g, q, rng)
 
 	expected := large.NewInt(42)
 	actual := grp.NewIntFromLargeInt(expected)
@@ -99,8 +102,9 @@ func TestNewIntFromBytes(t *testing.T) {
 	max := large.NewInt(0)
 	max.Mul(p, large.NewInt(1000))
 	g := large.NewInt(5)
+	q := large.NewInt(1283)
 	rng := NewRandom(min, max)
-	grp := NewGroup(p, s, g, rng)
+	grp := NewGroup(p, s, g, q, rng)
 
 	expected := large.NewInt(42)
 	value := []byte{0x2A}
@@ -124,8 +128,9 @@ func TestNewIntFromString(t *testing.T) {
 	max := large.NewInt(0)
 	max.Mul(p, large.NewInt(1000))
 	g := large.NewInt(5)
+	q := large.NewInt(1283)
 	rng := NewRandom(min, max)
-	grp := NewGroup(p, s, g, rng)
+	grp := NewGroup(p, s, g, q, rng)
 
 	expected := large.NewInt(42)
 	value := "42"
@@ -154,8 +159,9 @@ func TestNewMaxInt(t *testing.T) {
 	max := large.NewInt(0)
 	max.Mul(p, large.NewInt(1000))
 	g := large.NewInt(5)
+	q := large.NewInt(1283)
 	rng := NewRandom(min, max)
-	grp := NewGroup(p, s, g, rng)
+	grp := NewGroup(p, s, g, q, rng)
 
 	expected := large.NewMaxInt()
 	actual := grp.NewMaxInt()
@@ -177,8 +183,9 @@ func TestNewIntFromUInt(t *testing.T) {
 	max := large.NewInt(0)
 	max.Mul(p, large.NewInt(1000))
 	g := large.NewInt(5)
+	q := large.NewInt(1283)
 	rng := NewRandom(min, max)
-	grp := NewGroup(p, s, g, rng)
+	grp := NewGroup(p, s, g, q, rng)
 
 	expected := large.NewInt(42)
 	actual := grp.NewIntFromUInt(uint64(42))
@@ -200,12 +207,14 @@ func TestGetFingerprint(t *testing.T) {
 	max := large.NewInt(0)
 	max.Mul(p, large.NewInt(1000))
 	g := large.NewInt(5)
+	q := large.NewInt(1283)
 	rng := NewRandom(min, max)
-	grp := NewGroup(p, s, g, rng)
+	grp := NewGroup(p, s, g, q, rng)
 
 	h := sha256.New()
 	h.Write(p.Bytes())
 	h.Write(g.Bytes())
+	h.Write(q.Bytes())
 	expected := large.NewIntFromBytes(h.Sum(nil)[:GroupFingerprintSize]).Uint64()
 
 	if grp.GetFingerprint() != expected {
@@ -223,7 +232,8 @@ func TestMul(t *testing.T) {
 	max := large.NewInt(1000)
 	rng := NewRandom(min, max)
 	g := large.NewInt(5)
-	group := NewGroup(p, s, g, rng)
+	q := large.NewInt(3)
+	group := NewGroup(p, s, g, q, rng)
 
 	actual := []*Int{
 		group.Mul(group.NewInt(20), group.NewInt(11), group.NewInt(0)),
@@ -256,9 +266,10 @@ func TestMul_Panic(t *testing.T) {
 	max := large.NewInt(1000)
 	rng := NewRandom(min, max)
 	g := large.NewInt(5)
-	group := NewGroup(p, s, g, rng)
+	q := large.NewInt(3)
+	group := NewGroup(p, s, g, q, rng)
 	g2 := large.NewInt(2)
-	group2 := NewGroup(p, s, g2, rng)
+	group2 := NewGroup(p, s, g2, q, rng)
 
 	a := group.NewInt(20)
 	b := group2.NewInt(11)
@@ -282,7 +293,8 @@ func TestInside(t *testing.T) {
 	max := large.NewInt(1000)
 	rng := NewRandom(min, max)
 	g := large.NewInt(7)
-	group := NewGroup(p, s, g, rng)
+	q := large.NewInt(3)
+	group := NewGroup(p, s, g, q, rng)
 	expected := []bool{
 		false,
 		true,
@@ -319,9 +331,10 @@ func TestInside_Panic(t *testing.T) {
 	max := large.NewInt(1000)
 	rng := NewRandom(min, max)
 	g := large.NewInt(5)
-	group := NewGroup(p, s, g, rng)
+	q := large.NewInt(3)
+	group := NewGroup(p, s, g, q, rng)
 	g2 := large.NewInt(2)
-	group2 := NewGroup(p, s, g2, rng)
+	group2 := NewGroup(p, s, g2, q, rng)
 
 	a := group2.NewInt(20)
 
@@ -343,11 +356,12 @@ func TestModP(t *testing.T) {
 	min := large.NewInt(2)
 	max := large.NewInt(1000)
 	g := large.NewInt(13)
+	q := large.NewInt(3)
 	rng := NewRandom(min, max)
 
 	group := make([]Group, 0, len(p))
 	for i := 0; i < len(p); i++ {
-		group = append(group, NewGroup(p[i], s, g, rng))
+		group = append(group, NewGroup(p[i], s, g, q, rng))
 	}
 
 	expected := []large.Int{large.NewInt(2), large.NewIntFromString("269673339004", 10),
@@ -383,9 +397,10 @@ func TestModP_Panic(t *testing.T) {
 	max := large.NewInt(1000)
 	rng := NewRandom(min, max)
 	g := large.NewInt(5)
-	group := NewGroup(p, s, g, rng)
+	q := large.NewInt(3)
+	group := NewGroup(p, s, g, q, rng)
 	g2 := large.NewInt(2)
-	group2 := NewGroup(p, s, g2, rng)
+	group2 := NewGroup(p, s, g2, q, rng)
 
 	a := group.NewInt(20)
 	b := group2.NewInt(0)
@@ -407,8 +422,9 @@ func TestInverse(t *testing.T) {
 	min := large.NewInt(2)
 	max := large.NewInt(1000)
 	g := large.NewInt(13)
+	q := large.NewInt(3)
 	rng := NewRandom(min, max)
-	group := NewGroup(p, s, g, rng)
+	group := NewGroup(p, s, g, q, rng)
 	x := group.NewInt(13) //message
 	a := group.NewInt(10) //encryption key
 	inv := group.NewInt(0)
@@ -437,9 +453,10 @@ func TestInverse_Panic(t *testing.T) {
 	max := large.NewInt(1000)
 	rng := NewRandom(min, max)
 	g := large.NewInt(5)
-	group := NewGroup(p, s, g, rng)
+	q := large.NewInt(3)
+	group := NewGroup(p, s, g, q, rng)
 	g2 := large.NewInt(2)
-	group2 := NewGroup(p, s, g2, rng)
+	group2 := NewGroup(p, s, g2, q, rng)
 
 	a := group.NewInt(20)
 	b := group2.NewInt(0)
@@ -462,7 +479,8 @@ func TestSetSeed(t *testing.T) {
 	max := large.NewInt(1000)
 	rng := NewRandom(min, max)
 	g := large.NewInt(9)
-	group := NewGroup(p, s, g, rng)
+	q := large.NewInt(3)
+	group := NewGroup(p, s, g, q, rng)
 	expected := large.NewInt(10)
 	group.SetSeed(expected)
 	pass := 0
@@ -485,7 +503,8 @@ func TestRandom(t *testing.T) {
 	max := large.NewInt(1000)
 	rng := NewRandom(min, max)
 	g := large.NewInt(4)
-	group := NewGroup(p, s, g, rng)
+	q := large.NewInt(3)
+	group := NewGroup(p, s, g, q, rng)
 	for i := 0; i < 100000; i++ {
 		group.Random(group.NewInt(0))
 	}
@@ -499,7 +518,8 @@ func TestRandom_Error(t *testing.T) {
 	max := large.NewInt(1000)
 	rng := NewRandom(min, max)
 	g := large.NewInt(4)
-	group := NewGroup(p, s, g, rng)
+	q := large.NewInt(3)
+	group := NewGroup(p, s, g, q, rng)
 
 	// Overwrite p, which doesn't change internal psub2, which is used in rand
 	group.prime = large.NewInt(1)
@@ -522,9 +542,10 @@ func TestRandom_Panic(t *testing.T) {
 	max := large.NewInt(1000)
 	rng := NewRandom(min, max)
 	g := large.NewInt(5)
-	group := NewGroup(p, s, g, rng)
+	q := large.NewInt(3)
+	group := NewGroup(p, s, g, q, rng)
 	g2 := large.NewInt(2)
-	group2 := NewGroup(p, s, g2, rng)
+	group2 := NewGroup(p, s, g2, q, rng)
 
 	a := group2.NewInt(20)
 
@@ -545,8 +566,9 @@ func TestGen(t *testing.T) {
 	min := large.NewInt(2)
 	max := large.NewInt(1000)
 	g := large.NewInt(29)
+	q := large.NewInt(3)
 	rng := NewRandom(min, max)
-	group := NewGroup(p, s, g, rng)
+	group := NewGroup(p, s, g, q, rng)
 
 	// setup array to keep track of frequency of random values
 	r := group.NewInt(0)
@@ -591,7 +613,8 @@ func TestGetP(t *testing.T) {
 	max := large.NewInt(1000)
 	rng := NewRandom(min, max)
 	g := large.NewInt(29)
-	group := NewGroup(p, s, g, rng)
+	q := large.NewInt(3)
+	group := NewGroup(p, s, g, q, rng)
 	actual := group.GetP()
 	tests := 1
 	pass := 0
@@ -613,7 +636,8 @@ func TestGetPCyclic(t *testing.T) {
 	max := large.NewInt(1000)
 	rng := NewRandom(min, max)
 	g := large.NewInt(29)
-	group := NewGroup(p, s, g, rng)
+	q := large.NewInt(3)
+	group := NewGroup(p, s, g, q, rng)
 	actual := group.GetPCyclic()
 	tests := 1
 	pass := 0
@@ -635,7 +659,8 @@ func TestGetG(t *testing.T) {
 	max := large.NewInt(1000)
 	rng := NewRandom(min, max)
 	g := large.NewInt(29)
-	group := NewGroup(p, s, g, rng)
+	q := large.NewInt(3)
+	group := NewGroup(p, s, g, q, rng)
 	actual := group.GetG()
 	tests := 1
 	pass := 0
@@ -657,7 +682,8 @@ func TestGetGCyclic(t *testing.T) {
 	max := large.NewInt(1000)
 	rng := NewRandom(min, max)
 	g := large.NewInt(29)
-	group := NewGroup(p, s, g, rng)
+	q := large.NewInt(3)
+	group := NewGroup(p, s, g, q, rng)
 	actual := group.GetGCyclic()
 	tests := 1
 	pass := 0
@@ -670,6 +696,52 @@ func TestGetGCyclic(t *testing.T) {
 	println("GetGCyclic()", pass, "out of", tests, "tests passed.")
 }
 
+// Test Q prime getter from the group
+func TestGetQ(t *testing.T) {
+	// setup test group and generator
+	p := large.NewInt(17)
+	s := large.NewInt(15)
+	min := large.NewInt(2)
+	max := large.NewInt(1000)
+	rng := NewRandom(min, max)
+	g := large.NewInt(29)
+	q := large.NewInt(3)
+	group := NewGroup(p, s, g, q, rng)
+	actual := group.GetQ()
+	tests := 1
+	pass := 0
+	if actual.Cmp(q) != 0 {
+		t.Errorf("TestGetQ failed, expected: '%v', got: '%v'",
+			q.Text(10), actual.Text(10))
+	} else {
+		pass++
+	}
+	println("GetQ()", pass, "out of", tests, "tests passed.")
+}
+
+// Test Q prime getter from the group cyclic version
+func TestGetQCyclic(t *testing.T) {
+	// setup test group and generator
+	p := large.NewInt(17)
+	s := large.NewInt(15)
+	min := large.NewInt(2)
+	max := large.NewInt(1000)
+	rng := NewRandom(min, max)
+	g := large.NewInt(29)
+	q := large.NewInt(3)
+	group := NewGroup(p, s, g, q, rng)
+	actual := group.GetQCyclic()
+	tests := 1
+	pass := 0
+	if actual.value.Cmp(q) != 0 {
+		t.Errorf("TestGetQCyclic failed, expected: '%v', got: '%v'",
+			q.Text(10), actual.value.Text(10))
+	} else {
+		pass++
+	}
+	println("GetQCyclic()", pass, "out of", tests, "tests passed.")
+}
+
 // Test prime-1 getter from the group
 func TestGetPSub1(t *testing.T) {
 	// setup test group and generator
@@ -679,7 +751,8 @@ func TestGetPSub1(t *testing.T) {
 	max := large.NewInt(1000)
 	rng := NewRandom(min, max)
 	g := large.NewInt(29)
-	group := NewGroup(p, s, g, rng)
+	q := large.NewInt(3)
+	group := NewGroup(p, s, g, q, rng)
 	actual := group.GetPSub1()
 	ps1 := large.NewInt(16)
 	tests := 1
@@ -702,7 +775,8 @@ func TestGetPSub1Cyclic(t *testing.T) {
 	max := large.NewInt(1000)
 	rng := NewRandom(min, max)
 	g := large.NewInt(29)
-	group := NewGroup(p, s, g, rng)
+	q := large.NewInt(3)
+	group := NewGroup(p, s, g, q, rng)
 	actual := group.GetPSub1Cyclic()
 	ps1 := large.NewInt(16)
 	tests := 1
@@ -779,8 +853,9 @@ func TestArrayMul(t *testing.T) {
 	seed := large.NewInt(42)
 	rng := NewRandom(min, max)
 	g := large.NewInt(7)
+	q := large.NewInt(3)
 
-	grp := NewGroup(p, seed, g, rng)
+	grp := NewGroup(p, seed, g, q, rng)
 
 	slc := []*Int{
 		grp.NewInt(2),
@@ -811,9 +886,10 @@ func TestArrayMult_Panic(t *testing.T) {
 	max := large.NewInt(1000)
 	rng := NewRandom(min, max)
 	g := large.NewInt(5)
-	group := NewGroup(p, s, g, rng)
+	q := large.NewInt(3)
+	group := NewGroup(p, s, g, q, rng)
 	g2 := large.NewInt(2)
-	group2 := NewGroup(p, s, g2, rng)
+	group2 := NewGroup(p, s, g2, q, rng)
 
 	slc := []*Int{
 		group.NewInt(2),
@@ -842,7 +918,8 @@ func TestExp(t *testing.T) {
 	seed := large.NewInt(42)
 	rng := NewRandom(min, max)
 	g := large.NewInt(7)
-	grp := NewGroup(p, seed, g, rng)
+	q := large.NewInt(3)
+	grp := NewGroup(p, seed, g, q, rng)
 
 	type testStructure struct {
 		x *Int
@@ -914,9 +991,10 @@ func TestExp_Panic(t *testing.T) {
 	max := large.NewInt(1000)
 	rng := NewRandom(min, max)
 	g := large.NewInt(5)
-	group := NewGroup(p, s, g, rng)
+	q := large.NewInt(3)
+	group := NewGroup(p, s, g, q, rng)
 	g2 := large.NewInt(2)
-	group2 := NewGroup(p, s, g2, rng)
+	group2 := NewGroup(p, s, g2, q, rng)
 
 	a := group2.NewInt(20)
 	b := group.NewInt(11)
@@ -940,8 +1018,9 @@ func TestRandomCoprime(t *testing.T) {
 	min := large.NewInt(2)
 	max := large.NewInt(1000)
 	g := large.NewInt(29)
+	q := large.NewInt(3)
 	rng := NewRandom(min, max)
-	group := NewGroup(p, s, g, rng)
+	group := NewGroup(p, s, g, q, rng)
 
 	// setup array to keep track of frequency of random values
 	r := group.NewInt(0)
@@ -986,9 +1065,10 @@ func TestRandomCoprime_Panic(t *testing.T) {
 	max := large.NewInt(1000)
 	rng := NewRandom(min, max)
 	g := large.NewInt(5)
-	group := NewGroup(p, s, g, rng)
+	q := large.NewInt(3)
+	group := NewGroup(p, s, g, q, rng)
 	g2 := large.NewInt(2)
-	group2 := NewGroup(p, s, g2, rng)
+	group2 := NewGroup(p, s, g2, q, rng)
 
 	a := group2.NewInt(20)
 
@@ -1011,11 +1091,12 @@ func TestRootCoprime(t *testing.T) {
 	p := large.NewInt(17)
 	s := large.NewInt(15)
 	g := large.NewInt(29)
+	q := large.NewInt(3)
 	min := large.NewInt(2)
 	max := large.NewInt(1000)
 	rng := NewRandom(min, max)
 
-	group := NewGroup(p, s, g, rng)
+	group := NewGroup(p, s, g, q, rng)
 
 	a := []*Int{group.NewInt(5), group.NewInt(4), group.NewInt(15)}
 	x := group.NewInt(0)
@@ -1049,9 +1130,10 @@ func TestRootCoprime_Panic(t *testing.T) {
 	max := large.NewInt(1000)
 	rng := NewRandom(min, max)
 	g := large.NewInt(5)
-	group := NewGroup(p, s, g, rng)
+	q := large.NewInt(3)
+	group := NewGroup(p, s, g, q, rng)
 	g2 := large.NewInt(2)
-	group2 := NewGroup(p, s, g2, rng)
+	group2 := NewGroup(p, s, g2, q, rng)
 
 	a := group.NewInt(20)
 	b := group.NewInt(11)
@@ -1084,10 +1166,11 @@ func TestFindSmallCoprimeInverse(t *testing.T) {
 	p := large.NewIntFromString(primeString, 16)
 	s := large.NewInt(2)
 	g := large.NewInt(2)
+	q := large.NewInt(3)
 	min := large.NewInt(2)
 	max := large.NewInt(1000)
 	rng := NewRandom(min, max)
-	group := NewGroup(p, s, g, rng)
+	group := NewGroup(p, s, g, q, rng)
 
 	num := 1000
 
@@ -1142,11 +1225,12 @@ func TestFindSmallCoprimeInverse_SmallGroup(t *testing.T) {
 	p := large.NewInt(107)
 	s := large.NewInt(2)
 	g := large.NewInt(2)
+	q := large.NewInt(3)
 	min := large.NewInt(2)
 	max := large.NewInt(1000)
 	rng := NewRandom(min, max)
 
-	group := NewGroup(p, s, g, rng)
+	group := NewGroup(p, s, g, q, rng)
 	one := large.NewInt(1)
 	num := 1000
 
@@ -1192,11 +1276,12 @@ func TestFindSmallCoprimeInverse_UnsafeGroup(t *testing.T) {
 	p := large.NewInt(101)
 	s := large.NewInt(2)
 	g := large.NewInt(2)
+	q := large.NewInt(3)
 	min := large.NewInt(2)
 	max := large.NewInt(1000)
 	rng := NewRandom(min, max)
 
-	group := NewGroup(p, s, g, rng)
+	group := NewGroup(p, s, g, q, rng)
 	one := large.NewInt(1)
 	num := 1000
 
@@ -1241,11 +1326,12 @@ func TestFindSmallCoprimeInverse_Panic(t *testing.T) {
 	p := large.NewInt(107)
 	s := large.NewInt(2)
 	g := large.NewInt(2)
+	q := large.NewInt(3)
 	min := large.NewInt(2)
 	max := large.NewInt(1000)
 	rng := NewRandom(min, max)
 
-	group := NewGroup(p, s, g, rng)
+	group := NewGroup(p, s, g, q, rng)
 	z := group.NewInt(1)
 
 	bits := uint32(7)
@@ -1268,9 +1354,10 @@ func TestFindSmallCoprimeInverse_PanicArgs(t *testing.T) {
 	max := large.NewInt(1000)
 	rng := NewRandom(min, max)
 	g := large.NewInt(5)
-	group := NewGroup(p, s, g, rng)
+	q := large.NewInt(3)
+	group := NewGroup(p, s, g, q, rng)
 	g2 := large.NewInt(2)
-	group2 := NewGroup(p, s, g2, rng)
+	group2 := NewGroup(p, s, g2, q, rng)
 
 	a := group2.NewInt(20)
 
@@ -1306,13 +1393,14 @@ func BenchmarkExpForGroup(b *testing.B) {
 	seed := large.NewInt(42)
 	rng := NewRandom(min, max)
 	g := large.NewInt(2)
-	grp := NewGroup(p, seed, g, rng)
+	q := large.NewInt(3)
+	grp := NewGroup(p, seed, g, q, rng)
 
 	//prebake inputs
 
 	r := rand.New(rand.NewSource(42))
 	z := grp.NewInt(0)
-	G := grp.NewIntFromLargeInt(grp.G)
+	G := grp.GetGCyclic()
 
 	var inputs []*Int
 	var outputs []*Int
@@ -1351,7 +1439,8 @@ func BenchmarkMulForGroup(b *testing.B) {
 	seed := large.NewInt(42)
 	rng := NewRandom(min, max)
 	g := large.NewInt(2)
-	grp := NewGroup(p, seed, g, rng)
+	q := large.NewInt(3)
+	grp := NewGroup(p, seed, g, q, rng)
 
 	//prebake inputs
 
@@ -1399,13 +1488,14 @@ func BenchmarkInverse(b *testing.B) {
 	seed := large.NewInt(42)
 	rng := NewRandom(min, max)
 	g := large.NewInt(2)
-	grp := NewGroup(p, seed, g, rng)
+	q := large.NewInt(3)
+	grp := NewGroup(p, seed, g, q, rng)
 
 	//prebake inputs
 
 	r := rand.New(rand.NewSource(42))
 	z := grp.NewInt(0)
-	G := grp.NewIntFromLargeInt(grp.G)
+	G := grp.GetGCyclic()
 
 	var inputs []*Int
 	var outputs []*Int

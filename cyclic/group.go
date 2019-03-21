@@ -27,6 +27,7 @@ type Group struct {
 	one         large.Int
 	two         large.Int
 	gen         large.Int
+	primeQ      large.Int
 	rng         Random
 	fingerprint uint64
 }
@@ -34,11 +35,11 @@ type Group struct {
 const GroupFingerprintSize = 8
 
 // NewGroup returns a group with the given prime, seed and generator
-func NewGroup(p large.Int, s large.Int, g large.Int, rng Random) Group {
+func NewGroup(p, s, g, q large.Int, rng Random) Group {
 	h := sha256.New()
 	h.Write(p.Bytes())
 	h.Write(g.Bytes())
-
+	h.Write(q.Bytes())
 	hashVal := h.Sum(nil)[:GroupFingerprintSize]
 	value := large.NewIntFromBytes(hashVal)
 	return Group{
@@ -54,6 +55,7 @@ func NewGroup(p large.Int, s large.Int, g large.Int, rng Random) Group {
 		one:         large.NewInt(1),
 		two:         large.NewInt(2),
 		gen:         g,
+		primeQ:      q,
 		rng:         rng,
 		fingerprint: value.Uint64(),
 	}
@@ -191,6 +193,18 @@ func (g *Group) GetG() large.Int {
 // GetGCyclic returns a new cyclicInt with the group's generator
 func (g *Group) GetGCyclic() *Int {
 	return g.NewIntFromLargeInt(g.gen)
+}
+
+// GetQ returns a copy of the group's Q prime
+func (g *Group) GetQ() large.Int {
+	n := large.NewInt(0)
+	n.Set(g.primeQ)
+	return n
+}
+
+// GetQCyclic returns a new cyclicInt with the group's Q prime
+func (g *Group) GetQCyclic() *Int {
+	return g.NewIntFromLargeInt(g.primeQ)
 }
 
 // GetPSub1 returns a copy of the group's p-1

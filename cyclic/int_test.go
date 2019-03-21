@@ -19,8 +19,9 @@ func TestGetLargeInt(t *testing.T) {
 	max := large.NewInt(0)
 	max.Mul(p, large.NewInt(1000))
 	g := large.NewInt(5)
+	q := large.NewInt(1283)
 	rng := NewRandom(min, max)
-	grp := NewGroup(p, s, g, rng)
+	grp := NewGroup(p, s, g, q, rng)
 
 	tests := 1
 
@@ -47,8 +48,9 @@ func TestGetGroupFingerprint(t *testing.T) {
 	max := large.NewInt(0)
 	max.Mul(p, large.NewInt(1000))
 	g := large.NewInt(5)
+	q := large.NewInt(1283)
 	rng := NewRandom(min, max)
-	grp := NewGroup(p, s, g, rng)
+	grp := NewGroup(p, s, g, q, rng)
 
 	tests := 1
 
@@ -75,8 +77,9 @@ func TestBytes(t *testing.T) {
 	max := large.NewInt(0)
 	max.Mul(p, large.NewInt(1000))
 	g := large.NewInt(5)
+	q := large.NewInt(1283)
 	rng := NewRandom(min, max)
-	grp := NewGroup(p, s, g, rng)
+	grp := NewGroup(p, s, g, q, rng)
 
 	tests := 1
 
@@ -103,8 +106,9 @@ func TestLeftpadBytes(t *testing.T) {
 	max := large.NewInt(0)
 	max.Mul(p, large.NewInt(1000))
 	g := large.NewInt(5)
+	q := large.NewInt(1283)
 	rng := NewRandom(min, max)
-	grp := NewGroup(p, s, g, rng)
+	grp := NewGroup(p, s, g, q, rng)
 
 	tests := 1
 
