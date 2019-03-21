@@ -9,7 +9,7 @@ package signature
 import (
 	cryptoRand "crypto/rand"
 	"errors"
-	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/elixxir/crypto/large"
 	"math/big"
 	"math/rand"
 	"testing"
@@ -21,9 +21,9 @@ func TestCustomDSAParams_Accessors(t *testing.T) {
 
 	var pExpected, qExpected, gExpected int64 = 1, 1, 1
 
-	p := cyclic.NewInt(pExpected)
-	q := cyclic.NewInt(qExpected)
-	g := cyclic.NewInt(gExpected)
+	p := large.NewInt(pExpected)
+	q := large.NewInt(qExpected)
+	g := large.NewInt(gExpected)
 
 	dsaParams := CustomDSAParams(p, q, g)
 
@@ -43,9 +43,9 @@ func TestCustomDSAParams_Accessors(t *testing.T) {
 
 	pExpected, qExpected, gExpected = 1, 2, 3
 
-	p = cyclic.NewInt(pExpected)
-	q = cyclic.NewInt(qExpected)
-	g = cyclic.NewInt(gExpected)
+	p = large.NewInt(pExpected)
+	q = large.NewInt(qExpected)
+	g = large.NewInt(gExpected)
 
 	dsaParams = CustomDSAParams(p, q, g)
 
@@ -65,9 +65,9 @@ func TestCustomDSAParams_Accessors(t *testing.T) {
 
 	pExpected, qExpected, gExpected = 123, 456, 789
 
-	p = cyclic.NewInt(pExpected)
-	q = cyclic.NewInt(qExpected)
-	g = cyclic.NewInt(gExpected)
+	p = large.NewInt(pExpected)
+	q = large.NewInt(qExpected)
+	g = large.NewInt(gExpected)
 
 	dsaParams = CustomDSAParams(p, q, g)
 
@@ -207,7 +207,7 @@ func TestDSAPublicKeyGetters(t *testing.T) {
 
 	params := NewDSAParams(r, L1024N160)
 
-	key := cyclic.NewInt(500)
+	key := large.NewInt(500)
 
 	pubKey := ReconstructPublicKey(params, key)
 
@@ -272,15 +272,15 @@ func TestPublicKeyGen_Consistent(t *testing.T) {
 
 }
 
-// Test helper which converts a hex string into a cyclic int
-func fromHex(s string) *cyclic.Int {
+// Test helper which converts a hex string into a large int
+func fromHex(s string) large.Int {
 	result, ok := new(big.Int).SetString(s, 16)
 
 	if !ok {
 		panic(s)
 	}
 
-	return cyclic.NewIntFromBigInt(result)
+	return large.NewIntFromBigInt(result)
 }
 
 // Sign and verify that has param, pub & priv key values ported from go sdk dsa impl. tests.
@@ -386,12 +386,12 @@ func testParameterGeneration(t *testing.T, sizes ParameterSizes, L, N int) {
 
 	one := new(big.Int)
 	one.SetInt64(1)
-	pm1 := new(big.Int).Sub(params.GetP().GetBigInt(), one)
-	quo, rem := new(big.Int).DivMod(pm1, params.GetQ().GetBigInt(), new(big.Int))
+	pm1 := new(big.Int).Sub(params.GetP().BigInt(), one)
+	quo, rem := new(big.Int).DivMod(pm1, params.GetQ().BigInt(), new(big.Int))
 	if rem.Sign() != 0 {
 		t.Errorf("%d: p-1 mod q != 0", int(sizes))
 	}
-	x := new(big.Int).Exp(params.GetG().GetBigInt(), quo, params.GetP().GetBigInt())
+	x := new(big.Int).Exp(params.GetG().BigInt(), quo, params.GetP().BigInt())
 	if x.Cmp(one) == 0 {
 		t.Errorf("%d: invalid generator", int(sizes))
 	}

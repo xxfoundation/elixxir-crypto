@@ -10,6 +10,7 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/elixxir/crypto/large"
 	"testing"
 )
 
@@ -25,13 +26,14 @@ var primeString = "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
 	"DE2BCBF6955817183995497CEA956AE515D2261898FA0510" +
 	"15728E5A8AACAA68FFFFFFFFFFFFFFFF"
 
-var p = cyclic.NewIntFromString(primeString, 16)
-var min = cyclic.NewInt(2)
-var max = cyclic.NewInt(0)
-var seed = cyclic.NewInt(42)
-var rng = cyclic.NewRandom(min, max.Mul(p, cyclic.NewInt(1000)))
-var g = cyclic.NewInt(2)
-var grp = cyclic.NewGroup(p, seed, g, rng)
+var p = large.NewIntFromString(primeString, 16)
+var min = large.NewInt(2)
+var max = large.NewInt(0)
+var seed = large.NewInt(42)
+var rng = cyclic.NewRandom(min, max.Mul(p, large.NewInt(1000)))
+var g = large.NewInt(2)
+var q = large.NewInt(3)
+var grp = cyclic.NewGroup(p, seed, g, q, rng)
 
 //TestExpandKey verifies ExpandKey with two different hashes
 func TestExpandKey(t *testing.T) {

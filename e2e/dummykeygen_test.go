@@ -57,7 +57,7 @@ func TestDummyKeyGen_KeysMatch(t *testing.T) {
 
 	l := len(keys1)
 	for i, v := range keys1 {
-		if v.Cmp(keys2[l-i-1]) != 0 {
+		if v.GetLargeInt().Cmp(keys2[l-i-1].GetLargeInt()) != 0 {
 			t.Errorf("Key mismatch")
 		}
 	}
@@ -75,7 +75,7 @@ func TestDummyKeyGen_CombinedHashCommutes(t *testing.T) {
 
 	res2 := combinedHash(userB, userA, &grp)
 
-	if res1.Cmp(res2) != 0 {
+	if res1.GetLargeInt().Cmp(res2.GetLargeInt()) != 0 {
 		t.Errorf("Combined hash order should not matter")
 	}
 }

@@ -11,6 +11,7 @@ import (
 	"gitlab.com/elixxir/crypto/csprng"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/hash"
+	"gitlab.com/elixxir/crypto/large"
 	"gitlab.com/elixxir/crypto/signature"
 	"testing"
 )
@@ -25,11 +26,14 @@ var grp cyclic.Group
 func TestGenerateBaseKey(t *testing.T) {
 	dsaParams := signature.GetDefaultDSAParams()
 	p := dsaParams.GetP()
-	min := cyclic.NewInt(2)
-	max := cyclic.NewInt(0)
-	max.Mul(p, cyclic.NewInt(1000))
-	seed := cyclic.NewInt(42)
-	grp = cyclic.NewGroup(p, seed, dsaParams.GetG(), cyclic.NewRandom(min, max))
+	min := large.NewInt(2)
+	max := large.NewInt(0)
+	max.Mul(p, large.NewInt(1000))
+	seed := large.NewInt(42)
+	grp = cyclic.NewGroup(p, seed,
+		dsaParams.GetG(),
+		dsaParams.GetQ(),
+		cyclic.NewRandom(min, max))
 
 	rng := csprng.NewSystemRNG()
 	ownPrivKey := dsaParams.PrivateKeyGen(rng)
@@ -44,7 +48,7 @@ func TestGenerateBaseKey(t *testing.T) {
 	b.Reset()
 	peerBaseTKey := GenerateBaseKey(&grp, ownPubKey, peerPrivKey, b)
 
-	if ownBaseTKey.Cmp(peerBaseTKey) != 0 {
+	if ownBaseTKey.GetLargeInt().Cmp(peerBaseTKey.GetLargeInt()) != 0 {
 		t.Errorf("Generated Base Key using blake2b is different between own and peer")
 		t.Errorf("own: %x", ownBaseTKey.Bytes())
 		t.Errorf("peer: %x", peerBaseTKey.Bytes())
@@ -56,13 +60,13 @@ func TestGenerateBaseKey(t *testing.T) {
 	h.Reset()
 	peerBaseRKey := GenerateBaseKey(&grp, ownPubKey, peerPrivKey, h)
 
-	if ownBaseRKey.Cmp(peerBaseRKey) != 0 {
+	if ownBaseRKey.GetLargeInt().Cmp(peerBaseRKey.GetLargeInt()) != 0 {
 		t.Errorf("Generated Base Key using sha256 is different between own and peer")
 		t.Errorf("own: %x", ownBaseRKey.Bytes())
 		t.Errorf("peer: %x", peerBaseRKey.Bytes())
 	}
 
-	if ownBaseTKey.Cmp(ownBaseRKey) == 0 {
+	if ownBaseTKey.GetLargeInt().Cmp(ownBaseRKey.GetLargeInt()) == 0 {
 		t.Errorf("Generated Base Keys are the same")
 	}
 }

@@ -24,7 +24,7 @@ func encrypt(g cyclic.Group, key *cyclic.Int, msg []byte,
 	}
 
 	// Modular multiply the key with the padded message
-	product := g.Mul(key, cyclic.NewIntFromBytes(encMsg), cyclic.NewInt(0))
+	product := g.Mul(key, g.NewIntFromBytes(encMsg), g.NewInt(0))
 
 	// Return the result
 	return product.LeftpadBytes(uint64(format.TOTAL_LEN)), nil
@@ -34,10 +34,10 @@ func encrypt(g cyclic.Group, key *cyclic.Int, msg []byte,
 // the encrypted message under the passed group.
 func Decrypt(g cyclic.Group, key *cyclic.Int, encMsg []byte) ([]byte, error) {
 	// Modular invert the key under the group
-	keyInv := g.Inverse(key, cyclic.NewInt(0))
+	keyInv := g.Inverse(key, g.NewInt(0))
 
 	// Modular multiply the inverted key with the message
-	product := g.Mul(keyInv, cyclic.NewIntFromBytes(encMsg), cyclic.NewInt(0))
+	product := g.Mul(keyInv, g.NewIntFromBytes(encMsg), g.NewInt(0))
 
 	// Remove the padding from the message
 	unPadMsg, err := Unpad(product.LeftpadBytes(uint64(format.TOTAL_LEN)))

@@ -11,6 +11,7 @@ import (
 	"encoding/hex"
 	"gitlab.com/elixxir/crypto/csprng"
 	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/elixxir/crypto/large"
 	"testing"
 )
 
@@ -249,9 +250,9 @@ func TestEncDecAES_BadKey(t *testing.T) {
 // Test AES encryption with various arguments
 func TestEncAES_Args(t *testing.T) {
 	keys := [][]byte{
-		cyclic.NewIntFromString(TEST_KEY_256, 16).Bytes(),
-		cyclic.NewIntFromString(TEST_KEY_248, 16).Bytes(),
-		cyclic.NewIntFromString(TEST_KEY_128, 16).Bytes(),
+		large.NewIntFromString(TEST_KEY_256, 16).Bytes(),
+		large.NewIntFromString(TEST_KEY_248, 16).Bytes(),
+		large.NewIntFromString(TEST_KEY_128, 16).Bytes(),
 		[]byte(""),
 		nil,
 	}
@@ -296,7 +297,7 @@ func TestDecAES_Args(t *testing.T) {
 	}
 
 	keys := [][]byte{
-		cyclic.NewIntFromString(TEST_KEY_256, 16).Bytes(),
+		large.NewIntFromString(TEST_KEY_256, 16).Bytes(),
 		[]byte(""),
 		nil}
 
@@ -395,9 +396,9 @@ func TestAESEnc_Hash(t *testing.T) {
 
 // Loop test AES encryption/decryption with random inputs
 func TestEncDecAES_Random(t *testing.T) {
-	keyGen := cyclic.NewRandom(cyclic.NewInt(28), cyclic.NewInt(512))
-	textGen := cyclic.NewRandom(cyclic.NewInt(1), cyclic.NewInt(4096))
-	randSize := cyclic.NewInt(1)
+	keyGen := cyclic.NewRandom(large.NewInt(28), large.NewInt(512))
+	textGen := cyclic.NewRandom(large.NewInt(1), large.NewInt(4096))
+	randSize := large.NewInt(1)
 
 	tests := NUM_TESTS
 	pass := 0

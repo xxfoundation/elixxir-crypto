@@ -17,5 +17,5 @@ import (
 // TODO: Implement the proper keygen once defined
 func Keygen(g *cyclic.Group, salt, basekey *cyclic.Int) *cyclic.Int {
 	jww.WARN.Printf("End to End Encryption is not fully implemented, Keygen is not secure")
-	return cyclic.NewInt(1)
+	return g.NewInt(1)
 }

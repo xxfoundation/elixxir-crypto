@@ -7,7 +7,7 @@
 package e2e
 
 import (
-	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/elixxir/crypto/large"
 	"testing"
 )
 
@@ -20,7 +20,7 @@ func TestGenerateKeyTTL_PanicOnMinMaxEq(t *testing.T) {
 		}
 	}()
 
-	sessionKey := *cyclic.NewInt(23)
+	sessionKey := large.NewInt(23)
 
 	min := uint16(200)
 	max := uint16(200)
@@ -30,7 +30,7 @@ func TestGenerateKeyTTL_PanicOnMinMaxEq(t *testing.T) {
 		400,
 	}
 
-	GenerateKeyTTL(&sessionKey, min, max, params)
+	GenerateKeyTTL(sessionKey, min, max, params)
 }
 
 // Verify GenerateKeyTTL panics when min is greater than max
@@ -42,7 +42,7 @@ func TestGenerateKeyTTL_PanicOnMinGreaterThanMax(t *testing.T) {
 		}
 	}()
 
-	sessionKey := *cyclic.NewInt(23)
+	sessionKey := large.NewInt(23)
 
 	min := uint16(2000)
 	max := uint16(200)
@@ -52,13 +52,13 @@ func TestGenerateKeyTTL_PanicOnMinGreaterThanMax(t *testing.T) {
 		400,
 	}
 
-	GenerateKeyTTL(&sessionKey, min, max, params)
+	GenerateKeyTTL(sessionKey, min, max, params)
 }
 
 // Verify GenerateKeyTTL generated expected TTL and NumKeys
 func TestGenerateKeyTTL_ValidTTL(t *testing.T) {
 
-	sessionKey := *cyclic.NewInt(23)
+	sessionKey := large.NewInt(23)
 
 	min := uint16(2000)
 	max := uint16(20000)
@@ -68,7 +68,7 @@ func TestGenerateKeyTTL_ValidTTL(t *testing.T) {
 		400,
 	}
 
-	ttl, numKeys := GenerateKeyTTL(&sessionKey, min, max, params)
+	ttl, numKeys := GenerateKeyTTL(sessionKey, min, max, params)
 
 	expectedTTL := uint16(8115)
 	expectedNumKeys := uint32(9738)
@@ -109,7 +109,7 @@ func TestGenerateKeyTTL_KeysPerTimeEqZeroShouldPanic(t *testing.T) {
 		}
 	}()
 
-	sessionKey := *cyclic.NewInt(23)
+	sessionKey := large.NewInt(23)
 
 	min := uint16(20)
 	max := uint16(200)
@@ -119,7 +119,7 @@ func TestGenerateKeyTTL_KeysPerTimeEqZeroShouldPanic(t *testing.T) {
 		400,
 	}
 
-	GenerateKeyTTL(&sessionKey, min, max, params)
+	GenerateKeyTTL(sessionKey, min, max, params)
 }
 
 // TTL scalar should never be negative
@@ -130,7 +130,7 @@ func TestGenerateKeyTTL_KeysPerTimeIsLessThanZeroShouldPanic(t *testing.T) {
 		}
 	}()
 
-	sessionKey := *cyclic.NewInt(23)
+	sessionKey := large.NewInt(23)
 
 	min := uint16(20)
 	max := uint16(200)
@@ -140,5 +140,5 @@ func TestGenerateKeyTTL_KeysPerTimeIsLessThanZeroShouldPanic(t *testing.T) {
 		400,
 	}
 
-	GenerateKeyTTL(&sessionKey, min, max, params)
+	GenerateKeyTTL(sessionKey, min, max, params)
 }

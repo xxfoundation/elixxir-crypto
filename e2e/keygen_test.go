@@ -8,6 +8,7 @@ package e2e
 
 import (
 	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/elixxir/crypto/large"
 	"testing"
 )
 
@@ -24,21 +25,22 @@ func TestKeygen(t *testing.T) {
 		"DE2BCBF6955817183995497CEA956AE515D2261898FA0510" +
 		"15728E5A8AACAA68FFFFFFFFFFFFFFFF"
 
-	p := cyclic.NewIntFromString(primeString, 16)
-	min := cyclic.NewInt(2)
-	max := cyclic.NewInt(0)
-	max.Mul(p, cyclic.NewInt(1000))
-	seed := cyclic.NewInt(42)
+	p := large.NewIntFromString(primeString, 16)
+	min := large.NewInt(2)
+	max := large.NewInt(0)
+	max.Mul(p, large.NewInt(1000))
+	seed := large.NewInt(42)
 	rng := cyclic.NewRandom(min, max)
-	g := cyclic.NewInt(2)
-	grp := cyclic.NewGroup(p, seed, g, rng)
+	g := large.NewInt(2)
+	q := large.NewInt(3)
+	grp := cyclic.NewGroup(p, seed, g, q, rng)
 	testGroup := &grp
 
-	salt := cyclic.NewInt(1)
-	basekey := cyclic.NewInt(1)
+	salt := grp.NewInt(1)
+	basekey := grp.NewInt(1)
 	key := Keygen(testGroup, salt, basekey)
 
-	if key.Cmp(salt) != 0 {
+	if key.GetLargeInt().Cmp(salt.GetLargeInt()) != 0 {
 		t.Errorf("Dummy keygen should return 1")
 	}
 }

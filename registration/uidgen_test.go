@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"gitlab.com/elixxir/crypto/csprng"
+	"gitlab.com/elixxir/crypto/large"
 	"gitlab.com/elixxir/crypto/signature"
 	"testing"
 )
@@ -54,11 +55,10 @@ func TestGenUserID_NilSalt(t *testing.T) {
 // Test GenUserID panics with empty byte slice public key
 func TestGenUserID_EmptyKey(t *testing.T) {
 	params := signature.NewDSAParams(rand.Reader, signature.L2048N256)
-	privKey := params.PrivateKeyGen(rand.Reader)
-	pubKey := privKey.PublicKeyGen()
+	pubKey := signature.ReconstructPublicKey(
+		params,
+		large.NewIntFromBytes([]byte("")))
 	salt := []byte("0123456789ABCDEF0123456789ABCDEF")
-
-	pubKey.GetKey().SetBytes([]byte(""))
 
 	defer func() {
 		if r := recover(); r == nil {

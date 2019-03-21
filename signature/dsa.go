@@ -3,7 +3,7 @@ package signature
 import (
 	"crypto/dsa"
 	jww "github.com/spf13/jwalterweatherman"
-	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/elixxir/crypto/large"
 	"io"
 )
 
@@ -39,15 +39,15 @@ const (
 )
 
 func GetDefaultDSAParams() *DSAParameters {
-	bigP := cyclic.NewIntFromString(DSA_GROUP_P, 16)
-	bigQ := cyclic.NewIntFromString(DSA_GROUP_Q, 16)
-	bigG := cyclic.NewIntFromString(DSA_GROUP_G, 16)
+	bigP := large.NewIntFromString(DSA_GROUP_P, 16)
+	bigQ := large.NewIntFromString(DSA_GROUP_Q, 16)
+	bigG := large.NewIntFromString(DSA_GROUP_G, 16)
 	jww.WARN.Printf("Using hardcoded DSA Params, should be removed in the future!")
 	return CustomDSAParams(bigP, bigQ, bigG)
 }
 
-func CustomDSAParams(P, Q, G *cyclic.Int) *DSAParameters {
-	return &DSAParameters{dsa.Parameters{P: P.GetBigInt(), Q: Q.GetBigInt(), G: G.GetBigInt()}}
+func CustomDSAParams(P, Q, G large.Int) *DSAParameters {
+	return &DSAParameters{dsa.Parameters{P: P.BigInt(), Q: Q.BigInt(), G: G.BigInt()}}
 }
 
 func NewDSAParams(rng io.Reader, pSizes ParameterSizes) *DSAParameters {
@@ -81,16 +81,16 @@ func (p *DSAParameters) PrivateKeyGen(rng io.Reader) *DSAPrivateKey {
 	return &pk
 }
 
-func (p *DSAParameters) GetG() *cyclic.Int {
-	return cyclic.NewIntFromBigInt(p.params.G)
+func (p *DSAParameters) GetG() large.Int {
+	return large.NewIntFromBigInt(p.params.G)
 }
 
-func (p *DSAParameters) GetP() *cyclic.Int {
-	return cyclic.NewIntFromBigInt(p.params.P)
+func (p *DSAParameters) GetP() large.Int {
+	return large.NewIntFromBigInt(p.params.P)
 }
 
-func (p *DSAParameters) GetQ() *cyclic.Int {
-	return cyclic.NewIntFromBigInt(p.params.Q)
+func (p *DSAParameters) GetQ() large.Int {
+	return large.NewIntFromBigInt(p.params.Q)
 }
 
 func (k *DSAPublicKey) GetParams() *DSAParameters {
@@ -109,33 +109,37 @@ func (p *DSAPrivateKey) Sign(data []byte, rng io.Reader) (*DSASignature, error) 
 
 	r, s, err := dsa.Sign(rng, &p.key, data)
 
-	rCyclic := cyclic.NewIntFromBigInt(r)
-	sCyclic := cyclic.NewIntFromBigInt(s)
+	rval := large.Int(nil)
+	sval := large.Int(nil)
 
-	return &DSASignature{rCyclic, sCyclic}, err
+	if err == nil {
+		rval = large.NewIntFromBigInt(r)
+		sval = large.NewIntFromBigInt(s)
+	}
 
+	return &DSASignature{rval, sval}, err
 }
 
-func (p *DSAPrivateKey) GetKey() *cyclic.Int {
-	return cyclic.NewIntFromBigInt(p.key.X)
+func (p *DSAPrivateKey) GetKey() large.Int {
+	return large.NewIntFromBigInt(p.key.X)
 }
 
-func (dsaKey *DSAPrivateKey) GetPublicKey() *cyclic.Int {
-	return cyclic.NewIntFromBigInt(dsaKey.key.PublicKey.Y)
+func (dsaKey *DSAPrivateKey) GetPublicKey() large.Int {
+	return large.NewIntFromBigInt(dsaKey.key.PublicKey.Y)
 }
 
-func (dsaKey *DSAPrivateKey) GetParams() (p, q, g *cyclic.Int) {
-	p = cyclic.NewIntFromBigInt(dsaKey.key.P)
-	q = cyclic.NewIntFromBigInt(dsaKey.key.Q)
-	g = cyclic.NewIntFromBigInt(dsaKey.key.G)
+func (dsaKey *DSAPrivateKey) GetParams() (p, q, g large.Int) {
+	p = large.NewIntFromBigInt(dsaKey.key.P)
+	q = large.NewIntFromBigInt(dsaKey.key.Q)
+	g = large.NewIntFromBigInt(dsaKey.key.G)
 	return p, q, g
 }
 
-func ReconstructPrivateKey(publicKey *DSAPublicKey, privateKey *cyclic.Int) *DSAPrivateKey {
+func ReconstructPrivateKey(publicKey *DSAPublicKey, privateKey large.Int) *DSAPrivateKey {
 	pk := &DSAPrivateKey{}
 
 	pk.key.PublicKey = publicKey.key
-	pk.key.X = privateKey.GetBigInt()
+	pk.key.X = privateKey.BigInt()
 
 	return pk
 }
@@ -144,25 +148,25 @@ type DSAPublicKey struct {
 	key dsa.PublicKey
 }
 
-func ReconstructPublicKey(p *DSAParameters, key *cyclic.Int) *DSAPublicKey {
+func ReconstructPublicKey(p *DSAParameters, key large.Int) *DSAPublicKey {
 	pk := &DSAPublicKey{}
 	pk.key.Parameters = p.params
-	pk.key.Y = key.GetBigInt()
+	pk.key.Y = key.BigInt()
 
 	return pk
 }
 
 func (p *DSAPublicKey) Verify(hash []byte, sig DSASignature) bool {
-	return dsa.Verify(&p.key, hash, sig.R.GetBigInt(), sig.S.GetBigInt())
+	return dsa.Verify(&p.key, hash, sig.R.BigInt(), sig.S.BigInt())
 }
 
-func (p *DSAPublicKey) GetKey() *cyclic.Int {
-	return cyclic.NewIntFromBigInt(p.key.Y)
+func (p *DSAPublicKey) GetKey() large.Int {
+	return large.NewIntFromBigInt(p.key.Y)
 }
 
 type DSASignature struct {
-	R *cyclic.Int
-	S *cyclic.Int
+	R large.Int
+	S large.Int
 }
 
 // TODO: Add tests for Gob encode/decode and uncomment impl.

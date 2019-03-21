@@ -35,13 +35,14 @@ type testFun func(a *cyclic.Group, b *cyclic.Int, c *id.User, d uint) []*cyclic.
 // Test for consistency with hardcoded values
 func TestDeriveSingleKey(t *testing.T) {
 	userID := id.NewUserFromUint(TEST_USERID, t)
-	key := cyclic.NewIntFromString(TEST_DHKEY, 16)
+	key := grp.NewIntFromString(TEST_DHKEY, 16)
 	data := append([]byte{}, key.Bytes()...)
 	data = append(data, userID.Bytes()...)
 	result := deriveSingleKey(sha256.New(), &grp, data, 0)
-	expected := cyclic.NewIntFromString(EXPECTED_KEY, 16)
-	if result.Cmp(expected) != 0 {
-		t.Errorf("Generated Key %v doesn't match expected %v", result.Text(16), EXPECTED_KEY)
+	expected := grp.NewIntFromString(EXPECTED_KEY, 16)
+	if result.GetLargeInt().Cmp(expected.GetLargeInt()) != 0 {
+		t.Errorf("Generated Key %v doesn't match expected %v",
+			result.GetLargeInt().Text(16), EXPECTED_KEY)
 	}
 }
 
@@ -49,7 +50,7 @@ func TestDeriveSingleKey(t *testing.T) {
 func TestDeriveKeys_DeriveEmergencyKeys(t *testing.T) {
 	userID := id.NewUserFromUint(TEST_USERID, t)
 	partnerID := id.NewUserFromUint(TEST_PARTNERID, t)
-	key := cyclic.NewIntFromString(TEST_DHKEY, 16)
+	key := grp.NewIntFromString(TEST_DHKEY, 16)
 
 	nkeys := []uint{10000, 0}
 	total := func(a []uint) (s int) {
@@ -107,7 +108,7 @@ func TestDeriveKeys_DeriveEmergencyKeys(t *testing.T) {
 // Test both functions with same arguments to explicitly show they produce different keys
 func TestDeriveKeys_DeriveEmergencyKeys_Differ(t *testing.T) {
 	userID := id.NewUserFromUint(TEST_USERID, t)
-	key := cyclic.NewIntFromString(TEST_DHKEY, 16)
+	key := grp.NewIntFromString(TEST_DHKEY, 16)
 	nkeys := uint(100)
 	fut := []testFun{DeriveKeys, DeriveEmergencyKeys}
 	var genKeys = make([][]*cyclic.Int, len(fut))
@@ -125,7 +126,7 @@ func TestDeriveKeys_DeriveEmergencyKeys_Differ(t *testing.T) {
 
 	// Directly compare each key
 	for i:=0; i<int(nkeys); i++ {
-		if genKeys[0][i].Cmp(genKeys[1][i]) == 0 {
+		if genKeys[0][i].GetLargeInt().Cmp(genKeys[1][i].GetLargeInt()) == 0 {
 			t.Errorf("Keys are the same when generated with different functions")
 		}
 	}
