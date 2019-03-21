@@ -7,113 +7,190 @@
 package cyclic
 
 import (
+	"crypto/sha256"
 	jww "github.com/spf13/jwalterweatherman"
+	"gitlab.com/elixxir/crypto/large"
 )
 
 // Groups provide cyclic int operations that keep the return values confined to
 // a finite field under modulo p
 //TODO: EVENTUALLY WE NEED TO UPDATE THIS STRUCT AND REMOVE RAND, SEED, RNG, ETC... this is way too complex
 type Group struct {
-	prime       *Int
-	psub1       *Int
-	psub2       *Int
-	psub3       *Int
-	psub1factor *Int
-	seed        *Int
-	random      *Int
-	zero        *Int
-	one         *Int
-	two         *Int
-	G           *Int
+	prime       large.Int
+	psub1       large.Int
+	psub2       large.Int
+	psub3       large.Int
+	psub1factor large.Int
+	seed        large.Int
+	random      large.Int
+	zero        large.Int
+	one         large.Int
+	two         large.Int
+	G           large.Int
 	rng         Random
+	fingerprint uint64
 }
 
-// NewGroup returns a group with the given prime, seed, and generator
-func NewGroup(p *Int, s *Int, g *Int, rng Random) Group {
+const GroupFingerprintSize = 8
+
+// NewGroup returns a group with the given prime, seed and generator
+func NewGroup(p large.Int, s large.Int, g large.Int, rng Random) Group {
+	h := sha256.New()
+	h.Write(p.Bytes())
+	h.Write(g.Bytes())
+
+	hashVal := h.Sum(nil)[:GroupFingerprintSize]
+	value := large.NewIntFromBytes(hashVal)
 	return Group{
 		prime:       p,
-		psub1:       NewInt(0).Sub(p, NewInt(1)),
-		psub2:       NewInt(0).Sub(p, NewInt(2)),
-		psub3:       NewInt(0).Sub(p, NewInt(3)),
-		psub1factor: NewInt(0).RightShift(NewInt(0).Sub(p, NewInt(1)), 1),
+		psub1:       large.NewInt(0).Sub(p, large.NewInt(1)),
+		psub2:       large.NewInt(0).Sub(p, large.NewInt(2)),
+		psub3:       large.NewInt(0).Sub(p, large.NewInt(3)),
+		psub1factor: large.NewInt(0).RightShift(large.NewInt(0).Sub(p, large.NewInt(1)), 1),
 
-		seed:   s,
-		random: NewInt(0),
-		zero:   NewInt(0),
-		one:    NewInt(1),
-		two:    NewInt(2),
-		G:      g,
-		rng:    rng,
+		seed:        s,
+		random:      large.NewInt(0),
+		zero:        large.NewInt(0),
+		one:         large.NewInt(1),
+		two:         large.NewInt(2),
+		G:           g,
+		rng:         rng,
+		fingerprint: value.Uint64(),
 	}
+}
+
+// Constructors for cyclicInt
+
+// Create a new cyclicInt in the group from an int64 value
+func (g *Group) NewInt(x int64) *Int {
+	val := large.NewInt(x)
+	n := &Int{value: val, fingerprint: g.fingerprint}
+	return n
+}
+
+// Create a new cyclicInt in the group from a large.Int value
+func (g *Group) NewIntFromLargeInt(x large.Int) *Int {
+	n := &Int{value: x, fingerprint: g.fingerprint}
+	return n
+}
+
+// Create a new cyclicInt in the group from a byte buffer
+func (g *Group) NewIntFromBytes(buf []byte) *Int {
+	val := large.NewIntFromBytes(buf)
+	n := &Int{value: val, fingerprint: g.fingerprint}
+	return n
+}
+
+// Create a new cyclicInt in the group from a string using the passed base
+// returns nil if string cannot be parsed
+func (g *Group) NewIntFromString(str string, base int) *Int {
+	val := large.NewIntFromString(str, base)
+	if val == nil {
+		return nil
+	}
+	n := &Int{value: val, fingerprint: g.fingerprint}
+	return n
+}
+
+// Create a new cyclicInt in the group with the Max4KBit value
+func (g *Group) NewMaxInt() *Int {
+	val := large.NewMaxInt()
+	n := &Int{value: val, fingerprint: g.fingerprint}
+	return n
+}
+
+// Create a new cyclicInt in the group from an uint64 value
+func (g *Group) NewIntFromUInt(i uint64) *Int {
+	val := large.NewIntFromUInt(i)
+	n := &Int{value: val, fingerprint: g.fingerprint}
+	return n
+}
+
+// Check if all cyclic Ints belong to the group and panic otherwise
+func (g *Group) checkInts(ints ...*Int) {
+	for _, i := range ints {
+		if i.GetGroupFingerprint() != g.fingerprint {
+			jww.FATAL.Panicf("cyclicInt being used in wrong group! "+
+				"Group fingerprint is %d and cyclicInt has %d",
+				g.fingerprint, i.GetGroupFingerprint())
+		}
+	}
+}
+
+// Get group fingerprint
+func (g *Group) GetFingerprint() uint64 {
+	return g.fingerprint
 }
 
 // Mul multiplies a and b within the group, putting the result in c
 // and returning c
 func (g *Group) Mul(a, b, c *Int) *Int {
-	return c.Mod(c.Mul(a, b), g.prime)
+	g.checkInts(a, b, c)
+	c.value.Mod(c.value.Mul(a.value, b.value), g.prime)
+	return c
 }
 
 // Inside returns true of the Int is within the group, false if it isn't
 func (g *Group) Inside(a *Int) bool {
-	return a.Cmp(g.zero) == 1 && a.Cmp(g.prime) == -1
+	g.checkInts(a)
+	return a.value.Cmp(g.zero) == 1 && a.value.Cmp(g.prime) == -1
 }
 
 // ModP sets z ≡ x mod prime within the group and returns z.
 func (g Group) ModP(x, z *Int) *Int {
-	z.Mod(x, g.prime)
-
+	g.checkInts(x, z)
+	z.value.Mod(x.value, g.prime)
 	return z
 }
 
 // Inverse sets b equal to the inverse of a within the group and returns b
 func (g *Group) Inverse(a, b *Int) *Int {
-	return b.ModInverse(a, g.prime)
+	g.checkInts(a, b)
+	b.value.ModInverse(a.value, g.prime)
+	return b
 }
 
 // SetSeed sets a seed for use in random number generation
-func (g *Group) SetSeed(k *Int) {
+func (g *Group) SetSeed(k large.Int) {
 	g.seed = k
 }
 
 // Random securely generates a random number within the group and sets r
 // equal to it.
 func (g *Group) Random(r *Int) *Int {
-	r = r.Add(g.seed, g.rng.Rand(g.random))
-	r = r.Mod(r, g.psub2)
-	r = r.Add(r, g.two)
+	g.checkInts(r)
+	r.value.Add(g.seed, g.rng.Rand(g.random))
+	r.value.Mod(r.value, g.psub2)
+	r.value.Add(r.value, g.two)
 	if !g.Inside(r) {
 		jww.FATAL.Panicf("Random int is not in cyclic group: %s",
-			r.TextVerbose(16, 0))
+			r.value.TextVerbose(16, 0))
 	}
 	return r
 }
 
-// GetP sets the passed Int equal to p
-// If p is nil we return the pointer. Otherwise we copy the value into p
-func (g *Group) GetP(p *Int) *Int {
-	g.Copy(p, g.prime)
-	return g.prime
+// GetP returns a copy of the group's prime
+func (g *Group) GetP() large.Int {
+	n := large.NewInt(0)
+	n.Set(g.prime)
+	return n
 }
 
-// GetP sets the passed Int equal to p
-func (g *Group) GetPSub1(p *Int) *Int {
-	g.Copy(p, g.psub1)
-	return g.psub1
-}
-
-// Copy returns a copy of the source value to a specific destination var
-func (g *Group) Copy(destination, source *Int) {
-	if destination != nil {
-		destination.value.Set(source.value)
-	}
+// GetPSub1 returns a copy of the group's p-1
+func (g *Group) GetPSub1() large.Int {
+	n := large.NewInt(0)
+	n.Set(g.psub1)
+	return n
 }
 
 // GroupMul Multiplies all ints in the passed slice slc together and
 // places the result in c
 func (g Group) ArrayMul(slc []*Int, c *Int) *Int {
-	c.SetString("1", 10)
+	g.checkInts(c)
+	c.value.SetString("1", 10)
 
 	for _, islc := range slc {
+		g.checkInts(islc)
 		g.Mul(c, islc, c)
 	}
 
@@ -122,17 +199,19 @@ func (g Group) ArrayMul(slc []*Int, c *Int) *Int {
 
 // Exp sets z = x**y mod p, and returns z.
 func (g Group) Exp(x, y, z *Int) *Int {
-	return z.Exp(x, y, g.prime)
+	g.checkInts(x, y, z)
+	z.value.Exp(x.value, y.value, g.prime)
+	return z
 }
 
 // RandomCoprime randomly generates coprimes in the group (coprime
 // against g.prime-1)
 func (g *Group) RandomCoprime(r *Int) *Int {
-	for r.Set(g.psub1); !r.IsCoprime(g.psub1); {
-		r.Set(g.one)
-		r = r.Add(g.seed, g.rng.Rand(g.random))
-		r = r.Mod(r, g.psub3)
-		r = r.Add(r, g.two)
+	g.checkInts(r)
+	for r.value.Set(g.psub1); !r.value.IsCoprime(g.psub1); {
+		r.value.Add(g.seed, g.rng.Rand(g.random))
+		r.value.Mod(r.value, g.psub3)
+		r.value.Add(r.value, g.two)
 	}
 	return r
 }
@@ -140,7 +219,8 @@ func (g *Group) RandomCoprime(r *Int) *Int {
 // RootCoprime sets z = y√x mod p, and returns z. Only works with y's
 // coprime with g.prime-1 (g.psub1)
 func (g Group) RootCoprime(x, y, z *Int) *Int {
-	z.ModInverse(y, g.psub1)
+	g.checkInts(x, y, z)
+	z.value.ModInverse(y.value, g.psub1)
 	g.Exp(x, z, z)
 	return z
 }
@@ -161,6 +241,7 @@ func (g Group) FindSmallCoprimeInverse(z *Int, bits uint32) *Int {
 			" or equal to group's prime: %d", bits, g.prime.BitLen())
 	}
 
+	g.checkInts(z)
 	// RNG that ensures the output is an odd number between 2 and 2^(
 	// bit*8) that is not equal to p-1/2.  This must occur because for a proper
 	// modular inverse to exist within a group a number must have no common
@@ -168,11 +249,19 @@ func (g Group) FindSmallCoprimeInverse(z *Int, bits uint32) *Int {
 	// be a problem because the number that defines the group normally is a prime,
 	// but we are inverting within a group defined by the even number p-1 to find the
 	// modular exponential inverse, so the number must be chozen from a different set
-	max := NewInt(0).Sub(NewInt(0).LeftShift(NewInt(1), uint(bits)-2), NewInt(1))
-	rng := NewRandom(NewInt(2), max)
+	max := large.NewInt(0).Sub(
+		large.NewInt(0).LeftShift(
+			large.NewInt(1),
+			uint(bits)-1),
+		large.NewInt(1))
+	rng := NewRandom(large.NewInt(2), max)
 
 	for true {
-		zinv := NewInt(0).Or(NewInt(0).LeftShift(rng.Rand(NewInt(0)), 1), NewInt(1))
+		zinv := large.NewInt(0).Or(
+			large.NewInt(0).LeftShift(
+				rng.Rand(large.NewInt(0)),
+				1),
+			large.NewInt(1))
 
 		// p-1 has one odd factor, (p-1)/2,  we must check that the generated number is not that
 		if zinv.Cmp(g.psub1factor) == 0 {
@@ -180,7 +269,7 @@ func (g Group) FindSmallCoprimeInverse(z *Int, bits uint32) *Int {
 		}
 
 		//Modulo inverse zinv and check that the inverse exists
-		if z.ModInverse(zinv, g.psub1) == nil {
+		if z.value.ModInverse(zinv, g.psub1) == nil {
 			continue
 		}
 
