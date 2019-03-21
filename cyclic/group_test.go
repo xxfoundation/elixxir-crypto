@@ -604,6 +604,72 @@ func TestGetP(t *testing.T) {
 	println("GetP()", pass, "out of", tests, "tests passed.")
 }
 
+// Test prime getter from the group cyclic version
+func TestGetPCyclic(t *testing.T) {
+	// setup test group and generator
+	p := large.NewInt(17)
+	s := large.NewInt(15)
+	min := large.NewInt(2)
+	max := large.NewInt(1000)
+	rng := NewRandom(min, max)
+	g := large.NewInt(29)
+	group := NewGroup(p, s, g, rng)
+	actual := group.GetPCyclic()
+	tests := 1
+	pass := 0
+	if actual.value.Cmp(p) != 0 {
+		t.Errorf("TestGetPCyclic failed, expected: '%v', got: '%v'",
+			p.Text(10), actual.value.Text(10))
+	} else {
+		pass++
+	}
+	println("GetPCyclic()", pass, "out of", tests, "tests passed.")
+}
+
+// Test generator getter from the group
+func TestGetG(t *testing.T) {
+	// setup test group and generator
+	p := large.NewInt(17)
+	s := large.NewInt(15)
+	min := large.NewInt(2)
+	max := large.NewInt(1000)
+	rng := NewRandom(min, max)
+	g := large.NewInt(29)
+	group := NewGroup(p, s, g, rng)
+	actual := group.GetG()
+	tests := 1
+	pass := 0
+	if actual.Cmp(g) != 0 {
+		t.Errorf("TestGetP failed, expected: '%v', got: '%v'",
+			g.Text(10), actual.Text(10))
+	} else {
+		pass++
+	}
+	println("GetG()", pass, "out of", tests, "tests passed.")
+}
+
+// Test generator getter from the group cyclic version
+func TestGetGCyclic(t *testing.T) {
+	// setup test group and generator
+	p := large.NewInt(17)
+	s := large.NewInt(15)
+	min := large.NewInt(2)
+	max := large.NewInt(1000)
+	rng := NewRandom(min, max)
+	g := large.NewInt(29)
+	group := NewGroup(p, s, g, rng)
+	actual := group.GetGCyclic()
+	tests := 1
+	pass := 0
+	if actual.value.Cmp(g) != 0 {
+		t.Errorf("TestGetGCyclic failed, expected: '%v', got: '%v'",
+			g.Text(10), actual.value.Text(10))
+	} else {
+		pass++
+	}
+	println("GetGCyclic()", pass, "out of", tests, "tests passed.")
+}
+
 // Test prime-1 getter from the group
 func TestGetPSub1(t *testing.T) {
 	// setup test group and generator
@@ -625,6 +691,77 @@ func TestGetPSub1(t *testing.T) {
 		pass++
 	}
 	println("GetPSub1()", pass, "out of", tests, "tests passed.")
+}
+
+// Test prime-1 getter from the group cyclic version
+func TestGetPSub1Cyclic(t *testing.T) {
+	// setup test group and generator
+	p := large.NewInt(17)
+	s := large.NewInt(15)
+	min := large.NewInt(2)
+	max := large.NewInt(1000)
+	rng := NewRandom(min, max)
+	g := large.NewInt(29)
+	group := NewGroup(p, s, g, rng)
+	actual := group.GetPSub1Cyclic()
+	ps1 := large.NewInt(16)
+	tests := 1
+	pass := 0
+	if actual.value.Cmp(ps1) != 0 {
+		t.Errorf("TestGetPSub1Cyclic failed, expected: '%v', got: '%v'",
+			ps1.Text(10), actual.value.Text(10))
+	} else {
+		pass++
+	}
+	println("GetPSub1Cyclic()", pass, "out of", tests, "tests passed.")
+}
+
+// Test (prime-1)/2 getter from the group
+func TestGetPSub1Factor(t *testing.T) {
+	// setup test group and generator
+	p := large.NewInt(17)
+	s := large.NewInt(15)
+	min := large.NewInt(2)
+	max := large.NewInt(1000)
+	rng := NewRandom(min, max)
+	g := large.NewInt(29)
+	q := large.NewInt(3)
+	group := NewGroup(p, s, g, q, rng)
+	actual := group.GetPSub1Factor()
+	pfactor := large.NewInt(8)
+	tests := 1
+	pass := 0
+	if actual.Cmp(pfactor) != 0 {
+		t.Errorf("TestGetPSub1Factor failed, expected: '%v', got: '%v'",
+			pfactor.Text(10), actual.Text(10))
+	} else {
+		pass++
+	}
+	println("GetPSub1Factor()", pass, "out of", tests, "tests passed.")
+}
+
+// Test (prime-1)/2 getter from the group cyclic version
+func TestGetPSub1FactorCyclic(t *testing.T) {
+	// setup test group and generator
+	p := large.NewInt(17)
+	s := large.NewInt(15)
+	min := large.NewInt(2)
+	max := large.NewInt(1000)
+	rng := NewRandom(min, max)
+	g := large.NewInt(29)
+	q := large.NewInt(3)
+	group := NewGroup(p, s, g, q, rng)
+	actual := group.GetPSub1FactorCyclic()
+	pfactor := large.NewInt(8)
+	tests := 1
+	pass := 0
+	if actual.value.Cmp(pfactor) != 0 {
+		t.Errorf("TestGetPSub1FactorCyclic failed, expected: '%v', got: '%v'",
+			pfactor.Text(10), actual.value.Text(10))
+	} else {
+		pass++
+	}
+	println("GetPSub1FactorCyclic()", pass, "out of", tests, "tests passed.")
 }
 
 // Test array multiplication under the group

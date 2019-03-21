@@ -26,7 +26,7 @@ type Group struct {
 	zero        large.Int
 	one         large.Int
 	two         large.Int
-	G           large.Int
+	gen         large.Int
 	rng         Random
 	fingerprint uint64
 }
@@ -53,7 +53,7 @@ func NewGroup(p large.Int, s large.Int, g large.Int, rng Random) Group {
 		zero:        large.NewInt(0),
 		one:         large.NewInt(1),
 		two:         large.NewInt(2),
-		G:           g,
+		gen:         g,
 		rng:         rng,
 		fingerprint: value.Uint64(),
 	}
@@ -176,11 +176,45 @@ func (g *Group) GetP() large.Int {
 	return n
 }
 
+// GetPCyclic returns a new cyclicInt with the group's prime
+func (g *Group) GetPCyclic() *Int {
+	return g.NewIntFromLargeInt(g.prime)
+}
+
+// GetG returns a copy of the group's generator
+func (g *Group) GetG() large.Int {
+	n := large.NewInt(0)
+	n.Set(g.gen)
+	return n
+}
+
+// GetGCyclic returns a new cyclicInt with the group's generator
+func (g *Group) GetGCyclic() *Int {
+	return g.NewIntFromLargeInt(g.gen)
+}
+
 // GetPSub1 returns a copy of the group's p-1
 func (g *Group) GetPSub1() large.Int {
 	n := large.NewInt(0)
 	n.Set(g.psub1)
 	return n
+}
+
+// GetPSub1Cyclic returns a new cyclicInt with the group's p-1
+func (g *Group) GetPSub1Cyclic() *Int {
+	return g.NewIntFromLargeInt(g.psub1)
+}
+
+// GetPSub1Factor returns a copy of the group's (p-1)/2
+func (g *Group) GetPSub1Factor() large.Int {
+	n := large.NewInt(0)
+	n.Set(g.psub1factor)
+	return n
+}
+
+// GetPSub1FactorCyclic returns a new cyclicInt with the group's (p-1)/2
+func (g *Group) GetPSub1FactorCyclic() *Int {
+	return g.NewIntFromLargeInt(g.psub1factor)
 }
 
 // GroupMul Multiplies all ints in the passed slice slc together and
