@@ -11,7 +11,6 @@ import (
 	"gitlab.com/elixxir/crypto/csprng"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/hash"
-	"gitlab.com/elixxir/crypto/large"
 	"gitlab.com/elixxir/crypto/signature"
 	"testing"
 )
@@ -25,15 +24,10 @@ var grp cyclic.Group
 // Also confirm that base transmission and reception keys are different
 func TestGenerateBaseKey(t *testing.T) {
 	dsaParams := signature.GetDefaultDSAParams()
-	p := dsaParams.GetP()
-	min := large.NewInt(2)
-	max := large.NewInt(0)
-	max.Mul(p, large.NewInt(1000))
-	seed := large.NewInt(42)
-	grp = cyclic.NewGroup(p, seed,
+	grp = cyclic.NewGroup(
+		dsaParams.GetP(),
 		dsaParams.GetG(),
-		dsaParams.GetQ(),
-		cyclic.NewRandom(min, max))
+		dsaParams.GetQ())
 
 	rng := csprng.NewSystemRNG()
 	ownPrivKey := dsaParams.PrivateKeyGen(rng)

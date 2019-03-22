@@ -35,11 +35,7 @@ func TestDHKX(t *testing.T) {
 	p.SetString(primeString, 16)
 	g := large.NewInt(2)
 	q := large.NewInt(3)
-	s := large.NewInt(0)
-	min := large.NewInt(2)
-	max := p
-	rng := cyclic.NewRandom(min, max)
-	grp := cyclic.NewGroup(p, s, g, q, rng)
+	grp := cyclic.NewGroup(p, g, q)
 	testGroup := &grp
 
 	// Creation of two different DH Key Pairs with valid parameters
@@ -89,12 +85,7 @@ func TestCreateDHKeyPair(t *testing.T) {
 	p := large.NewInt(4)
 	g := large.NewInt(2)
 	q := large.NewInt(3)
-	s := large.NewInt(0)
-	min := large.NewInt(2)
-	max := p
-	rng := cyclic.NewRandom(min, max)
-
-	grp := cyclic.NewGroup(p, s, g, q, rng)
+	grp := cyclic.NewGroup(p, g, q)
 	testGroup := &grp
 
 	defer Catch("TestCreateDHKeyPair():", t)
@@ -121,12 +112,7 @@ func TestCheckPublicKey(t *testing.T) {
 	p.SetString(primeString, 16)
 	g := large.NewInt(2)
 	q := large.NewInt(3)
-	s := large.NewInt(0)
-	min := large.NewInt(2)
-	max := p
-	rng := cyclic.NewRandom(min, max)
-
-	grp := cyclic.NewGroup(p, s, g, q, rng)
+	grp := cyclic.NewGroup(p, g, q)
 	testGroup := &grp
 
 	// Creation of a DH Key Pair with valid parameters
@@ -191,12 +177,7 @@ func TestDHNodeKeys(t *testing.T) {
 	p.SetString(primeString, 16)
 	g := large.NewInt(2)
 	q := large.NewInt(3)
-	s := large.NewInt(0)
-	min := large.NewInt(2)
-	max := p
-	rng := cyclic.NewRandom(min, max)
-
-	grp := cyclic.NewGroup(p, s, g, q, rng)
+	grp := cyclic.NewGroup(p, g, q)
 	testGroup := &grp
 
 	// This is a map key(string) -> value (hex string)

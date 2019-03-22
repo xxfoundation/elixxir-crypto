@@ -35,10 +35,7 @@ var primeStrng = "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
 	"93B4EA988D8FDDC186FFB7DC90A6C08F4DF435C934063199" +
 	"FFFFFFFFFFFFFFFF"
 var prime = large.NewIntFromString(primeStrng, 16)
-var rng = cyclic.NewRandom(large.NewInt(0),
-	large.NewIntFromString(primeStrng, 16))
-var grp = cyclic.NewGroup(prime, large.NewInt(5), large.NewInt(4), large.NewInt(3),
-	rng)
+var grp = cyclic.NewGroup(prime, large.NewInt(4), large.NewInt(3))
 var baseKey = grp.NewIntFromString("a906df88f30d6afbfa6165a50cc9e208d16b34e70b367068dc5d6bd6e155b2c3", 16)
 var salt = []byte("fdecfa52a8ad1688dbfa7d16df74ebf27e535903c469cefc007ebbe1ee895064")
 var expectStr = "2e4c99e14e0b1cd18c08467c395a4d5c0eb594507595041a5cfa83eb2f5791f3" +

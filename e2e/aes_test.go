@@ -10,7 +10,6 @@ import (
 	"bytes"
 	"encoding/hex"
 	"gitlab.com/elixxir/crypto/csprng"
-	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/large"
 	"testing"
 )
@@ -396,27 +395,16 @@ func TestAESEnc_Hash(t *testing.T) {
 
 // Loop test AES encryption/decryption with random inputs
 func TestEncDecAES_Random(t *testing.T) {
-	keyGen := cyclic.NewRandom(large.NewInt(28), large.NewInt(512))
-	textGen := cyclic.NewRandom(large.NewInt(1), large.NewInt(4096))
-	randSize := large.NewInt(1)
+	rng := csprng.NewSystemRNG()
+	key := make([]byte, 256)
+	plaintext := make([]byte, 2048)
 
 	tests := NUM_TESTS
 	pass := 0
 
 	for i := 0; i < tests; i++ {
-		keyGen.Rand(randSize)
-
-		csprig := csprng.NewSystemRNG()
-
-		key := make([]byte, randSize.Int64())
-
-		csprig.Read(key)
-
-		textGen.Rand(randSize)
-
-		plaintext := make([]byte, randSize.Int64())
-
-		csprig.Read(plaintext)
+		rng.Read(key)
+		rng.Read(plaintext)
 
 		ciphertext, err := EncryptAES256(key, plaintext)
 
@@ -444,13 +432,12 @@ func TestEncDecAES_AllPaddings(t *testing.T) {
 	tests := NUM_TESTS
 	pass := 0
 
+	rng := csprng.NewSystemRNG()
+
 	for i := 1; i <= NUM_TESTS; i++ {
 
-		csprig := csprng.NewSystemRNG()
-
 		plaintext := make([]byte, i)
-
-		csprig.Read(plaintext)
+		rng.Read(plaintext)
 
 		ciphertext, err := EncryptAES256(key, plaintext)
 

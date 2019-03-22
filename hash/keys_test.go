@@ -27,13 +27,9 @@ var primeString = "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
 	"15728E5A8AACAA68FFFFFFFFFFFFFFFF"
 
 var p = large.NewIntFromString(primeString, 16)
-var min = large.NewInt(2)
-var max = large.NewInt(0)
-var seed = large.NewInt(42)
-var rng = cyclic.NewRandom(min, max.Mul(p, large.NewInt(1000)))
 var g = large.NewInt(2)
 var q = large.NewInt(3)
-var grp = cyclic.NewGroup(p, seed, g, q, rng)
+var grp = cyclic.NewGroup(p, g, q)
 
 //TestExpandKey verifies ExpandKey with two different hashes
 func TestExpandKey(t *testing.T) {

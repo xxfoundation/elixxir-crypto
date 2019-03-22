@@ -26,14 +26,9 @@ func TestKeygen(t *testing.T) {
 		"15728E5A8AACAA68FFFFFFFFFFFFFFFF"
 
 	p := large.NewIntFromString(primeString, 16)
-	min := large.NewInt(2)
-	max := large.NewInt(0)
-	max.Mul(p, large.NewInt(1000))
-	seed := large.NewInt(42)
-	rng := cyclic.NewRandom(min, max)
 	g := large.NewInt(2)
 	q := large.NewInt(3)
-	grp := cyclic.NewGroup(p, seed, g, q, rng)
+	grp := cyclic.NewGroup(p, g, q)
 	testGroup := &grp
 
 	salt := grp.NewInt(1)
