@@ -122,6 +122,47 @@ func (g *Group) GetFingerprint() uint64 {
 	return g.fingerprint
 }
 
+// Setters for cyclicInts
+
+// Sets x to y in the group and returns x
+func (g *Group) Set(x, y *Int) *Int {
+	g.checkInts(x, y)
+	x.value.Set(y.value)
+	return x
+}
+
+// Sets x in the group to bytes and returns x
+func (g *Group) SetBytes(x *Int, buf []byte) *Int {
+	g.checkInts(x)
+	x.value.SetBytes(buf)
+	return x
+}
+
+// Sets x in the group to string and returns x
+// or nil if error parsing the string
+func (g *Group) SetString(x *Int, s string, base int) *Int {
+	g.checkInts(x)
+	_, ret := x.value.SetString(s, base)
+	if ret == false  {
+		return nil
+	}
+	return x
+}
+
+// Sets x in the group to Max4KInt value and returns x
+func (g *Group) SetMaxInt(x *Int) *Int {
+	g.checkInts(x)
+	x.value.SetBytes(large.Max4kBitInt)
+	return x
+}
+
+// Sets x in the group to uint64 value and returns x
+func (g *Group) SetUint64(x *Int, u uint64) *Int {
+	g.checkInts(x)
+	x.value.SetUint64(u)
+	return x
+}
+
 // Mul multiplies a and b within the group, putting the result in c
 // and returning c
 func (g *Group) Mul(a, b, c *Int) *Int {

@@ -128,6 +128,7 @@ func TestNewIntFromString(t *testing.T) {
 	}
 }
 
+// Test creation of cyclicInt in the group from Max4KInt value
 func TestNewMaxInt(t *testing.T) {
 	p := large.NewInt(1000000010101111111)
 	g := large.NewInt(5)
@@ -182,6 +183,273 @@ func TestGetFingerprint(t *testing.T) {
 		t.Errorf("GetFingerprint returned wrong value, expected: %v,"+
 			"got: %v", expected, grp.GetFingerprint())
 	}
+}
+
+// Test setting cyclicInt to another from the same group
+func TestSet(t *testing.T) {
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	q := large.NewInt(1283)
+	grp := NewGroup(p, g, q)
+
+	expected := grp.NewInt(int64(42))
+	actual := grp.NewInt(int64(69))
+
+	if actual.Cmp(expected) == 0 {
+		t.Errorf("Original Ints should be different to test Set")
+	}
+
+	grp.Set(actual, expected)
+
+	result := actual.Cmp(expected)
+
+	if result != 0 {
+		t.Errorf("Test of Set failed, expected: '0', got: '%v'",
+			result)
+	}
+}
+
+// Test that Set panics if cyclicInt doesn't belong to the group
+func TestSet_Panic(t *testing.T) {
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	q := large.NewInt(1283)
+	grp := NewGroup(p, g, q)
+	g2 := large.NewInt(2)
+	grp2 := NewGroup(p, g2, q)
+
+	expected := grp.NewInt(int64(42))
+	actual := grp2.NewInt(int64(69))
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Set should panic when one of involved " +
+				"cyclicInts doesn't belong to the group")
+		}
+	}()
+
+	grp.Set(actual, expected)
+}
+
+// Test setting cyclicInt in the same group from bytes
+func TestSetBytes(t *testing.T) {
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	q := large.NewInt(1283)
+	grp := NewGroup(p, g, q)
+
+	expected := []*Int{
+		grp.NewInt(42),
+		grp.NewInt(6553522),
+		grp.NewInt(0)}
+	testBytes := [][]byte{
+		{0x2A},             // 42
+		{0x63, 0xFF, 0xB2}, // 6553522
+		{0x00}}
+	tests := len(expected)
+	pass := 0
+	actual := grp.NewInt(0)
+	for i, testi := range testBytes {
+		actual = grp.SetBytes(actual, testi)
+		if actual.Cmp(expected[i]) != 0 {
+			t.Errorf("Test of SetBytes failed at index %v, expected: '%v', "+
+				"actual: %v", i, expected[i].Text(10), actual.Text(10))
+		} else {
+			pass++
+		}
+	}
+	println("SetBytes()", pass, "out of", tests, "tests passed.")
+}
+
+// Test that SetBytes panics if cyclicInt doesn't belong to the group
+func TestSetBytes_Panic(t *testing.T) {
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	q := large.NewInt(1283)
+	grp := NewGroup(p, g, q)
+	g2 := large.NewInt(2)
+	grp2 := NewGroup(p, g2, q)
+
+	actual := grp2.NewInt(int64(42))
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("SetBytes should panic when " +
+				"cyclicInt doesn't belong to the group")
+		}
+	}()
+
+	grp.SetBytes(actual, []byte("TEST"))
+}
+
+// Test setting cyclicInt in the same group from string
+func TestSetString(t *testing.T) {
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	q := large.NewInt(1283)
+	grp := NewGroup(p, g, q)
+
+	type testStructure struct {
+		str  string
+		base int
+	}
+
+	testStructs := []testStructure{
+		{"42", 0},
+		{"100000000", 0},
+		{"-5", 0},
+		{"0", 0},
+		{"f", 0},
+		{"182", 5},
+		{"-1", 2},
+	}
+
+	expected := []*Int{
+		grp.NewInt(42),
+		grp.NewInt(100000000),
+		grp.NewInt(-5),
+		grp.NewInt(0),
+		nil,
+		nil,
+		grp.NewInt(-1),
+	}
+
+	tests := len(testStructs)
+	pass := 0
+	actual := grp.NewInt(0)
+
+	for i, testi := range testStructs {
+		ret := grp.SetString(actual, testi.str, testi.base)
+
+		// Test invalid input making sure it occurs when expected
+		if ret == nil {
+			if expected[i] != nil {
+				t.Error("Test of SetString() failed at index:", i,
+					"Function didn't handle invalid input correctly")
+			} else {
+				pass++
+			}
+		} else {
+			if actual.Cmp(expected[i]) != 0 {
+				t.Errorf("Test of SetString() failed at index: %v Expected: %v;"+
+					" Actual: %v", i, expected[i], actual)
+			} else {
+				pass++
+			}
+		}
+	}
+	println("SetString()", pass, "out of", tests, "tests passed.")
+}
+
+// Test that SetString panics if cyclicInt doesn't belong to the group
+func TestSetString_Panic(t *testing.T) {
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	q := large.NewInt(1283)
+	grp := NewGroup(p, g, q)
+	g2 := large.NewInt(2)
+	grp2 := NewGroup(p, g2, q)
+
+	actual := grp2.NewInt(int64(42))
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("SetString should panic when " +
+				"cyclicInt doesn't belong to the group")
+		}
+	}()
+
+	grp.SetString(actual, "1234", 10)
+}
+
+// Test setting cyclicInt in the same group to Max4KInt value
+func TestSetMaxInt(t *testing.T) {
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	q := large.NewInt(1283)
+	grp := NewGroup(p, g, q)
+
+	expected := grp.NewMaxInt()
+	actual := grp.NewInt(int64(69))
+
+	if actual.Cmp(expected) == 0 {
+		t.Errorf("Original Ints should be different to test SetMaxInt")
+	}
+
+	grp.SetMaxInt(actual)
+
+	result := actual.Cmp(expected)
+
+	if result != 0 {
+		t.Errorf("Test of SetMaxInt failed, expected: '0', got: '%v'",
+			result)
+	}
+}
+
+// Test that Set panics if cyclicInt doesn't belong to the group
+func TestSetMaxInt_Panic(t *testing.T) {
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	q := large.NewInt(1283)
+	grp := NewGroup(p, g, q)
+	g2 := large.NewInt(2)
+	grp2 := NewGroup(p, g2, q)
+
+	actual := grp2.NewInt(int64(69))
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("SetMaxInt should panic when " +
+				"cyclicInt doesn't belong to the group")
+		}
+	}()
+
+	grp.SetMaxInt(actual)
+}
+
+// Test setting cyclicInt in the same group to uint64 value
+func TestSetUint64(t *testing.T) {
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	q := large.NewInt(1283)
+	grp := NewGroup(p, g, q)
+
+	expected := grp.NewInt(int64(42))
+	actual := grp.NewInt(int64(69))
+
+	if actual.Cmp(expected) == 0 {
+		t.Errorf("Original Ints should be different to test SetUint64")
+	}
+
+	grp.SetUint64(actual, uint64(42))
+
+	result := actual.Cmp(expected)
+
+	if result != 0 {
+		t.Errorf("Test of SetUint64 failed, expected: '0', got: '%v'",
+			result)
+	}
+}
+
+// Test that Set panics if cyclicInt doesn't belong to the group
+func TestSetUint64_Panic(t *testing.T) {
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	q := large.NewInt(1283)
+	grp := NewGroup(p, g, q)
+	g2 := large.NewInt(2)
+	grp2 := NewGroup(p, g2, q)
+
+	actual := grp2.NewInt(int64(69))
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("SetUint64 should panic when " +
+				"cyclicInt doesn't belong to the group")
+		}
+	}()
+
+	grp.SetUint64(actual, uint64(0))
 }
 
 // Test multiplication under the group
