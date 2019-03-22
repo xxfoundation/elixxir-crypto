@@ -8,18 +8,21 @@ package cyclic
 
 import (
 	"bytes"
+	"encoding/gob"
+	"errors"
 	"gitlab.com/elixxir/crypto/large"
+	"reflect"
 	"testing"
 )
 
+var p = large.NewInt(1000000010101111111)
+var g = large.NewInt(5)
+var q = large.NewInt(1283)
+var grp = NewGroup(p, g, q)
+
+// Test largeInt getter
 func TestGetLargeInt(t *testing.T) {
-	p := large.NewInt(1000000010101111111)
-	g := large.NewInt(5)
-	q := large.NewInt(1283)
-	grp := NewGroup(p, g, q)
-
 	tests := 1
-
 	pass := 0
 
 	expected := large.NewInt(42)
@@ -36,14 +39,9 @@ func TestGetLargeInt(t *testing.T) {
 	println("TestGetLargeInt()", pass, "out of", tests, "tests passed.")
 }
 
+// Test group fingeprint getter
 func TestGetGroupFingerprint(t *testing.T) {
-	p := large.NewInt(1000000010101111111)
-	g := large.NewInt(5)
-	q := large.NewInt(1283)
-	grp := NewGroup(p, g, q)
-
 	tests := 1
-
 	pass := 0
 
 	expected := grp.GetFingerprint()
@@ -60,14 +58,9 @@ func TestGetGroupFingerprint(t *testing.T) {
 	println("TestGetGroupFingerprint()", pass, "out of", tests, "tests passed.")
 }
 
+// Test bytes getter
 func TestBytes(t *testing.T) {
-	p := large.NewInt(1000000010101111111)
-	g := large.NewInt(5)
-	q := large.NewInt(1283)
-	grp := NewGroup(p, g, q)
-
 	tests := 1
-
 	pass := 0
 
 	expected := []byte{0x2A}
@@ -84,14 +77,9 @@ func TestBytes(t *testing.T) {
 	println("TestBytes()", pass, "out of", tests, "tests passed.")
 }
 
+// Test left padded bytes getter
 func TestLeftpadBytes(t *testing.T) {
-	p := large.NewInt(1000000010101111111)
-	g := large.NewInt(5)
-	q := large.NewInt(1283)
-	grp := NewGroup(p, g, q)
-
 	tests := 1
-
 	pass := 0
 
 	expected := []byte{0x00, 0x00, 0x00, 0x2A}
@@ -106,4 +94,130 @@ func TestLeftpadBytes(t *testing.T) {
 	}
 
 	println("TestLeftPadBytes()", pass, "out of", tests, "tests passed.")
+}
+
+// Test that Cmp works, and that it returns -1 when fingerprints differ
+func TestCmp(t *testing.T) {
+	tests := 2
+	pass := 0
+
+	val1 := grp.NewInt(int64(42))
+	val2 := grp.NewInt(int64(42))
+
+	ret := val1.Cmp(val2)
+
+	if ret != 0 {
+		t.Errorf("Test of Cmp failed, expected: 0, " +
+			"got: '%v'", ret)
+	} else {
+		pass++
+	}
+
+	// Overwrite group fingerprint and confirm Cmp returns -1
+	val2.fingerprint = uint64(1234)
+
+	ret = val1.Cmp(val2)
+
+	if ret != -1 {
+		t.Errorf("Test of Cmp failed, expected: -1, " +
+			"got: '%v'", ret)
+	} else {
+		pass++
+	}
+
+	println("TestCmp()", pass, "out of", tests, "tests passed.")
+}
+
+// Test text representation (limited to length of 10)
+func TestText(t *testing.T) {
+	testints := []*Int{
+		grp.NewInt(42),
+		grp.NewInt(6553522),
+		grp.NewIntFromString("867530918239450598372829049587", 10),
+		grp.NewInt(-42)}
+	expectedstrs := []string{
+		"42 in GRP: 4XgotyuZEW...",
+		"6553522 in GRP: 4XgotyuZEW...",
+		"8675309182... in GRP: 4XgotyuZEW...",
+		"-42 in GRP: 4XgotyuZEW..."} // TODO: Should be <nil>, not -42
+	tests := len(testints)
+	pass := 0
+	for i, tsti := range testints {
+		actual := tsti.Text(10)
+		expected := expectedstrs[i]
+		if actual != expected {
+			t.Errorf("Test of Text failed, got: '%v', expected: '%v'", actual,
+				expected)
+		} else {
+			pass++
+		}
+	}
+	println("Text()", pass, "out of", tests, "tests passed.")
+}
+
+// Test text verbose representation with different lengths
+func TestTextVerbose(t *testing.T) {
+	testInt := grp.NewIntFromString("867530918239450598372829049587", 10)
+	lens := []int{3, 12, 16, 18, 0}
+	expected := []string{
+		"867... in GRP: 4Xg...",
+		"867530918239... in GRP: 4XgotyuZEWk=",
+		"8675309182394505... in GRP: 4XgotyuZEWk=",
+		"867530918239450598... in GRP: 4XgotyuZEWk=",
+		"867530918239450598372829049587 in GRP: 4XgotyuZEWk="}
+	tests := len(lens)
+	pass := 0
+	for i, testLen := range lens {
+		actual := testInt.TextVerbose(10, testLen)
+		if actual != expected[i] {
+			t.Errorf("Test of TextVerbose failed, got: %v,"+
+				"expected: %v", actual, expected[i])
+		} else {
+			pass++
+		}
+	}
+	println("TestTextVerbose()", pass, "out of", tests, "tests passed.")
+}
+
+// Test GOB encoding/decoding
+func TestGob(t *testing.T) {
+	var byteBuf bytes.Buffer
+
+	enc := gob.NewEncoder(&byteBuf)
+	dec := gob.NewDecoder(&byteBuf)
+
+	inInt := grp.NewInt(42)
+
+	err := enc.Encode(inInt)
+
+	if err != nil {
+		t.Errorf("Error GOB Encoding Int: %s", err)
+	}
+
+	outInt := grp.NewInt(0)
+
+	err = dec.Decode(&outInt)
+
+	if err != nil {
+		t.Errorf("Error GOB Decoding Int: %s", err)
+	}
+
+	if inInt.Cmp(outInt) != 0 {
+		t.Errorf("GobEncoder/GobDecoder failed, "+
+			"Expected: %v; Recieved: %v ",
+			inInt.TextVerbose(10, 12),
+			outInt.TextVerbose(10, 12))
+	}
+}
+
+// Tests that GobDecode() for cyclicInt throws an error for a
+// malformed byte array
+func TestGobDecode_Error(t *testing.T) {
+	inInt := Int{}
+	err := inInt.GobDecode([]byte{})
+
+	if !reflect.DeepEqual(err, errors.New("EOF")) {
+		t.Errorf("GobDecode() did not produce the expected error\n\treceived: %v" +
+			"\n\texpected: %v", err, errors.New("EOF"))
+	}
 }
