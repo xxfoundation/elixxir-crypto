@@ -398,7 +398,7 @@ func TestSetUint64(t *testing.T) {
 // -------------- TEST Converters -------------- //
 
 // BigInt converts the Int to a *big.Int representation
-func TestBigInt(t  *testing.T) {
+func TestBigInt(t *testing.T) {
 	tests := 1
 	pass := 0
 

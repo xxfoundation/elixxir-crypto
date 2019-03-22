@@ -11,7 +11,6 @@ import (
 	"math/big"
 )
 
-
 // The big.Int type from go almost conforms to this interface
 // Some methods don't exist, so the big.Int implementation is extended
 // in this package
@@ -40,7 +39,7 @@ type Int interface {
 	// GCD Operator
 	GCD(x, y, a, b Int) Int
 	// Misc Operators
-    IsCoprime(x Int) bool
+	IsCoprime(x Int) bool
 	IsPrime() bool
 	BitLen() int
 	Cmp(y Int) int
@@ -57,8 +56,8 @@ type Int interface {
 	Text(base int) string
 	TextVerbose(base int, length int) string
 	// GOB Operators
-    GobDecode(in []byte) error
-    GobEncode() ([]byte, error)
+	GobDecode(in []byte) error
+	GobEncode() ([]byte, error)
 }
 
 // Type largeInt will implement the above interface by extending big.Int

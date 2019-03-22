@@ -125,7 +125,7 @@ func TestDeriveKeys_DeriveEmergencyKeys_Differ(t *testing.T) {
 	}
 
 	// Directly compare each key
-	for i:=0; i<int(nkeys); i++ {
+	for i := 0; i < int(nkeys); i++ {
 		if genKeys[0][i].GetLargeInt().Cmp(genKeys[1][i].GetLargeInt()) == 0 {
 			t.Errorf("Keys are the same when generated with different functions")
 		}

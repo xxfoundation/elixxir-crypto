@@ -156,7 +156,7 @@ func (g *Group) Random(r *Int) *Int {
 	g.checkInts(r)
 	n, err := g.rng.Read(g.random)
 	if err != nil || n != len(g.random) {
-		jww.FATAL.Panicf("Could not generate random " +
+		jww.FATAL.Panicf("Could not generate random "+
 			"number in group: %v", err.Error())
 	}
 	r.value.SetBytes(g.random)
@@ -253,7 +253,7 @@ func (g *Group) RandomCoprime(r *Int) *Int {
 	for r.value.Set(g.psub1); !r.value.IsCoprime(g.psub1); {
 		n, err := g.rng.Read(g.random)
 		if err != nil || n != len(g.random) {
-			jww.FATAL.Panicf("Could not generate random " +
+			jww.FATAL.Panicf("Could not generate random "+
 				"Coprime number in group: %v", err.Error())
 		}
 		r.value.SetBytes(g.random)
@@ -315,7 +315,7 @@ func (g Group) FindSmallCoprimeInverse(z *Int, bits uint32) *Int {
 	for true {
 		n, err := g.rng.Read(g.random)
 		if err != nil || n != len(g.random) {
-			jww.FATAL.Panicf("Could not generate random " +
+			jww.FATAL.Panicf("Could not generate random "+
 				"number in group: %v", err.Error())
 		}
 		zinv.SetBytes(g.random)

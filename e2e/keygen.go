@@ -7,8 +7,8 @@
 package e2e
 
 import (
-	"gitlab.com/elixxir/crypto/cyclic"
 	jww "github.com/spf13/jwalterweatherman"
+	"gitlab.com/elixxir/crypto/cyclic"
 )
 
 // Keygen takes a salt and the base key and generates a new key

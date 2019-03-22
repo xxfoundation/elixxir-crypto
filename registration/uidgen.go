@@ -2,10 +2,10 @@ package registration
 
 import (
 	"fmt"
-	"gitlab.com/elixxir/crypto/signature"
-	"gitlab.com/elixxir/crypto/hash"
-	"gitlab.com/elixxir/primitives/id"
 	jww "github.com/spf13/jwalterweatherman"
+	"gitlab.com/elixxir/crypto/hash"
+	"gitlab.com/elixxir/crypto/signature"
+	"gitlab.com/elixxir/primitives/id"
 )
 
 // Generate the UserID based on his public key and a salt
