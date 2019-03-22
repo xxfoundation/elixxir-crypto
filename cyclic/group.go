@@ -131,6 +131,18 @@ func (g *Group) Set(x, y *Int) *Int {
 	return x
 }
 
+func (g *Group) SetLargeInt(x *Int, y large.Int) *Int {
+	success := g.Inside(y)
+
+	if !success {
+		return nil
+	}
+
+	x.value = y
+
+	return x
+}
+
 // Sets x in the group to bytes and returns x
 func (g *Group) SetBytes(x *Int, buf []byte) *Int {
 	g.checkInts(x)
@@ -143,7 +155,7 @@ func (g *Group) SetBytes(x *Int, buf []byte) *Int {
 func (g *Group) SetString(x *Int, s string, base int) *Int {
 	g.checkInts(x)
 	_, ret := x.value.SetString(s, base)
-	if ret == false  {
+	if ret == false {
 		return nil
 	}
 	return x
@@ -172,9 +184,8 @@ func (g *Group) Mul(a, b, c *Int) *Int {
 }
 
 // Inside returns true of the Int is within the group, false if it isn't
-func (g *Group) Inside(a *Int) bool {
-	g.checkInts(a)
-	return a.value.Cmp(g.zero) == 1 && a.value.Cmp(g.prime) == -1
+func (g *Group) Inside(a large.Int) bool {
+	return a.Cmp(g.zero) == 1 && a.Cmp(g.prime) == -1
 }
 
 // ModP sets z ≡ x mod prime within the group and returns z.

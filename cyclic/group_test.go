@@ -231,6 +231,36 @@ func TestSet_Panic(t *testing.T) {
 	grp.Set(actual, expected)
 }
 
+// Test Inside that checks if a number is inside the group
+func TestSetLargeInt(t *testing.T) {
+	p := large.NewInt(17)
+	g := large.NewInt(7)
+	q := large.NewInt(3)
+	group := NewGroup(p, g, q)
+	expected := []bool{
+		false,
+		true,
+		false,
+		false,
+		true,
+	}
+
+	inputs := []int64{0, 1, 17, 18, 12}
+
+	actual := make([]bool, len(inputs))
+
+	for i := 0; i < len(inputs); i++ {
+		tmp := group.NewInt(5)
+		li := large.NewInt(inputs[i])
+		if group.SetLargeInt(tmp, li) != nil {
+			actual[i] = true
+		}
+		if (tmp.GetLargeInt().Cmp(li) == 0) != expected[i] {
+			t.Errorf("TestSetFromLargeInt failed at index %v", i)
+		}
+	}
+}
+
 // Test setting cyclicInt in the same group from bytes
 func TestSetBytes(t *testing.T) {
 	p := large.NewInt(1000000010101111111)
@@ -520,11 +550,11 @@ func TestInside(t *testing.T) {
 		true,
 	}
 	actual := []bool{
-		group.Inside(group.NewInt(0)),
-		group.Inside(group.NewInt(1)),
-		group.Inside(group.NewInt(17)),
-		group.Inside(group.NewInt(18)),
-		group.Inside(group.NewInt(12)),
+		group.Inside(large.NewInt(0)),
+		group.Inside(large.NewInt(1)),
+		group.Inside(large.NewInt(17)),
+		group.Inside(large.NewInt(18)),
+		group.Inside(large.NewInt(12)),
 	}
 	tests := len(expected)
 	pass := 0
@@ -537,28 +567,6 @@ func TestInside(t *testing.T) {
 		}
 	}
 	println("Inside()", pass, "out of", tests, "tests passed.")
-}
-
-// Test that inside panics if cyclicInt doesn't belong to the group
-func TestInside_Panic(t *testing.T) {
-	prime := int64(107)
-	p := large.NewInt(prime)
-	g := large.NewInt(5)
-	q := large.NewInt(3)
-	group := NewGroup(p, g, q)
-	g2 := large.NewInt(2)
-	group2 := NewGroup(p, g2, q)
-
-	a := group2.NewInt(20)
-
-	defer func() {
-		if r := recover(); r == nil {
-			t.Errorf("Inside should panic when " +
-				"cyclicInt doesn't belong to the group")
-		}
-	}()
-
-	group.Inside(a)
 }
 
 // Test modulus under the group
@@ -676,7 +684,7 @@ func TestRandom(t *testing.T) {
 	q := large.NewInt(3)
 	group := NewGroup(p, g, q)
 	for i := 0; i < 100000; i++ {
-		if !group.Inside(group.Random(group.NewInt(0))) {
+		if !group.Inside(group.Random(group.NewInt(0)).GetLargeInt()) {
 			t.Errorf("Generated number is not inside the group!")
 		}
 	}
