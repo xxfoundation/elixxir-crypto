@@ -64,10 +64,10 @@ func TestNewDecryptionKey(t *testing.T) {
 		t.Errorf("Error should have been triggered!")
 	}
 
-	if k.GetLargeInt().Cmp(expected.GetLargeInt()) != 0 {
+	if k.Cmp(expected) != 0 {
 		t.Errorf("Expected: %s, Got: %s",
-			expected.GetLargeInt().Text(16),
-			k.GetLargeInt().TextVerbose(16, 0))
+			expected.Text(16),
+			k.TextVerbose(16, 0))
 	}
 }
 
@@ -81,10 +81,10 @@ func TestNewEncryptionKey(t *testing.T) {
 		t.Errorf("Error should have been triggered!")
 	}
 
-	if k.GetLargeInt().Cmp(expected.GetLargeInt()) != 0 {
+	if k.Cmp(expected) != 0 {
 		t.Errorf("Expected: %s, Got: %s",
-			expected.GetLargeInt().Text(16),
-			k.GetLargeInt().TextVerbose(16, 0))
+			expected.Text(16),
+			k.TextVerbose(16, 0))
 	}
 }
 
@@ -104,7 +104,7 @@ func TestNewDecryptionKeys(t *testing.T) {
 		t.Errorf("Bad length: expected 10, got %d", len(keys))
 	}
 	for i := range keys {
-		if keys[i].GetLargeInt().Cmp(expected.GetLargeInt()) != 0 {
+		if keys[i].Cmp(expected) != 0 {
 			t.Errorf("Generated key incorrect!")
 		}
 	}
@@ -127,7 +127,7 @@ func TestNewEncryptionKeys(t *testing.T) {
 		t.Errorf("Bad length: expected 10, got %d", len(keys))
 	}
 	for i := range keys {
-		if keys[i].GetLargeInt().Cmp(expected.GetLargeInt()) != 0 {
+		if keys[i].Cmp(expected) != 0 {
 			t.Errorf("Generated key incorrect!")
 		}
 	}

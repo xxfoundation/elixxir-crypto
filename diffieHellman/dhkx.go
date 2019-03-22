@@ -11,7 +11,6 @@ import (
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
 	"gitlab.com/elixxir/crypto/cyclic"
-	"gitlab.com/elixxir/crypto/large"
 )
 
 // CreateDHKeyPair is a function that receives the generator and prime and
@@ -59,14 +58,14 @@ func CreateDHSessionKey(publicKey *cyclic.Int, privateKey *cyclic.Int,
 // Legendre Symbol = a^(p-1)/2 mod p
 func CheckPublicKey(group *cyclic.Group, publicKey *cyclic.Int) bool {
 	// Definition of the lower bound to 1
-	lowerBound := large.NewInt(1)
+	lowerBound := group.NewInt(1)
 
 	// Definition of the upper bound to p-1
-	upperBound := group.GetPSub1()
+	upperBound := group.GetPSub1Cyclic()
 
 	//Cmp returns -1 if number is smaller, 0 if the same and 1 if bigger than.
-	x := publicKey.GetLargeInt().Cmp(lowerBound)
-	y := publicKey.GetLargeInt().Cmp(upperBound)
+	x := publicKey.Cmp(lowerBound)
+	y := publicKey.Cmp(upperBound)
 
 	// Public Key must be bigger than 1 and smaller than p-1
 	if x != 1 || y != -1 {
@@ -77,7 +76,7 @@ func CheckPublicKey(group *cyclic.Group, publicKey *cyclic.Int) bool {
 	group.Exp(publicKey, group.GetPSub1FactorCyclic(), symbol)
 
 	// Symbol must be equal to 1
-	if symbol.GetLargeInt().Cmp(lowerBound) == 0 {
+	if symbol.Cmp(lowerBound) == 0 {
 		return true
 	} else {
 		return false

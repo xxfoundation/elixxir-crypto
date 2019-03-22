@@ -42,7 +42,7 @@ func TestGenerateBaseKey(t *testing.T) {
 	b.Reset()
 	peerBaseTKey := GenerateBaseKey(&grp, ownPubKey, peerPrivKey, b)
 
-	if ownBaseTKey.GetLargeInt().Cmp(peerBaseTKey.GetLargeInt()) != 0 {
+	if ownBaseTKey.Cmp(peerBaseTKey) != 0 {
 		t.Errorf("Generated Base Key using blake2b is different between own and peer")
 		t.Errorf("own: %x", ownBaseTKey.Bytes())
 		t.Errorf("peer: %x", peerBaseTKey.Bytes())
@@ -54,13 +54,13 @@ func TestGenerateBaseKey(t *testing.T) {
 	h.Reset()
 	peerBaseRKey := GenerateBaseKey(&grp, ownPubKey, peerPrivKey, h)
 
-	if ownBaseRKey.GetLargeInt().Cmp(peerBaseRKey.GetLargeInt()) != 0 {
+	if ownBaseRKey.Cmp(peerBaseRKey) != 0 {
 		t.Errorf("Generated Base Key using sha256 is different between own and peer")
 		t.Errorf("own: %x", ownBaseRKey.Bytes())
 		t.Errorf("peer: %x", peerBaseRKey.Bytes())
 	}
 
-	if ownBaseTKey.GetLargeInt().Cmp(ownBaseRKey.GetLargeInt()) == 0 {
+	if ownBaseTKey.Cmp(ownBaseRKey) == 0 {
 		t.Errorf("Generated Base Keys are the same")
 	}
 }

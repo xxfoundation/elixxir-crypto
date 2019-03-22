@@ -54,7 +54,7 @@ func TestDHKX(t *testing.T) {
 	sessionKey2, _ := CreateDHSessionKey(pubKey2, privKey, testGroup)
 
 	// Comparison of Two Session Keys (0 means they are equal)
-	if sessionKey1.GetLargeInt().Cmp(sessionKey2.GetLargeInt()) != 0 {
+	if sessionKey1.Cmp(sessionKey2) != 0 {
 		t.Errorf("TestDHKX(): Error in CreateDHSessionKey() -> Session Keys do not match!")
 	} else {
 		pass++
@@ -234,19 +234,19 @@ func TestDHNodeKeys(t *testing.T) {
 	k23, _ := CreateDHSessionKey(grp.NewIntFromBytes(pk2), grp.NewIntFromBytes(sk3), testGroup)
 	k32, _ := CreateDHSessionKey(grp.NewIntFromBytes(pk3), grp.NewIntFromBytes(sk2), testGroup)
 
-	if k12.GetLargeInt().Cmp(k21.GetLargeInt()) != 0 {
+	if k12.Cmp(k21) != 0 {
 		t.Errorf("Keys between Node 1 & 2 do not match!")
 	} else {
 		pass++
 	}
 
-	if k13.GetLargeInt().Cmp(k31.GetLargeInt()) != 0 {
+	if k13.Cmp(k31) != 0 {
 		t.Errorf("Keys between Node 1 & 3 do not match!")
 	} else {
 		pass++
 	}
 
-	if k23.GetLargeInt().Cmp(k32.GetLargeInt()) != 0 {
+	if k23.Cmp(k32) != 0 {
 		t.Errorf("Keys between Node 2 & 3 do not match!")
 	} else {
 		pass++

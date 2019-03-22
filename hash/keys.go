@@ -30,7 +30,7 @@ func ExpandKey(h hash.Hash, g *cyclic.Group, key []byte) []byte {
 		if err != nil || size != len(expandedKey) {
 			jww.FATAL.Panicf("Could not expand key: %v", err.Error())
 		}
-		keyInt.GetLargeInt().SetBytes(expandedKey)
+		g.SetBytes(keyInt, expandedKey)
 	}
 	return expandedKey
 }

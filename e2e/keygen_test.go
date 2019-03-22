@@ -35,7 +35,7 @@ func TestKeygen(t *testing.T) {
 	basekey := grp.NewInt(1)
 	key := Keygen(testGroup, salt, basekey)
 
-	if key.GetLargeInt().Cmp(salt.GetLargeInt()) != 0 {
+	if key.Cmp(salt) != 0 {
 		t.Errorf("Dummy keygen should return 1")
 	}
 }
