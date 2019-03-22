@@ -9,33 +9,32 @@ package cyclic
 import (
 	"crypto/sha256"
 	jww "github.com/spf13/jwalterweatherman"
+	"gitlab.com/elixxir/crypto/csprng"
 	"gitlab.com/elixxir/crypto/large"
 )
 
 // Groups provide cyclic int operations that keep the return values confined to
 // a finite field under modulo p
-//TODO: EVENTUALLY WE NEED TO UPDATE THIS STRUCT AND REMOVE RAND, SEED, RNG, ETC... this is way too complex
 type Group struct {
 	prime       large.Int
 	psub1       large.Int
 	psub2       large.Int
 	psub3       large.Int
 	psub1factor large.Int
-	seed        large.Int
-	random      large.Int
 	zero        large.Int
 	one         large.Int
 	two         large.Int
 	gen         large.Int
 	primeQ      large.Int
-	rng         Random
+	rng         csprng.Source
+	random      []byte
 	fingerprint uint64
 }
 
 const GroupFingerprintSize = 8
 
-// NewGroup returns a group with the given prime, seed and generator
-func NewGroup(p, s, g, q large.Int, rng Random) Group {
+// NewGroup returns a group with the given prime, generator and Q prime (for DSA)
+func NewGroup(p, g, q large.Int) Group {
 	h := sha256.New()
 	h.Write(p.Bytes())
 	h.Write(g.Bytes())
@@ -49,14 +48,13 @@ func NewGroup(p, s, g, q large.Int, rng Random) Group {
 		psub3:       large.NewInt(0).Sub(p, large.NewInt(3)),
 		psub1factor: large.NewInt(0).RightShift(large.NewInt(0).Sub(p, large.NewInt(1)), 1),
 
-		seed:        s,
-		random:      large.NewInt(0),
 		zero:        large.NewInt(0),
 		one:         large.NewInt(1),
 		two:         large.NewInt(2),
 		gen:         g,
 		primeQ:      q,
-		rng:         rng,
+		rng:         csprng.NewSystemRNG(),
+		random:      make([]byte, (p.BitLen()+7)/8),
 		fingerprint: value.Uint64(),
 	}
 }
@@ -152,22 +150,18 @@ func (g *Group) Inverse(a, b *Int) *Int {
 	return b
 }
 
-// SetSeed sets a seed for use in random number generation
-func (g *Group) SetSeed(k large.Int) {
-	g.seed = k
-}
-
-// Random securely generates a random number within the group and sets r
-// equal to it.
+// Random securely generates a random number in the group: 2 <= rand <= p-1
+// Sets r to the number and returns it
 func (g *Group) Random(r *Int) *Int {
 	g.checkInts(r)
-	r.value.Add(g.seed, g.rng.Rand(g.random))
+	n, err := g.rng.Read(g.random)
+	if err != nil || n != len(g.random) {
+		jww.FATAL.Panicf("Could not generate random " +
+			"number in group: %v", err.Error())
+	}
+	r.value.SetBytes(g.random)
 	r.value.Mod(r.value, g.psub2)
 	r.value.Add(r.value, g.two)
-	if !g.Inside(r) {
-		jww.FATAL.Panicf("Random int is not in cyclic group: %s",
-			r.value.TextVerbose(16, 0))
-	}
 	return r
 }
 
@@ -257,7 +251,12 @@ func (g Group) Exp(x, y, z *Int) *Int {
 func (g *Group) RandomCoprime(r *Int) *Int {
 	g.checkInts(r)
 	for r.value.Set(g.psub1); !r.value.IsCoprime(g.psub1); {
-		r.value.Add(g.seed, g.rng.Rand(g.random))
+		n, err := g.rng.Read(g.random)
+		if err != nil || n != len(g.random) {
+			jww.FATAL.Panicf("Could not generate random " +
+				"Coprime number in group: %v", err.Error())
+		}
+		r.value.SetBytes(g.random)
 		r.value.Mod(r.value, g.psub3)
 		r.value.Add(r.value, g.two)
 	}
@@ -290,26 +289,39 @@ func (g Group) FindSmallCoprimeInverse(z *Int, bits uint32) *Int {
 	}
 
 	g.checkInts(z)
-	// RNG that ensures the output is an odd number between 2 and 2^(
-	// bit*8) that is not equal to p-1/2.  This must occur because for a proper
+	// RNG that ensures the output is an odd number between 2 and 2^bits
+	// that is not equal to p-1/2.  This must occur because for a proper
 	// modular inverse to exist within a group a number must have no common
 	// factors with the number that defines the group.  Normally that would not
 	// be a problem because the number that defines the group normally is a prime,
 	// but we are inverting within a group defined by the even number p-1 to find the
 	// modular exponential inverse, so the number must be chozen from a different set
+
+	// In order to generate the number in the range
+	// the following steps are taken:
+	// 1. max = 2^(bits)-2
+	// 2. gen rand num by reading from rng
+	// 3. rand mod max : giving a range of 0 - 2^(bits)-3
+	// 4. rand + 2: range: 2 - 2^(bits)-1
+	// 5. rand ^ 1: range: 3 - 2^(bits)-1, odd number
 	max := large.NewInt(0).Sub(
 		large.NewInt(0).LeftShift(
-			large.NewInt(1),
-			uint(bits)-1),
-		large.NewInt(1))
-	rng := NewRandom(large.NewInt(2), max)
+			g.one,
+			uint(bits)),
+		g.two)
+
+	zinv := large.NewInt(0)
 
 	for true {
-		zinv := large.NewInt(0).Or(
-			large.NewInt(0).LeftShift(
-				rng.Rand(large.NewInt(0)),
-				1),
-			large.NewInt(1))
+		n, err := g.rng.Read(g.random)
+		if err != nil || n != len(g.random) {
+			jww.FATAL.Panicf("Could not generate random " +
+				"number in group: %v", err.Error())
+		}
+		zinv.SetBytes(g.random)
+		zinv.Mod(zinv, max)
+		zinv.Add(zinv, g.two)
+		zinv.Xor(zinv, g.one)
 
 		// p-1 has one odd factor, (p-1)/2,  we must check that the generated number is not that
 		if zinv.Cmp(g.psub1factor) == 0 {
