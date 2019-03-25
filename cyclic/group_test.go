@@ -21,9 +21,9 @@ func TestNewGroup(t *testing.T) {
 	actual := NewGroup(p, g, q)
 
 	type testStruct struct {
-		prime large.Int
-		g     large.Int
-		q     large.Int
+		prime *large.Int
+		g     *large.Int
+		q     *large.Int
 	}
 	expected := testStruct{p, g, q}
 	tests := 1
@@ -571,7 +571,7 @@ func TestInside(t *testing.T) {
 
 // Test modulus under the group
 func TestModP(t *testing.T) {
-	p := []large.Int{large.NewInt(17), large.NewIntFromString("717190887961", 10),
+	p := []*large.Int{large.NewInt(17), large.NewIntFromString("717190887961", 10),
 		large.NewIntFromString("717190905917", 10)}
 	g := large.NewInt(13)
 	q := large.NewInt(3)
@@ -581,9 +581,9 @@ func TestModP(t *testing.T) {
 		group = append(group, NewGroup(p[i], g, q))
 	}
 
-	expected := []large.Int{large.NewInt(2), large.NewIntFromString("269673339004", 10),
+	expected := []*large.Int{large.NewInt(2), large.NewIntFromString("269673339004", 10),
 		large.NewIntFromString("623940771224", 10)}
-	a := []large.Int{large.NewInt(5000), large.NewIntFromString("beefbeecafe80386", 16),
+	a := []*large.Int{large.NewInt(5000), large.NewIntFromString("beefbeecafe80386", 16),
 		large.NewIntFromString("77777777777777777777", 16)}
 	actual := make([]*Int, len(expected))
 	for i := 0; i < len(expected); i++ {

@@ -274,7 +274,7 @@ func TestPublicKeyGen_Consistent(t *testing.T) {
 }*/
 
 // Test helper which converts a hex string into a large int
-func fromHex(s string) large.Int {
+func fromHex(s string) *large.Int {
 	result, ok := new(big.Int).SetString(s, 16)
 
 	if !ok {

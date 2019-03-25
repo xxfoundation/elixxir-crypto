@@ -69,7 +69,7 @@ func TestNewIntFromString(t *testing.T) {
 
 	expected := []string{"178567423", "deadbeef"}
 
-	largeInts := []Int{NewIntFromString(expected[0], 10),
+	largeInts := []*Int{NewIntFromString(expected[0], 10),
 		NewIntFromString(expected[1], 16)}
 
 	actual := []string{largeInts[0].Text(10), largeInts[1].Text(16)}
@@ -281,7 +281,7 @@ func TestSetString(t *testing.T) {
 		{"-1", 2},
 	}
 
-	expected := []Int{
+	expected := []*Int{
 		NewInt(42),
 		NewInt(100000000),
 		NewInt(-5),
@@ -321,7 +321,7 @@ func TestSetString(t *testing.T) {
 
 //TestSetBytes
 func TestSetBytes(t *testing.T) {
-	expected := []Int{
+	expected := []*Int{
 		NewInt(42),
 		NewInt(6553522),
 		NewIntFromString("867530918239450598372829049587", 10),
@@ -453,7 +453,7 @@ func TestUint64(t *testing.T) {
 
 //TestIsInt64
 func TestIsInt64(t *testing.T) {
-	testInts := []Int{
+	testInts := []*Int{
 		NewInt(0),
 		NewInt(1000000),
 		NewInt(9223372036854775807),
@@ -500,9 +500,9 @@ func TestIsInt64(t *testing.T) {
 //TestAdd checks if the Add function returns correct results
 func TestAdd(t *testing.T) {
 	type testStructure struct {
-		xint Int
-		yint Int
-		zint Int
+		xint *Int
+		yint *Int
+		zint *Int
 	}
 	testCases := []testStructure{
 		{NewInt(42), NewInt(69), NewInt(30)},
@@ -511,7 +511,7 @@ func TestAdd(t *testing.T) {
 		{NewInt(9223372036854775807), NewInt(10), NewInt(30)},
 	}
 
-	expected := []Int{
+	expected := []*Int{
 		NewInt(111),
 		NewInt(69),
 		NewInt(19),
@@ -537,9 +537,9 @@ func TestAdd(t *testing.T) {
 func TestSub(t *testing.T) {
 
 	type testStructure struct {
-		x Int
-		y Int
-		z Int
+		x *Int
+		y *Int
+		z *Int
 	}
 
 	testStrings := [][]string{
@@ -605,9 +605,9 @@ func TestSub(t *testing.T) {
 //TestAdd checks if the Mul function returns correct results
 func TestMul(t *testing.T) {
 	type testStructure struct {
-		xint Int
-		yint Int
-		zint Int
+		xint *Int
+		yint *Int
+		zint *Int
 	}
 	testCases := []testStructure{
 		{NewInt(42), NewInt(69), NewInt(30)},
@@ -616,7 +616,7 @@ func TestMul(t *testing.T) {
 		{NewInt(9223372036854775807), NewInt(10), NewInt(30)},
 	}
 
-	expected := []Int{
+	expected := []*Int{
 		NewInt(2898),
 		NewInt(0),
 		NewInt(-3450),
@@ -642,9 +642,9 @@ func TestMul(t *testing.T) {
 func TestDiv(t *testing.T) {
 
 	type testStructure struct {
-		x Int
-		y Int
-		z Int
+		x *Int
+		y *Int
+		z *Int
 	}
 
 	testStrings := [][]string{
@@ -714,9 +714,9 @@ func TestDiv(t *testing.T) {
 func TestMod(t *testing.T) {
 
 	type testStructure struct {
-		x Int
-		m Int
-		r Int
+		x *Int
+		m *Int
+		r *Int
 	}
 
 	testStrings := [][]string{
@@ -780,8 +780,8 @@ func TestMod(t *testing.T) {
 //TestModInverse checks if the ModInverse returns the correct result
 func TestModInverse(t *testing.T) {
 	type testStructure struct {
-		z Int
-		m Int
+		z *Int
+		m *Int
 	}
 
 	int1 := NewInt(1)
@@ -856,10 +856,10 @@ func TestModInverse_Fail(t *testing.T) {
 func TestExp(t *testing.T) {
 
 	type testStructure struct {
-		x Int
-		y Int
-		m Int
-		z Int
+		x *Int
+		y *Int
+		m *Int
+		z *Int
 	}
 
 	testStrings := [][]string{
@@ -1002,7 +1002,7 @@ func TestIsPrime(t *testing.T) {
 
 //TestBitLen checks if the BitLen placeholder exists
 func TestBitLen(t *testing.T) {
-	testints := []Int{
+	testints := []*Int{
 		NewInt(42),
 		NewInt(6553522),
 		NewInt(0),
@@ -1035,7 +1035,7 @@ func TestBitLen(t *testing.T) {
 func TestCmp(t *testing.T) {
 
 	var expected, actual int
-	var xint, yint Int
+	var xint, yint *Int
 
 	tests := 3
 	pass := 0
@@ -1108,7 +1108,7 @@ func TestRightShift(t *testing.T) {
 		actual := NewInt(0).RightShift(value, uint(shift))
 
 		if actual.Uint64() != (aInt >> shift) {
-			t.Errorf("largeInt.RightShift: shifted value not as expected: Expected: %v, Recieved: %v",
+			t.Errorf("Int.RightShift: shifted value not as expected: Expected: %v, Recieved: %v",
 				aInt>>shift, actual.Uint64())
 		}
 	}
@@ -1129,7 +1129,7 @@ func TestLeftShift(t *testing.T) {
 		actual := NewInt(0).LeftShift(value, uint(shift))
 
 		if actual.Uint64() != (aInt << shift) {
-			t.Errorf("largeInt.LeftShift: shifted value not as expected: Expected: %v, Recieved: %v",
+			t.Errorf("Int.LeftShift: shifted value not as expected: Expected: %v, Recieved: %v",
 				aInt<<shift, actual.Uint64())
 		}
 	}
@@ -1150,7 +1150,7 @@ func TestOr(t *testing.T) {
 		actual := NewInt(0).Or(val1, val2)
 
 		if actual.Uint64() != (aInt | bInt) {
-			t.Errorf("largeInt.Or: ored value not as expected: Expected: %v, Recieved: %v",
+			t.Errorf("Int.Or: ored value not as expected: Expected: %v, Recieved: %v",
 				aInt|bInt, actual.Uint64())
 		}
 	}
@@ -1170,7 +1170,7 @@ func TestXor(t *testing.T) {
 		actual := NewInt(0).Xor(val1, val2)
 
 		if actual.Uint64() != (aInt ^ bInt) {
-			t.Errorf("largeInt.Xor: xored value not as expected: Expected: %v, Recieved: %v",
+			t.Errorf("Int.Xor: xored value not as expected: Expected: %v, Recieved: %v",
 				aInt^bInt, actual.Uint64())
 		}
 	}
@@ -1190,7 +1190,7 @@ func TestAnd(t *testing.T) {
 		actual := NewInt(0).And(val1, val2)
 
 		if actual.Uint64() != (aInt & bInt) {
-			t.Errorf("largeInt.And: andd value not as expected: Expected: %v, Recieved: %v",
+			t.Errorf("Int.And: andd value not as expected: Expected: %v, Recieved: %v",
 				aInt&bInt, actual.Uint64())
 		}
 	}
@@ -1199,8 +1199,8 @@ func TestAnd(t *testing.T) {
 func BenchmarkXor(b *testing.B) {
 	src := rand.NewSource(42)
 	rng := rand.New(src)
-	var val1 []Int
-	var val2 []Int
+	var val1 []*Int
+	var val2 []*Int
 
 	for i := 0; i < b.N; i++ {
 		byteField := make([]byte, 256)
@@ -1220,7 +1220,7 @@ func BenchmarkXor(b *testing.B) {
 
 //TestBytes checks if the Bytes placeholder exists
 func TestBytes(t *testing.T) {
-	testints := []Int{
+	testints := []*Int{
 		NewInt(42),
 		NewInt(6553522),
 		//*NewInt(867530918239450598372829049587), TODO: When text parsing impl
@@ -1249,7 +1249,7 @@ func TestBytes(t *testing.T) {
 // TestLeftpadBytes makes sure that LeftpadBytes returns the correctly
 // leftpadded byte strings
 func TestLeftpadBytes(t *testing.T) {
-	testInts := []Int{
+	testInts := []*Int{
 		NewInt(420),
 		NewInt(6553522),
 		NewInt(0),
@@ -1294,7 +1294,7 @@ func TestLeftpadBytes_Panic(t *testing.T) {
 
 //TestText checks if the Text placeholder exists
 func TestText(t *testing.T) {
-	testints := []Int{
+	testints := []*Int{
 		NewInt(42),
 		NewInt(6553522),
 		NewIntFromString("867530918239450598372829049587", 10),

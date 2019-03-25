@@ -42,13 +42,6 @@ func TestDHKX(t *testing.T) {
 	privKey, pubKey := CreateDHKeyPair(testGroup)
 	privKey2, pubKey2 := CreateDHKeyPair(testGroup)
 
-	// Check if Public Key is within the group
-	if !grp.Inside(pubKey) {
-		t.Errorf("TestNewDHKeyPair(): Public Key is bigger than the prime!")
-	} else {
-		pass++
-	}
-
 	//Creation of 2 DH Session Keys
 	sessionKey1, _ := CreateDHSessionKey(pubKey, privKey2, testGroup)
 	sessionKey2, _ := CreateDHSessionKey(pubKey2, privKey, testGroup)
@@ -56,13 +49,6 @@ func TestDHKX(t *testing.T) {
 	// Comparison of Two Session Keys (0 means they are equal)
 	if sessionKey1.Cmp(sessionKey2) != 0 {
 		t.Errorf("TestDHKX(): Error in CreateDHSessionKey() -> Session Keys do not match!")
-	} else {
-		pass++
-	}
-
-	// Check if Session Key is within the prime group
-	if !grp.Inside(sessionKey1) {
-		t.Errorf("TestNewDHKeyPair(): Session Key is bigger than the prime!")
 	} else {
 		pass++
 	}

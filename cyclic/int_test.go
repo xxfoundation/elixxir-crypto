@@ -96,6 +96,33 @@ func TestLeftpadBytes(t *testing.T) {
 	println("TestLeftPadBytes()", pass, "out of", tests, "tests passed.")
 }
 
+// Tests that the copy retruned by deep copy is identical and that editing
+// one does not edit the other
+func TestInt_DeepCopy(t *testing.T) {
+	i := grp.NewInt(55)
+
+	cpy := i.DeepCopy()
+
+	if !reflect.DeepEqual(i, cpy) {
+		t.Errorf("Test of DeepCopy failed, fingerprints did not match "+
+			"expected: '%#v', got: '%#v'", i, cpy)
+	}
+
+	cpy.fingerprint = ^cpy.fingerprint
+
+	cpy.value.SetInt64(42)
+
+	if i.fingerprint == cpy.fingerprint {
+		t.Errorf("Test of DeepCopy failed, fingerprints matched after edit "+
+			"expected: '%#v', got: '%#v'", i.fingerprint, cpy.fingerprint)
+	}
+
+	if reflect.DeepEqual(i.value, cpy.value) {
+		t.Errorf("Test of DeepCopy failed, values matched after edit"+
+			"expected: '%#v', got: '%#v'", i.value.Text(16), cpy.value.Text(16))
+	}
+}
+
 // Test that Cmp works, and that it returns -1 when fingerprints differ
 func TestCmp(t *testing.T) {
 	tests := 2
@@ -107,7 +134,7 @@ func TestCmp(t *testing.T) {
 	ret := val1.Cmp(val2)
 
 	if ret != 0 {
-		t.Errorf("Test of Cmp failed, expected: 0, " +
+		t.Errorf("Test of Cmp failed, expected: 0, "+
 			"got: '%v'", ret)
 	} else {
 		pass++
@@ -119,7 +146,7 @@ func TestCmp(t *testing.T) {
 	ret = val1.Cmp(val2)
 
 	if ret != -1 {
-		t.Errorf("Test of Cmp failed, expected: -1, " +
+		t.Errorf("Test of Cmp failed, expected: -1, "+
 			"got: '%v'", ret)
 	} else {
 		pass++
@@ -217,7 +244,7 @@ func TestGobDecode_Error(t *testing.T) {
 	err := inInt.GobDecode([]byte{})
 
 	if !reflect.DeepEqual(err, errors.New("EOF")) {
-		t.Errorf("GobDecode() did not produce the expected error\n\treceived: %v" +
+		t.Errorf("GobDecode() did not produce the expected error\n\treceived: %v"+
 			"\n\texpected: %v", err, errors.New("EOF"))
 	}
 }

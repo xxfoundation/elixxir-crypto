@@ -48,7 +48,7 @@ func GetDefaultDSAParams() *DSAParameters {
 	return CustomDSAParams(bigP, bigQ, bigG)
 }
 
-func CustomDSAParams(P, Q, G large.Int) *DSAParameters {
+func CustomDSAParams(P, Q, G *large.Int) *DSAParameters {
 	return &DSAParameters{dsa.Parameters{P: P.BigInt(), Q: Q.BigInt(), G: G.BigInt()}}
 }
 
@@ -149,15 +149,15 @@ func (p *DSAParameters) GobDecode(b []byte) error {
 	return nil
 }
 
-func (p *DSAParameters) GetG() large.Int {
+func (p *DSAParameters) GetG() *large.Int {
 	return large.NewIntFromBigInt(p.params.G)
 }
 
-func (p *DSAParameters) GetP() large.Int {
+func (p *DSAParameters) GetP() *large.Int {
 	return large.NewIntFromBigInt(p.params.P)
 }
 
-func (p *DSAParameters) GetQ() large.Int {
+func (p *DSAParameters) GetQ() *large.Int {
 	return large.NewIntFromBigInt(p.params.Q)
 }
 
@@ -253,8 +253,7 @@ func (p *DSAPrivateKey) Sign(data []byte, rng io.Reader) (*DSASignature, error) 
 
 	r, s, err := dsa.Sign(rng, &p.key, data)
 
-	rval := large.Int(nil)
-	sval := large.Int(nil)
+	var rval, sval *large.Int
 
 	if err == nil {
 		rval = large.NewIntFromBigInt(r)
@@ -264,11 +263,11 @@ func (p *DSAPrivateKey) Sign(data []byte, rng io.Reader) (*DSASignature, error) 
 	return &DSASignature{rval, sval}, err
 }
 
-func (p *DSAPrivateKey) GetKey() large.Int {
+func (p *DSAPrivateKey) GetKey() *large.Int {
 	return large.NewIntFromBigInt(p.key.X)
 }
 
-func ReconstructPrivateKey(publicKey *DSAPublicKey, privateKey large.Int) *DSAPrivateKey {
+func ReconstructPrivateKey(publicKey *DSAPublicKey, privateKey *large.Int) *DSAPrivateKey {
 	pk := &DSAPrivateKey{}
 
 	pk.key.PublicKey = publicKey.key
@@ -281,7 +280,7 @@ type DSAPublicKey struct {
 	key dsa.PublicKey
 }
 
-func ReconstructPublicKey(p *DSAParameters, key large.Int) *DSAPublicKey {
+func ReconstructPublicKey(p *DSAParameters, key *large.Int) *DSAPublicKey {
 	pk := &DSAPublicKey{}
 	pk.key.Parameters = p.params
 	pk.key.Y = key.BigInt()
@@ -366,11 +365,11 @@ func (p *DSAPublicKey) Verify(hash []byte, sig DSASignature) bool {
 	return dsa.Verify(&p.key, hash, sig.R.BigInt(), sig.S.BigInt())
 }
 
-func (p *DSAPublicKey) GetKey() large.Int {
+func (p *DSAPublicKey) GetKey() *large.Int {
 	return large.NewIntFromBigInt(p.key.Y)
 }
 
 type DSASignature struct {
-	R large.Int
-	S large.Int
+	R *large.Int
+	S *large.Int
 }

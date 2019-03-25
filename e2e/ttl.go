@@ -14,7 +14,7 @@ type TTLParams struct {
 
 // Generates Key TTL and num keys given a key and a range.
 // Returns fair key TTL (num keys before retrigger happens) and num keys (usage capacity)
-func GenerateKeyTTL(key large.Int, min uint16, max uint16, params TTLParams) (uint16, uint32) {
+func GenerateKeyTTL(key *large.Int, min uint16, max uint16, params TTLParams) (uint16, uint32) {
 
 	h, err := hash.NewCMixHash()
 

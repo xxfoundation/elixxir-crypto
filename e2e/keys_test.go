@@ -85,8 +85,6 @@ func TestDeriveKeys_DeriveEmergencyKeys(t *testing.T) {
 					for _, k := range genKeys {
 						if k == nil {
 							t.Errorf("One generated Key is nil")
-						} else if !grp.Inside(k) {
-							t.Errorf("Generated key is not inside the group")
 						} else {
 							testmap[hex.EncodeToString(k.Bytes())] = true
 						}

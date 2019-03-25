@@ -17,12 +17,12 @@ import (
 // Create the cyclic.Int type as a wrapper of a large.Int
 // and group fingerprint
 type Int struct {
-	value       large.Int
+	value       *large.Int
 	fingerprint uint64
 }
 
 // Get the largeInt from cyclicInt
-func (z *Int) GetLargeInt() large.Int {
+func (z *Int) GetLargeInt() *large.Int {
 	return z.value
 }
 
@@ -39,6 +39,16 @@ func (z *Int) Bytes() []byte {
 // Get left padded bytes of cyclicInt value
 func (z *Int) LeftpadBytes(length uint64) []byte {
 	return z.value.LeftpadBytes(length)
+}
+
+// Returns a complete copy of the cyclic int such that no
+// underlying data is linked
+func (z *Int) DeepCopy() *Int {
+	i := &Int{}
+	i.value = large.NewInt(0)
+	i.fingerprint = z.fingerprint
+	i.value.Set(z.value)
+	return i
 }
 
 // Compare two cyclicInts

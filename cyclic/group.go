@@ -16,16 +16,16 @@ import (
 // Groups provide cyclic int operations that keep the return values confined to
 // a finite field under modulo p
 type Group struct {
-	prime       large.Int
-	psub1       large.Int
-	psub2       large.Int
-	psub3       large.Int
-	psub1factor large.Int
-	zero        large.Int
-	one         large.Int
-	two         large.Int
-	gen         large.Int
-	primeQ      large.Int
+	psub1       *large.Int
+	psub2       *large.Int
+	psub3       *large.Int
+	prime       *large.Int
+	psub1factor *large.Int
+	zero        *large.Int
+	one         *large.Int
+	two         *large.Int
+	gen         *large.Int
+	primeQ      *large.Int
 	rng         csprng.Source
 	random      []byte
 	fingerprint uint64
@@ -34,7 +34,7 @@ type Group struct {
 const GroupFingerprintSize = 8
 
 // NewGroup returns a group with the given prime, generator and Q prime (for DSA)
-func NewGroup(p, g, q large.Int) Group {
+func NewGroup(p, g, q *large.Int) Group {
 	h := sha256.New()
 	h.Write(p.Bytes())
 	h.Write(g.Bytes())
@@ -69,7 +69,7 @@ func (g *Group) NewInt(x int64) *Int {
 }
 
 // Create a new cyclicInt in the group from a large.Int value
-func (g *Group) NewIntFromLargeInt(x large.Int) *Int {
+func (g *Group) NewIntFromLargeInt(x *large.Int) *Int {
 	n := &Int{value: x, fingerprint: g.fingerprint}
 	return n
 }
@@ -131,7 +131,7 @@ func (g *Group) Set(x, y *Int) *Int {
 	return x
 }
 
-func (g *Group) SetLargeInt(x *Int, y large.Int) *Int {
+func (g *Group) SetLargeInt(x *Int, y *large.Int) *Int {
 	success := g.Inside(y)
 
 	if !success {
@@ -184,7 +184,7 @@ func (g *Group) Mul(a, b, c *Int) *Int {
 }
 
 // Inside returns true of the Int is within the group, false if it isn't
-func (g *Group) Inside(a large.Int) bool {
+func (g *Group) Inside(a *large.Int) bool {
 	return a.Cmp(g.zero) == 1 && a.Cmp(g.prime) == -1
 }
 
@@ -218,7 +218,7 @@ func (g *Group) Random(r *Int) *Int {
 }
 
 // GetP returns a copy of the group's prime
-func (g *Group) GetP() large.Int {
+func (g *Group) GetP() *large.Int {
 	n := large.NewInt(0)
 	n.Set(g.prime)
 	return n
@@ -230,7 +230,7 @@ func (g *Group) GetPCyclic() *Int {
 }
 
 // GetG returns a copy of the group's generator
-func (g *Group) GetG() large.Int {
+func (g *Group) GetG() *large.Int {
 	n := large.NewInt(0)
 	n.Set(g.gen)
 	return n
@@ -242,7 +242,7 @@ func (g *Group) GetGCyclic() *Int {
 }
 
 // GetQ returns a copy of the group's Q prime
-func (g *Group) GetQ() large.Int {
+func (g *Group) GetQ() *large.Int {
 	n := large.NewInt(0)
 	n.Set(g.primeQ)
 	return n
@@ -254,7 +254,7 @@ func (g *Group) GetQCyclic() *Int {
 }
 
 // GetPSub1 returns a copy of the group's p-1
-func (g *Group) GetPSub1() large.Int {
+func (g *Group) GetPSub1() *large.Int {
 	n := large.NewInt(0)
 	n.Set(g.psub1)
 	return n
@@ -266,7 +266,7 @@ func (g *Group) GetPSub1Cyclic() *Int {
 }
 
 // GetPSub1Factor returns a copy of the group's (p-1)/2
-func (g *Group) GetPSub1Factor() large.Int {
+func (g *Group) GetPSub1Factor() *large.Int {
 	n := large.NewInt(0)
 	n.Set(g.psub1factor)
 	return n
