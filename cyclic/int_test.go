@@ -155,6 +155,36 @@ func TestCmp(t *testing.T) {
 	println("TestCmp()", pass, "out of", tests, "tests passed.")
 }
 
+// Test that Clear works by setting value to 1
+func TestReset(t *testing.T) {
+	tests := 2
+	pass := 0
+
+	actual := grp.NewInt(42)
+	expected := large.NewInt(42)
+
+	// Verify proper initialization to expected
+	if actual.value.Cmp(expected) != 0 {
+		t.Errorf("Value not initialized correctly")
+	} else {
+		pass++
+	}
+
+	// Call reset on cyclic Int
+	actual.Reset()
+	expected = large.NewInt(1)
+
+	// Ensure it is equal to 1
+	if actual.value.Cmp(expected) != 0 {
+		t.Errorf("Test of GetLargeInt failed, expected: '%v', got: '%v'",
+			actual.GetLargeInt(), expected)
+	} else {
+		pass++
+	}
+
+	println("TestGetLargeInt()", pass, "out of", tests, "tests passed.")
+}
+
 // Test text representation (limited to length of 10)
 func TestText(t *testing.T) {
 	testints := []*Int{

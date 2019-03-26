@@ -61,6 +61,11 @@ func (z *Int) Cmp(x *Int) int {
 	return z.value.Cmp(x.value)
 }
 
+// Reset cyclicInt to 1
+func (z *Int) Reset() {
+	z.value.SetInt64(1)
+}
+
 // Return truncated base64 encoded string of group fingerprint
 func (z *Int) textFingerprint(length int) string {
 	buf := make([]byte, 8)
