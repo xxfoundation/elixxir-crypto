@@ -405,7 +405,6 @@ func (g Group) FindSmallCoprimeInverse(z *Int, bits uint32) *Int {
 	return z
 }
 
-
 // Returns a byte slice representing the encoding of Group for the
 // transmission to a GobDecode().
 func (g *Group) GobEncode() ([]byte, error) {
@@ -434,34 +433,6 @@ func (g *Group) GobEncode() ([]byte, error) {
 
 	return buf.Bytes(), nil
 }
-
-//// GOB encode cyclicInt to bytes
-//func (z *Int) GobEncode() ([]byte, error) {
-//	// Anonymous structure
-//	s := struct {
-//		F []byte
-//		V []byte
-//	}{
-//		make([]byte, 8),
-//		z.Bytes(),
-//	}
-//
-//	binary.BigEndian.PutUint64(s.F, z.fingerprint)
-//	var buf bytes.Buffer
-//
-//	// Create new encoder that will transmit the buffer
-//	enc := gob.NewEncoder(&buf)
-//
-//	// Transmit the data
-//	err := enc.Encode(s)
-//
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	return buf.Bytes(), nil
-//}
-
 
 // Overwrites the receiver, which must be a pointer, with Group
 // represented by the byte slice, which was written by GobEncode().
