@@ -10,6 +10,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"gitlab.com/elixxir/crypto/large"
+	"reflect"
 	"testing"
 )
 
@@ -1489,6 +1490,25 @@ func TestFindSmallCoprimeInverse_PanicReadErr(t *testing.T) {
 	}()
 
 	group.FindSmallCoprimeInverse(group.NewInt(0), bits)
+}
+
+// Tests that a Group structure that is encoded and then decoded, as a
+// gob has the same values.
+func TestGroup_GobEncode_GobDecode(t *testing.T) {
+
+	prime := large.NewInt(1000000010101111111)
+	gen := large.NewInt(5)
+	qPrime := large.NewInt(17)
+	grp1 := NewGroup(prime, gen, qPrime)
+
+	b, _ := grp1.GobEncode()
+
+	grp2 := Group{}
+	_ = grp2.GobDecode(b)
+
+	if !reflect.DeepEqual(grp1, grp2) {
+		t.Errorf("GobDecode() did not produce the the same original undecoded data\n\treceived: %v\n\texpected: %v", grp1, grp2)
+	}
 }
 
 // BENCHMARKS

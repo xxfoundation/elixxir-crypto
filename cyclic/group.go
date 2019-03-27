@@ -7,7 +7,9 @@
 package cyclic
 
 import (
+	"bytes"
 	"crypto/sha256"
+	"encoding/gob"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
 	"gitlab.com/elixxir/crypto/large"
@@ -401,4 +403,72 @@ func (g Group) FindSmallCoprimeInverse(z *Int, bits uint32) *Int {
 	}
 
 	return z
+}
+
+// Returns a byte slice representing the encoding of Group for the
+// transmission to a GobDecode().
+func (g *Group) GobEncode() ([]byte, error) {
+	// Anonymous structure that flattens nested structures
+	s := struct {
+		P []byte
+		G []byte
+		Q []byte
+	}{
+		g.prime.Bytes(),
+		g.gen.Bytes(),
+		g.primeQ.Bytes(),
+	}
+
+	var buf bytes.Buffer
+
+	// Create new encoder that will transmit the buffer
+	enc := gob.NewEncoder(&buf)
+
+	// Transmit the data
+	err := enc.Encode(s)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+// Overwrites the receiver, which must be a pointer, with Group
+// represented by the byte slice, which was written by GobEncode().
+func (g *Group) GobDecode(b []byte) error {
+	// Anonymous, empty, flat structure
+	s := struct {
+		P []byte
+		G []byte
+		Q []byte
+	}{
+		[]byte{},
+		[]byte{},
+		[]byte{},
+	}
+
+	var buf bytes.Buffer
+
+	// Write bytes to the buffer
+	buf.Write(b)
+
+	// Create new decoder that reads from the buffer
+	dec := gob.NewDecoder(&buf)
+
+	// Receive and decode data
+	err := dec.Decode(&s)
+
+	if err != nil {
+		return err
+	}
+
+	// Convert decoded bytes and put into empty structure
+	prime := large.NewIntFromBytes(s.P)
+	gen := large.NewIntFromBytes(s.G)
+	primeQ := large.NewIntFromBytes(s.Q)
+
+	*g = NewGroup(prime, gen, primeQ)
+
+	return nil
 }
