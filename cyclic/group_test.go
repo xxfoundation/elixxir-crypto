@@ -1511,6 +1511,34 @@ func TestGroup_GobEncode_GobDecode(t *testing.T) {
 	}
 }
 
+// Tests that a Group structure can be marshaled to JSON and unmarshaled to recreate equivalent group
+func TestGroup_MarshalJSON_IsValid(t *testing.T) {
+
+	prime := large.NewInt(1000000010101111111)
+	gen := large.NewInt(5)
+	qPrime := large.NewInt(17)
+	grp1 := NewGroup(prime, gen, qPrime)
+
+	// Marshall to bytes
+	b, err := grp1.MarshalJSON()
+
+	if err != nil {
+		t.Errorf("MarshalJSON() failed to serialize the group: %v", grp1)
+	}
+
+	// Unmarshal from bytes
+	grp2 := Group{}
+	err = grp2.UnmarshalJSON(b)
+
+	if err != nil {
+		t.Errorf("UnmarshalJSON() failed to serialize the group: %v", grp1)
+	}
+
+	if !reflect.DeepEqual(grp1, grp2) {
+		t.Errorf("UnmarshalJSON() did not produce the the same original undecoded data\n\treceived: %v\n\texpected: %v", grp1, grp2)
+	}
+}
+
 // BENCHMARKS
 
 func BenchmarkExpForGroup(b *testing.B) {
