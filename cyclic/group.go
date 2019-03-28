@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/gob"
+	"encoding/json"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
 	"gitlab.com/elixxir/crypto/large"
@@ -468,6 +469,61 @@ func (g *Group) GobDecode(b []byte) error {
 	gen := large.NewIntFromBytes(s.G)
 	primeQ := large.NewIntFromBytes(s.Q)
 
+	*g = NewGroup(prime, gen, primeQ)
+
+	return nil
+}
+
+// Extracts prime, gen and primeQ to a json object.
+// Returns the json object as a byte slice.
+func (g *Group) MarshalJSON() ([]byte, error) {
+
+	// Get group parameters
+	prime := g.GetP()
+	gen := g.GetG()
+	primeQ := g.GetQ()
+
+	// Create json object
+	base := 16
+	jsonObj := map[string]string {
+		"prime": prime.TextVerbose(base, 0),
+		"gen": gen.TextVerbose(base, 0),
+		"primeQ": primeQ.TextVerbose(base, 0),
+	}
+
+	// Marshal json object into byte slice
+	b, err := json.Marshal(&jsonObj)
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
+}
+
+// Overwrites the receiver, which must be a pointer, with Group
+// represented by the byte slice which contains encoded JSON data
+func (g *Group) UnmarshalJSON(b []byte) error {
+
+	// Initialize json object to contain max sized group params
+	base := 16
+	max := large.NewMaxInt().TextVerbose(base, 0)
+	jsonObj := map[string]string {
+		"prime": max,
+		"gen": max,
+		"primeQ": max,
+	}
+
+	// Unmarshal byte slice into json object
+	err := json.Unmarshal(b, &jsonObj)
+
+	if err != nil {
+		return err
+	}
+
+	// Get group params from json object and put into receiver
+	prime := large.NewIntFromString(jsonObj["prime"], base)
+	gen := large.NewIntFromString(jsonObj["gen"], base)
+	primeQ := large.NewIntFromString(jsonObj["primeQ"], base)
 	*g = NewGroup(prime, gen, primeQ)
 
 	return nil
