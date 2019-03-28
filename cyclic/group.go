@@ -61,6 +61,11 @@ func NewGroup(p, g, q *large.Int) Group {
 	}
 }
 
+// Constructors for int buffer
+func (g *Group) NewIntBuffer() *IntBuffer {
+	return &IntBuffer{nil, g.fingerprint}
+}
+
 // Constructors for cyclicInt
 
 // Create a new cyclicInt in the group from an int64 value
