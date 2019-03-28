@@ -62,8 +62,12 @@ func NewGroup(p, g, q *large.Int) Group {
 }
 
 // Constructors for int buffer
-func (g *Group) NewIntBuffer() *IntBuffer {
-	return &IntBuffer{nil, g.fingerprint}
+func (g *Group) NewIntBuffer(length uint32) *IntBuffer {
+	newBuffer := IntBuffer{make([]large.Int, length), g.fingerprint}
+	for i := range newBuffer.values {
+		newBuffer.values[i] = *g.psub1
+	}
+	return &newBuffer
 }
 
 // Constructors for cyclicInt
