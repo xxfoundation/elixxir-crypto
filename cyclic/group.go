@@ -65,7 +65,8 @@ func NewGroup(p, g, q *large.Int) Group {
 func (g *Group) NewIntBuffer(length uint32) *IntBuffer {
 	newBuffer := IntBuffer{make([]large.Int, length), g.fingerprint}
 	for i := range newBuffer.values {
-		newBuffer.values[i] = *g.psub1
+		// Call to Set() is required to not alias psub1
+		newBuffer.values[i].Set(g.psub1)
 	}
 	return &newBuffer
 }
