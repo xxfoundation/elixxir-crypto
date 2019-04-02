@@ -4,7 +4,7 @@
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
 
-package messaging
+package cmix
 
 import (
 	"crypto/sha256"
