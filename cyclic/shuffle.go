@@ -6,7 +6,37 @@
 
 package cyclic
 
-import "math"
+import (
+	jww "github.com/spf13/jwalterweatherman"
+	"gitlab.com/elixxir/crypto/csprng"
+	"gitlab.com/elixxir/crypto/large"
+)
+
+// Used in test to guarantee 100% coverage
+func shuffleCore(shufflee *[]uint64, rng csprng.Source) {
+	size := int64(len(*shufflee))
+	tmp := large.NewInt(size - 1)
+	buf := make([]byte, (tmp.BitLen()+7)/8)
+
+	var randPos int64
+
+	for curPos := int64(0); curPos < size-1; curPos++ {
+		// Shuffle should be able to swap with any element that hasn't
+		// already been shuffled
+		n, err := rng.Read(buf)
+		if err != nil || n != len(buf) {
+			jww.FATAL.Panicf("Could not generate random "+
+				"number in Shuffle: %v", err.Error())
+		}
+		tmp.SetBytes(buf)
+		// Generate a number between curPos and size-1
+		randPos = tmp.Int64()
+		randPos %= (size - curPos)
+		randPos += curPos
+		(*shufflee)[randPos], (*shufflee)[curPos] = (*shufflee)[curPos],
+			(*shufflee)[randPos]
+	}
+}
 
 // Shuffles a uint64 array using a Fisher-Yates shuffle
 func Shuffle(shufflee *[]uint64) {
@@ -14,17 +44,5 @@ func Shuffle(shufflee *[]uint64) {
 	if len(*shufflee) <= 1 {
 		return
 	}
-
-	g := NewRandom(NewInt(0), NewInt(int64(len(*shufflee))-1))
-
-	x := NewIntFromUInt(math.MaxInt64)
-
-	for curPos := int64(0); curPos < int64(len(*shufflee))-1; curPos++ {
-		// Shuffle should be able to swap with any element that hasn't
-		// already been shuffled
-		g.SetMinFromInt64(curPos)
-		randPos := g.Rand(x).Int64()
-		(*shufflee)[randPos], (*shufflee)[curPos] = (*shufflee)[curPos],
-			(*shufflee)[randPos]
-	}
+	shuffleCore(shufflee, csprng.NewSystemRNG())
 }

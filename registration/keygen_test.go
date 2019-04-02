@@ -24,12 +24,10 @@ var grp cyclic.Group
 // Also confirm that base transmission and reception keys are different
 func TestGenerateBaseKey(t *testing.T) {
 	dsaParams := signature.GetDefaultDSAParams()
-	p := dsaParams.GetP()
-	min := cyclic.NewInt(2)
-	max := cyclic.NewInt(0)
-	max.Mul(p, cyclic.NewInt(1000))
-	seed := cyclic.NewInt(42)
-	grp = cyclic.NewGroup(p, seed, dsaParams.GetG(), cyclic.NewRandom(min, max))
+	grp = cyclic.NewGroup(
+		dsaParams.GetP(),
+		dsaParams.GetG(),
+		dsaParams.GetQ())
 
 	rng := csprng.NewSystemRNG()
 	ownPrivKey := dsaParams.PrivateKeyGen(rng)

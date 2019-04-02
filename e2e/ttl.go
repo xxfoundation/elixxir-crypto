@@ -2,8 +2,8 @@ package e2e
 
 import (
 	jww "github.com/spf13/jwalterweatherman"
-	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/hash"
+	"gitlab.com/elixxir/crypto/large"
 	"math"
 )
 
@@ -14,7 +14,7 @@ type TTLParams struct {
 
 // Generates Key TTL and num keys given a key and a range.
 // Returns fair key TTL (num keys before retrigger happens) and num keys (usage capacity)
-func GenerateKeyTTL(key *cyclic.Int, min uint16, max uint16, params TTLParams) (uint16, uint32) {
+func GenerateKeyTTL(key *large.Int, min uint16, max uint16, params TTLParams) (uint16, uint32) {
 
 	h, err := hash.NewCMixHash()
 
@@ -43,9 +43,9 @@ func computeTTL(hashed []byte, min uint16, max uint16) uint16 {
 		jww.ERROR.Panicf("Min must be greater than or equal to max in computeTTL")
 	}
 
-	zero := cyclic.NewInt(0)
-	keyHash := cyclic.NewIntFromBytes(hashed)
-	mod := cyclic.NewInt(int64(max - min))
+	zero := large.NewInt(0)
+	keyHash := large.NewIntFromBytes(hashed)
+	mod := large.NewInt(int64(max - min))
 
 	// The formula used is: ttl = (keyHash % mod) + min | s.t. mod = (max - min)
 	ttl := uint16(zero.Mod(keyHash, mod).Int64()) + min

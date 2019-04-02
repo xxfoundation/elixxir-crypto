@@ -4,6 +4,7 @@ import (
 	b64 "encoding/base64"
 	"errors"
 	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/elixxir/crypto/large"
 	"math/rand"
 	"os"
 	"reflect"
@@ -26,14 +27,10 @@ func TestMain(m *testing.M) {
 		"E39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9" +
 		"DE2BCBF6955817183995497CEA956AE515D2261898FA0510" +
 		"15728E5A8AACAA68FFFFFFFFFFFFFFFF"
-	p := cyclic.NewIntFromString(primeString, 16)
-	min := cyclic.NewInt(2)
-	max := cyclic.NewInt(0)
-	max.Mul(p, cyclic.NewInt(1000))
-	seed := cyclic.NewInt(42)
-	rng := cyclic.NewRandom(min, max)
-	g := cyclic.NewInt(2)
-	grp = cyclic.NewGroup(p, seed, g, rng)
+	p := large.NewIntFromString(primeString, 16)
+	g := large.NewInt(2)
+	q := large.NewInt(3)
+	grp = cyclic.NewGroup(p, g, q)
 
 	os.Exit(m.Run())
 }
@@ -42,7 +39,7 @@ func TestMain(m *testing.M) {
 // and check that it is the same when decrypting
 func TestEncryptDecrypt(t *testing.T) {
 	// Create key and message
-	key := cyclic.NewInt(3)
+	key := grp.NewInt(3)
 	msg := []byte{5, 12, 11}
 
 	// Encrypt key
@@ -64,7 +61,7 @@ func TestEncryptDecrypt(t *testing.T) {
 func TestEncryptDecrypt_LeadingZeroes(t *testing.T) {
 
 	// Create key and message
-	key := cyclic.NewInt(3)
+	key := grp.NewInt(3)
 	msg := []byte{0, 0, 11, 5, 255, 0}
 
 	// Encrypt key
@@ -111,7 +108,7 @@ func TestEncrypt_Consistency(t *testing.T) {
 	rand.Seed(3102644637)
 	msgBytes := make([]byte, 40)
 	for i := 0; i < 16; i++ {
-		keys = append(keys, cyclic.NewInt(keyPrng.Int63()))
+		keys = append(keys, grp.NewInt(keyPrng.Int63()))
 		rand.Read(msgBytes)
 		msgs = append(msgs, msgBytes)
 	}
@@ -141,7 +138,7 @@ func TestEncrypt_ErrorOnLongMessage(t *testing.T) {
 	msgBytes := make([]byte, 4000)
 	rand.Read(msgBytes)
 	msg := msgBytes
-	key := cyclic.NewInt(65)
+	key := grp.NewInt(65)
 
 	// Encrypt key
 	encMsg, err := Encrypt(grp, key, msg)
@@ -162,7 +159,7 @@ func TestDecrypt_ErrorOnPaddingPrefix(t *testing.T) {
 	msgBytes := make([]byte, 40)
 	rand.Read(msgBytes)
 	msg := msgBytes
-	key := cyclic.NewInt(65)
+	key := grp.NewInt(65)
 
 	// Decrypt key
 	dncMsg, err := Decrypt(grp, key, msg)

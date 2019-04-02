@@ -8,6 +8,7 @@ package messaging
 
 import (
 	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/elixxir/crypto/large"
 	"testing"
 )
 
@@ -33,12 +34,9 @@ var primeStrng = "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
 	"1F612970CEE2D7AFB81BDD762170481CD0069127D5B05AA9" +
 	"93B4EA988D8FDDC186FFB7DC90A6C08F4DF435C934063199" +
 	"FFFFFFFFFFFFFFFF"
-var prime = cyclic.NewIntFromString(primeStrng, 16)
-var rng = cyclic.NewRandom(cyclic.NewInt(0),
-	cyclic.NewIntFromString(primeStrng, 16))
-var grp = cyclic.NewGroup(prime, cyclic.NewInt(5), cyclic.NewInt(4),
-	rng)
-var baseKey = cyclic.NewIntFromString("a906df88f30d6afbfa6165a50cc9e208d16b34e70b367068dc5d6bd6e155b2c3", 16)
+var prime = large.NewIntFromString(primeStrng, 16)
+var grp = cyclic.NewGroup(prime, large.NewInt(4), large.NewInt(3))
+var baseKey = grp.NewIntFromString("a906df88f30d6afbfa6165a50cc9e208d16b34e70b367068dc5d6bd6e155b2c3", 16)
 var salt = []byte("fdecfa52a8ad1688dbfa7d16df74ebf27e535903c469cefc007ebbe1ee895064")
 var expectStr = "2e4c99e14e0b1cd18c08467c395a4d5c0eb594507595041a5cfa83eb2f5791f3" +
 	"db46c933040d4c9862b91539fb8bc75e0b84ed07dd6a760dda6baec8c5f3f119" +
@@ -60,21 +58,23 @@ var expectStr = "2e4c99e14e0b1cd18c08467c395a4d5c0eb594507595041a5cfa83eb2f5791f
 // Test for functionality of NewDecryptionKey using pre-canned values
 func TestNewDecryptionKey(t *testing.T) {
 	k := NewDecryptionKey(salt, baseKey, &grp)
-	expected := cyclic.NewIntFromString(expectStr, 16)
+	expected := grp.NewIntFromString(expectStr, 16)
 
 	if k == nil {
 		t.Errorf("Error should have been triggered!")
 	}
 
 	if k.Cmp(expected) != 0 {
-		t.Errorf("Expected: %s, Got: %s", expected.Text(16), k.TextVerbose(16, 0))
+		t.Errorf("Expected: %s, Got: %s",
+			expected.Text(16),
+			k.TextVerbose(16, 0))
 	}
 }
 
 // Test for functionality of NewEncryptionKey using pre-canned values
 func TestNewEncryptionKey(t *testing.T) {
 	k := NewEncryptionKey(salt, baseKey, &grp)
-	expected := cyclic.NewIntFromString(expectStr, 16)
+	expected := grp.NewIntFromString(expectStr, 16)
 	grp.Inverse(expected, expected)
 
 	if k == nil {
@@ -82,7 +82,9 @@ func TestNewEncryptionKey(t *testing.T) {
 	}
 
 	if k.Cmp(expected) != 0 {
-		t.Errorf("Expected: %s, Got: %s", expected.Text(16), k.TextVerbose(16, 0))
+		t.Errorf("Expected: %s, Got: %s",
+			expected.Text(16),
+			k.TextVerbose(16, 0))
 	}
 }
 
@@ -97,7 +99,7 @@ func makebaseKeys(size int) []*cyclic.Int {
 // Test that multiple baseKeys return a slice of same size with correct results
 func TestNewDecryptionKeys(t *testing.T) {
 	keys := NewDecryptionKeys(salt, makebaseKeys(10), &grp)
-	expected := cyclic.NewIntFromString(expectStr, 16)
+	expected := grp.NewIntFromString(expectStr, 16)
 	if len(keys) != 10 {
 		t.Errorf("Bad length: expected 10, got %d", len(keys))
 	}
@@ -119,7 +121,7 @@ func TestNewDecryptionKeysEmpty(t *testing.T) {
 // Test that multiple baseKeys return a slice of same size with correct results
 func TestNewEncryptionKeys(t *testing.T) {
 	keys := NewEncryptionKeys(salt, makebaseKeys(10), &grp)
-	expected := cyclic.NewIntFromString(expectStr, 16)
+	expected := grp.NewIntFromString(expectStr, 16)
 	grp.Inverse(expected, expected)
 	if len(keys) != 10 {
 		t.Errorf("Bad length: expected 10, got %d", len(keys))

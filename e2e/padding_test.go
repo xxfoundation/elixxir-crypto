@@ -76,7 +76,7 @@ func TestPaddingStringPrefixIsValid(t *testing.T) {
 func TestPaddingStringTerminationIsValid(t *testing.T) {
 	msg := []byte("0123456789ABCDEF")
 	msgLen := len(msg)
-	encMsgLen := msgLen+16
+	encMsgLen := msgLen + 16
 
 	encMsg, err := Pad(msg, encMsgLen)
 
@@ -137,7 +137,7 @@ func TestNonZeroRandomBytesAlwaysGenNonZeroByte(t *testing.T) {
 	singleZero := []byte{0x00}
 	iterations := 1000
 
-	for i:=0; i<iterations; i++ {
+	for i := 0; i < iterations; i++ {
 		s := make([]byte, paddingLen)
 		nonZeroRandomBytes(s, rand.Reader)
 
@@ -226,7 +226,6 @@ func TestUnpadEncodedMsgTerminator(t *testing.T) {
 	}
 }
 
-
 func TestUnpadEncodedMsgInvalidMinPaddingString(t *testing.T) {
 	// The min padding string is not met since invalidMinPrefixString[5] == 0x00
 	invalidMinPrefixString := []byte{0x00, 0x02, 0x01, 0x01, 0x01, 0x00, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x00, 0x01, 0x01}
@@ -237,4 +236,3 @@ func TestUnpadEncodedMsgInvalidMinPaddingString(t *testing.T) {
 		t.Errorf("Invalid min prefix string did not return an error on unpad")
 	}
 }
-

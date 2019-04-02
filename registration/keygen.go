@@ -22,10 +22,10 @@ import (
 func GenerateBaseKey(g *cyclic.Group, peerPubKey *signature.DSAPublicKey,
 	ownPrivKey *signature.DSAPrivateKey, h hash.Hash) *cyclic.Int {
 
-	pubKey := peerPubKey.GetKey()
-	privKey := ownPrivKey.GetKey()
+	pubKey := g.NewIntFromLargeInt(peerPubKey.GetKey())
+	privKey := g.NewIntFromLargeInt(ownPrivKey.GetKey())
 	sessionKey, _ := diffieHellman.CreateDHSessionKey(pubKey, privKey, g)
 
 	h.Write(sessionKey.Bytes())
-	return cyclic.NewIntFromBytes(h.Sum(nil))
+	return g.NewIntFromBytes(h.Sum(nil))
 }

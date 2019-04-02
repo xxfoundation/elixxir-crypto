@@ -5,9 +5,8 @@ import (
 	"crypto/dsa"
 	"encoding/gob"
 	jww "github.com/spf13/jwalterweatherman"
-	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/elixxir/crypto/large"
 	"io"
-	"math/big"
 )
 
 type ParameterSizes dsa.ParameterSizes
@@ -42,15 +41,15 @@ const (
 )
 
 func GetDefaultDSAParams() *DSAParameters {
-	bigP := cyclic.NewIntFromString(DSA_GROUP_P, 16)
-	bigQ := cyclic.NewIntFromString(DSA_GROUP_Q, 16)
-	bigG := cyclic.NewIntFromString(DSA_GROUP_G, 16)
+	bigP := large.NewIntFromString(DSA_GROUP_P, 16)
+	bigQ := large.NewIntFromString(DSA_GROUP_Q, 16)
+	bigG := large.NewIntFromString(DSA_GROUP_G, 16)
 	jww.WARN.Printf("Using hardcoded DSA Params, should be removed in the future!")
 	return CustomDSAParams(bigP, bigQ, bigG)
 }
 
-func CustomDSAParams(P, Q, G *cyclic.Int) *DSAParameters {
-	return &DSAParameters{dsa.Parameters{P: P.GetBigInt(), Q: Q.GetBigInt(), G: G.GetBigInt()}}
+func CustomDSAParams(P, Q, G *large.Int) *DSAParameters {
+	return &DSAParameters{dsa.Parameters{P: P.BigInt(), Q: Q.BigInt(), G: G.BigInt()}}
 }
 
 func NewDSAParams(rng io.Reader, pSizes ParameterSizes) *DSAParameters {
@@ -143,23 +142,23 @@ func (p *DSAParameters) GobDecode(b []byte) error {
 	}
 
 	// Convert decoded bytes and put into empty structure
-	p.params.P = big.NewInt(0).SetBytes(s.P)
-	p.params.Q = big.NewInt(0).SetBytes(s.Q)
-	p.params.G = big.NewInt(0).SetBytes(s.G)
+	p.params.P = large.NewIntFromBytes(s.P).BigInt()
+	p.params.Q = large.NewIntFromBytes(s.Q).BigInt()
+	p.params.G = large.NewIntFromBytes(s.G).BigInt()
 
 	return nil
 }
 
-func (p *DSAParameters) GetG() *cyclic.Int {
-	return cyclic.NewIntFromBigInt(p.params.G)
+func (p *DSAParameters) GetG() *large.Int {
+	return large.NewIntFromBigInt(p.params.G)
 }
 
-func (p *DSAParameters) GetP() *cyclic.Int {
-	return cyclic.NewIntFromBigInt(p.params.P)
+func (p *DSAParameters) GetP() *large.Int {
+	return large.NewIntFromBigInt(p.params.P)
 }
 
-func (p *DSAParameters) GetQ() *cyclic.Int {
-	return cyclic.NewIntFromBigInt(p.params.Q)
+func (p *DSAParameters) GetQ() *large.Int {
+	return large.NewIntFromBigInt(p.params.Q)
 }
 
 func (k *DSAPublicKey) GetParams() *DSAParameters {
@@ -241,11 +240,11 @@ func (p *DSAPrivateKey) GobDecode(b []byte) error {
 	}
 
 	// Convert decoded bytes and put into empty structure
-	p.key.PublicKey.Parameters.P = big.NewInt(0).SetBytes(s.P)
-	p.key.PublicKey.Parameters.Q = big.NewInt(0).SetBytes(s.Q)
-	p.key.PublicKey.Parameters.G = big.NewInt(0).SetBytes(s.G)
-	p.key.PublicKey.Y = big.NewInt(0).SetBytes(s.Y)
-	p.key.X = big.NewInt(0).SetBytes(s.X)
+	p.key.PublicKey.Parameters.P = large.NewIntFromBytes(s.P).BigInt()
+	p.key.PublicKey.Parameters.Q = large.NewIntFromBytes(s.Q).BigInt()
+	p.key.PublicKey.Parameters.G = large.NewIntFromBytes(s.G).BigInt()
+	p.key.PublicKey.Y = large.NewIntFromBytes(s.Y).BigInt()
+	p.key.X = large.NewIntFromBytes(s.X).BigInt()
 
 	return nil
 }
@@ -254,22 +253,25 @@ func (p *DSAPrivateKey) Sign(data []byte, rng io.Reader) (*DSASignature, error) 
 
 	r, s, err := dsa.Sign(rng, &p.key, data)
 
-	rCyclic := cyclic.NewIntFromBigInt(r)
-	sCyclic := cyclic.NewIntFromBigInt(s)
+	var rval, sval *large.Int
 
-	return &DSASignature{rCyclic, sCyclic}, err
+	if err == nil {
+		rval = large.NewIntFromBigInt(r)
+		sval = large.NewIntFromBigInt(s)
+	}
 
+	return &DSASignature{rval, sval}, err
 }
 
-func (p *DSAPrivateKey) GetKey() *cyclic.Int {
-	return cyclic.NewIntFromBigInt(p.key.X)
+func (p *DSAPrivateKey) GetKey() *large.Int {
+	return large.NewIntFromBigInt(p.key.X)
 }
 
-func ReconstructPrivateKey(publicKey *DSAPublicKey, privateKey *cyclic.Int) *DSAPrivateKey {
+func ReconstructPrivateKey(publicKey *DSAPublicKey, privateKey *large.Int) *DSAPrivateKey {
 	pk := &DSAPrivateKey{}
 
 	pk.key.PublicKey = publicKey.key
-	pk.key.X = privateKey.GetBigInt()
+	pk.key.X = privateKey.BigInt()
 
 	return pk
 }
@@ -278,10 +280,10 @@ type DSAPublicKey struct {
 	key dsa.PublicKey
 }
 
-func ReconstructPublicKey(p *DSAParameters, key *cyclic.Int) *DSAPublicKey {
+func ReconstructPublicKey(p *DSAParameters, key *large.Int) *DSAPublicKey {
 	pk := &DSAPublicKey{}
 	pk.key.Parameters = p.params
-	pk.key.Y = key.GetBigInt()
+	pk.key.Y = key.BigInt()
 
 	return pk
 }
@@ -351,76 +353,23 @@ func (p *DSAPublicKey) GobDecode(b []byte) error {
 	}
 
 	// Convert decoded bytes and put into empty structure
-	p.key.Parameters.P = big.NewInt(0).SetBytes(s.P)
-	p.key.Parameters.Q = big.NewInt(0).SetBytes(s.Q)
-	p.key.Parameters.G = big.NewInt(0).SetBytes(s.G)
-	p.key.Y = big.NewInt(0).SetBytes(s.Y)
+	p.key.Parameters.P = large.NewIntFromBytes(s.P).BigInt()
+	p.key.Parameters.Q = large.NewIntFromBytes(s.Q).BigInt()
+	p.key.Parameters.G = large.NewIntFromBytes(s.G).BigInt()
+	p.key.Y = large.NewIntFromBytes(s.Y).BigInt()
 
 	return nil
 }
 
 func (p *DSAPublicKey) Verify(hash []byte, sig DSASignature) bool {
-	return dsa.Verify(&p.key, hash, sig.R.GetBigInt(), sig.S.GetBigInt())
+	return dsa.Verify(&p.key, hash, sig.R.BigInt(), sig.S.BigInt())
 }
 
-func (p *DSAPublicKey) GetKey() *cyclic.Int {
-	return cyclic.NewIntFromBigInt(p.key.Y)
+func (p *DSAPublicKey) GetKey() *large.Int {
+	return large.NewIntFromBigInt(p.key.Y)
 }
 
 type DSASignature struct {
-	R *cyclic.Int
-	S *cyclic.Int
+	R *large.Int
+	S *large.Int
 }
-
-// TODO: Add tests for Gob encode/decode and uncomment impl.
-//func decode(b []byte, e interface{}) error {
-//	var buffer bytes.Buffer
-//
-//	buffer.Read(b)
-//
-//	dec := gob.NewDecoder(&buffer)
-//
-//	return dec.Decode(e)
-//}
-//
-//func encode(e interface{}) ([]byte, error) {
-//	var buffer bytes.Buffer
-//
-//	enc := gob.NewEncoder(&buffer)
-//
-//	err := enc.Encode(e)
-//
-//	return buffer.Bytes(), err
-//}
-//
-//func (p *DSAParameters) GobDecode(b []byte) error {
-//	return decode(b, &p.params)
-//}
-//
-//func (p *DSAParameters) GobEncode() ([]byte, error) {
-//	return encode(p.params)
-//}
-//
-//func (p *DSAPrivateKey) GobDecode(b []byte) error {
-//	return decode(b, &p.key)
-//}
-//
-//func (p *DSAPrivateKey) GobEncode() ([]byte, error) {
-//	return encode(p.key)
-//}
-//
-//func (p *DSAPublicKey) GobDecode(b []byte) error {
-//	return decode(b, &p.key)
-//}
-//
-//func (p *DSAPublicKey) GobEncode() ([]byte, error) {
-//	return encode(p.key)
-//}
-//
-//func (p *DSASignature) GobDecode(b []byte) error {
-//	return decode(b, &p)
-//}
-//
-//func (p *DSASignature) GobEncode() ([]byte, error) {
-//	return encode(p)
-//}

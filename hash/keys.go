@@ -9,6 +9,7 @@ package hash
 import (
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/elixxir/crypto/large"
 	"golang.org/x/crypto/hkdf"
 	"hash"
 )
@@ -22,8 +23,8 @@ func ExpandKey(h hash.Hash, g *cyclic.Group, key []byte) []byte {
 		return h
 	}
 	keyGen := hkdf.Expand(foo, key, nil)
-	keyInt := cyclic.NewInt(0)
-	expandedKey := make([]byte, g.GetP(nil).BitLen()>>3)
+	keyInt := large.NewInt(0)
+	expandedKey := make([]byte, g.GetP().BitLen()>>3)
 	// Make sure generated key is in the group
 	for !g.Inside(keyInt) {
 		size, err := keyGen.Read(expandedKey)

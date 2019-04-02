@@ -7,292 +7,70 @@
 package cyclic
 
 import (
-	jww "github.com/spf13/jwalterweatherman"
-	"math/big"
+	"bytes"
+	"encoding/base64"
+	"encoding/binary"
+	"encoding/gob"
+	"gitlab.com/elixxir/crypto/large"
 )
 
-// Create the cyclic.Int type as a wrapper of the big.Int type
+// Create the cyclic.Int type as a wrapper of a large.Int
+// and group fingerprint
 type Int struct {
-	value *big.Int
+	value       *large.Int
+	fingerprint uint64
 }
 
-// NewInt allocates and returns a new Int set to x.
-func NewInt(x int64) *Int {
-	s := new(Int)
-	s.value = big.NewInt(x)
-	return s
+// Get the largeInt from cyclicInt
+func (z *Int) GetLargeInt() *large.Int {
+	return z.value
 }
 
-// Creates a cyclic int from a passed big int
-//Fixme: write a damn test
-func NewIntFromBigInt(x *big.Int) *Int {
-	return &Int{x}
+// Get the group fingerprint from cyclicInt
+func (z *Int) GetGroupFingerprint() uint64 {
+	return z.fingerprint
 }
 
-// NewIntFromBytes creates a new Int initialized from a byte buffer
-func NewIntFromBytes(buf []byte) *Int {
-	s := new(Int)
-	var x big.Int
-	x.SetBytes(buf)
-	s.value = &x
-	return s
+// Get bytes of cyclicInt value
+func (z *Int) Bytes() []byte {
+	return z.value.Bytes()
 }
 
-// NewIntFromString creates a new Int from a string using the passed base
-func NewIntFromString(str string, base int) *Int {
-	s := new(Int)
-	var x big.Int
-	x.SetString(str, base)
-	s.value = &x
-	return s
+// Get left padded bytes of cyclicInt value
+func (z *Int) LeftpadBytes(length uint64) []byte {
+	return z.value.LeftpadBytes(length)
 }
 
-// NewMaxInt creates a new Int with the value Max4KInt
-func NewMaxInt() *Int {
-	s := new(Int)
-	var x big.Int
-	x.SetBytes(Max4kBitInt)
-	s.value = &x
-	return s
+// Returns a complete copy of the cyclic int such that no
+// underlying data is linked
+func (z *Int) DeepCopy() *Int {
+	i := &Int{}
+	i.value = large.NewInt(0)
+	i.fingerprint = z.fingerprint
+	i.value.Set(z.value)
+	return i
 }
 
-// NewIntFromUInt creates a new Int from a uint64
-func NewIntFromUInt(i uint64) *Int {
-	s := new(Int)
-	var x big.Int
-	x.SetUint64(i)
-	s.value = &x
-	return s
-}
-
-// Set sets z to x and returns z.
-func (z *Int) Set(x *Int) *Int {
-	z.value.Set(x.value)
-	return z
-}
-
-// SetString makes the Int equal to the number held in the string s,
-// interpreted to have a base of b. Returns the set Int and a boolean
-// describing if the operation was successful.
-func (c *Int) SetString(s string, x int) (*Int, bool) {
-	var b bool
-	_, b = c.value.SetString(s, x)
-	if b == false {
-		return nil, false
+// Compare two cyclicInts
+// returns -1 if fingerprint differs
+// returns value.Cmp otherwise
+func (z *Int) Cmp(x *Int) int {
+	if z.fingerprint != x.fingerprint {
+		return -1
 	}
-	return c, b
+	return z.value.Cmp(x.value)
 }
 
-//SetBytes interprets buf as the bytes of a big-endian unsigned
-//integer, sets z to that value, and returns z.
-func (c *Int) SetBytes(buf []byte) *Int {
-	c.value.SetBytes(buf)
-	return c
+// Reset cyclicInt to 1
+func (z *Int) Reset() {
+	z.value.SetInt64(1)
 }
 
-//SetBigInt sets the internal Big Int of the Int equal to the value
-//of the passed Big Int
-func (c *Int) SetBigInt(b *big.Int) *Int {
-	c.value.Set(b)
-	return c
-}
-
-//SetInt64 sets the internal Big Int to the value of the passed int64
-func (c *Int) SetInt64(newValue int64) *Int {
-	c.value.SetInt64(newValue)
-	return c
-}
-
-//SetUint64 sets the internal Big Int to the value of the passed uint64
-func (c *Int) SetUint64(newValue uint64) *Int {
-	c.value.SetUint64(newValue)
-	return c
-}
-
-// Int64 converts the cyclic Int to an Int64 if possible and returns nil if not
-func (n *Int) Int64() int64 {
-	return n.value.Int64()
-}
-
-// Int64 converts the cyclic Int to a Uint64 if possible and returns nil if not
-func (n *Int) Uint64() uint64 {
-	return n.value.Uint64()
-}
-
-// IsInt64 checks if a cyclic Int can be converted to an Int64
-func (n *Int) IsInt64() bool {
-	return n.value.IsInt64()
-}
-
-// Mod sets z to the modulus x%y for y != 0 and returns z. If y == 0, a
-// division-by-zero run-time panic occurs. Mod implements Euclidean
-// modulus (unlike Go); see DivMod for more details.
-func (z *Int) Mod(x, m *Int) *Int {
-	z.value.Mod(x.value, m.value)
-	return z
-}
-
-// ModInverse sets x to the multiplicative inverse of z in the ring
-// ℤ/nℤ and returns x. If rng and n are not relatively prime, the result is
-// undefined.
-// TODO Panic if ModInverse returns nil, meaning that z and m are not
-// relatively prime
-func (x *Int) ModInverse(z, m *Int) *Int {
-	rtn := x.value.ModInverse(z.value, m.value)
-	if rtn == nil {
-		return nil
-	}
-	return x
-}
-
-// Add sets z to the sum x+y and returns z.
-func (z *Int) Add(x, y *Int) *Int {
-	z.value.Add(x.value, y.value)
-	return z
-}
-
-// Sub sets z to the difference x-y and returns z.
-func (z *Int) Sub(x, y *Int) *Int {
-	z.value.Sub(x.value, y.value)
-	return z
-}
-
-// Mul sets z to the product x*y and returns z.
-func (z *Int) Mul(x, y *Int) *Int {
-	z.value.Mul(x.value, y.value)
-	return z
-}
-
-// Div sets z to the quotient x/y and returns z.
-func (z *Int) Div(x, y *Int) *Int {
-	z.value.Div(x.value, y.value)
-	return z
-}
-
-// Exp sets z = x*y mod |m| (i.e. the sign of m is ignored), and
-// returns z. If y <= 0, the result is 1 mod |m|; if m == nil or m ==
-// 0, z = x*y. Modular exponentation of inputs of a particular size is
-// not a cryptographically constant-time operation.
-func (z *Int) Exp(x, y, m *Int) *Int {
-	z.value.Exp(x.value, y.value, m.value)
-	return z
-}
-
-// GCD returns the greatest common denominator
-func (z *Int) GCD(x, y, a, b *Int) *Int {
-	var xVal, yVal *big.Int
-	if x != nil {
-		xVal = x.value
-	}
-	if y != nil {
-		yVal = y.value
-	}
-	z.value.GCD(xVal, yVal, a.value, b.value)
-	return z
-}
-
-// IsCoprime returns true if the 2 numbers are coprime (relatively prime)
-func (z *Int) IsCoprime(x *Int) bool {
-	s := NewInt(0)
-	s.GCD(nil, nil, z, x)
-	return s.Cmp(NewInt(1)) == 0
-}
-
-// IsPrime calculates (with high probability) if a number is prime or not.
-// This function uses 40 (can be changed) iterations of the Miller-Rabin prime test
-// Return: True if number is prime. False if not.
-func (x *Int) IsPrime() bool {
-	return x.value.ProbablyPrime(40)
-}
-
-// Bytes returns the absolute value of x as a big-endian byte slice.
-func (x *Int) Bytes() []byte {
-	return x.value.Bytes()
-}
-
-// LeftpadBytes returns the absolute value of x leftpadded with zeroes
-// up the the passed number of bytes.  Panics if the byte slice from the Int
-// is longer than the passed length
-func (x *Int) LeftpadBytes(length uint64) []byte {
-	b := x.value.Bytes()
-
-	if uint64(len(b)) > length {
-		jww.FATAL.Panicf("Cyclic.Int.BytesAtLen("+
-			"): Byte array too long! Expected: %v, Received: %v", length, len(b))
-	}
-
-	rtnslc := make([]byte, length-uint64(len(b)))
-
-	rtnslc = append(rtnslc, b...)
-
-	return rtnslc
-}
-
-// BitLen returns the length of the absolute value of x in bits. The
-// bit length of 0 is 0.
-func (x *Int) BitLen() int {
-	return x.value.BitLen()
-}
-
-// Cmp compares x and y and returns:
-//	-1 if x < y
-//	 0 if x == y
-//	+1 if x > y
-func (x *Int) Cmp(y *Int) (r int) {
-	return x.value.Cmp(y.value)
-}
-
-//RightShift shifts the value right by n bits
-func (z *Int) RightShift(x *Int, n uint) *Int {
-	z.value.Rsh(x.value, n)
-	return z
-}
-
-//LeftShift shifts the value left by n bits
-func (z *Int) LeftShift(x *Int, n uint) *Int {
-	z.value.Lsh(x.value, n)
-	return z
-}
-
-//Or computes the bitwise or operation between the Cyclic Ints
-func (z *Int) Or(x, y *Int) *Int {
-	z.value.Or(x.value, y.value)
-	return z
-}
-
-//Xor computes the bitwise xor operation between the Cyclic Ints
-func (z *Int) Xor(x, y *Int) *Int {
-	z.value.Xor(x.value, y.value)
-	return z
-}
-
-//And computes the bitwise and operation between the Cyclic Ints
-func (z *Int) And(x, y *Int) *Int {
-	z.value.And(x.value, y.value)
-	return z
-}
-
-// Text returns the string representation of x in the given base. Base
-// must be between 2 and 36, inclusive. The result uses the lower-case
-// letters 'a' to 'z' for digit values >= 10. No base prefix (such as
-// "0x") is added to the string.
-// Text truncates ints to a length of 10, appending an ellipsis
-// if the int is too long.
-func (x *Int) Text(base int) string {
-	const intTextLen = 10
-	return x.TextVerbose(base, intTextLen)
-}
-
-// TextVerbose returns the string representation of x in the given base. Base
-// must be between 2 and 36, inclusive. The result uses the lower-case
-// letters 'a' to 'z' for digit values >= 10. No base prefix (such as
-// "0x") is added to the string.
-// TextVerbose truncates ints to a length of length in characters (not runes)
-// and append an ellipsis to indicate that the whole int wasn't returned,
-// unless len is 0, in which case it will return the whole int as a string.
-func (x *Int) TextVerbose(base int, length int) string {
-	fullText := x.value.Text(base)
-
+// Return truncated base64 encoded string of group fingerprint
+func (z *Int) textFingerprint(length int) string {
+	buf := make([]byte, 8)
+	binary.BigEndian.PutUint64(buf, z.fingerprint)
+	fullText := base64.StdEncoding.EncodeToString(buf)
 	if length == 0 || len(fullText) <= length {
 		return fullText
 	} else {
@@ -300,85 +78,90 @@ func (x *Int) TextVerbose(base int, length int) string {
 	}
 }
 
-func (x *Int) GobDecode(in []byte) error {
-	if x.value == nil {
-		x.value = big.NewInt(0)
+// Text returns the string representation of z in the given base. Base
+// must be between 2 and 36, inclusive. The result uses the lower-case
+// letters 'a' to 'z' for digit values >= 10. No base prefix (such as
+// "0x") is added to the string.
+// Text truncates ints to a length of 10, appending an ellipsis
+// if the int is too long.
+// The group fingerprint is base64 encoded and also truncated
+// z is then represented as: value... in GRP: fingerprint...
+func (z *Int) Text(base int) string {
+	const intTextLen = 10
+	return z.TextVerbose(base, intTextLen)
+}
+
+// TextVerbose returns the string representation of z in the given base. Base
+// must be between 2 and 36, inclusive. The result uses the lower-case
+// letters 'a' to 'z' for digit values >= 10. No base prefix (such as
+// "0x") is added to the string.
+// TextVerbose truncates ints to a length of length in characters (not runes)
+// and append an ellipsis to indicate that the whole int wasn't returned,
+// unless len is 0, in which case it will return the whole int as a string.
+// The group fingerprint is base64 encoded and also truncated
+// z is then represented as: value... in GRP: fingerprint...
+func (z *Int) TextVerbose(base int, length int) string {
+	valueText := z.value.TextVerbose(base, length)
+	fingerprintText := z.textFingerprint(length)
+	return valueText + " in GRP: " + fingerprintText
+}
+
+// GOB decode bytes to cyclicInt
+func (z *Int) GobDecode(in []byte) error {
+	// anonymous structure
+	s := struct {
+		F []byte
+		V []byte
+	}{
+		make([]byte, 8),
+		[]byte{},
 	}
-	x.value.SetBytes(in)
+
+	var buf bytes.Buffer
+
+	// Write bytes to the buffer
+	buf.Write(in)
+
+	// Create new decoder that reads from the buffer
+	dec := gob.NewDecoder(&buf)
+
+	// Receive and decode data
+	err := dec.Decode(&s)
+
+	if err != nil {
+		return err
+	}
+
+	// Convert decoded bytes and put into empty structure
+	z.value = large.NewIntFromBytes(s.V)
+	z.fingerprint = binary.BigEndian.Uint64(s.F)
+
 	return nil
 }
 
-func (x *Int) GobEncode() ([]byte, error) {
-	return x.value.Bytes(), nil
-}
+// GOB encode cyclicInt to bytes
+func (z *Int) GobEncode() ([]byte, error) {
+	// Anonymous structure
+	s := struct {
+		F []byte
+		V []byte
+	}{
+		make([]byte, 8),
+		z.Bytes(),
+	}
 
-func (x *Int) GetBigInt() *big.Int {
-	return x.value
-}
+	binary.BigEndian.PutUint64(s.F, z.fingerprint)
+	var buf bytes.Buffer
 
-// CONSTANTS
+	// Create new encoder that will transmit the buffer
+	enc := gob.NewEncoder(&buf)
 
-// A 4128bit int, meant to be the size of post moded cyclic ints.
-// Will probably be made to hold this 4096 bit prime:
-//   https://tools.ietf.org/html/rfc3526#page-5
-var Max4kBitInt = []byte{
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
+	// Transmit the data
+	err := enc.Encode(s)
 
-// PRIVATE
+	if err != nil {
+		return nil, err
+	}
 
-// bigInt converts the givne cyclic Int to a big Int and returns it's pointer
-func bigInt(n *Int) *big.Int {
-	b := big.NewInt(0)
-	b.Set(n.value)
-	return b
-}
-
-// cycInt converts the given big Int to a cyc Int and returns it's pointer
-func cycInt(n *big.Int) *Int {
-	c := new(Int)
-	c.value = n
-	return c
+	return buf.Bytes(), nil
 }

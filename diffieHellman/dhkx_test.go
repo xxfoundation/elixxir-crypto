@@ -9,6 +9,7 @@ package diffieHellman
 import (
 	"encoding/hex"
 	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/elixxir/crypto/large"
 	"testing"
 )
 
@@ -30,26 +31,16 @@ func TestDHKX(t *testing.T) {
 		"E39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9" +
 		"DE2BCBF6955817183995497CEA956AE515D2261898FA0510" +
 		"15728E5A8AACAA68FFFFFFFFFFFFFFFF"
-	p := cyclic.NewInt(0)
+	p := large.NewInt(0)
 	p.SetString(primeString, 16)
-	g := cyclic.NewInt(2)
-	s := cyclic.NewInt(0)
-	min := cyclic.NewInt(2)
-	max := p
-	rng := cyclic.NewRandom(min, max)
-	grp := cyclic.NewGroup(p, s, g, rng)
+	g := large.NewInt(2)
+	q := large.NewInt(3)
+	grp := cyclic.NewGroup(p, g, q)
 	testGroup := &grp
 
 	// Creation of two different DH Key Pairs with valid parameters
 	privKey, pubKey := CreateDHKeyPair(testGroup)
 	privKey2, pubKey2 := CreateDHKeyPair(testGroup)
-
-	// Check if Public Key is within the group
-	if pubKey.Cmp(p) != -1 {
-		t.Errorf("TestNewDHKeyPair(): Public Key is bigger than the prime!")
-	} else {
-		pass++
-	}
 
 	//Creation of 2 DH Session Keys
 	sessionKey1, _ := CreateDHSessionKey(pubKey, privKey2, testGroup)
@@ -58,13 +49,6 @@ func TestDHKX(t *testing.T) {
 	// Comparison of Two Session Keys (0 means they are equal)
 	if sessionKey1.Cmp(sessionKey2) != 0 {
 		t.Errorf("TestDHKX(): Error in CreateDHSessionKey() -> Session Keys do not match!")
-	} else {
-		pass++
-	}
-
-	// Check if Session Key is within the prime group
-	if sessionKey1.Cmp(p) != -1 {
-		t.Errorf("TestNewDHKeyPair(): Session Key is bigger than the prime!")
 	} else {
 		pass++
 	}
@@ -84,14 +68,10 @@ func Catch(fn string, t *testing.T) {
 // TestCreateDHKeyPair checks if panic is triggered when passing a number that is not a prime
 func TestCreateDHKeyPair(t *testing.T) {
 
-	p := cyclic.NewInt(4)
-	g := cyclic.NewInt(2)
-	s := cyclic.NewInt(0)
-	min := cyclic.NewInt(2)
-	max := p
-	rng := cyclic.NewRandom(min, max)
-
-	grp := cyclic.NewGroup(p, s, g, rng)
+	p := large.NewInt(4)
+	g := large.NewInt(2)
+	q := large.NewInt(3)
+	grp := cyclic.NewGroup(p, g, q)
 	testGroup := &grp
 
 	defer Catch("TestCreateDHKeyPair():", t)
@@ -114,15 +94,11 @@ func TestCheckPublicKey(t *testing.T) {
 		"E39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9" +
 		"DE2BCBF6955817183995497CEA956AE515D2261898FA0510" +
 		"15728E5A8AACAA68FFFFFFFFFFFFFFFF"
-	p := cyclic.NewInt(0)
+	p := large.NewInt(0)
 	p.SetString(primeString, 16)
-	g := cyclic.NewInt(2)
-	s := cyclic.NewInt(0)
-	min := cyclic.NewInt(2)
-	max := p
-	rng := cyclic.NewRandom(min, max)
-
-	grp := cyclic.NewGroup(p, s, g, rng)
+	g := large.NewInt(2)
+	q := large.NewInt(3)
+	grp := cyclic.NewGroup(p, g, q)
 	testGroup := &grp
 
 	// Creation of a DH Key Pair with valid parameters
@@ -139,10 +115,10 @@ func TestCheckPublicKey(t *testing.T) {
 		"0a34a6954938d29fd24a72aae3d4a0c2873ed4"
 
 	a, _ := hex.DecodeString(randomNum)
-	x := cyclic.NewIntFromBytes(a)
+	x := grp.NewIntFromBytes(a)
 
 	rightSymbol := CheckPublicKey(testGroup, pubKey)
-	fakeSymbol := CheckPublicKey(testGroup, cyclic.NewInt(1))
+	fakeSymbol := CheckPublicKey(testGroup, grp.NewInt(1))
 	falseSymbol := CheckPublicKey(testGroup, x)
 
 	if rightSymbol {
@@ -183,15 +159,11 @@ func TestDHNodeKeys(t *testing.T) {
 		"E39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9" +
 		"DE2BCBF6955817183995497CEA956AE515D2261898FA0510" +
 		"15728E5A8AACAA68FFFFFFFFFFFFFFFF"
-	p := cyclic.NewInt(0)
+	p := large.NewInt(0)
 	p.SetString(primeString, 16)
-	g := cyclic.NewInt(2)
-	s := cyclic.NewInt(0)
-	min := cyclic.NewInt(2)
-	max := p
-	rng := cyclic.NewRandom(min, max)
-
-	grp := cyclic.NewGroup(p, s, g, rng)
+	g := large.NewInt(2)
+	q := large.NewInt(3)
+	grp := cyclic.NewGroup(p, g, q)
 	testGroup := &grp
 
 	// This is a map key(string) -> value (hex string)
@@ -237,16 +209,16 @@ func TestDHNodeKeys(t *testing.T) {
 	sk3, _ := hex.DecodeString(nodeDHPrivateKeys["3"])
 
 	// Keys between Node 1 & 2
-	k12, _ := CreateDHSessionKey(cyclic.NewIntFromBytes(pk2), cyclic.NewIntFromBytes(sk1), testGroup)
-	k21, _ := CreateDHSessionKey(cyclic.NewIntFromBytes(pk1), cyclic.NewIntFromBytes(sk2), testGroup)
+	k12, _ := CreateDHSessionKey(grp.NewIntFromBytes(pk2), grp.NewIntFromBytes(sk1), testGroup)
+	k21, _ := CreateDHSessionKey(grp.NewIntFromBytes(pk1), grp.NewIntFromBytes(sk2), testGroup)
 
 	// Keys between Node 1 & 3
-	k13, _ := CreateDHSessionKey(cyclic.NewIntFromBytes(pk1), cyclic.NewIntFromBytes(sk3), testGroup)
-	k31, _ := CreateDHSessionKey(cyclic.NewIntFromBytes(pk3), cyclic.NewIntFromBytes(sk1), testGroup)
+	k13, _ := CreateDHSessionKey(grp.NewIntFromBytes(pk1), grp.NewIntFromBytes(sk3), testGroup)
+	k31, _ := CreateDHSessionKey(grp.NewIntFromBytes(pk3), grp.NewIntFromBytes(sk1), testGroup)
 
 	// Keys between Node 2 & 3
-	k23, _ := CreateDHSessionKey(cyclic.NewIntFromBytes(pk2), cyclic.NewIntFromBytes(sk3), testGroup)
-	k32, _ := CreateDHSessionKey(cyclic.NewIntFromBytes(pk3), cyclic.NewIntFromBytes(sk2), testGroup)
+	k23, _ := CreateDHSessionKey(grp.NewIntFromBytes(pk2), grp.NewIntFromBytes(sk3), testGroup)
+	k32, _ := CreateDHSessionKey(grp.NewIntFromBytes(pk3), grp.NewIntFromBytes(sk2), testGroup)
 
 	if k12.Cmp(k21) != 0 {
 		t.Errorf("Keys between Node 1 & 2 do not match!")

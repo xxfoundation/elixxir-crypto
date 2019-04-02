@@ -16,10 +16,7 @@ import (
 // CreateDHKeyPair is a function that receives the generator and prime and
 // returns a Diffie-Hellman Key pair withing the group
 func CreateDHKeyPair(group *cyclic.Group) (*cyclic.Int, *cyclic.Int) {
-
-	prime := group.GetP(cyclic.NewInt(0))
-
-	if !prime.IsPrime() {
+	if !group.GetP().IsPrime() {
 		jww.FATAL.Panicf("CreateDHKeyPair(): Passed number is not prime")
 	}
 
@@ -36,10 +33,10 @@ func CreateDHKeyPair(group *cyclic.Group) (*cyclic.Int, *cyclic.Int) {
 		panic(fmt.Sprintf("Key RNG in Diffie Hellman Failed: %s", err.Error()))
 	}
 
-	privateKey := cyclic.NewIntFromBytes(k1)
+	privateKey := group.NewIntFromBytes(k1)
 
-	publicKey := cyclic.NewInt(0)
-	publicKey.Exp(group.G, privateKey, prime)
+	publicKey := group.NewInt(0)
+	group.Exp(group.GetGCyclic(), privateKey, publicKey)
 
 	return privateKey, publicKey
 }
@@ -49,11 +46,8 @@ func CreateDHKeyPair(group *cyclic.Group) (*cyclic.Int, *cyclic.Int) {
 // v1.0 still does not include the CheckPublicKeyFeature
 func CreateDHSessionKey(publicKey *cyclic.Int, privateKey *cyclic.Int,
 	group *cyclic.Group) (*cyclic.Int, error) {
-
-	prime := group.GetP(cyclic.NewInt(0))
-
-	sessionKey := cyclic.NewInt(0)
-	sessionKey.Exp(publicKey, privateKey, prime)
+	sessionKey := group.NewInt(0)
+	group.Exp(publicKey, privateKey, sessionKey)
 
 	return sessionKey, nil
 }
@@ -63,16 +57,11 @@ func CreateDHSessionKey(publicKey *cyclic.Int, privateKey *cyclic.Int,
 // A valid public key will never trigger a negative response from this function
 // Legendre Symbol = a^(p-1)/2 mod p
 func CheckPublicKey(group *cyclic.Group, publicKey *cyclic.Int) bool {
-
-	prime := cyclic.NewInt(0)
-	group.GetP(prime)
-
 	// Definition of the lower bound to 1
-	lowerBound := cyclic.NewInt(1)
+	lowerBound := group.NewInt(1)
 
 	// Definition of the upper bound to p-1
-	upperBound := cyclic.NewInt(0)
-	group.GetPSub1(upperBound)
+	upperBound := group.GetPSub1Cyclic()
 
 	//Cmp returns -1 if number is smaller, 0 if the same and 1 if bigger than.
 	x := publicKey.Cmp(lowerBound)
@@ -83,11 +72,8 @@ func CheckPublicKey(group *cyclic.Group, publicKey *cyclic.Int) bool {
 		return false
 	}
 
-	z := cyclic.NewInt(0)
-	z.Div(upperBound, cyclic.NewInt(2))
-
-	symbol := cyclic.NewInt(0)
-	symbol.Exp(publicKey, z, prime)
+	symbol := group.NewInt(0)
+	group.Exp(publicKey, group.GetPSub1FactorCyclic(), symbol)
 
 	// Symbol must be equal to 1
 	if symbol.Cmp(lowerBound) == 0 {

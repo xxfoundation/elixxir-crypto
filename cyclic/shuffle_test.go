@@ -87,3 +87,18 @@ func TestShuffleLen1(t *testing.T) {
 	testlst = append(testlst, 1)
 	Shuffle(&testlst)
 }
+
+// Test that shuffleCore panics on read error
+func TestShuffleCorePanic(t *testing.T) {
+	var testlst []uint64
+	testlst = append(testlst, 1)
+	testlst = append(testlst, 2)
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Shuffle should panic on read error")
+		}
+	}()
+
+	shuffleCore(&testlst, AlwaysErrorReader{})
+}
