@@ -27,8 +27,6 @@ func TestNewGroup(t *testing.T) {
 		q     *large.Int
 	}
 	expected := testStruct{p, g, q}
-	tests := 1
-	pass := 0
 	if actual.prime.Cmp(expected.prime) != 0 {
 		t.Errorf("TestNewGroup failed to initialize prime, expected: '%v',"+
 			" got: '%v'", expected.prime.Text(10), actual.prime.Text(10))
@@ -38,9 +36,6 @@ func TestNewGroup(t *testing.T) {
 	} else if actual.primeQ.Cmp(expected.q) != 0 {
 		t.Errorf("TestNewGroup failed to initialize Q prime, expected: '%v',"+
 			" got: '%v'", expected.q.Text(10), actual.primeQ.Text(10))
-	} else {
-		pass++
-		println("NewGroup()", pass, "out of", tests, "tests passed.")
 	}
 }
 
@@ -277,19 +272,16 @@ func TestSetBytes(t *testing.T) {
 		{0x2A},             // 42
 		{0x63, 0xFF, 0xB2}, // 6553522
 		{0x00}}
-	tests := len(expected)
-	pass := 0
+
 	actual := grp.NewInt(0)
 	for i, testi := range testBytes {
 		actual = grp.SetBytes(actual, testi)
 		if actual.Cmp(expected[i]) != 0 {
 			t.Errorf("Test of SetBytes failed at index %v, expected: '%v', "+
 				"actual: %v", i, expected[i].Text(10), actual.Text(10))
-		} else {
-			pass++
 		}
 	}
-	println("SetBytes()", pass, "out of", tests, "tests passed.")
+
 }
 
 // Test that SetBytes panics if cyclicInt doesn't belong to the group
@@ -345,8 +337,6 @@ func TestSetString(t *testing.T) {
 		grp.NewInt(-1),
 	}
 
-	tests := len(testStructs)
-	pass := 0
 	actual := grp.NewInt(0)
 
 	for i, testi := range testStructs {
@@ -357,19 +347,15 @@ func TestSetString(t *testing.T) {
 			if expected[i] != nil {
 				t.Error("Test of SetString() failed at index:", i,
 					"Function didn't handle invalid input correctly")
-			} else {
-				pass++
 			}
 		} else {
 			if actual.Cmp(expected[i]) != 0 {
 				t.Errorf("Test of SetString() failed at index: %v Expected: %v;"+
 					" Actual: %v", i, expected[i], actual)
-			} else {
-				pass++
 			}
 		}
 	}
-	println("SetString()", pass, "out of", tests, "tests passed.")
+
 }
 
 // Test that SetString panics if cyclicInt doesn't belong to the group
@@ -500,17 +486,13 @@ func TestMul(t *testing.T) {
 		group.NewInt(0),
 	}
 
-	tests := len(actual)
-	pass := 0
 	for i := 0; i < len(actual); i++ {
 		if actual[i].value.Cmp(expected[i].value) != 0 {
 			t.Errorf("TestMulForGroup failed at index:%v, expected:%v, got:%v",
 				i, expected[i].value.Text(10), actual[i].value.Text(10))
-		} else {
-			pass++
 		}
 	}
-	println("Mul()", pass, "out of", tests, "tests passed.")
+
 }
 
 // Test that mul panics if cyclicInt doesn't belong to the group
@@ -557,17 +539,13 @@ func TestInside(t *testing.T) {
 		group.Inside(large.NewInt(18)),
 		group.Inside(large.NewInt(12)),
 	}
-	tests := len(expected)
-	pass := 0
+
 	for i := 0; i < len(expected); i++ {
 		if actual[i] != expected[i] {
 			t.Errorf("TestInside failed at index:%v, expected:%v, got:%v",
 				i, expected, actual)
-		} else {
-			pass++
 		}
 	}
-	println("Inside()", pass, "out of", tests, "tests passed.")
 }
 
 // Test modulus under the group
@@ -592,18 +570,13 @@ func TestModP(t *testing.T) {
 		group[i].ModP(actual[i], actual[i])
 	}
 
-	tests := 3
-	pass := 0
-
 	for i := 0; i < len(expected); i++ {
 		if actual[i].value.Cmp(expected[i]) != 0 {
 			t.Errorf("TestModP failed, expected: '%v', got: '%v'",
 				expected[i].Text(10), actual[i].value.Text(10))
-		} else {
-			pass++
 		}
 	}
-	println("ModP()", pass, "out of", tests, "tests passed.")
+
 }
 
 // Test that inside panics if cyclicInt doesn't belong to the group
@@ -642,16 +615,10 @@ func TestInverse(t *testing.T) {
 	a = group.Mul(x, a, a)                  // encrypted message
 	c := group.Mul(inv, a, group.NewInt(0)) //decrypted message (x)
 
-	tests := 1
-	pass := 0
-
 	if c.value.Cmp(x.value) != 0 {
 		t.Errorf("TestInverse failed, expected: '%v', got: '%v'",
 			x.value.Text(10), c.value.Text(10))
-	} else {
-		pass++
 	}
-	println("Inverse()", pass, "out of", tests, "tests passed.")
 }
 
 // Test that inverse panics if cyclicInt doesn't belong to the group
@@ -753,7 +720,6 @@ func TestGen(t *testing.T) {
 	rng := make([]int, int(p.Int64()))
 
 	tests := 500
-	pass := 0
 	thresh := 0.3
 
 	// generate randoms
@@ -774,11 +740,9 @@ func TestGen(t *testing.T) {
 		if float64(rng[i])/float64(tests) > thresh {
 			t.Errorf("TestGen() failed, insufficiently random, value: %v"+
 				" occured: %v out of %v tests", i, rng[i], tests)
-		} else {
-			pass = pass + rng[i]
 		}
 	}
-	println("Random()", pass, "out of", tests, "tests passed.")
+
 }
 
 // Test prime getter from the group
@@ -789,15 +753,11 @@ func TestGetP(t *testing.T) {
 	q := large.NewInt(3)
 	group := NewGroup(p, g, q)
 	actual := group.GetP()
-	tests := 1
-	pass := 0
+
 	if actual.Cmp(p) != 0 {
 		t.Errorf("TestGetP failed, expected: '%v', got: '%v'",
 			p.Text(10), actual.Text(10))
-	} else {
-		pass++
 	}
-	println("GetP()", pass, "out of", tests, "tests passed.")
 }
 
 // Test prime getter from the group cyclic version
@@ -808,15 +768,11 @@ func TestGetPCyclic(t *testing.T) {
 	q := large.NewInt(3)
 	group := NewGroup(p, g, q)
 	actual := group.GetPCyclic()
-	tests := 1
-	pass := 0
+
 	if actual.value.Cmp(p) != 0 {
 		t.Errorf("TestGetPCyclic failed, expected: '%v', got: '%v'",
 			p.Text(10), actual.value.Text(10))
-	} else {
-		pass++
 	}
-	println("GetPCyclic()", pass, "out of", tests, "tests passed.")
 }
 
 // Test generator getter from the group
@@ -827,15 +783,11 @@ func TestGetG(t *testing.T) {
 	q := large.NewInt(3)
 	group := NewGroup(p, g, q)
 	actual := group.GetG()
-	tests := 1
-	pass := 0
+
 	if actual.Cmp(g) != 0 {
 		t.Errorf("TestGetP failed, expected: '%v', got: '%v'",
 			g.Text(10), actual.Text(10))
-	} else {
-		pass++
 	}
-	println("GetG()", pass, "out of", tests, "tests passed.")
 }
 
 // Test generator getter from the group cyclic version
@@ -846,15 +798,11 @@ func TestGetGCyclic(t *testing.T) {
 	q := large.NewInt(3)
 	group := NewGroup(p, g, q)
 	actual := group.GetGCyclic()
-	tests := 1
-	pass := 0
+
 	if actual.value.Cmp(g) != 0 {
 		t.Errorf("TestGetGCyclic failed, expected: '%v', got: '%v'",
 			g.Text(10), actual.value.Text(10))
-	} else {
-		pass++
 	}
-	println("GetGCyclic()", pass, "out of", tests, "tests passed.")
 }
 
 // Test Q prime getter from the group
@@ -865,15 +813,11 @@ func TestGetQ(t *testing.T) {
 	q := large.NewInt(3)
 	group := NewGroup(p, g, q)
 	actual := group.GetQ()
-	tests := 1
-	pass := 0
+
 	if actual.Cmp(q) != 0 {
 		t.Errorf("TestGetQ failed, expected: '%v', got: '%v'",
 			q.Text(10), actual.Text(10))
-	} else {
-		pass++
 	}
-	println("GetQ()", pass, "out of", tests, "tests passed.")
 }
 
 // Test Q prime getter from the group cyclic version
@@ -884,15 +828,11 @@ func TestGetQCyclic(t *testing.T) {
 	q := large.NewInt(3)
 	group := NewGroup(p, g, q)
 	actual := group.GetQCyclic()
-	tests := 1
-	pass := 0
+
 	if actual.value.Cmp(q) != 0 {
 		t.Errorf("TestGetQCyclic failed, expected: '%v', got: '%v'",
 			q.Text(10), actual.value.Text(10))
-	} else {
-		pass++
 	}
-	println("GetQCyclic()", pass, "out of", tests, "tests passed.")
 }
 
 // Test prime-1 getter from the group
@@ -904,15 +844,11 @@ func TestGetPSub1(t *testing.T) {
 	group := NewGroup(p, g, q)
 	actual := group.GetPSub1()
 	ps1 := large.NewInt(16)
-	tests := 1
-	pass := 0
+
 	if actual.Cmp(ps1) != 0 {
 		t.Errorf("TestGetPSub1 failed, expected: '%v', got: '%v'",
 			ps1.Text(10), actual.Text(10))
-	} else {
-		pass++
 	}
-	println("GetPSub1()", pass, "out of", tests, "tests passed.")
 }
 
 // Test prime-1 getter from the group cyclic version
@@ -924,15 +860,12 @@ func TestGetPSub1Cyclic(t *testing.T) {
 	group := NewGroup(p, g, q)
 	actual := group.GetPSub1Cyclic()
 	ps1 := large.NewInt(16)
-	tests := 1
-	pass := 0
+
 	if actual.value.Cmp(ps1) != 0 {
 		t.Errorf("TestGetPSub1Cyclic failed, expected: '%v', got: '%v'",
 			ps1.Text(10), actual.value.Text(10))
-	} else {
-		pass++
 	}
-	println("GetPSub1Cyclic()", pass, "out of", tests, "tests passed.")
+
 }
 
 // Test (prime-1)/2 getter from the group
@@ -944,15 +877,11 @@ func TestGetPSub1Factor(t *testing.T) {
 	group := NewGroup(p, g, q)
 	actual := group.GetPSub1Factor()
 	pfactor := large.NewInt(8)
-	tests := 1
-	pass := 0
+
 	if actual.Cmp(pfactor) != 0 {
 		t.Errorf("TestGetPSub1Factor failed, expected: '%v', got: '%v'",
 			pfactor.Text(10), actual.Text(10))
-	} else {
-		pass++
 	}
-	println("GetPSub1Factor()", pass, "out of", tests, "tests passed.")
 }
 
 // Test (prime-1)/2 getter from the group cyclic version
@@ -964,22 +893,15 @@ func TestGetPSub1FactorCyclic(t *testing.T) {
 	group := NewGroup(p, g, q)
 	actual := group.GetPSub1FactorCyclic()
 	pfactor := large.NewInt(8)
-	tests := 1
-	pass := 0
+
 	if actual.value.Cmp(pfactor) != 0 {
 		t.Errorf("TestGetPSub1FactorCyclic failed, expected: '%v', got: '%v'",
 			pfactor.Text(10), actual.value.Text(10))
-	} else {
-		pass++
 	}
-	println("GetPSub1FactorCyclic()", pass, "out of", tests, "tests passed.")
 }
 
 // Test array multiplication under the group
 func TestArrayMul(t *testing.T) {
-	tests := 1
-	pass := 0
-
 	p := large.NewInt(11)
 	g := large.NewInt(7)
 	q := large.NewInt(3)
@@ -995,16 +917,13 @@ func TestArrayMul(t *testing.T) {
 	}
 
 	c := grp.NewInt(42)
-	actual := grp.ArrayMul(slc, c)
+	actual := grp.MulMulti(c, slc...)
 
 	if actual.value.Cmp(expected) != 0 {
 		t.Errorf("TestArrayMul failed, expected: '%v', got: '%v'",
 			expected, actual)
-	} else {
-		pass++
 	}
 
-	println("ArrayMul()", pass, "out of", tests, "tests passed.")
 }
 
 // Test that ArrayMult panics if cyclicInt doesn't belong to the group
@@ -1032,7 +951,7 @@ func TestArrayMult_Panic(t *testing.T) {
 		}
 	}()
 
-	group.ArrayMul(slc, a)
+	group.MulMulti(a, slc...)
 }
 
 // Test exponentiation under the group
@@ -1103,6 +1022,61 @@ func TestExp(t *testing.T) {
 
 }
 
+// Test exponentiation of the generator in the group
+func TestExpG(t *testing.T) {
+	p := large.NewInt(11)
+	g := large.NewInt(7)
+	q := large.NewInt(3)
+	grp := NewGroup(p, g, q)
+
+	type testStructure struct {
+		y *Int
+		z *Int
+	}
+
+	testStrings := [][]string{
+		{"42", "5"},
+		{"69", "8"},
+		{"42", "5"},
+		{"9999999", "8"},
+	}
+
+	var testStructs []testStructure
+
+	for i, strs := range testStrings {
+		var ts testStructure
+
+		ts.y = grp.NewIntFromString(strs[0], 10)
+
+		if ts.y == nil {
+			t.Errorf("Setup for Test of Exp() for Group failed at 'y' phase of index: %v", i)
+		}
+
+		ts.z = grp.NewIntFromString(strs[1], 10)
+
+		if ts.z == nil {
+			t.Errorf("Setup for Test of Exp() for Group failed at 'z' phase of index: %v", i)
+		}
+
+		testStructs = append(testStructs, ts)
+	}
+
+	expected := 0
+
+	for i, testi := range testStructs {
+		actual := grp.NewInt(0)
+		actual = grp.ExpG(testi.y, actual)
+
+		result := actual.value.Cmp(testi.z.value)
+
+		if result != expected {
+			t.Errorf("Test of Exp() for Group failed at index: %v Expected: %v; Actual: %v",
+				i, testi.z.value.Text(10), actual.value.Text(10))
+		}
+	}
+
+}
+
 // Test that Exp panics if cyclicInt doesn't belong to the group
 func TestExp_Panic(t *testing.T) {
 	prime := int64(107)
@@ -1140,7 +1114,7 @@ func TestRandomCoprime(t *testing.T) {
 	rng := make([]int, int(p.Int64()))
 
 	tests := 500
-	pass := 0
+
 	thresh := 0.3
 
 	// generate randoms
@@ -1161,11 +1135,8 @@ func TestRandomCoprime(t *testing.T) {
 		if float64(rng[i])/float64(tests) > thresh {
 			t.Errorf("TestRandomCoprime() failed, insufficiently random, value: %v"+
 				" occured: %v out of %v tests", i, rng[i], tests)
-		} else {
-			pass = pass + rng[i]
 		}
 	}
-	println("Random()", pass, "out of", tests, "tests passed.")
 }
 
 // Test that RandomCoprime panics if cyclicInt doesn't belong to the group
