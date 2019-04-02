@@ -25,12 +25,12 @@ func TestIntBuffer_Set(t *testing.T) {
 	// Ensure that overwriting a large int in the buffer doesn't overwrite any of
 	// the things it shouldn't overwrite
 	shouldStillBePSub1 := buf.Get(0)
-    if shouldStillBePSub1.Cmp(grp.NewInt(1000000010101111110)) != 0 {
-    	t.Error("Setting the buffer element also set another element of the" +
-    		" buffer (probably aliased)")
+	if shouldStillBePSub1.Cmp(grp.NewInt(1000000010101111110)) != 0 {
+		t.Error("Setting the buffer element also set another element of the" +
+			" buffer (probably aliased)")
 	}
 	shouldAlsoStillBePSub1 := grp.GetPSub1()
-	if shouldAlsoStillBePSub1.Cmp(large.NewInt(1000000010101111110)) != 0 {
+	if shouldAlsoStillBePSub1.value.Cmp(large.NewInt(1000000010101111110)) != 0 {
 		t.Error("Setting the buffer element also set PSub1 (probably aliased)")
 	}
 

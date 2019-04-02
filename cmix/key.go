@@ -53,7 +53,7 @@ func NewDecryptionKey(salt []byte, baseKey *cyclic.Int, group *cyclic.Group) *cy
 	// Expand Key
 	// Use SHA512
 	z := hash.ExpandKey(sha512.New(), group, y)
-
+	//FIXME: dont crash if the hash happens to be all zeroes
 	r := group.NewIntFromBytes(z)
 
 	return r

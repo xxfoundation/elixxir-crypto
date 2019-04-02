@@ -46,10 +46,10 @@ func NewGroup(p, g, q *large.Int) Group {
 	value := large.NewIntFromBytes(hashVal)
 	return Group{
 		prime:       p,
-		psub1:       large.NewInt(0).Sub(p, large.NewInt(1)),
-		psub2:       large.NewInt(0).Sub(p, large.NewInt(2)),
-		psub3:       large.NewInt(0).Sub(p, large.NewInt(3)),
-		psub1factor: large.NewInt(0).RightShift(large.NewInt(0).Sub(p, large.NewInt(1)), 1),
+		psub1:       large.NewInt(1).Sub(p, large.NewInt(1)),
+		psub2:       large.NewInt(1).Sub(p, large.NewInt(2)),
+		psub3:       large.NewInt(1).Sub(p, large.NewInt(3)),
+		psub1factor: large.NewInt(1).RightShift(large.NewInt(1).Sub(p, large.NewInt(1)), 1),
 
 		zero:        large.NewInt(0),
 		one:         large.NewInt(1),
@@ -78,12 +78,18 @@ func (g *Group) NewIntBuffer(length uint32) *IntBuffer {
 func (g *Group) NewInt(x int64) *Int {
 	val := large.NewInt(x)
 	n := &Int{value: val, fingerprint: g.fingerprint}
+	if !g.Inside(n.value) {
+		panic("NewInt: Attempted creation of cyclic outside of group")
+	}
 	return n
 }
 
 // Create a new cyclicInt in the group from a large.Int value
 func (g *Group) NewIntFromLargeInt(x *large.Int) *Int {
 	n := &Int{value: x, fingerprint: g.fingerprint}
+	if !g.Inside(n.value) {
+		panic("NewIntFromLargeInt: Attempted creation of cyclic outside of group")
+	}
 	return n
 }
 
@@ -91,6 +97,9 @@ func (g *Group) NewIntFromLargeInt(x *large.Int) *Int {
 func (g *Group) NewIntFromBytes(buf []byte) *Int {
 	val := large.NewIntFromBytes(buf)
 	n := &Int{value: val, fingerprint: g.fingerprint}
+	if !g.Inside(n.value) {
+		panic("NewIntFromBytes: Attempted creation of cyclic outside of group")
+	}
 	return n
 }
 
@@ -102,20 +111,25 @@ func (g *Group) NewIntFromString(str string, base int) *Int {
 		return nil
 	}
 	n := &Int{value: val, fingerprint: g.fingerprint}
+	if !g.Inside(n.value) {
+		panic("NewIntFromString: Attempted creation of cyclic outside of group")
+	}
 	return n
 }
 
-// Create a new cyclicInt in the group with the Max4KBit value
+// Create a new cyclicInt in the group at the max group value
 func (g *Group) NewMaxInt() *Int {
-	val := large.NewMaxInt()
-	n := &Int{value: val, fingerprint: g.fingerprint}
-	return n
+	n := &Int{value: g.psub1, fingerprint: g.fingerprint}
+	return n.DeepCopy()
 }
 
 // Create a new cyclicInt in the group from an uint64 value
 func (g *Group) NewIntFromUInt(i uint64) *Int {
 	val := large.NewIntFromUInt(i)
 	n := &Int{value: val, fingerprint: g.fingerprint}
+	if !g.Inside(n.value) {
+		panic("NewIntFromUInt: Attempted creation of cyclic outside of group")
+	}
 	return n
 }
 
@@ -177,7 +191,7 @@ func (g *Group) SetString(x *Int, s string, base int) *Int {
 // Sets x in the group to Max4KInt value and returns x
 func (g *Group) SetMaxInt(x *Int) *Int {
 	g.checkInts(x)
-	x.value.SetBytes(large.Max4kBitInt)
+	x.value.Set(g.psub1)
 	return x
 }
 
@@ -202,9 +216,9 @@ func (g *Group) Inside(a *large.Int) bool {
 }
 
 // ModP sets z ≡ x mod prime within the group and returns z.
-func (g Group) ModP(x, z *Int) *Int {
-	g.checkInts(x, z)
-	z.value.Mod(x.value, g.prime)
+func (g Group) ModP(x *large.Int, z *Int) *Int {
+	g.checkInts(z)
+	z.value.Mod(x, g.prime)
 	return z
 }
 
@@ -232,19 +246,14 @@ func (g *Group) Random(r *Int) *Int {
 
 // GetP returns a copy of the group's prime
 func (g *Group) GetP() *large.Int {
-	n := large.NewInt(0)
+	n := large.NewInt(1)
 	n.Set(g.prime)
 	return n
 }
 
-// GetPCyclic returns a new cyclicInt with the group's prime
-func (g *Group) GetPCyclic() *Int {
-	return g.NewIntFromLargeInt(g.prime)
-}
-
 // GetG returns a copy of the group's generator
 func (g *Group) GetG() *large.Int {
-	n := large.NewInt(0)
+	n := large.NewInt(1)
 	n.Set(g.gen)
 	return n
 }
@@ -256,7 +265,7 @@ func (g *Group) GetGCyclic() *Int {
 
 // GetQ returns a copy of the group's Q prime
 func (g *Group) GetQ() *large.Int {
-	n := large.NewInt(0)
+	n := large.NewInt(1)
 	n.Set(g.primeQ)
 	return n
 }
@@ -267,10 +276,10 @@ func (g *Group) GetQCyclic() *Int {
 }
 
 // GetPSub1 returns a copy of the group's p-1
-func (g *Group) GetPSub1() *large.Int {
-	n := large.NewInt(0)
+func (g *Group) GetPSub1() *Int {
+	n := large.NewInt(1)
 	n.Set(g.psub1)
-	return n
+	return &Int{n, g.fingerprint}
 }
 
 // GetPSub1Cyclic returns a new cyclicInt with the group's p-1
@@ -280,7 +289,7 @@ func (g *Group) GetPSub1Cyclic() *Int {
 
 // GetPSub1Factor returns a copy of the group's (p-1)/2
 func (g *Group) GetPSub1Factor() *large.Int {
-	n := large.NewInt(0)
+	n := large.NewInt(1)
 	n.Set(g.psub1factor)
 	return n
 }
@@ -377,13 +386,13 @@ func (g Group) FindSmallCoprimeInverse(z *Int, bits uint32) *Int {
 	// 3. rand mod max : giving a range of 0 - 2^(bits)-3
 	// 4. rand + 2: range: 2 - 2^(bits)-1
 	// 5. rand ^ 1: range: 3 - 2^(bits)-1, odd number
-	max := large.NewInt(0).Sub(
-		large.NewInt(0).LeftShift(
+	max := large.NewInt(1).Sub(
+		large.NewInt(1).LeftShift(
 			g.one,
 			uint(bits)),
 		g.two)
 
-	zinv := large.NewInt(0)
+	zinv := large.NewInt(1)
 
 	for true {
 		n, err := g.rng.Read(g.random)

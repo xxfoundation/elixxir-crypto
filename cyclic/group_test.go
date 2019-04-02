@@ -58,6 +58,24 @@ func TestNewInt(t *testing.T) {
 	}
 }
 
+// Test creation of cyclicInt in the group from int64 fails when outside the group
+func TestNewInt_Panic(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			return
+		}
+	}()
+
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	q := large.NewInt(1283)
+	grp := NewGroup(p, g, q)
+
+	grp.NewInt(0)
+
+	t.Errorf("NewInt created even when outside of the group")
+}
+
 // Test creation of cyclicInt in the group from large.Int
 func TestNewIntFromLargeInt(t *testing.T) {
 	p := large.NewInt(1000000010101111111)
@@ -75,6 +93,24 @@ func TestNewIntFromLargeInt(t *testing.T) {
 		t.Errorf("NewIntFromLargeInt is not in the group, expected group fingerprint: %v,"+
 			"got: %v", grp.GetFingerprint(), actual.GetGroupFingerprint())
 	}
+}
+
+// Test creation of cyclicInt in the group from large.Int fails when outside the group
+func TestNewIntFromLargeInt_Panic(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			return
+		}
+	}()
+
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	q := large.NewInt(1283)
+	grp := NewGroup(p, g, q)
+
+	grp.NewIntFromLargeInt(large.NewInt(0))
+
+	t.Errorf("NewIntFromLargeInt created even when outside of the group")
 }
 
 // Test creation of cyclicInt in the group from byte array
@@ -95,6 +131,24 @@ func TestNewIntFromBytes(t *testing.T) {
 		t.Errorf("NewIntFromBytes is not in the group, expected group fingerprint: %v,"+
 			"got: %v", grp.GetFingerprint(), actual.GetGroupFingerprint())
 	}
+}
+
+// Test creation of cyclicInt in the group from bytes fails when outside the group
+func TestNewIntFromBytes_Panic(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			return
+		}
+	}()
+
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	q := large.NewInt(1283)
+	grp := NewGroup(p, g, q)
+
+	grp.NewIntFromBytes([]byte{0})
+
+	t.Errorf("NewIntFromBytes created even when outside of the group")
 }
 
 // Test creation of cyclicInt in the group from string
@@ -124,6 +178,24 @@ func TestNewIntFromString(t *testing.T) {
 	}
 }
 
+// Test creation of cyclicInt in the group from string fails when outside the group
+func TestNewIntFromString_Panic(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			return
+		}
+	}()
+
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	q := large.NewInt(1283)
+	grp := NewGroup(p, g, q)
+
+	grp.NewIntFromString("0", 16)
+
+	t.Errorf("NewIntFromString created even when outside of the group")
+}
+
 // Test creation of cyclicInt in the group from Max4KInt value
 func TestNewMaxInt(t *testing.T) {
 	p := large.NewInt(1000000010101111111)
@@ -131,7 +203,7 @@ func TestNewMaxInt(t *testing.T) {
 	q := large.NewInt(1283)
 	grp := NewGroup(p, g, q)
 
-	expected := large.NewMaxInt()
+	expected := grp.psub1
 	actual := grp.NewMaxInt()
 
 	if actual.value.Cmp(expected) != 0 {
@@ -160,6 +232,24 @@ func TestNewIntFromUInt(t *testing.T) {
 		t.Errorf("NewIntFromUInt is not in the group, expected group fingerprint: %v,"+
 			"got: %v", grp.GetFingerprint(), actual.GetGroupFingerprint())
 	}
+}
+
+// Test creation of cyclicInt in the group from uint64 fails when outside the group
+func TestNewIntFromUInt_Panic(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			return
+		}
+	}()
+
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	q := large.NewInt(1283)
+	grp := NewGroup(p, g, q)
+
+	grp.NewIntFromUInt(0)
+
+	t.Errorf("NewIntFromUInt created even when outside of the group")
 }
 
 // Test group fingerprint getter
@@ -234,14 +324,14 @@ func TestSetLargeInt(t *testing.T) {
 	q := large.NewInt(3)
 	group := NewGroup(p, g, q)
 	expected := []bool{
-		false,
+		true,
 		true,
 		false,
 		false,
 		true,
 	}
 
-	inputs := []int64{0, 1, 17, 18, 12}
+	inputs := []int64{2, 1, 17, 18, 12}
 
 	actual := make([]bool, len(inputs))
 
@@ -267,13 +357,14 @@ func TestSetBytes(t *testing.T) {
 	expected := []*Int{
 		grp.NewInt(42),
 		grp.NewInt(6553522),
-		grp.NewInt(0)}
+		grp.NewInt(2)}
 	testBytes := [][]byte{
 		{0x2A},             // 42
 		{0x63, 0xFF, 0xB2}, // 6553522
-		{0x00}}
+		{0x02}}
 
-	actual := grp.NewInt(0)
+	actual := grp.NewInt(55)
+
 	for i, testi := range testBytes {
 		actual = grp.SetBytes(actual, testi)
 		if actual.Cmp(expected[i]) != 0 {
@@ -320,24 +411,24 @@ func TestSetString(t *testing.T) {
 	testStructs := []testStructure{
 		{"42", 0},
 		{"100000000", 0},
-		{"-5", 0},
-		{"0", 0},
+		{"5", 0},
+		{"1", 0},
 		{"f", 0},
 		{"182", 5},
-		{"-1", 2},
+		{"10", 2},
 	}
 
 	expected := []*Int{
 		grp.NewInt(42),
 		grp.NewInt(100000000),
-		grp.NewInt(-5),
-		grp.NewInt(0),
+		grp.NewInt(5),
+		grp.NewInt(1),
 		nil,
 		nil,
-		grp.NewInt(-1),
+		grp.NewInt(2),
 	}
 
-	actual := grp.NewInt(0)
+	actual := grp.NewInt(1)
 
 	for i, testi := range testStructs {
 		ret := grp.SetString(actual, testi.str, testi.base)
@@ -351,7 +442,7 @@ func TestSetString(t *testing.T) {
 		} else {
 			if actual.Cmp(expected[i]) != 0 {
 				t.Errorf("Test of SetString() failed at index: %v Expected: %v;"+
-					" Actual: %v", i, expected[i], actual)
+					" Actual: %v", i, expected[i].Text(10), actual.Text(10))
 			}
 		}
 	}
@@ -386,7 +477,7 @@ func TestSetMaxInt(t *testing.T) {
 	q := large.NewInt(1283)
 	grp := NewGroup(p, g, q)
 
-	expected := grp.NewMaxInt()
+	expected := grp.GetPSub1()
 	actual := grp.NewInt(int64(69))
 
 	if actual.Cmp(expected) == 0 {
@@ -478,12 +569,12 @@ func TestMul(t *testing.T) {
 	group := NewGroup(p, g, q)
 
 	actual := []*Int{
-		group.Mul(group.NewInt(20), group.NewInt(11), group.NewInt(0)),
-		group.Mul(group.NewInt(0), group.NewInt(10), group.NewInt(0)),
+		group.Mul(group.NewInt(20), group.NewInt(11), group.NewInt(1)),
+		group.Mul(group.NewInt(1), group.NewInt(10), group.NewInt(1)),
 	}
 	expected := []*Int{
 		group.NewInt((20 * 11) % prime),
-		group.NewInt(0),
+		group.NewInt(10),
 	}
 
 	for i := 0; i < len(actual); i++ {
@@ -507,7 +598,7 @@ func TestMul_Panic(t *testing.T) {
 
 	a := group.NewInt(20)
 	b := group2.NewInt(11)
-	c := group.NewInt(0)
+	c := group.NewInt(1)
 
 	defer func() {
 		if r := recover(); r == nil {
@@ -566,8 +657,8 @@ func TestModP(t *testing.T) {
 		large.NewIntFromString("77777777777777777777", 16)}
 	actual := make([]*Int, len(expected))
 	for i := 0; i < len(expected); i++ {
-		actual[i] = group[i].NewIntFromLargeInt(a[i])
-		group[i].ModP(actual[i], actual[i])
+		actual[i] = group[i].NewInt(1)
+		group[i].ModP(a[i], actual[i])
 	}
 
 	for i := 0; i < len(expected); i++ {
@@ -589,8 +680,8 @@ func TestModP_Panic(t *testing.T) {
 	g2 := large.NewInt(2)
 	group2 := NewGroup(p, g2, q)
 
-	a := group.NewInt(20)
-	b := group2.NewInt(0)
+	a := large.NewInt(20)
+	b := group2.NewInt(1)
 
 	defer func() {
 		if r := recover(); r == nil {
@@ -610,10 +701,10 @@ func TestInverse(t *testing.T) {
 	group := NewGroup(p, g, q)
 	x := group.NewInt(13) //message
 	a := group.NewInt(10) //encryption key
-	inv := group.NewInt(0)
+	inv := group.NewInt(1)
 	inv = group.Inverse(a, inv)             //decryption key
 	a = group.Mul(x, a, a)                  // encrypted message
-	c := group.Mul(inv, a, group.NewInt(0)) //decrypted message (x)
+	c := group.Mul(inv, a, group.NewInt(1)) //decrypted message (x)
 
 	if c.value.Cmp(x.value) != 0 {
 		t.Errorf("TestInverse failed, expected: '%v', got: '%v'",
@@ -632,7 +723,7 @@ func TestInverse_Panic(t *testing.T) {
 	group2 := NewGroup(p, g2, q)
 
 	a := group.NewInt(20)
-	b := group2.NewInt(0)
+	b := group2.NewInt(1)
 
 	defer func() {
 		if r := recover(); r == nil {
@@ -652,7 +743,7 @@ func TestRandom(t *testing.T) {
 	q := large.NewInt(3)
 	group := NewGroup(p, g, q)
 	for i := 0; i < 100000; i++ {
-		if !group.Inside(group.Random(group.NewInt(0)).GetLargeInt()) {
+		if !group.Inside(group.Random(group.NewInt(1)).GetLargeInt()) {
 			t.Errorf("Generated number is not inside the group!")
 		}
 	}
@@ -705,7 +796,7 @@ func TestRandom_PanicReadErr(t *testing.T) {
 		}
 	}()
 
-	group.Random(group.NewInt(0))
+	group.Random(group.NewInt(1))
 }
 
 func TestGen(t *testing.T) {
@@ -716,7 +807,7 @@ func TestGen(t *testing.T) {
 	group := NewGroup(p, g, q)
 
 	// setup array to keep track of frequency of random values
-	r := group.NewInt(0)
+	r := group.NewInt(1)
 	rng := make([]int, int(p.Int64()))
 
 	tests := 500
@@ -760,21 +851,6 @@ func TestGetP(t *testing.T) {
 	}
 }
 
-// Test prime getter from the group cyclic version
-func TestGetPCyclic(t *testing.T) {
-	// setup test group and generator
-	p := large.NewInt(17)
-	g := large.NewInt(29)
-	q := large.NewInt(3)
-	group := NewGroup(p, g, q)
-	actual := group.GetPCyclic()
-
-	if actual.value.Cmp(p) != 0 {
-		t.Errorf("TestGetPCyclic failed, expected: '%v', got: '%v'",
-			p.Text(10), actual.value.Text(10))
-	}
-}
-
 // Test generator getter from the group
 func TestGetG(t *testing.T) {
 	// setup test group and generator
@@ -793,7 +869,7 @@ func TestGetG(t *testing.T) {
 // Test generator getter from the group cyclic version
 func TestGetGCyclic(t *testing.T) {
 	// setup test group and generator
-	p := large.NewInt(17)
+	p := large.NewInt(33)
 	g := large.NewInt(29)
 	q := large.NewInt(3)
 	group := NewGroup(p, g, q)
@@ -845,7 +921,7 @@ func TestGetPSub1(t *testing.T) {
 	actual := group.GetPSub1()
 	ps1 := large.NewInt(16)
 
-	if actual.Cmp(ps1) != 0 {
+	if actual.value.Cmp(ps1) != 0 {
 		t.Errorf("TestGetPSub1 failed, expected: '%v', got: '%v'",
 			ps1.Text(10), actual.Text(10))
 	}
@@ -916,7 +992,7 @@ func TestArrayMul(t *testing.T) {
 		grp.NewInt(5),
 	}
 
-	c := grp.NewInt(42)
+	c := grp.NewInt(1)
 	actual := grp.MulMulti(c, slc...)
 
 	if actual.value.Cmp(expected) != 0 {
@@ -956,9 +1032,9 @@ func TestArrayMult_Panic(t *testing.T) {
 
 // Test exponentiation under the group
 func TestExp(t *testing.T) {
-	p := large.NewInt(11)
-	g := large.NewInt(7)
-	q := large.NewInt(3)
+	p := large.NewInt(117)
+	g := large.NewInt(5)
+	q := large.NewInt(53)
 	grp := NewGroup(p, g, q)
 
 	type testStructure struct {
@@ -968,10 +1044,10 @@ func TestExp(t *testing.T) {
 	}
 
 	testStrings := [][]string{
-		{"42", "42", "4"},
-		{"42", "69", "5"},
-		{"-69", "42", "9"},
-		{"1000000000", "9999999", "10"},
+		{"42", "41", "9"},
+		{"42", "63", "27"},
+		{"69", "42", "27"},
+		{"99", "81", "99"},
 	}
 
 	var testStructs []testStructure
@@ -1006,7 +1082,7 @@ func TestExp(t *testing.T) {
 	expected := 0
 
 	for i, testi := range testStructs {
-		actual := grp.NewInt(0)
+		actual := grp.NewInt(1)
 		actual = grp.Exp(testi.x, testi.y, actual)
 
 		result := actual.value.Cmp(testi.z.value)
@@ -1024,9 +1100,9 @@ func TestExp(t *testing.T) {
 
 // Test exponentiation of the generator in the group
 func TestExpG(t *testing.T) {
-	p := large.NewInt(11)
-	g := large.NewInt(7)
-	q := large.NewInt(3)
+	p := large.NewInt(117)
+	g := large.NewInt(5)
+	q := large.NewInt(53)
 	grp := NewGroup(p, g, q)
 
 	type testStructure struct {
@@ -1035,10 +1111,10 @@ func TestExpG(t *testing.T) {
 	}
 
 	testStrings := [][]string{
-		{"42", "5"},
-		{"69", "8"},
-		{"42", "5"},
-		{"9999999", "8"},
+		{"42", "64"},
+		{"69", "44"},
+		{"43", "86"},
+		{"2", "25"},
 	}
 
 	var testStructs []testStructure
@@ -1064,7 +1140,7 @@ func TestExpG(t *testing.T) {
 	expected := 0
 
 	for i, testi := range testStructs {
-		actual := grp.NewInt(0)
+		actual := grp.NewInt(1)
 		actual = grp.ExpG(testi.y, actual)
 
 		result := actual.value.Cmp(testi.z.value)
@@ -1089,7 +1165,7 @@ func TestExp_Panic(t *testing.T) {
 
 	a := group2.NewInt(20)
 	b := group.NewInt(11)
-	c := group.NewInt(0)
+	c := group.NewInt(1)
 
 	defer func() {
 		if r := recover(); r == nil {
@@ -1110,7 +1186,7 @@ func TestRandomCoprime(t *testing.T) {
 	group := NewGroup(p, g, q)
 
 	// setup array to keep track of frequency of random values
-	r := group.NewInt(0)
+	r := group.NewInt(1)
 	rng := make([]int, int(p.Int64()))
 
 	tests := 500
@@ -1177,7 +1253,7 @@ func TestRandomCoprime_PanicReadErr(t *testing.T) {
 		}
 	}()
 
-	group.RandomCoprime(group.NewInt(0))
+	group.RandomCoprime(group.NewInt(1))
 }
 
 // You pass a value x = a^y to the RootCoprime function, where y is (supposed to be) coprime with (p-1).
@@ -1193,9 +1269,9 @@ func TestRootCoprime(t *testing.T) {
 	group := NewGroup(p, g, q)
 
 	a := []*Int{group.NewInt(5), group.NewInt(4), group.NewInt(15)}
-	x := group.NewInt(0)
+	x := group.NewInt(1)
 	y := []*Int{group.NewInt(5), group.NewInt(11), group.NewInt(2)}
-	z := []*Int{group.NewInt(0), group.NewInt(0), group.NewInt(0)}
+	z := []*Int{group.NewInt(1), group.NewInt(1), group.NewInt(1)}
 
 	passing := []bool{true, true, false}
 
@@ -1227,7 +1303,7 @@ func TestRootCoprime_Panic(t *testing.T) {
 
 	a := group.NewInt(20)
 	b := group.NewInt(11)
-	c := group2.NewInt(0)
+	c := group2.NewInt(1)
 
 	defer func() {
 		if r := recover(); r == nil {
@@ -1265,13 +1341,13 @@ func TestFindSmallCoprimeInverse(t *testing.T) {
 	bits := uint32(256)
 
 	for i := 0; i < num; i++ {
-		z := group.NewInt(0)
+		z := group.NewInt(1)
 
-		base := group.Random(group.NewInt(0))
+		base := group.Random(group.NewInt(1))
 
 		group.FindSmallCoprimeInverse(z, bits)
 
-		zinv := large.NewInt(0).ModInverse(z.value, group.psub1)
+		zinv := large.NewInt(1).ModInverse(z.value, group.psub1)
 
 		totalBitLen += len(zinv.Bytes()) * 8
 
@@ -1281,11 +1357,11 @@ func TestFindSmallCoprimeInverse(t *testing.T) {
 				uint32(len(zinv.Bytes())*8))
 		}
 
-		baseZ := group.NewInt(0)
+		baseZ := group.NewInt(1)
 
 		group.Exp(base, z, baseZ)
 
-		basecalc := group.NewInt(0)
+		basecalc := group.NewInt(1)
 
 		basecalc = group.RootCoprime(baseZ, z, basecalc)
 
@@ -1321,14 +1397,14 @@ func TestFindSmallCoprimeInverse_SmallGroup(t *testing.T) {
 	for i := 0; i < num; i++ {
 		z := group.NewInt(1)
 
-		base := group.Random(group.NewInt(0))
+		base := group.Random(group.NewInt(1))
 
 		// z will be unchanged if a number with no inverse is returned
 		for z.value.Cmp(one) == 0 {
 			group.FindSmallCoprimeInverse(z, bits)
 		}
 
-		zinv := large.NewInt(0).ModInverse(z.value, group.psub1)
+		zinv := large.NewInt(1).ModInverse(z.value, group.psub1)
 
 		if zinv.BitLen() > int(bits) {
 			t.Errorf("FindSmallExponent Error: Inverse too large on "+
@@ -1336,11 +1412,11 @@ func TestFindSmallCoprimeInverse_SmallGroup(t *testing.T) {
 				zinv.BitLen())
 		}
 
-		baseZ := group.NewInt(0)
+		baseZ := group.NewInt(1)
 
 		group.Exp(base, z, baseZ)
 
-		basecalc := group.NewInt(0)
+		basecalc := group.NewInt(1)
 
 		basecalc = group.RootCoprime(baseZ, z, basecalc)
 
@@ -1368,14 +1444,14 @@ func TestFindSmallCoprimeInverse_UnsafeGroup(t *testing.T) {
 	for i := 0; i < num; i++ {
 		z := group.NewInt(1)
 
-		base := group.Random(group.NewInt(0))
+		base := group.Random(group.NewInt(1))
 
 		// z will be unchanged if a number with no inverse is returned
 		for z.value.Cmp(one) == 0 {
 			group.FindSmallCoprimeInverse(z, bits)
 		}
 
-		zinv := large.NewInt(0).ModInverse(z.value, group.psub1)
+		zinv := large.NewInt(1).ModInverse(z.value, group.psub1)
 
 		if zinv.BitLen() > int(bits) {
 			t.Errorf("FindSmallExponent Error: Inverse too large on "+
@@ -1383,11 +1459,11 @@ func TestFindSmallCoprimeInverse_UnsafeGroup(t *testing.T) {
 				zinv.BitLen())
 		}
 
-		baseZ := group.NewInt(0)
+		baseZ := group.NewInt(1)
 
 		group.Exp(base, z, baseZ)
 
-		basecalc := group.NewInt(0)
+		basecalc := group.NewInt(1)
 
 		basecalc = group.RootCoprime(baseZ, z, basecalc)
 
@@ -1460,7 +1536,7 @@ func TestFindSmallCoprimeInverse_PanicReadErr(t *testing.T) {
 		}
 	}()
 
-	group.FindSmallCoprimeInverse(group.NewInt(0), bits)
+	group.FindSmallCoprimeInverse(group.NewInt(1), bits)
 }
 
 // Tests that a Group structure that is encoded and then decoded, as a
@@ -1531,16 +1607,16 @@ func BenchmarkExpForGroup(b *testing.B) {
 	grp := NewGroup(p, g, q)
 
 	//prebake inputs
-	z := grp.NewInt(0)
+	z := grp.NewInt(1)
 	G := grp.GetGCyclic()
 
 	var inputs []*Int
 	var outputs []*Int
 
 	for i := 0; i < b.N; i++ {
-		nint := grp.Random(grp.NewInt(0))
+		nint := grp.Random(grp.NewInt(1))
 		inputs = append(inputs, nint)
-		outputs = append(outputs, grp.NewInt(0))
+		outputs = append(outputs, grp.NewInt(1))
 	}
 
 	b.ResetTimer()
@@ -1568,18 +1644,18 @@ func BenchmarkMulForGroup(b *testing.B) {
 	grp := NewGroup(p, g, q)
 
 	//prebake inputs
-	z := grp.NewInt(0)
+	z := grp.NewInt(1)
 
 	var inputA []*Int
 	var inputB []*Int
 	var outputs []*Int
 
 	for i := 0; i < b.N; i++ {
-		nint := grp.Random(grp.NewInt(0))
+		nint := grp.Random(grp.NewInt(1))
 		inputA = append(inputA, nint)
-		mint := grp.Random(grp.NewInt(0))
+		mint := grp.Random(grp.NewInt(1))
 		inputB = append(inputB, mint)
-		outputs = append(outputs, grp.NewInt(0))
+		outputs = append(outputs, grp.NewInt(1))
 	}
 
 	b.ResetTimer()
@@ -1607,17 +1683,17 @@ func BenchmarkInverse(b *testing.B) {
 	grp := NewGroup(p, g, q)
 
 	//prebake inputs
-	z := grp.NewInt(0)
+	z := grp.NewInt(1)
 	G := grp.GetGCyclic()
 
 	var inputs []*Int
 	var outputs []*Int
 
 	for i := 0; i < b.N; i++ {
-		nint := grp.Random(grp.NewInt(0))
+		nint := grp.Random(grp.NewInt(1))
 		nint = grp.Exp(G, nint, z)
 		inputs = append(inputs, nint)
-		outputs = append(outputs, grp.NewInt(0))
+		outputs = append(outputs, grp.NewInt(1))
 	}
 
 	b.ResetTimer()

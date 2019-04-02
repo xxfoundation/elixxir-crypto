@@ -33,5 +33,6 @@ func ExpandKey(h hash.Hash, g *cyclic.Group, key []byte) []byte {
 		}
 		keyInt.SetBytes(expandedKey)
 	}
+
 	return expandedKey
 }
