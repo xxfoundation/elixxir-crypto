@@ -292,11 +292,12 @@ func (g *Group) GetPSub1FactorCyclic() *Int {
 
 // GroupMul Multiplies all ints in the passed slice slc together and
 // places the result in c
-func (g Group) ArrayMul(slc []*Int, c *Int) *Int {
-	g.checkInts(c)
+func (g Group) MulMulti(c *Int, ints ...*Int) *Int {
+
+	g.checkInts(append(ints, c)...)
 	c.value.SetString("1", 10)
 
-	for _, islc := range slc {
+	for _, islc := range ints {
 		g.checkInts(islc)
 		g.Mul(c, islc, c)
 	}
@@ -308,6 +309,13 @@ func (g Group) ArrayMul(slc []*Int, c *Int) *Int {
 func (g Group) Exp(x, y, z *Int) *Int {
 	g.checkInts(x, y, z)
 	z.value.Exp(x.value, y.value, g.prime)
+	return z
+}
+
+// Exp sets z = g**y mod p, and returns z.
+func (g Group) ExpG(y, z *Int) *Int {
+	g.checkInts(y, z)
+	z.value.Exp(g.gen, y.value, g.prime)
 	return z
 }
 
@@ -495,9 +503,9 @@ func (g *Group) MarshalJSON() ([]byte, error) {
 
 	// Create json object
 	base := 16
-	jsonObj := map[string]string {
-		"prime": prime.TextVerbose(base, 0),
-		"gen": gen.TextVerbose(base, 0),
+	jsonObj := map[string]string{
+		"prime":  prime.TextVerbose(base, 0),
+		"gen":    gen.TextVerbose(base, 0),
 		"primeQ": primeQ.TextVerbose(base, 0),
 	}
 
@@ -517,9 +525,9 @@ func (g *Group) UnmarshalJSON(b []byte) error {
 	// Initialize json object to contain max sized group params
 	base := 16
 	max := large.NewMaxInt().TextVerbose(base, 0)
-	jsonObj := map[string]string {
-		"prime": max,
-		"gen": max,
+	jsonObj := map[string]string{
+		"prime":  max,
+		"gen":    max,
 		"primeQ": max,
 	}
 
