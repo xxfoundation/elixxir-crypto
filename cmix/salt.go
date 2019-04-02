@@ -4,7 +4,7 @@
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
 
-package messaging
+package cmix
 
 import (
 	jww "github.com/spf13/jwalterweatherman"

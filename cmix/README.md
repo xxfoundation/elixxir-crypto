@@ -1,8 +1,8 @@
-# elixxir/crypto/messaging
+# elixxir/crypto/cmix
 
 TBD: This is a proposed redesign and is aspirational at the moment.
 
-The messaging module contains utility functions for preparing,
+The cmix module contains utility functions for preparing,
 encrypting, and decrypting messages sent and received by cMix. In cMix
 messages are encrypted by the sending clients, partially decrypted by
 the nodes, then re-encrypted for the receiving clients by the nodes,

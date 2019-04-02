@@ -4,7 +4,7 @@
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
 
-package messaging
+package cmix
 
 import (
 	"gitlab.com/elixxir/crypto/csprng"
