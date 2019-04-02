@@ -1,6 +1,6 @@
 package cryptops
 
 type Cryptop interface {
-	GetFuncName() string
+	GetName() string
 	GetMinSize() uint32
 }
