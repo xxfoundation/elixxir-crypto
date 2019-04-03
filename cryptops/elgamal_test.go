@@ -9,18 +9,16 @@ import (
 //Tests that Elgamal conforms to the cryptops interface
 func TestElGamal_CryptopsInterface(t *testing.T) {
 
-	defer func(t *testing.T) {
-		if r := recover(); r != nil {
-			t.Errorf("ElGamal: Does not conform to the cryptops interface: %v", r)
-		}
-	}(t)
-
 	var face interface{}
 	var cryptop Cryptop
 	face = ElGamal
-	cryptop = face.(Cryptop)
-	el := cryptop.(ElGamalSignature)
+	cryptop, ok := face.(Cryptop)
+	el, ok2 := cryptop.(ElGamalSignature)
 	el.GetName()
+
+	if !(ok && ok2) {
+		t.Errorf("ElGamal: Does not conform to the cryptops interface")
+	}
 }
 
 //Tests properties of Elgamal by undoing the encryption and showing the correct result is obtained
@@ -78,6 +76,7 @@ func TestElgamal_Single(t *testing.T) {
 //Tests properties of Elgamal by undoing the encryption and showing the correct result is obtained after
 //two successive operations
 //This is done by opening the cypher, inverting it, and multiplying the result into the encrypted keys
+//Shows that the system is multiplicativly commutative
 func TestElgamal_Double(t *testing.T) {
 	primeString := "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
 		"29024E088A67CC74020BBEA63B139B22514A08798E3404DD" +
