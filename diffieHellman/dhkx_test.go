@@ -36,15 +36,14 @@ func TestDHKX(t *testing.T) {
 	g := large.NewInt(2)
 	q := large.NewInt(3)
 	grp := cyclic.NewGroup(p, g, q)
-	testGroup := &grp
 
 	// Creation of two different DH Key Pairs with valid parameters
-	privKey, pubKey := CreateDHKeyPair(testGroup)
-	privKey2, pubKey2 := CreateDHKeyPair(testGroup)
+	privKey, pubKey := CreateDHKeyPair(grp)
+	privKey2, pubKey2 := CreateDHKeyPair(grp)
 
 	//Creation of 2 DH Session Keys
-	sessionKey1, _ := CreateDHSessionKey(pubKey, privKey2, testGroup)
-	sessionKey2, _ := CreateDHSessionKey(pubKey2, privKey, testGroup)
+	sessionKey1, _ := CreateDHSessionKey(pubKey, privKey2, grp)
+	sessionKey2, _ := CreateDHSessionKey(pubKey2, privKey, grp)
 
 	// Comparison of Two Session Keys (0 means they are equal)
 	if sessionKey1.Cmp(sessionKey2) != 0 {
@@ -72,10 +71,9 @@ func TestCreateDHKeyPair(t *testing.T) {
 	g := large.NewInt(2)
 	q := large.NewInt(3)
 	grp := cyclic.NewGroup(p, g, q)
-	testGroup := &grp
 
 	defer Catch("TestCreateDHKeyPair():", t)
-	CreateDHKeyPair(testGroup)
+	CreateDHKeyPair(grp)
 }
 
 func TestCheckPublicKey(t *testing.T) {
@@ -99,10 +97,9 @@ func TestCheckPublicKey(t *testing.T) {
 	g := large.NewInt(2)
 	q := large.NewInt(3)
 	grp := cyclic.NewGroup(p, g, q)
-	testGroup := &grp
 
 	// Creation of a DH Key Pair with valid parameters
-	_, pubKey := CreateDHKeyPair(testGroup)
+	_, pubKey := CreateDHKeyPair(grp)
 
 	// Random 2048 bit number that is not a quadratic residue
 	randomNum := "27a0ed88dd37d9d9c041bd31500e239ac050b618502a64e7f703dba20390" +
@@ -117,9 +114,9 @@ func TestCheckPublicKey(t *testing.T) {
 	a, _ := hex.DecodeString(randomNum)
 	x := grp.NewIntFromBytes(a)
 
-	rightSymbol := CheckPublicKey(testGroup, pubKey)
-	fakeSymbol := CheckPublicKey(testGroup, grp.NewInt(1))
-	falseSymbol := CheckPublicKey(testGroup, x)
+	rightSymbol := CheckPublicKey(grp, pubKey)
+	fakeSymbol := CheckPublicKey(grp, grp.NewInt(1))
+	falseSymbol := CheckPublicKey(grp, x)
 
 	if rightSymbol {
 		pass++

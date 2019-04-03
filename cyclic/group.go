@@ -37,14 +37,14 @@ type Group struct {
 const GroupFingerprintSize = 8
 
 // NewGroup returns a group with the given prime, generator and Q prime (for DSA)
-func NewGroup(p, g, q *large.Int) Group {
+func NewGroup(p, g, q *large.Int) *Group {
 	h := sha256.New()
 	h.Write(p.Bytes())
 	h.Write(g.Bytes())
 	h.Write(q.Bytes())
 	hashVal := h.Sum(nil)[:GroupFingerprintSize]
 	value := large.NewIntFromBytes(hashVal)
-	return Group{
+	return &Group{
 		prime:       p,
 		psub1:       large.NewInt(1).Sub(p, large.NewInt(1)),
 		psub2:       large.NewInt(1).Sub(p, large.NewInt(2)),
@@ -304,10 +304,9 @@ func (g *Group) GetPSub1FactorCyclic() *Int {
 func (g Group) MulMulti(c *Int, ints ...*Int) *Int {
 
 	g.checkInts(append(ints, c)...)
-	c.value.SetString("1", 10)
+	c.value.SetInt64(1)
 
 	for _, islc := range ints {
-		g.checkInts(islc)
 		g.Mul(c, islc, c)
 	}
 
@@ -496,7 +495,7 @@ func (g *Group) GobDecode(b []byte) error {
 	gen := large.NewIntFromBytes(s.G)
 	primeQ := large.NewIntFromBytes(s.Q)
 
-	*g = NewGroup(prime, gen, primeQ)
+	*g = *NewGroup(prime, gen, primeQ)
 
 	return nil
 }
@@ -551,7 +550,7 @@ func (g *Group) UnmarshalJSON(b []byte) error {
 	prime := large.NewIntFromString(jsonObj["prime"], base)
 	gen := large.NewIntFromString(jsonObj["gen"], base)
 	primeQ := large.NewIntFromString(jsonObj["primeQ"], base)
-	*g = NewGroup(prime, gen, primeQ)
+	*g = *NewGroup(prime, gen, primeQ)
 
 	return nil
 }

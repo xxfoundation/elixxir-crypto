@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-var grp cyclic.Group
+var grp *cyclic.Group
 
 // Build global group for tests to utilise
 func TestMain(m *testing.M) {

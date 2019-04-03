@@ -29,11 +29,10 @@ func TestKeygen(t *testing.T) {
 	g := large.NewInt(2)
 	q := large.NewInt(3)
 	grp := cyclic.NewGroup(p, g, q)
-	testGroup := &grp
 
 	salt := grp.NewInt(1)
 	basekey := grp.NewInt(1)
-	key := Keygen(testGroup, salt, basekey)
+	key := Keygen(grp, salt, basekey)
 
 	if key.Cmp(salt) != 0 {
 		t.Errorf("Dummy keygen should return 1")

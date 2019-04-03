@@ -8,12 +8,12 @@ import (
 )
 
 // Calls encrypt() with crypto.rand.Reader.
-func Encrypt(g cyclic.Group, key *cyclic.Int, msg []byte) ([]byte, error) {
+func Encrypt(g *cyclic.Group, key *cyclic.Int, msg []byte) ([]byte, error) {
 	return encrypt(g, key, msg, rand.Reader)
 }
 
 // Modular multiplies the key and padded message under the passed group.
-func encrypt(g cyclic.Group, key *cyclic.Int, msg []byte,
+func encrypt(g *cyclic.Group, key *cyclic.Int, msg []byte,
 	rand io.Reader) ([]byte, error) {
 	// Get the padded message
 	encMsg, err := pad(msg, int(format.TOTAL_LEN), rand)
@@ -32,7 +32,7 @@ func encrypt(g cyclic.Group, key *cyclic.Int, msg []byte,
 
 // Modular inverts the key under the passed group and modular multiplies it with
 // the encrypted message under the passed group.
-func Decrypt(g cyclic.Group, key *cyclic.Int, encMsg []byte) ([]byte, error) {
+func Decrypt(g *cyclic.Group, key *cyclic.Int, encMsg []byte) ([]byte, error) {
 	// Modular invert the key under the group
 	keyInv := g.Inverse(key, g.NewInt(1))
 
