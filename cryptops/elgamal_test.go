@@ -11,7 +11,7 @@ func TestElGamal_CryptopsInterface(t *testing.T) {
 
 	defer func(t *testing.T) {
 		if r := recover(); r != nil {
-			t.Errorf("ElGamal: Does not conform to cryptops interfece: %v", r)
+			t.Errorf("ElGamal: Does not conform to the cryptops interface: %v", r)
 		}
 	}(t)
 
@@ -55,7 +55,7 @@ func TestElgamal_Single(t *testing.T) {
 
 		privateKey := grp.FindSmallCoprimeInverse(grp.NewInt(1), 256)
 
-		ElGamal(grp, ecrKeys, cypher, keyInv, privateKey, publicCypherKey)
+		ElGamal(grp, keyInv, privateKey, publicCypherKey, ecrKeys, cypher)
 
 		decCypher := grp.RootCoprime(cypher, cypherPrivateKey, grp.NewInt(1))
 
@@ -112,8 +112,8 @@ func TestElgamal_Double(t *testing.T) {
 		privateKey1 := grp.FindSmallCoprimeInverse(grp.NewInt(1), 256)
 		privateKey2 := grp.FindSmallCoprimeInverse(grp.NewInt(1), 256)
 
-		ElGamal(grp, ecrKeys, cypher, keyInv1, privateKey1, publicCypherKey)
-		ElGamal(grp, ecrKeys, cypher, keyInv2, privateKey2, publicCypherKey)
+		ElGamal(grp, keyInv1, privateKey1, publicCypherKey, ecrKeys, cypher)
+		ElGamal(grp, keyInv2, privateKey2, publicCypherKey, ecrKeys, cypher)
 
 		decCypher0 := grp.RootCoprime(cypher, cypherPrivateKey1, grp.NewInt(1))
 		decCypher := grp.RootCoprime(decCypher0, cypherPrivateKey2, grp.NewInt(1))
@@ -208,7 +208,7 @@ func TestElgamal_Consistancy(t *testing.T) {
 
 	privateKey := grp.NewIntFromString(privatekey, 16)
 
-	ElGamal(grp, ecrKeys, cypher, keyInv, privateKey, publicCypherKey)
+	ElGamal(grp, keyInv, privateKey, publicCypherKey, ecrKeys, cypher)
 
 	if cypher.Cmp(expectedCypher) != 0 {
 		t.Errorf("ElGamal: Crypher incorrect in consistency test: Recieved %v, Expected %v",
