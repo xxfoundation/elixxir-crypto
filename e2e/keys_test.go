@@ -38,7 +38,7 @@ func TestDeriveSingleKey(t *testing.T) {
 	key := grp.NewIntFromString(TEST_DHKEY, 16)
 	data := append([]byte{}, key.Bytes()...)
 	data = append(data, userID.Bytes()...)
-	result := deriveSingleKey(sha256.New(), &grp, data, 0)
+	result := deriveSingleKey(sha256.New(), grp, data, 0)
 	expected := grp.NewIntFromString(EXPECTED_KEY, 16)
 	if result.Cmp(expected) != 0 {
 		t.Errorf("Generated Key %v doesn't match expected %v",
@@ -71,9 +71,9 @@ func TestDeriveKeys_DeriveEmergencyKeys(t *testing.T) {
 	var genKeys = []*cyclic.Int{}
 
 	for _, n := range nkeys {
-		for _, id := range ids {
+		for _, iditr := range ids {
 			for _, f := range fut {
-				genKeys = f(&grp, key, id, n)
+				genKeys = f(grp, key, iditr, n)
 
 				// Check array of keys and if the size matches with requested
 				if genKeys == nil {
@@ -112,7 +112,7 @@ func TestDeriveKeys_DeriveEmergencyKeys_Differ(t *testing.T) {
 	var genKeys = make([][]*cyclic.Int, len(fut))
 
 	for i, f := range fut {
-		genKeys[i] = f(&grp, key, userID, nkeys)
+		genKeys[i] = f(grp, key, userID, nkeys)
 
 		// Check array of keys and if the size matches with requested
 		if genKeys[i] == nil {

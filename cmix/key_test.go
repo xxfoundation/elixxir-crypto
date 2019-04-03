@@ -57,7 +57,7 @@ var expectStr = "2e4c99e14e0b1cd18c08467c395a4d5c0eb594507595041a5cfa83eb2f5791f
 
 // Test for functionality of NewDecryptionKey using pre-canned values
 func TestNewDecryptionKey(t *testing.T) {
-	k := NewDecryptionKey(salt, baseKey, &grp)
+	k := NewDecryptionKey(salt, baseKey, grp)
 	expected := grp.NewIntFromString(expectStr, 16)
 
 	if k == nil {
@@ -73,7 +73,7 @@ func TestNewDecryptionKey(t *testing.T) {
 
 // Test for functionality of NewEncryptionKey using pre-canned values
 func TestNewEncryptionKey(t *testing.T) {
-	k := NewEncryptionKey(salt, baseKey, &grp)
+	k := NewEncryptionKey(salt, baseKey, grp)
 	expected := grp.NewIntFromString(expectStr, 16)
 	grp.Inverse(expected, expected)
 
@@ -98,7 +98,7 @@ func makebaseKeys(size int) []*cyclic.Int {
 
 // Test that multiple baseKeys return a slice of same size with correct results
 func TestNewDecryptionKeys(t *testing.T) {
-	keys := NewDecryptionKeys(salt, makebaseKeys(10), &grp)
+	keys := NewDecryptionKeys(salt, makebaseKeys(10), grp)
 	expected := grp.NewIntFromString(expectStr, 16)
 	if len(keys) != 10 {
 		t.Errorf("Bad length: expected 10, got %d", len(keys))
@@ -112,7 +112,7 @@ func TestNewDecryptionKeys(t *testing.T) {
 
 // Test that an empty base key returns an empty result
 func TestNewDecryptionKeysEmpty(t *testing.T) {
-	keys := NewDecryptionKeys(salt, nil, &grp)
+	keys := NewDecryptionKeys(salt, nil, grp)
 	if len(keys) != 0 {
 		t.Errorf("Bad length: expected 0, got %d", len(keys))
 	}
@@ -120,7 +120,7 @@ func TestNewDecryptionKeysEmpty(t *testing.T) {
 
 // Test that multiple baseKeys return a slice of same size with correct results
 func TestNewEncryptionKeys(t *testing.T) {
-	keys := NewEncryptionKeys(salt, makebaseKeys(10), &grp)
+	keys := NewEncryptionKeys(salt, makebaseKeys(10), grp)
 	expected := grp.NewIntFromString(expectStr, 16)
 	grp.Inverse(expected, expected)
 	if len(keys) != 10 {
@@ -135,7 +135,7 @@ func TestNewEncryptionKeys(t *testing.T) {
 
 // Test that an empty base key returns an empty result
 func TestNewEncryptionKeysEmpty(t *testing.T) {
-	keys := NewEncryptionKeys(salt, nil, &grp)
+	keys := NewEncryptionKeys(salt, nil, grp)
 	if len(keys) != 0 {
 		t.Errorf("Bad length: expected 0, got %d", len(keys))
 	}

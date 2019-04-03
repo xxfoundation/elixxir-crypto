@@ -646,7 +646,7 @@ func TestModP(t *testing.T) {
 	g := large.NewInt(13)
 	q := large.NewInt(3)
 
-	group := make([]Group, 0, len(p))
+	group := make([]*Group, 0, len(p))
 	for i := 0; i < len(p); i++ {
 		group = append(group, NewGroup(p[i], g, q))
 	}
@@ -1553,7 +1553,7 @@ func TestGroup_GobEncode_GobDecode(t *testing.T) {
 	grp2 := Group{}
 	_ = grp2.GobDecode(b)
 
-	if !reflect.DeepEqual(grp1, grp2) {
+	if !reflect.DeepEqual(*grp1, grp2) {
 		t.Errorf("GobDecode() did not produce the the same original undecoded data\n\treceived: %v\n\texpected: %v", grp1, grp2)
 	}
 }
@@ -1581,7 +1581,7 @@ func TestGroup_MarshalJSON_IsValid(t *testing.T) {
 		t.Errorf("UnmarshalJSON() failed to serialize the group: %v", grp1)
 	}
 
-	if !reflect.DeepEqual(grp1, grp2) {
+	if !reflect.DeepEqual(*grp1, grp2) {
 		t.Errorf("UnmarshalJSON() did not produce the the same original undecoded data\n\treceived: %v\n\texpected: %v", grp1, grp2)
 	}
 }

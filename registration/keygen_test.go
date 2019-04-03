@@ -15,7 +15,7 @@ import (
 	"testing"
 )
 
-var grp cyclic.Group
+var grp *cyclic.Group
 
 // Test key generation by using the default DSA group
 // then creating 2 DSA key pairs, and calling the
@@ -38,9 +38,9 @@ func TestGenerateBaseKey(t *testing.T) {
 
 	// Generate transmission base keys using blake2b as the hash
 	b, _ := hash.NewCMixHash()
-	ownBaseTKey := GenerateBaseKey(&grp, peerPubKey, ownPrivKey, b)
+	ownBaseTKey := GenerateBaseKey(grp, peerPubKey, ownPrivKey, b)
 	b.Reset()
-	peerBaseTKey := GenerateBaseKey(&grp, ownPubKey, peerPrivKey, b)
+	peerBaseTKey := GenerateBaseKey(grp, ownPubKey, peerPrivKey, b)
 
 	if ownBaseTKey.Cmp(peerBaseTKey) != 0 {
 		t.Errorf("Generated Base Key using blake2b is different between own and peer")
@@ -50,9 +50,9 @@ func TestGenerateBaseKey(t *testing.T) {
 
 	// Generate reception base keys using sha256 as the hash
 	h := sha256.New()
-	ownBaseRKey := GenerateBaseKey(&grp, peerPubKey, ownPrivKey, h)
+	ownBaseRKey := GenerateBaseKey(grp, peerPubKey, ownPrivKey, h)
 	h.Reset()
-	peerBaseRKey := GenerateBaseKey(&grp, ownPubKey, peerPrivKey, h)
+	peerBaseRKey := GenerateBaseKey(grp, ownPubKey, peerPrivKey, h)
 
 	if ownBaseRKey.Cmp(peerBaseRKey) != 0 {
 		t.Errorf("Generated Base Key using sha256 is different between own and peer")
