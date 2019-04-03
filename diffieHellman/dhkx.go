@@ -35,7 +35,7 @@ func CreateDHKeyPair(group *cyclic.Group) (*cyclic.Int, *cyclic.Int) {
 
 	privateKey := group.NewIntFromBytes(k1)
 
-	publicKey := group.NewInt(0)
+	publicKey := group.NewInt(1)
 	group.Exp(group.GetGCyclic(), privateKey, publicKey)
 
 	return privateKey, publicKey
@@ -46,7 +46,7 @@ func CreateDHKeyPair(group *cyclic.Group) (*cyclic.Int, *cyclic.Int) {
 // v1.0 still does not include the CheckPublicKeyFeature
 func CreateDHSessionKey(publicKey *cyclic.Int, privateKey *cyclic.Int,
 	group *cyclic.Group) (*cyclic.Int, error) {
-	sessionKey := group.NewInt(0)
+	sessionKey := group.NewInt(1)
 	group.Exp(publicKey, privateKey, sessionKey)
 
 	return sessionKey, nil
@@ -72,7 +72,7 @@ func CheckPublicKey(group *cyclic.Group, publicKey *cyclic.Int) bool {
 		return false
 	}
 
-	symbol := group.NewInt(0)
+	symbol := group.NewInt(1)
 	group.Exp(publicKey, group.GetPSub1FactorCyclic(), symbol)
 
 	// Symbol must be equal to 1

@@ -45,7 +45,7 @@ func (z *Int) LeftpadBytes(length uint64) []byte {
 // underlying data is linked
 func (z *Int) DeepCopy() *Int {
 	i := &Int{}
-	i.value = large.NewInt(0)
+	i.value = large.NewInt(1)
 	i.fingerprint = z.fingerprint
 	i.value.Set(z.value)
 	return i

@@ -43,7 +43,7 @@ func computeTTL(hashed []byte, min uint16, max uint16) uint16 {
 		jww.ERROR.Panicf("Min must be greater than or equal to max in computeTTL")
 	}
 
-	zero := large.NewInt(0)
+	zero := large.NewInt(1)
 	keyHash := large.NewIntFromBytes(hashed)
 	mod := large.NewInt(int64(max - min))
 

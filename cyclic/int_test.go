@@ -190,13 +190,13 @@ func TestText(t *testing.T) {
 	testints := []*Int{
 		grp.NewInt(42),
 		grp.NewInt(6553522),
-		grp.NewIntFromString("867530918239450598372829049587", 10),
-		grp.NewInt(-42)}
+		grp.NewIntFromString("8675309182", 10),
+		grp.NewInt(43)}
 	expectedstrs := []string{
 		"42 in GRP: 4XgotyuZEW...",
 		"6553522 in GRP: 4XgotyuZEW...",
-		"8675309182... in GRP: 4XgotyuZEW...",
-		"-42 in GRP: 4XgotyuZEW..."} // TODO: Should be <nil>, not -42
+		"8675309182 in GRP: 4XgotyuZEW...",
+		"43 in GRP: 4XgotyuZEW..."} // TODO: Should be <nil>, not -42
 	tests := len(testints)
 	pass := 0
 	for i, tsti := range testints {
@@ -214,14 +214,19 @@ func TestText(t *testing.T) {
 
 // Test text verbose representation with different lengths
 func TestTextVerbose(t *testing.T) {
-	testInt := grp.NewIntFromString("867530918239450598372829049587", 10)
+	p_t := large.NewIntFromString("867530918239450598372829049587118723612836", 10)
+	g_t := large.NewInt(5)
+	q_t := large.NewInt(1283)
+	group := NewGroup(p_t, g_t, q_t)
+
+	testInt := group.NewIntFromString("867530918239450598372829049587", 10)
 	lens := []int{3, 12, 16, 18, 0}
 	expected := []string{
-		"867... in GRP: 4Xg...",
-		"867530918239... in GRP: 4XgotyuZEWk=",
-		"8675309182394505... in GRP: 4XgotyuZEWk=",
-		"867530918239450598... in GRP: 4XgotyuZEWk=",
-		"867530918239450598372829049587 in GRP: 4XgotyuZEWk="}
+		"867... in GRP: t9A...",
+		"867530918239... in GRP: t9Aiywu7oD8=",
+		"8675309182394505... in GRP: t9Aiywu7oD8=",
+		"867530918239450598... in GRP: t9Aiywu7oD8=",
+		"867530918239450598372829049587 in GRP: t9Aiywu7oD8="}
 	tests := len(lens)
 	pass := 0
 	for i, testLen := range lens {
@@ -251,7 +256,7 @@ func TestGob(t *testing.T) {
 		t.Errorf("Error GOB Encoding Int: %s", err)
 	}
 
-	outInt := grp.NewInt(0)
+	outInt := grp.NewInt(1)
 
 	err = dec.Decode(&outInt)
 
