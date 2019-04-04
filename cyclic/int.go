@@ -41,6 +41,11 @@ func (z *Int) LeftpadBytes(length uint64) []byte {
 	return z.value.LeftpadBytes(length)
 }
 
+// gets the length of the cyclic int
+func (z *Int) BitLen() int {
+	return z.value.BitLen()
+}
+
 // Returns a complete copy of the cyclic int such that no
 // underlying data is linked
 func (z *Int) DeepCopy() *Int {

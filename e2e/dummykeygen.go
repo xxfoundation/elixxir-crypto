@@ -29,9 +29,9 @@ func combinedHash(userA *id.User, userB *id.User, grp *cyclic.Group) *cyclic.Int
 		combKey = append(userB.Bytes(), userA.Bytes()...)
 	}
 
-	expKey := hash.ExpandKey(h, grp, combKey)
+	expKey := hash.ExpandKey(h, grp, combKey, grp.NewInt(1))
 
-	return grp.NewIntFromBytes(expKey)
+	return expKey
 
 }
 

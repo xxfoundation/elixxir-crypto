@@ -19,7 +19,7 @@ func deriveSingleKey(h hash.Hash, g *cyclic.Group, data []byte, id uint) *cyclic
 	b, _ := hash2.NewCMixHash()
 	b.Write(data)
 	b.Write(idBytes[:n])
-	return g.NewIntFromBytes(hash2.ExpandKey(h, g, b.Sum(nil)))
+	return hash2.ExpandKey(h, g, b.Sum(nil), g.NewInt(1))
 }
 
 // This function derives multiple keys using the specified hash function

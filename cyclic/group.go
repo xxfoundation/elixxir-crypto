@@ -299,6 +299,11 @@ func (g *Group) GetPSub1FactorCyclic() *Int {
 	return g.NewIntFromLargeInt(g.psub1factor)
 }
 
+// Get cyclicInt leftpadded to the size of the prime
+func (g *Group) FullBytes(x *Int) []byte {
+	return x.value.LeftpadBytes(uint64(g.prime.BitLen() >> 3))
+}
+
 // GroupMul Multiplies all ints in the passed slice slc together and
 // places the result in c
 func (g Group) MulMulti(c *Int, ints ...*Int) *Int {

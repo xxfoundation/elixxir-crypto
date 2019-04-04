@@ -96,6 +96,35 @@ func TestLeftpadBytes(t *testing.T) {
 	println("TestLeftPadBytes()", pass, "out of", tests, "tests passed.")
 }
 
+//TestBitLen checks if BitLen works
+func TestBitLen(t *testing.T) {
+	testints := []*Int{
+		grp.NewInt(42),
+		grp.NewInt(6553522),
+		grp.NewInt(7777),
+		grp.NewInt(21234)}
+
+	tests := len(testints)
+	pass := 0
+
+	expectedlens := []int{
+		6,
+		23,
+		13,
+		15}
+
+	for i, tsti := range testints {
+		actual := tsti.BitLen()
+		if actual != expectedlens[i] {
+			t.Errorf("Case %v of BitLen failed, got: '%v', expected: '%v'", i, actual,
+				expectedlens[i])
+		} else {
+			pass++
+		}
+	}
+	println("BitLen()", pass, "out of", tests, "tests passed.")
+}
+
 // Tests that the copy retruned by deep copy is identical and that editing
 // one does not edit the other
 func TestInt_DeepCopy(t *testing.T) {

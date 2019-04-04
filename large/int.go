@@ -177,13 +177,9 @@ func (z *Int) Mod(x, y *Int) *Int {
 // ℤ/nℤ and returns x.
 // If z and n are not relatively prime, the result is nil
 func (z *Int) ModInverse(x, n *Int) *Int {
-	rtn := (*big.Int)(z).ModInverse(
+	return (*Int)((*big.Int)(z).ModInverse(
 		(*big.Int)(x),
-		(*big.Int)(n))
-	if rtn == nil {
-		return nil
-	}
-	return z
+		(*big.Int)(n)))
 }
 
 // Exp sets z = x*y mod |m| (i.e. the sign of m is ignored), and
