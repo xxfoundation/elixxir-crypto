@@ -1,47 +1,30 @@
 package cmix
 
 import (
+	"fmt"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/primitives/format"
 )
 
-func EncryptDecrypt(grp *cyclic.Group, msg *format.Message, baseKeys []*cyclic.Int, salt []byte) *format.Message {
-	// Generate encrypted keys
-	encKey := keyGen(grp, baseKeys, salt)
+func ClientEncryptDecrypt(grp *cyclic.Group, msg *format.Message, salt []byte, baseKeys []*cyclic.Int) *format.Message {
+	// Get inverted encrypted key
+	keyEncInv := ClientKeyGen(grp, salt, baseKeys)
 
-	// Get message payload and associated data as cyclic.Ints
+	// Get message payload and associated data as cyclic integers
 	payload := grp.NewIntFromBytes(msg.SerializePayload())
 	associatedData := grp.NewIntFromBytes(msg.SerializeAssociatedData())
 
-	// Multiply message payload and associated data with the keys
-	multPayload := grp.Mul(encKey, payload, grp.NewInt(1))
-	multAssociatedData := grp.Mul(encKey, associatedData, grp.NewInt(1))
+	// Multiply message payload and associated data with the key
+	grp.Mul(keyEncInv, payload, payload)
+	grp.Mul(keyEncInv, associatedData, associatedData)
 
-	// Create nes message with multiplied parts
-	encryptedMsg := format.Message{
-		Payload:        format.DeserializePayload(multPayload.Bytes()),
-		AssociatedData: format.DeserializeAssociatedData(multAssociatedData.Bytes()),
+	fmt.Printf("multPayload 1: %s\n", payload.Text(10))
+
+	// Create new message with multiplied parts
+	encryptedMsg := &format.Message{
+		Payload:        format.DeserializePayload(payload.Bytes()),
+		AssociatedData: format.DeserializeAssociatedData(associatedData.Bytes()),
 	}
 
-	return &encryptedMsg
-}
-
-// Generates the key for use by EncryptDecrypt() by generating encryption keys
-// from the base keys, multiplies them together, and inverts them.
-func keyGen(grp *cyclic.Group, baseKeys []*cyclic.Int, salt []byte) *cyclic.Int {
-	// Make slice to hold all generated intermediary keys inside the group
-	keys := make([]*cyclic.Int, len(baseKeys))
-
-	// Generate all the encryption keys
-	for i, baseKey := range baseKeys {
-		keys[i] = NewEncryptionKey(salt, baseKey, grp)
-	}
-
-	// Multiply all the keys together
-	multKeys := grp.MulMulti(grp.NewInt(1), keys...)
-
-	// Invert the multiplied keys
-	multInvKeys := grp.Inverse(multKeys, grp.NewInt(1))
-
-	return multInvKeys
+	return encryptedMsg
 }

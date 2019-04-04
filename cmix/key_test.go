@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-var primeStrng = "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
+var primeString = "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
 	"29024E088A67CC74020BBEA63B139B22514A08798E3404DD" +
 	"EF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245" +
 	"E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7ED" +
@@ -34,7 +34,7 @@ var primeStrng = "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
 	"1F612970CEE2D7AFB81BDD762170481CD0069127D5B05AA9" +
 	"93B4EA988D8FDDC186FFB7DC90A6C08F4DF435C934063199" +
 	"FFFFFFFFFFFFFFFF"
-var prime = large.NewIntFromString(primeStrng, 16)
+var prime = large.NewIntFromString(primeString, 16)
 var grp = cyclic.NewGroup(prime, large.NewInt(4), large.NewInt(3))
 var baseKey = grp.NewIntFromString("a906df88f30d6afbfa6165a50cc9e208d16b34e70b367068dc5d6bd6e155b2c3", 16)
 var salt = []byte("fdecfa52a8ad1688dbfa7d16df74ebf27e535903c469cefc007ebbe1ee895064")
@@ -55,88 +55,66 @@ var expectStr = "2e4c99e14e0b1cd18c08467c395a4d5c0eb594507595041a5cfa83eb2f5791f
 	"027a52385d2ae763c69ed1ce41a72f0c682aeef563050b7eeef4e0c1117c7f1f" +
 	"54ee909454cdece58148e759a88f1dbd45bf2e2479b8f983ac0eb3f85b8b0fed"
 
-// Test for functionality of NewDecryptionKey using pre-canned values
-func TestNewDecryptionKey(t *testing.T) {
-	k := NewDecryptionKey(salt, baseKey, grp)
-	expected := grp.NewIntFromString(expectStr, 16)
-
-	if k == nil {
-		t.Errorf("Error should have been triggered!")
-	}
-
-	if k.Cmp(expected) != 0 {
-		t.Errorf("Expected: %s, Got: %s",
-			expected.Text(16),
-			k.TextVerbose(16, 0))
-	}
-}
-
-// Test for functionality of NewEncryptionKey using pre-canned values
-func TestNewEncryptionKey(t *testing.T) {
-	k := NewEncryptionKey(salt, baseKey, grp)
-	expected := grp.NewIntFromString(expectStr, 16)
-	grp.Inverse(expected, expected)
-
-	if k == nil {
-		t.Errorf("Error should have been triggered!")
-	}
-
-	if k.Cmp(expected) != 0 {
-		t.Errorf("Expected: %s, Got: %s",
-			expected.Text(16),
-			k.TextVerbose(16, 0))
-	}
-}
-
-func makebaseKeys(size int) []*cyclic.Int {
+func makeBaseKeys(size int) []*cyclic.Int {
 	keys := make([]*cyclic.Int, 0)
+
 	for i := 0; i < size; i++ {
 		keys = append(keys, baseKey)
 	}
+
 	return keys
 }
 
-// Test that multiple baseKeys return a slice of same size with correct results
-func TestNewDecryptionKeys(t *testing.T) {
-	keys := NewDecryptionKeys(salt, makebaseKeys(10), grp)
+// Test that keyGen() produces the correct key.
+func TestKeyGen(t *testing.T) {
+	key := grp.NewInt(1)
+	keyGen(grp, salt, baseKey, key)
+
 	expected := grp.NewIntFromString(expectStr, 16)
-	if len(keys) != 10 {
-		t.Errorf("Bad length: expected 10, got %d", len(keys))
-	}
-	for i := range keys {
-		if keys[i].Cmp(expected) != 0 {
-			t.Errorf("Generated key incorrect!")
-		}
+
+	if key.Cmp(expected) != 0 {
+		t.Errorf("keyGen() generated an incorrect key"+
+			"\n\treceived: %v\n\texpected: %v",
+			key.TextVerbose(10, 35),
+			expected.TextVerbose(10, 35))
 	}
 }
 
-// Test that an empty base key returns an empty result
-func TestNewDecryptionKeysEmpty(t *testing.T) {
-	keys := NewDecryptionKeys(salt, nil, grp)
-	if len(keys) != 0 {
-		t.Errorf("Bad length: expected 0, got %d", len(keys))
+// Test that NodeKeyGen() produces the correct key. This is the same test as
+// TestKeyGen() because NodeKeyGen() is a wrapper of keyGen().
+func TestNodeKeyGen(t *testing.T) {
+	key := grp.NewInt(1)
+	NodeKeyGen(grp, salt, baseKey, key)
+
+	expected := grp.NewIntFromString(expectStr, 16)
+
+	if key.Cmp(expected) != 0 {
+		t.Errorf("NodeKeyGen() generated an incorrect key"+
+			"\n\treceived: %v\n\texpected: %v",
+			key.TextVerbose(10, 35),
+			expected.TextVerbose(10, 35))
 	}
 }
 
 // Test that multiple baseKeys return a slice of same size with correct results
-func TestNewEncryptionKeys(t *testing.T) {
-	keys := NewEncryptionKeys(salt, makebaseKeys(10), grp)
-	expected := grp.NewIntFromString(expectStr, 16)
+func TestClientKeyGen(t *testing.T) {
+	size := 10
+	key := ClientKeyGen(grp, salt, makeBaseKeys(size))
+
+	expected := grp.NewInt(1)
+	tmpKey := grp.NewInt(1)
+
+	for i := 0; i < size; i++ {
+		tmpKey = grp.NewIntFromString(expectStr, 16)
+		keyGen(grp, salt, baseKey, tmpKey)
+		grp.Mul(tmpKey, expected, expected)
+	}
 	grp.Inverse(expected, expected)
-	if len(keys) != 10 {
-		t.Errorf("Bad length: expected 10, got %d", len(keys))
-	}
-	for i := range keys {
-		if keys[i].Cmp(expected) != 0 {
-			t.Errorf("Generated key incorrect!")
-		}
-	}
-}
 
-// Test that an empty base key returns an empty result
-func TestNewEncryptionKeysEmpty(t *testing.T) {
-	keys := NewEncryptionKeys(salt, nil, grp)
-	if len(keys) != 0 {
-		t.Errorf("Bad length: expected 0, got %d", len(keys))
+	if key.Cmp(expected) != 0 {
+		t.Errorf("ClientKeyGen() generated an incorrect key"+
+			"\n\treceived: %v\n\texpected: %v",
+			key.TextVerbose(10, 35),
+			expected.TextVerbose(10, 35))
 	}
 }

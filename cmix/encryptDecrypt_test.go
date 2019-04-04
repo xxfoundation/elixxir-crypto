@@ -3,7 +3,6 @@ package cmix
 import (
 	"fmt"
 	"gitlab.com/elixxir/crypto/csprng"
-	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/primitives/format"
 	"math/rand"
 	"reflect"
@@ -29,26 +28,24 @@ func TestEncryptDecrypt(t *testing.T) {
 		AssociatedData: format.DeserializeAssociatedData(associatedDataArr),
 	}
 
-	// Create random slice of base keys
-	size := rng.Intn(100)
-	baseKeys := make([]*cyclic.Int, size)
-	for i := 0; i < size; i++ {
-		baseKeys[i] = grp.NewInt(rng.Int63())
-	}
-
 	// Create salt
 	salt := NewSalt(csprng.Source(&systemPRNG{}), 16)
 
 	// Get encrypted message
-	encMsg := EncryptDecrypt(grp, &msg, baseKeys, salt)
+	size := 10
+	baseKeys := makeBaseKeys(size)
+
+	encMsg := ClientEncryptDecrypt(grp, &msg, salt, baseKeys)
 
 	// Get encryption key
-	encKey := keyGen(grp, baseKeys, salt)
+	keyEncInv := ClientKeyGen(grp, salt, baseKeys)
 
-	// Invert and multiply the key with the message
-	grp.Inverse(encKey, encKey)
-	multPayload := grp.Mul(encKey, grp.NewIntFromBytes(encMsg.SerializePayload()), grp.NewInt(1))
-	multAssociatedData := grp.Mul(encKey, grp.NewIntFromBytes(encMsg.SerializeAssociatedData()), grp.NewInt(1))
+	multPayload := grp.NewInt(1)
+	multAssociatedData := grp.NewInt(1)
+	grp.Mul(keyEncInv, grp.NewIntFromBytes(msg.SerializePayload()), multPayload)
+	grp.Mul(keyEncInv, grp.NewIntFromBytes(msg.SerializeAssociatedData()), multAssociatedData)
+
+	fmt.Printf("multPayload 2: %s\n", multPayload.Text(10))
 
 	testMsg := format.Message{
 		Payload:        format.DeserializePayload(multPayload.Bytes()),
@@ -62,11 +59,4 @@ func TestEncryptDecrypt(t *testing.T) {
 	if !reflect.DeepEqual(encMsg.SerializeAssociatedData(), testMsg.SerializeAssociatedData()) {
 		t.Errorf("EncryptDecrypt() did not produce the correct associated data\n\treceived: %d\n\texpected: %d", encMsg.SerializeAssociatedData(), testMsg.SerializeAssociatedData())
 	}
-
-	fmt.Printf("msg PL:     %d\n", msg.SerializePayload())
-	fmt.Printf("test PL:    %d\n", encMsg.SerializePayload())
-	fmt.Printf("encrypt PL: %d\n\n", testMsg.SerializePayload())
-	fmt.Printf("msg AD:     %d\n", msg.SerializeAssociatedData())
-	fmt.Printf("test AD:    %d\n", testMsg.SerializeAssociatedData())
-	fmt.Printf("encrypt AD: %d\n", encMsg.SerializeAssociatedData())
 }
