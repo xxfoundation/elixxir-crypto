@@ -63,11 +63,21 @@ func NewGroup(p, g, q *large.Int) *Group {
 }
 
 // Constructors for int buffer
-func (g *Group) NewIntBuffer(length uint32) *IntBuffer {
+// if defaultValue is nil, it is set to the max value possible in the group, p-1
+func (g *Group) NewIntBuffer(length uint32, defaultValue *Int) *IntBuffer {
+	var defaultValueLarge *large.Int
+
+	if defaultValue == nil{
+		defaultValueLarge = g.psub1.DeepCopy()
+	}else{
+		g.checkInts(defaultValue)
+		defaultValueLarge = defaultValue.value.DeepCopy()
+	}
+
 	newBuffer := IntBuffer{make([]large.Int, length), g.fingerprint}
 	for i := range newBuffer.values {
 		// Call to Set() is required to not alias psub1
-		newBuffer.values[i].Set(g.psub1)
+		(&newBuffer.values[i]).Set(defaultValueLarge)
 	}
 	return &newBuffer
 }
