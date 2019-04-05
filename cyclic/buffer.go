@@ -17,12 +17,12 @@ type IntBuffer struct {
 }
 
 //Get the cyclic int at a specific index in the int buffer
-func (ib *IntBuffer) Get(index uint) *Int {
+func (ib *IntBuffer) Get(index uint32) *Int {
 	return &Int{&ib.values[index], ib.fingerprint}
 }
 
 //Get an intBuffer representing a specific region in the int buffer
-func (ib *IntBuffer) GetSubBuffer(begin, end uint) *IntBuffer {
+func (ib *IntBuffer) GetSubBuffer(begin, end uint32) *IntBuffer {
 	return &IntBuffer{
 		values:      ib.values[begin:end],
 		fingerprint: ib.fingerprint}

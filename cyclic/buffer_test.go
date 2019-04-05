@@ -97,22 +97,22 @@ func TestIntBuffer_GetRegion(t *testing.T) {
 
 	// Set all ints
 	for i := uint32(0); i < intBuffLen; i++ {
-		grp.SetUint64(buf.Get(uint(i)), uint64(i))
+		grp.SetUint64(buf.Get(i), uint64(i))
 	}
 
 	//Get a region of the int buffer
 	bufSub := buf.GetSubBuffer(3, 17)
 
-	for i := 3; i < 17; i++ {
-		bufint := bufSub.Get(uint(i - 3))
+	for i := uint32(3); i < 17; i++ {
+		bufint := bufSub.Get(i - 3)
 		if bufint.GetLargeInt().Int64() != int64(i) {
 			t.Errorf("IntBuffer.GetSubBuffer: Region mapped incorrectly,"+
 				"Expected: %v, Recieved: %v", i, bufint.GetLargeInt().Int64())
 		}
 		grp.SetUint64(bufint, uint64(100-i))
-		if buf.Get(uint(i)).GetLargeInt().Int64() != int64(100-i) {
+		if buf.Get(i).GetLargeInt().Int64() != int64(100-i) {
 			t.Errorf("IntBuffer.GetSubBuffer: Region not connect to originator,"+
-				"Expected: %v, Recieved: %v", 100-i, buf.Get(uint(i)).GetLargeInt().Int64())
+				"Expected: %v, Recieved: %v", 100-i, buf.Get(i).GetLargeInt().Int64())
 		}
 	}
 }
