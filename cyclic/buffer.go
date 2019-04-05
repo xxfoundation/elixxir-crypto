@@ -16,6 +16,24 @@ type IntBuffer struct {
 	fingerprint uint64
 }
 
-func (i *IntBuffer) Get(index int) *Int {
-	return &Int{&i.values[index], i.fingerprint}
+//Get the cyclic int at a specific region in the int buffer
+func (ib *IntBuffer) Get(index uint) *Int {
+	return &Int{&ib.values[index], ib.fingerprint}
+}
+
+//Get an intBuffer representing a specific region in the int buffer
+func (ib *IntBuffer) GetRegion(begin, end uint) *IntBuffer {
+	return &IntBuffer{
+		values:      ib.values[begin:end],
+		fingerprint: ib.fingerprint}
+}
+
+//Gets the length of the int buffer
+func (ib *IntBuffer) Len() int {
+	return len(ib.values)
+}
+
+//Gets the int buffer's group fingerprint
+func (ib *IntBuffer) GetFingerprint() uint64 {
+	return ib.fingerprint
 }

@@ -23,7 +23,9 @@ type Int struct {
 
 // Get the largeInt from cyclicInt
 func (z *Int) GetLargeInt() *large.Int {
-	return z.value
+	r := large.NewInt(0)
+	r.Set(z.value)
+	return r
 }
 
 // Get the group fingerprint from cyclicInt
