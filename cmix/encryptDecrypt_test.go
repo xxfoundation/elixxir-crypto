@@ -20,7 +20,8 @@ func makeMsg() *format.Message {
 	return msg
 }
 
-// Shows that ClientEncryptDecrypt() correctly encrypts the message.
+// Shows that ClientEncryptDecrypt() correctly encrypts the message. This proves
+// the multiplicative properties used for encryption.
 func TestEncryptDecrypt(t *testing.T) {
 	msg := makeMsg()
 

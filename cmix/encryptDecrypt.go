@@ -5,6 +5,8 @@ import (
 	"gitlab.com/elixxir/primitives/format"
 )
 
+// Encrypts the message for the client by multiplying the inverted encryption
+// key by the message payload and associated data.
 func ClientEncryptDecrypt(grp *cyclic.Group, msg *format.Message, salt []byte, baseKeys []*cyclic.Int) *format.Message {
 	// Get inverted encrypted key
 	keyEncInv := ClientKeyGen(grp, salt, baseKeys)
