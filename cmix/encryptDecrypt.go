@@ -1,7 +1,6 @@
 package cmix
 
 import (
-	"fmt"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/primitives/format"
 )
@@ -17,9 +16,6 @@ func ClientEncryptDecrypt(grp *cyclic.Group, msg *format.Message, salt []byte, b
 	// Multiply message payload and associated data with the key
 	grp.Mul(keyEncInv, payload, payload)
 	grp.Mul(keyEncInv, associatedData, associatedData)
-
-	fmt.Printf("multPayload 1: %s\n", payload.Text(10))
-
 	// Create new message with multiplied parts
 	encryptedMsg := &format.Message{
 		Payload:        format.DeserializePayload(payload.Bytes()),
