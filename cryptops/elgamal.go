@@ -27,6 +27,6 @@ func (ElGamalPrototype) GetName() string {
 	return "ElGamal"
 }
 
-func (ElGamalPrototype) GetMinSize() uint32 {
+func (ElGamalPrototype) GetInputSize() uint32 {
 	return 1
 }

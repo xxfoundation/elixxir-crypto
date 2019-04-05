@@ -224,8 +224,8 @@ func TestElgamal_Consistancy(t *testing.T) {
 //testElGamalSignature_GetMinSize shows that Elgamal.MinSize returns the correct min size
 func TestElGamalSignature_GetMinSize(t *testing.T) {
 	expected := 1
-	if ElGamal.GetMinSize() != 1 {
-		t.Errorf("ElGamal: MinSize not correct: Recieved %v, Expected %v", ElGamal.GetMinSize(), expected)
+	if ElGamal.GetInputSize() != 1 {
+		t.Errorf("ElGamal: MinSize not correct: Recieved %v, Expected %v", ElGamal.GetInputSize(), expected)
 	}
 }
 
