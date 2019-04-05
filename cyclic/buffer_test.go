@@ -18,7 +18,7 @@ func TestIntBuffer_Get(t *testing.T) {
 	q := large.NewInt(1283)
 	grp := NewGroup(p, g, q)
 
-	buf := grp.NewIntBuffer(5)
+	buf := grp.NewIntBuffer(5, nil)
 
 	// Set an int
 	grp.SetUint64(buf.Get(2), 322)
@@ -51,7 +51,7 @@ func TestIntBuffer_Len(t *testing.T) {
 	grp := NewGroup(p, g, q)
 
 	for i := 0; i < 1000; i++ {
-		ib := grp.NewIntBuffer(uint32(i))
+		ib := grp.NewIntBuffer(uint32(i), nil)
 		if ib.Len() != i {
 			t.Errorf("IntBuffer.Len: returned incorrect len, Expected: %v, Recieved: %v", i, ib.Len())
 		}
@@ -65,7 +65,7 @@ func TestIntBuffer_GetFingerprint(t *testing.T) {
 	q := large.NewInt(1283)
 	grp1 := NewGroup(p1, g, q)
 
-	ib1 := grp1.NewIntBuffer(5)
+	ib1 := grp1.NewIntBuffer(5, nil)
 
 	if ib1.GetFingerprint() != grp1.GetFingerprint() {
 		t.Errorf("IntBuffer.GetFingerprint: returned incorrect fingerprint,"+
@@ -75,7 +75,7 @@ func TestIntBuffer_GetFingerprint(t *testing.T) {
 	p2 := large.NewInt(1000000010101111011)
 	grp2 := NewGroup(p2, g, q)
 
-	ib2 := grp2.NewIntBuffer(5)
+	ib2 := grp2.NewIntBuffer(5, nil)
 
 	if ib2.GetFingerprint() != grp2.GetFingerprint() {
 		t.Errorf("IntBuffer.GetFingerprint: returned incorrect fingerprint,"+
@@ -93,7 +93,7 @@ func TestIntBuffer_GetRegion(t *testing.T) {
 
 	intBuffLen := uint32(20)
 
-	buf := grp.NewIntBuffer(intBuffLen)
+	buf := grp.NewIntBuffer(intBuffLen, nil)
 
 	// Set all ints
 	for i := uint32(0); i < intBuffLen; i++ {
@@ -101,17 +101,17 @@ func TestIntBuffer_GetRegion(t *testing.T) {
 	}
 
 	//Get a region of the int buffer
-	bufSub := buf.GetRegion(3, 17)
+	bufSub := buf.GetSubBuffer(3, 17)
 
 	for i := 3; i < 17; i++ {
 		bufint := bufSub.Get(uint(i - 3))
 		if bufint.GetLargeInt().Int64() != int64(i) {
-			t.Errorf("IntBuffer.GetRegion: Region mapped incorrectly,"+
+			t.Errorf("IntBuffer.GetSubBuffer: Region mapped incorrectly,"+
 				"Expected: %v, Recieved: %v", i, bufint.GetLargeInt().Int64())
 		}
 		grp.SetUint64(bufint, uint64(100-i))
 		if buf.Get(uint(i)).GetLargeInt().Int64() != int64(100-i) {
-			t.Errorf("IntBuffer.GetRegion: Region not connect to originator,"+
+			t.Errorf("IntBuffer.GetSubBuffer: Region not connect to originator,"+
 				"Expected: %v, Recieved: %v", 100-i, buf.Get(uint(i)).GetLargeInt().Int64())
 		}
 	}

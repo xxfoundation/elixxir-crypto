@@ -10,7 +10,18 @@ import (
 	"math"
 	"strconv"
 	"testing"
+	"errors"
 )
+
+type AlwaysErrorReader struct{}
+
+func (r AlwaysErrorReader) Read(b []byte) (int, error) {
+	return 1, errors.New("testing reader error")
+}
+
+func (r AlwaysErrorReader) SetSeed(seed []byte) error {
+	return nil
+}
 
 func TestShuffle(t *testing.T) {
 	// TODO: calculate false failure rate
@@ -31,12 +42,8 @@ func TestShuffle(t *testing.T) {
 		outInts = append(outInts, intLst)
 	}
 
-	for k := 0; k < reps; k++ {
-		seed := []byte{byte(k), byte(k >> 8), byte(k >> 16), byte(k >> 24), byte(k >> 32), byte(k >> 40),
-			byte(k >> 48), byte(k >> 56)}
-		ShufflePRNG(seed, batch, func(i, j int) {
-			outInts[k][i], outInts[k][j] = outInts[k][j], outInts[k][i]
-		})
+	for i := 0; i < reps; i++ {
+		Shuffle(&(outInts[i]))
 	}
 
 	// Count the number of times that a particular number ended up in a
@@ -89,7 +96,20 @@ func TestShuffle(t *testing.T) {
 func TestShuffleLen1(t *testing.T) {
 	var testlst []uint64
 	testlst = append(testlst, 1)
-	ShufflePRNG([]byte{1}, 1, func(i, j int) {
-		testlst[i], testlst[j] = testlst[j], testlst[i]
-	})
+	Shuffle(&testlst)
+}
+
+// Test that shuffleCore panics on read error
+func TestShuffleCorePanic(t *testing.T) {
+	var testlst []uint64
+	testlst = append(testlst, 1)
+	testlst = append(testlst, 2)
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Shuffle should panic on read error")
+		}
+	}()
+
+	shuffleCore(&testlst, AlwaysErrorReader{})
 }

@@ -22,7 +22,7 @@ func (ib *IntBuffer) Get(index uint) *Int {
 }
 
 //Get an intBuffer representing a specific region in the int buffer
-func (ib *IntBuffer) GetRegion(begin, end uint) *IntBuffer {
+func (ib *IntBuffer) GetSubBuffer(begin, end uint) *IntBuffer {
 	return &IntBuffer{
 		values:      ib.values[begin:end],
 		fingerprint: ib.fingerprint}

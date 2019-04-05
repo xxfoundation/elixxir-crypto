@@ -19,10 +19,6 @@ import (
 // TestNewInt checks if the NewInt function returns a Int with
 // the same value of the passed int64
 func TestNewInt(t *testing.T) {
-	tests := 1
-
-	pass := 0
-
 	expected := int64(42)
 
 	actual := NewInt(int64(42)).Int64()
@@ -30,21 +26,13 @@ func TestNewInt(t *testing.T) {
 	if actual != expected {
 		t.Errorf("Test of NewInt failed, expected: '%v', got: '%v'",
 			actual, expected)
-	} else {
-		pass++
 	}
-
-	println("NewInt()", pass, "out of", tests, "tests passed.")
 
 }
 
 // TestNewIntFromBytes makes sure that we can get the same byte string
 // out of a new Int that we put into it
 func TestNewIntFromBytes(t *testing.T) {
-	tests := 1
-
-	pass := 0
-
 	expected := []byte{0xff, 0xee, 0xdd, 0xcc, 0xbb, 0xaa, 0x99, 0x88}
 
 	value := NewIntFromBytes(expected)
@@ -53,20 +41,12 @@ func TestNewIntFromBytes(t *testing.T) {
 
 	if !bytes.Equal(actual, expected) {
 		t.Errorf("NewIntFromBytes failed, expected: %v, got: %v", expected, actual)
-	} else {
-		pass++
 	}
-
-	println("NewIntFromBytes()", pass, "out of", tests, "tests passed.")
 }
 
 // TestNewIntFromString ensures that we get the same character string
 // out of a new Int that we put into it
 func TestNewIntFromString(t *testing.T) {
-	tests := 3
-
-	pass := 0
-
 	expected := []string{"178567423", "deadbeef"}
 
 	largeInts := []*Int{NewIntFromString(expected[0], 10),
@@ -75,36 +55,22 @@ func TestNewIntFromString(t *testing.T) {
 	actual := []string{largeInts[0].Text(10), largeInts[1].Text(16)}
 
 	for i := 0; i < len(expected); i++ {
-		testOK := true
 		if expected[i] != actual[i] {
-			testOK = false
 			t.Errorf("NewIntFromString failed, expected: %v, got: %v", expected[i], actual[i])
-		}
-		if testOK {
-			pass++
 		}
 	}
 
 	// Test that error in parsing string returns nil
-
 	value := NewIntFromString("185", 5)
 
 	if value != nil {
 		t.Errorf("NewIntFromString should return nil if parsing fails")
-	} else {
-		pass++
 	}
-
-	println("NewIntFromString()", pass, "out of", tests, "tests passed.")
 }
 
 // TestNewIntFromBigInt checks if the NewIntFromBigInt function
 // returns a Int with the same value of the passed bigInt
 func TestNewIntFromBigInt(t *testing.T) {
-	tests := 1
-
-	pass := 0
-
 	expectedBig := big.NewInt(int64(42))
 	expected := int64(42)
 
@@ -113,21 +79,13 @@ func TestNewIntFromBigInt(t *testing.T) {
 	if actual != expected {
 		t.Errorf("Test of NewIntFromBigInt failed, expected: '%v', got: '%v'",
 			actual, expected)
-	} else {
-		pass++
 	}
-
-	println("TestNewIntFromBigInt()", pass, "out of", tests, "tests passed.")
 
 }
 
 // TestNewMaxInt ensures that NewMaxInt returns the correct value for our
 // upper-bound integer
 func TestNewMaxInt(t *testing.T) {
-	tests := 1
-
-	pass := 0
-
 	expected := []byte{
 		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -177,20 +135,12 @@ func TestNewMaxInt(t *testing.T) {
 	actual := NewMaxInt().Bytes()
 	if !bytes.Equal(actual, expected) {
 		t.Error("NewMaxInt: actual differed from expected")
-	} else {
-		pass++
 	}
-
-	println("NewMaxInt()", pass, "out of", tests, "tests passed.")
 }
 
 // TestNewIntFromUInt makes sure that we can get the same uint64
 // out of a new Int that we put into it
 func TestNewIntFromUInt(t *testing.T) {
-	tests := 1
-
-	pass := 0
-
 	expected := uint64(1203785)
 
 	actual := NewIntFromUInt(expected).Uint64()
@@ -198,21 +148,40 @@ func TestNewIntFromUInt(t *testing.T) {
 	if actual != expected {
 		t.Error("NewIntFromUInt: expected", expected,
 			"got", actual)
-	} else {
-		pass++
+	}
+}
+
+//Tests that the DeepCopy is identical and that it is separate from the original
+func TestInt_DeepCopy(t *testing.T) {
+	rng := rand.New(rand.NewSource(42))
+
+	tests := 100
+
+	for i:=0;i<tests;i++{
+		lgBytes := make([]byte,rng.Int()%1000)
+		lg := NewIntFromBytes(lgBytes)
+
+		lgCopy := lg.DeepCopy()
+
+		if lg.Cmp(lgCopy)!=0{
+			t.Errorf("Int.DeepCopy: Copy not equal to original, Expected: %v, Recieved: %v",
+				lg.Text(16), lgCopy.Text(16))
+		}
+
+		lgCopy.Sub(lgCopy,NewInt(1))
+
+		if lg.Cmp(lgCopy)==0{
+			t.Errorf("Int.DeepCopy: Copy not seperate from original, Expected: %v, Recieved: %v",
+				lg.Text(16), lgCopy.Text(16))
+		}
 	}
 
-	println("NewIntFromUInt()", pass, "out of", tests, "tests passed.")
 }
 
 // -------------- TEST Setters -------------- //
 
 //TestSet checks if the modified Int is the same as the original
 func TestSet(t *testing.T) {
-	tests := 1
-
-	pass := 0
-
 	expected := NewInt(int64(42))
 
 	actual := NewInt(int64(69))
@@ -228,18 +197,10 @@ func TestSet(t *testing.T) {
 	if result != 0 {
 		t.Errorf("Test of Set failed, expected: '0', got: '%v'",
 			result)
-	} else {
-		pass++
 	}
-
-	println("Set()", pass, "out of", tests, "tests passed.")
 }
 
 func TestSetBigInt(t *testing.T) {
-	tests := 1
-
-	pass := 0
-
 	expectedBig := big.NewInt(int64(42))
 	expected := NewInt(int64(42))
 
@@ -256,11 +217,7 @@ func TestSetBigInt(t *testing.T) {
 	if result != 0 {
 		t.Errorf("Test of SetBigInt failed, expected: '0', got: '%v'",
 			result)
-	} else {
-		pass++
 	}
-
-	println("SetBigInt()", pass, "out of", tests, "tests passed.")
 }
 
 //TestSetString checks if the modified Int is the same as the original
@@ -291,9 +248,6 @@ func TestSetString(t *testing.T) {
 		NewIntFromString("9000000000000000000000000000000090090909090909090090909090909090", 10),
 		NewInt(-1),
 	}
-
-	tests := len(testStructs)
-	pass := 0
 	actual := NewInt(0)
 
 	for i, testi := range testStructs {
@@ -304,19 +258,14 @@ func TestSetString(t *testing.T) {
 			if actual != nil && expected[i] == nil {
 				t.Error("Test of SetString() failed at index:", i,
 					"Function didn't handle invalid input correctly")
-			} else {
-				pass++
 			}
 		} else {
 			if actual.Cmp(expected[i]) != 0 {
 				t.Errorf("Test of SetString() failed at index: %v Expected: %v;"+
 					" Actual: %v", i, expected[i], actual)
-			} else {
-				pass++
 			}
 		}
 	}
-	println("SetString()", pass, "out of", tests, "tests passed.")
 }
 
 //TestSetBytes
@@ -332,27 +281,19 @@ func TestSetBytes(t *testing.T) {
 		{0xA, 0xF3, 0x24, 0xC1, 0xA0, 0xAD, 0x87, 0x20,
 			0x57, 0xCE, 0xF4, 0x32, 0xF3}, //"867530918239450598372829049587",
 		{0x00}}
-	tests := len(expected)
-	pass := 0
+
 	actual := NewInt(0)
 	for i, testi := range testBytes {
 		actual = actual.SetBytes(testi)
 		if actual.Cmp(expected[i]) != 0 {
 			t.Errorf("Test of SetBytes failed at index %v, expected: '%v', "+
 				"actual: %v", i, expected[i].Text(10), actual.Text(10))
-		} else {
-			pass++
 		}
 	}
-	println("SetBytes()", pass, "out of", tests, "tests passed.")
 }
 
 // Checks whether you can set an Int correctly with an int64
 func TestSetInt64(t *testing.T) {
-	tests := 1
-
-	pass := 0
-
 	expected := NewInt(int64(42))
 
 	actual := NewInt(int64(69))
@@ -364,19 +305,11 @@ func TestSetInt64(t *testing.T) {
 	if result != 0 {
 		t.Errorf("Test of SetInt64 failed, expected: '0', got: '%v'",
 			result)
-	} else {
-		pass++
 	}
-
-	println("SetInt64()", pass, "out of", tests, "tests passed.")
 }
 
 // Checks whether you can set an Int correctly with a uint64
 func TestSetUint64(t *testing.T) {
-	tests := 1
-
-	pass := 0
-
 	expected := NewInt(int64(42))
 
 	actual := NewInt(int64(69))
@@ -388,67 +321,42 @@ func TestSetUint64(t *testing.T) {
 	if result != 0 {
 		t.Errorf("Test of SetUint64 failed, expected: '0', got: '%v'",
 			result)
-	} else {
-		pass++
 	}
-
-	println("SetUint64()", pass, "out of", tests, "tests passed.")
 }
 
 // -------------- TEST Converters -------------- //
 
 // BigInt converts the Int to a *big.Int representation
 func TestBigInt(t *testing.T) {
-	tests := 1
-	pass := 0
-
 	expected := big.NewInt(int64(42))
 	actual := NewInt(int64(42)).BigInt()
 
 	if actual.Cmp(expected) != 0 {
 		t.Errorf("Test of BigInt failed, expected: '%v', got: '%v'",
 			expected, actual)
-	} else {
-		pass++
 	}
-
-	println("TestBigInt()", pass, "out of", tests, "tests passed.")
 }
 
 //TestInt64 checks if Int64 returns a valid int64 or nil according to value
 func TestInt64(t *testing.T) {
-	tests := 1
-	pass := 0
-
 	expected := int64(42)
 	actual := NewInt(int64(42)).Int64()
 
 	if actual != expected {
 		t.Errorf("Test of Int64 failed, expected: '%v', got: '%v'",
 			expected, actual)
-	} else {
-		pass++
 	}
-
-	println("TestInt64()", pass, "out of", tests, "tests passed.")
 }
 
 //TestUint64 checks if Uint64 returns a valid uint64 or nil according to value
 func TestUint64(t *testing.T) {
-	tests := 1
-	pass := 0
-
 	expected := uint64(42)
 	actual := NewIntFromUInt(uint64(42)).Uint64()
 
 	if actual != expected {
 		t.Errorf("Test of Uint64 failed, expected: '%v', got: '%v'",
 			expected, actual)
-	} else {
-		pass++
 	}
-
-	println("TestUint64()", pass, "out of", tests, "tests passed.")
 }
 
 //TestIsInt64
@@ -481,18 +389,13 @@ func TestIsInt64(t *testing.T) {
 		true,
 		false,
 	}
-	tests := len(testInts)
-	pass := 0
 	for i, testi := range testInts {
 		actual := testi.IsInt64()
 		if actual != expected[i] {
 			t.Errorf("Test of IsInt64 failed at index %v, expected: '%v', "+
 				"actual: %v", i, expected[i], actual)
-		} else {
-			pass++
 		}
 	}
-	println("IsInt64()", pass, "out of", tests, "tests passed.")
 }
 
 // -------------- TEST Basic Arithmetic Operators -------------- //
@@ -519,18 +422,14 @@ func TestAdd(t *testing.T) {
 	}
 
 	expected[3].SetString("9223372036854775817", 10)
-	tests := len(testCases)
-	pass := 0
+
 	for i, testi := range testCases {
 		actual := testi.zint.Add(testi.xint, testi.yint)
 		if actual.Cmp(expected[i]) != 0 {
 			t.Errorf("Test of Add() failed at index: %v Expected: %v; Actual: %v",
 				i, expected[i].Text(10), actual.Text(10))
-		} else {
-			pass++
 		}
 	}
-	println("Add()", pass, "out of", tests, "tests passed.")
 }
 
 //TestSub checks if the Sub function returns the correct result
@@ -580,10 +479,6 @@ func TestSub(t *testing.T) {
 
 		testStructs = append(testStructs, ts)
 	}
-
-	tests := len(testStructs)
-	pass := 0
-
 	expected := 0
 
 	for i, testi := range testStructs {
@@ -594,11 +489,8 @@ func TestSub(t *testing.T) {
 		if result != expected {
 			t.Errorf("Test of Sub() failed at index: %v Expected: %v, %v; Actual: %v, %v",
 				i, expected, testi.z.Text(10), result, actual.Text(10))
-		} else {
-			pass += 1
 		}
 	}
-	println("Sub()", pass, "out of", tests, "tests passed.")
 
 }
 
@@ -624,18 +516,13 @@ func TestMul(t *testing.T) {
 	}
 
 	expected[3].SetString("92233720368547758070", 10)
-	tests := len(testCases)
-	pass := 0
 	for i, testi := range testCases {
 		actual := testi.zint.Mul(testi.xint, testi.yint)
 		if actual.Cmp(expected[i]) != 0 {
 			t.Errorf("Test of Mul() failed at index: %v Expected: %v; Actual: %v",
 				i, expected[i].Text(10), actual.Text(10))
-		} else {
-			pass++
 		}
 	}
-	println("Mul()", pass, "out of", tests, "tests passed.")
 }
 
 //TestDiv checks if the Sub function returns the correct result
@@ -686,10 +573,6 @@ func TestDiv(t *testing.T) {
 
 		testStructs = append(testStructs, ts)
 	}
-
-	tests := len(testStructs)
-	pass := 0
-
 	expected := 0
 
 	for i, testi := range testStructs {
@@ -700,11 +583,8 @@ func TestDiv(t *testing.T) {
 		if result != expected {
 			t.Errorf("Test of Div() failed at index: %v Expected: %v, %v; Actual: %v, %v",
 				i, expected, testi.z.Text(10), result, actual.Text(10))
-		} else {
-			pass += 1
 		}
 	}
-	println("Div()", pass, "out of", tests, "tests passed.")
 
 }
 
@@ -755,10 +635,6 @@ func TestMod(t *testing.T) {
 
 		testStructs = append(testStructs, ts)
 	}
-
-	tests := len(testStructs)
-	pass := 0
-
 	expected := 0
 
 	for i, testi := range testStructs {
@@ -769,11 +645,8 @@ func TestMod(t *testing.T) {
 		if result != expected {
 			t.Errorf("Test of Mod() failed at index: %v Expected: %v, %v;"+
 				" Actual: %v, %v", i, expected, testi.r.Text(10), result, actual.Text(10))
-		} else {
-			pass += 1
 		}
 	}
-	println("Mod()", pass, "out of", tests, "tests passed.")
 
 }
 
@@ -814,9 +687,6 @@ func TestModInverse(t *testing.T) {
 		testStructs = append(testStructs, ts)
 	}
 
-	tests := len(testStructs)
-	pass := 0
-
 	expected := 0
 
 	for i, testi := range testStructs {
@@ -831,11 +701,8 @@ func TestModInverse(t *testing.T) {
 		if result != expected {
 			t.Errorf("Test of ModInverse() failed at index: %v Expected: %v, %v; Actual: %v, %v",
 				i, expected, int1.Text(10), result, remultiply.Text(10))
-		} else {
-			pass++
 		}
 	}
-	println("ModInverse()", pass, "out of", tests, "tests passed.")
 
 }
 
@@ -902,10 +769,6 @@ func TestExp(t *testing.T) {
 
 		testStructs = append(testStructs, ts)
 	}
-
-	tests := len(testStructs)
-	pass := 0
-
 	expected := 0
 
 	for i, testi := range testStructs {
@@ -916,11 +779,8 @@ func TestExp(t *testing.T) {
 		if result != expected {
 			t.Errorf("Test of Exp() failed at index: %v Expected: %v, %v; Actual: %v, %v",
 				i, expected, testi.z.Text(10), result, actual.Text(10))
-		} else {
-			pass += 1
 		}
 	}
-	println("Exp()", pass, "out of", tests, "tests passed.")
 
 }
 
@@ -1010,9 +870,6 @@ func TestBitLen(t *testing.T) {
 
 	testints[2], _ = testints[2].SetString("867530918239450598372829049587", 10)
 
-	tests := len(testints)
-	pass := 0
-
 	expectedlens := []int{
 		6,
 		23,
@@ -1024,11 +881,8 @@ func TestBitLen(t *testing.T) {
 		if actual != expectedlens[i] {
 			t.Errorf("Case %v of BitLen failed, got: '%v', expected: '%v'", i, actual,
 				expectedlens[i])
-		} else {
-			pass++
 		}
 	}
-	println("BitLen()", pass, "out of", tests, "tests passed.")
 }
 
 //TestCmp checks if the Cmp placeholder exists
@@ -1036,9 +890,6 @@ func TestCmp(t *testing.T) {
 
 	var expected, actual int
 	var xint, yint *Int
-
-	tests := 3
-	pass := 0
 
 	//Tests for case where x < y
 
@@ -1052,8 +903,6 @@ func TestCmp(t *testing.T) {
 	if actual != expected {
 		t.Errorf("Test 'less than' of Cmp failed, expected: '%v', got:"+
 			" '%v'", actual, expected)
-	} else {
-		pass++
 	}
 
 	//Tests for case where x==y
@@ -1068,8 +917,6 @@ func TestCmp(t *testing.T) {
 	if actual != expected {
 		t.Errorf("Test 'equals' of Cmp failed, expected: '%v', got: '%v'",
 			actual, expected)
-	} else {
-		pass++
 	}
 
 	//Test for case where x > y
@@ -1084,11 +931,7 @@ func TestCmp(t *testing.T) {
 	if actual != expected {
 		t.Errorf("Test 'greater than' of Cmp failed, expected: '%v', got:"+
 			" '%v'", actual, expected)
-	} else {
-		pass++
 	}
-
-	println("Cmp()", pass, "out of", tests, "tests passed.")
 
 }
 
@@ -1231,8 +1074,7 @@ func TestBytes(t *testing.T) {
 		// { 0xA, 0xF3, 0x24, 0xC1, 0xA0, 0xAD, 0x87, 0x20,
 		//   0x57, 0xCE, 0xF4, 0x32, 0xF3 }, //"867530918239450598372829049587",
 		{0x2A}} // TODO: Should be <nil>, not 42
-	tests := len(testints)
-	pass := 0
+
 	for i, tsti := range testints {
 		actual := tsti.Bytes()
 		for j, tstb := range expectedbytes[i] {
@@ -1241,9 +1083,7 @@ func TestBytes(t *testing.T) {
 					tstb)
 			}
 		}
-		pass++
 	}
-	println("Bytes()", pass, "out of", tests, "tests passed.")
 }
 
 // TestLeftpadBytes makes sure that LeftpadBytes returns the correctly
@@ -1304,19 +1144,15 @@ func TestText(t *testing.T) {
 		"6553522",
 		"8675309182...",
 		"-42"} // TODO: Should be <nil>, not -42
-	tests := len(testints)
-	pass := 0
+
 	for i, tsti := range testints {
 		actual := tsti.Text(10)
 		expected := expectedstrs[i]
 		if actual != expected {
 			t.Errorf("Test of Text failed, got: '%v', expected: '%v'", actual,
 				expected)
-		} else {
-			pass++
 		}
 	}
-	println("Text()", pass, "out of", tests, "tests passed.")
 }
 
 func TestTextVerbose(t *testing.T) {
@@ -1324,19 +1160,13 @@ func TestTextVerbose(t *testing.T) {
 	lens := []int{12, 16, 18, 0}
 	expected := []string{"867530918239...", "8675309182394505...",
 		"867530918239450598...", "867530918239450598372829049587"}
-	tests := len(lens)
-	pass := 0
 	for i, testLen := range lens {
 		actual := testInt.TextVerbose(10, testLen)
 		if actual != expected[i] {
 			t.Errorf("Test of TextVerbose failed, got: %v,"+
 				"expected: %v", actual, expected[i])
-		} else {
-			pass++
 		}
 	}
-	println("TestTextVerbose()", pass, "out of", tests, "tests passed.")
-
 }
 
 // -------------- TEST GOB Operators -------------- //

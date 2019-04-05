@@ -105,7 +105,7 @@ func TestInt_DeepCopy(t *testing.T) {
 	}
 }
 
-// Test that Cmp works, and that it returns -1 when fingerprints differ
+// Test that Cmp works, and that it returns -2 when fingerprints differ
 func TestCmp(t *testing.T) {
 	val1 := grp.NewInt(int64(42))
 	val2 := grp.NewInt(int64(42))
@@ -121,8 +121,8 @@ func TestCmp(t *testing.T) {
 
 	ret = val1.Cmp(val2)
 
-	if ret != -1 {
-		t.Errorf("Test of Cmp failed, expected: -1, "+
+	if ret != -2 {
+		t.Errorf("Test of Cmp failed, expected: -2, "+
 			"got: '%v'", ret)
 	}
 }
