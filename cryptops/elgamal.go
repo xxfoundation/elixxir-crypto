@@ -23,10 +23,12 @@ var ElGamal ElGamalPrototype = func(g *cyclic.Group, key, privateKey, publicCyph
 	g.Mul(tmp, cypher, cypher)
 }
 
+//Returns the name for debugging
 func (ElGamalPrototype) GetName() string {
 	return "ElGamal"
 }
 
+//Returns the input size, used in safety checks
 func (ElGamalPrototype) GetInputSize() uint32 {
 	return 1
 }
