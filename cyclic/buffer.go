@@ -16,7 +16,7 @@ type IntBuffer struct {
 	fingerprint uint64
 }
 
-//Get the cyclic int at a specific region in the int buffer
+//Get the cyclic int at a specific index in the int buffer
 func (ib *IntBuffer) Get(index uint) *Int {
 	return &Int{&ib.values[index], ib.fingerprint}
 }
