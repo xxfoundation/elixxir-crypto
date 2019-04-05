@@ -100,18 +100,69 @@ func TestIntBuffer_GetRegion(t *testing.T) {
 		grp.SetUint64(buf.Get(i), uint64(i))
 	}
 
-	//Get a region of the int buffer
-	bufSub := buf.GetSubBuffer(3, 17)
+	begin := uint32(3)
+	end := uint32(17)
 
-	for i := uint32(3); i < 17; i++ {
-		bufint := bufSub.Get(i - 3)
+	//Get a region of the int buffer
+	bufSub := buf.GetSubBuffer(begin, end)
+
+	//check that the length is correct
+	if bufSub.Len() != int(end-begin) {
+		t.Errorf("IntBuffer.GetSubBuffer: Size of region of incorrect,"+
+			"Expected: %v, Recieved: %v", end-begin, bufSub.Len())
+	}
+
+	for i := begin; i < end; i++ {
+		//check that the copy is exact
+		bufint := bufSub.Get(i - begin)
 		if bufint.GetLargeInt().Int64() != int64(i) {
 			t.Errorf("IntBuffer.GetSubBuffer: Region mapped incorrectly,"+
 				"Expected: %v, Recieved: %v", i, bufint.GetLargeInt().Int64())
 		}
+		//check that when editing one, the other is edited
 		grp.SetUint64(bufint, uint64(100-i))
 		if buf.Get(i).GetLargeInt().Int64() != int64(100-i) {
-			t.Errorf("IntBuffer.GetSubBuffer: Region not connect to originator,"+
+			t.Errorf("IntBuffer.GetSubBuffer: Region not connected to originator,"+
+				"Expected: %v, Recieved: %v", 100-i, buf.Get(i).GetLargeInt().Int64())
+		}
+	}
+}
+
+//Tests that deep copy of an int buffer copies correctly
+func TestIntBuffer_DeepCopy(t *testing.T) {
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	q := large.NewInt(1283)
+	grp := NewGroup(p, g, q)
+
+	intBuffLen := uint32(20)
+
+	buf := grp.NewIntBuffer(intBuffLen, nil)
+
+	// Set all ints
+	for i := uint32(0); i < intBuffLen; i++ {
+		grp.SetUint64(buf.Get(i), uint64(i))
+	}
+
+	//Get a deep copy of the int buffer
+	bufCpy := buf.DeepCopy()
+
+	if bufCpy.Len() != buf.Len() {
+		t.Errorf("IntBuffer.DeepCopy: Size of region of incorrect,"+
+			"Expected: %v, Recieved: %v", buf.Len(), bufCpy.Len())
+	}
+
+	for i := uint32(0); i < intBuffLen; i++ {
+		//check that the copy is the same as the original
+		bufint := bufCpy.Get(i)
+		if bufint.GetLargeInt().Int64() != int64(i) {
+			t.Errorf("IntBuffer.DeepCopy: Copy not equal to original at %v,"+
+				"Expected: %v, Recieved: %v", i, i, bufint.GetLargeInt().Int64())
+		}
+		//check that editing one does not edit the other
+		grp.SetUint64(bufint, uint64(100-i))
+		if buf.Get(i).GetLargeInt().Int64() == int64(100-i) {
+			t.Errorf("IntBuffer.DeepCopy: Region connected to originator,"+
 				"Expected: %v, Recieved: %v", 100-i, buf.Get(i).GetLargeInt().Int64())
 		}
 	}

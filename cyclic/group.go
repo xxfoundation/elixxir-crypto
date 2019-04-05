@@ -67,16 +67,15 @@ func NewGroup(p, g, q *large.Int) *Group {
 func (g *Group) NewIntBuffer(length uint32, defaultValue *Int) *IntBuffer {
 	var defaultValueLarge *large.Int
 
-	if defaultValue == nil{
+	if defaultValue == nil {
 		defaultValueLarge = g.psub1.DeepCopy()
-	}else{
+	} else {
 		g.checkInts(defaultValue)
 		defaultValueLarge = defaultValue.value.DeepCopy()
 	}
 
 	newBuffer := IntBuffer{make([]large.Int, length), g.fingerprint}
 	for i := range newBuffer.values {
-		// Call to Set() is required to not alias psub1
 		(&newBuffer.values[i]).Set(defaultValueLarge)
 	}
 	return &newBuffer

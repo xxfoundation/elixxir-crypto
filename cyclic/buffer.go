@@ -28,6 +28,15 @@ func (ib *IntBuffer) GetSubBuffer(begin, end uint32) *IntBuffer {
 		fingerprint: ib.fingerprint}
 }
 
+//Get a deep copy of an intBuffer
+func (ib *IntBuffer) DeepCopy() *IntBuffer {
+	newBuffer := IntBuffer{make([]large.Int, len(ib.values)), ib.fingerprint}
+	for i := range newBuffer.values {
+		(&newBuffer.values[i]).Set(&ib.values[i])
+	}
+	return &newBuffer
+}
+
 //Gets the length of the int buffer
 func (ib *IntBuffer) Len() int {
 	return len(ib.values)
