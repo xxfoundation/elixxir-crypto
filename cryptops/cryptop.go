@@ -2,5 +2,5 @@ package cryptops
 
 type Cryptop interface {
 	GetName() string
-	GetMinSize() uint32
+	GetInputSize() uint32
 }

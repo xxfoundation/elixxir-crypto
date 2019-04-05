@@ -196,14 +196,14 @@ func (b *Block) Bake(seedList []coin.Seed, treeRoot BlockHash) error {
 		return err
 	}
 
-	shuffle.ShufflePRNG(rawSeed, len(b.created), func(i, j int) {
+	shuffle.ShuffleSwap(rawSeed, len(b.created), func(i, j int) {
 		b.created[i], b.created[j] = b.created[j], b.created[i]
 	})
 	//Hash the seed used for the destroy elements so the two lists aren't shuffled the same way
 
 	hb.Write(rawSeed)
 	destroySeed := hb.Sum(nil)
-	shuffle.ShufflePRNG(destroySeed, len(b.destroyed), func(i, j int) {
+	shuffle.ShuffleSwap(destroySeed, len(b.destroyed), func(i, j int) {
 		b.destroyed[i], b.destroyed[j] = b.destroyed[j], b.destroyed[i]
 	})
 

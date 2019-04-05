@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"encoding/binary"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/hash"
 	"gitlab.com/elixxir/crypto/large"
@@ -43,12 +44,11 @@ func computeTTL(hashed []byte, min uint16, max uint16) uint16 {
 		jww.ERROR.Panicf("Min must be greater than or equal to max in computeTTL")
 	}
 
-	zero := large.NewInt(1)
-	keyHash := large.NewIntFromBytes(hashed)
-	mod := large.NewInt(int64(max - min))
+	keyHash := binary.BigEndian.Uint64(hashed[:8])
+	mod := uint64(max - min)
 
 	// The formula used is: ttl = (keyHash % mod) + min | s.t. mod = (max - min)
-	ttl := uint16(zero.Mod(keyHash, mod).Int64()) + min
+	ttl := uint16(keyHash%mod) + min
 
 	return ttl
 }
