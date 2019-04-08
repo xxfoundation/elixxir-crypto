@@ -70,14 +70,14 @@ func TestGenerateKeyTTL_ValidTTL(t *testing.T) {
 
 	ttl, numKeys := GenerateKeyTTL(sessionKey, min, max, params)
 
-	expectedTTL := uint16(8115)
-	expectedNumKeys := uint32(9738)
+	expectedTTL := uint16(15950)
+	expectedNumKeys := uint32(19140)
 
 	if ttl != expectedTTL {
-		t.Errorf("TTL generated doesn't match expected value")
+		t.Errorf("TTL generated doesn't match expected value, Expected %v, Recieved %v", expectedTTL, ttl)
 	}
 	if numKeys != expectedNumKeys {
-		t.Errorf("Num keys generated doesn't match expected value")
+		t.Errorf("Num keys generated doesn't match expected value, Expected %v, Recieved %v", expectedNumKeys, numKeys)
 	}
 
 }
@@ -94,7 +94,7 @@ func TestComputeNumKeys_MinThreshold(t *testing.T) {
 	}
 
 	actualNumKeys := computeNumKeys(ttl, params)
-	expectedNumKeys := uint32(ttl + params.minNumKeys)
+	expectedNumKeys := uint32(ttl + params.MinNumKeys)
 
 	if expectedNumKeys != actualNumKeys {
 		t.Errorf("Compute num keys did not set it to min. threshold")

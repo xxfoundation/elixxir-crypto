@@ -20,11 +20,8 @@ var g = large.NewInt(5)
 var q = large.NewInt(1283)
 var grp = NewGroup(p, g, q)
 
-// Test largeInt getter
+// Test largeInt getter and show it returns a copy
 func TestGetLargeInt(t *testing.T) {
-	tests := 1
-	pass := 0
-
 	expected := large.NewInt(42)
 
 	actual := grp.NewInt(42)
@@ -32,17 +29,20 @@ func TestGetLargeInt(t *testing.T) {
 	if actual.GetLargeInt().Cmp(expected) != 0 {
 		t.Errorf("Test of GetLargeInt failed, expected: '%v', got: '%v'",
 			actual.GetLargeInt(), expected)
-	} else {
-		pass++
 	}
 
-	println("TestGetLargeInt()", pass, "out of", tests, "tests passed.")
+	li := actual.GetLargeInt()
+
+	li.SetInt64(33)
+
+	if actual.GetLargeInt().Cmp(expected) != 0 {
+		t.Errorf("Test of GetLargeInt failed, did not create deep copy")
+	}
+
 }
 
 // Test group fingeprint getter
 func TestGetGroupFingerprint(t *testing.T) {
-	tests := 1
-	pass := 0
 
 	expected := grp.GetFingerprint()
 
@@ -51,11 +51,7 @@ func TestGetGroupFingerprint(t *testing.T) {
 	if actual.GetGroupFingerprint() != expected {
 		t.Errorf("Test of GetGroupFingerprint failed, expected: '%v', got: '%v'",
 			actual.GetGroupFingerprint(), expected)
-	} else {
-		pass++
 	}
-
-	println("TestGetGroupFingerprint()", pass, "out of", tests, "tests passed.")
 }
 
 // Test bytes getter
@@ -132,7 +128,7 @@ func TestInt_DeepCopy(t *testing.T) {
 	}
 }
 
-// Test that Cmp works, and that it returns -1 when fingerprints differ
+// Test that Cmp works, and that it returns -2 when fingerprints differ
 func TestCmp(t *testing.T) {
 	val1 := grp.NewInt(int64(42))
 	val2 := grp.NewInt(int64(42))
@@ -143,14 +139,13 @@ func TestCmp(t *testing.T) {
 		t.Errorf("Test of Cmp failed, expected: 0, "+
 			"got: '%v'", ret)
 	}
-
 	// Overwrite group fingerprint and confirm Cmp returns -1
 	val2.fingerprint = uint64(1234)
 
 	ret = val1.Cmp(val2)
 
-	if ret != -1 {
-		t.Errorf("Test of Cmp failed, expected: -1, "+
+	if ret != -2 {
+		t.Errorf("Test of Cmp failed, expected: -2, "+
 			"got: '%v'", ret)
 	}
 }

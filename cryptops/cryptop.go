@@ -1,6 +1,9 @@
 package cryptops
 
 type Cryptop interface {
+	//Returns the name.  Used for debugging.
 	GetName() string
-	GetMinSize() uint32
+	//Gets the number of parallel computations the cryptop does at once.
+	//A value of zero denotes it is arbitrary
+	GetInputSize() uint32
 }

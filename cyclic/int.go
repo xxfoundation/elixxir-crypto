@@ -21,9 +21,14 @@ type Int struct {
 	fingerprint uint64
 }
 
-// Get the largeInt from cyclicInt
+// Gets a deepcopy of the largeInt from cyclicInt
+// This is necessary because otherwise the internal
+// value of the into could be edited and made to be
+// outside the group.
 func (z *Int) GetLargeInt() *large.Int {
-	return z.value
+	r := large.NewInt(0)
+	r.Set(z.value)
+	return r
 }
 
 // Get the group fingerprint from cyclicInt
@@ -49,19 +54,18 @@ func (z *Int) BitLen() int {
 // Returns a complete copy of the cyclic int such that no
 // underlying data is linked
 func (z *Int) DeepCopy() *Int {
-	i := &Int{}
-	i.value = large.NewInt(1)
-	i.fingerprint = z.fingerprint
-	i.value.Set(z.value)
-	return i
+	return &Int{
+		z.value.DeepCopy(),
+		z.fingerprint,
+	}
 }
 
 // Compare two cyclicInts
-// returns -1 if fingerprint differs
+// returns -2 if fingerprint differs
 // returns value.Cmp otherwise
 func (z *Int) Cmp(x *Int) int {
 	if z.fingerprint != x.fingerprint {
-		return -1
+		return -2
 	}
 	return z.value.Cmp(x.value)
 }

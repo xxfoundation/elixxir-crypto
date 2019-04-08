@@ -60,6 +60,11 @@ func NewIntFromUInt(i uint64) *Int {
 	return s
 }
 
+// DeepCopy Creates a deep copy of the large int
+func (z *Int)DeepCopy()*Int{
+	return NewInt(0).Set(z)
+}
+
 // -------------- Setters -------------- //
 
 // Set sets z to x and returns z.
