@@ -27,16 +27,16 @@ func TestShuffle(t *testing.T) {
 	// TODO: calculate false failure rate
 
 	// Shuffle a bunch of small lists
-	reps := 100000
+	reps := 4
 	batch := 4
 
-	var outInts [][]uint64
+	var outInts [][]uint32
 
 	for i := 0; i < reps; i++ {
 
-		var intLst []uint64
+		var intLst []uint32
 
-		for j := uint64(0); j < uint64(batch); j++ {
+		for j := uint32(0); j < uint32(batch); j++ {
 			intLst = append(intLst, j)
 		}
 		outInts = append(outInts, intLst)
@@ -94,14 +94,14 @@ func TestShuffle(t *testing.T) {
 
 // Test the shuffle on a list of length 1
 func TestShuffleLen1(t *testing.T) {
-	var testlst []uint64
+	var testlst []uint32
 	testlst = append(testlst, 1)
 	Shuffle(&testlst)
 }
 
 // Test that shuffleCore panics on read error
 func TestShuffleCorePanic(t *testing.T) {
-	var testlst []uint64
+	var testlst []uint32
 	testlst = append(testlst, 1)
 	testlst = append(testlst, 2)
 
