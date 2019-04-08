@@ -7,8 +7,24 @@ import (
 	"testing"
 )
 
-// Tests the correctness of exponentiation under the group.
-func TestExp(t *testing.T) {
+//Tests that EXP conforms to the cryptops interface
+func TestExpPrototype_CryptopsInterface(t *testing.T) {
+	var face interface{}
+	var cryptop Cryptop
+
+	face = Exp
+	cryptop, ok := face.(Cryptop)
+	expPrototype, ok2 := cryptop.(ExpPrototype)
+	expPrototype.GetName()
+
+	if !(ok && ok2) {
+		t.Errorf("Exp() does not conform to the cryptops interface")
+	}
+}
+
+// Tests the correctness and consistency of exponentiation under the group. This
+// shows the results do not change.
+func TestExpPrototype_Consistency(t *testing.T) {
 	grp := cyclic.NewGroup(large.NewInt(117), large.NewInt(5), large.NewInt(53))
 
 	testVals := [][]*cyclic.Int{
@@ -19,7 +35,7 @@ func TestExp(t *testing.T) {
 	}
 
 	for _, val := range testVals {
-		result := grp.Exp(val[0], val[1], grp.NewInt(1))
+		result := Exp(grp, val[0], val[1], grp.NewInt(1))
 
 		if result.Cmp(val[2]) != 0 {
 			t.Errorf("Exp() did not produce the correct exponentiation "+
@@ -30,9 +46,7 @@ func TestExp(t *testing.T) {
 }
 
 // Tests the mathematical properties of exponentiation under the group.
-func TestExp_MathProp(t *testing.T) {
-	prng := rand.New(rand.NewSource(64))
-
+func TestExpPrototype_MathProp(t *testing.T) {
 	var primeString = "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
 		"29024E088A67CC74020BBEA63B139B22514A08798E3404DD" +
 		"EF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245" +
@@ -58,10 +72,12 @@ func TestExp_MathProp(t *testing.T) {
 	var prime = large.NewIntFromString(primeString, 16)
 	grp := cyclic.NewGroup(prime, large.NewInt(5), large.NewInt(53))
 
+	prng := rand.New(rand.NewSource(64))
+
 	for i := 0; i < 10; i++ {
 		x := grp.NewInt(prng.Int63())
 		coprime := grp.RandomCoprime(grp.NewInt(1))
-		result := grp.Exp(x, coprime, grp.NewInt(1))
+		result := Exp(grp, x, coprime, grp.NewInt(1))
 		coprimeRoot := grp.RootCoprime(result, coprime, grp.NewInt(1))
 
 		if coprimeRoot.Cmp(x) != 0 {
@@ -69,5 +85,30 @@ func TestExp_MathProp(t *testing.T) {
 				"under the group\n\trecieved: %v\n\texpected: %v",
 				coprimeRoot.Text(10), x.Text(10))
 		}
+	}
+}
+
+// Tests that GetInputSize() returns the correct minimum input size.
+func TestExpPrototype_GetInputSize(t *testing.T) {
+	expect := uint32(1)
+	actual := Exp.GetInputSize()
+
+	if actual != expect {
+		t.Errorf("GetInputSize() for ExpPrototype did not return the "+
+			"correct minimum input size\n\trecieved: %v\n\texpected: %v",
+			actual, expect)
+	}
+
+}
+
+// Tests that GetName() returns the correct name.
+func TestExpPrototype_GetName(t *testing.T) {
+	expect := "Exp"
+	actual := Exp.GetName()
+
+	if actual != expect {
+		t.Errorf("GetName() for ExpPrototype did not return the "+
+			"name\n\trecieved: %v\n\texpected: %v",
+			actual, expect)
 	}
 }
