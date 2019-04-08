@@ -76,7 +76,7 @@ func TestElgamal_Single(t *testing.T) {
 //Tests properties of Elgamal by undoing the encryption and showing the correct result is obtained after
 //two successive operations
 //This is done by opening the cypher, inverting it, and multiplying the result into the encrypted keys
-//Shows that the system is multiplicativly commutative
+//Shows that the system is multiplicatively commutative
 func TestElgamal_Double(t *testing.T) {
 	primeString := "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
 		"29024E088A67CC74020BBEA63B139B22514A08798E3404DD" +
@@ -139,7 +139,7 @@ func TestElgamal_Double(t *testing.T) {
 }
 
 //TestsElgamal for consistency, show that its results do not change
-func TestElgamal_Consistancy(t *testing.T) {
+func TestElgamal_Consistency(t *testing.T) {
 	primeString := "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
 		"29024E088A67CC74020BBEA63B139B22514A08798E3404DD" +
 		"EF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245" +
