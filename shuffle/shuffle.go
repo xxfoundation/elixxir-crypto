@@ -21,9 +21,9 @@ func shuffleCore(shufflee *[]uint32, rng csprng.Source) {
 	}
 	size := uint32(len(*shufflee))
 	bufLen := uint32((bits.Len(uint(size))+7)>>3)
-	buf := make([]byte, bufLen)
 
 	for curPos := uint32(0); curPos < size-1; curPos++ {
+		buf := make([]byte, bufLen)
 		// Shuffle should be able to swap with any element that hasn't
 		// already been shuffled
 		n, err := rng.Read(buf)
