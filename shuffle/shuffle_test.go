@@ -27,7 +27,7 @@ func TestShuffle(t *testing.T) {
 	// TODO: calculate false failure rate
 
 	// Shuffle a bunch of small lists
-	reps := 4
+	reps := 100000
 	batch := 4
 
 	var outInts [][]uint32

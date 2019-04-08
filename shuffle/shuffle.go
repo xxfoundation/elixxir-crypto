@@ -20,7 +20,8 @@ func shuffleCore(shufflee *[]uint32, rng csprng.Source) {
 		jww.ERROR.Panic("Too many items in the shuffled batch")
 	}
 	size := uint32(len(*shufflee))
-	bufLen := uint32((bits.Len(uint(size))+7)>>3)
+	// use 2 times the required bytes to reduce modulo bias to be more acceptable
+	bufLen := 2*(bits.Len(uint(size))+7)>>3
 
 	for curPos := uint32(0); curPos < size-1; curPos++ {
 		buf := make([]byte, bufLen)
@@ -32,13 +33,16 @@ func shuffleCore(shufflee *[]uint32, rng csprng.Source) {
 				"number in Shuffle: %v", err.Error())
 		}
 
-		buf = append(make([]byte,4-len(buf)),buf...)
+		// Left pad buf to make it the right length for binary.BigEndian.Uint64
+		buf = append(make([]byte,8-len(buf)),buf...)
 
 		// Generate a number between curPos and size-1
-		randPos := binary.BigEndian.Uint32(buf)
-		randPos %= size - curPos
-		randPos += curPos
-		println(randPos)
+		// FIXME We should generate the numbers in a way that isn't biased
+		// See XX-1036 for a ticket about the RNG redesign
+		// https://privategrity.atlassian.net/browse/XX-1036
+		randPos := binary.BigEndian.Uint64(buf)
+		randPos %= uint64(size - curPos)
+		randPos += uint64(curPos)
 		(*shufflee)[randPos], (*shufflee)[curPos] = (*shufflee)[curPos],
 			(*shufflee)[randPos]
 	}
