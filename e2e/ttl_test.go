@@ -94,7 +94,7 @@ func TestComputeNumKeys_MinThreshold(t *testing.T) {
 	}
 
 	actualNumKeys := computeNumKeys(ttl, params)
-	expectedNumKeys := uint32(ttl + params.minNumKeys)
+	expectedNumKeys := uint32(ttl + params.MinNumKeys)
 
 	if expectedNumKeys != actualNumKeys {
 		t.Errorf("Compute num keys did not set it to min. threshold")
