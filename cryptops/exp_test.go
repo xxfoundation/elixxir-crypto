@@ -14,8 +14,7 @@ func TestExpPrototype_CryptopsInterface(t *testing.T) {
 
 	face = Exp
 	cryptop, ok := face.(Cryptop)
-	expPrototype, ok2 := cryptop.(ExpPrototype)
-	expPrototype.GetName()
+	_, ok2 := cryptop.(ExpPrototype)
 
 	if !(ok && ok2) {
 		t.Errorf("Exp() does not conform to the cryptops interface")
