@@ -78,7 +78,30 @@ func TestLeftpadBytes(t *testing.T) {
 	}
 }
 
-// Tests that the copy retruned by deep copy is identical and that editing
+//TestBitLen checks if BitLen works
+func TestBitLen(t *testing.T) {
+	testints := []*Int{
+		grp.NewInt(42),
+		grp.NewInt(6553522),
+		grp.NewInt(7777),
+		grp.NewInt(21234)}
+
+	expectedlens := []int{
+		6,
+		23,
+		13,
+		15}
+
+	for i, tsti := range testints {
+		actual := tsti.BitLen()
+		if actual != expectedlens[i] {
+			t.Errorf("Case %v of BitLen failed, got: '%v', expected: '%v'", i, actual,
+				expectedlens[i])
+		}
+	}
+}
+
+// Tests that the copy returned by deep copy is identical and that editing
 // one does not edit the other
 func TestInt_DeepCopy(t *testing.T) {
 	i := grp.NewInt(55)
@@ -129,7 +152,6 @@ func TestCmp(t *testing.T) {
 
 // Test that Clear works by setting value to 1
 func TestReset(t *testing.T) {
-
 	actual := grp.NewInt(42)
 	expected := large.NewInt(42)
 
@@ -161,6 +183,7 @@ func TestText(t *testing.T) {
 		"6553522 in GRP: 4XgotyuZEW...",
 		"8675309182 in GRP: 4XgotyuZEW...",
 		"43 in GRP: 4XgotyuZEW..."} // TODO: Should be <nil>, not -42
+
 	for i, tsti := range testints {
 		actual := tsti.Text(10)
 		expected := expectedstrs[i]
@@ -186,6 +209,7 @@ func TestTextVerbose(t *testing.T) {
 		"8675309182394505... in GRP: t9Aiywu7oD8=",
 		"867530918239450598... in GRP: t9Aiywu7oD8=",
 		"867530918239450598372829049587 in GRP: t9Aiywu7oD8="}
+
 	for i, testLen := range lens {
 		actual := testInt.TextVerbose(10, testLen)
 		if actual != expected[i] {

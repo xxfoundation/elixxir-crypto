@@ -16,7 +16,7 @@ import (
 
 // ExpandKey is a function that receives a key and expands such key to a specific size
 // This implementation returns a 2048 bit-size key (or 256 bytes)
-func ExpandKey(h hash.Hash, g *cyclic.Group, key []byte) []byte {
+func ExpandKey(h hash.Hash, g *cyclic.Group, key []byte, output *cyclic.Int) *cyclic.Int {
 	// The Hash will be created outside the function, so need to wrap
 	// it into a function to pass to HKDF.Expand
 	var foo = func() hash.Hash {
@@ -34,5 +34,6 @@ func ExpandKey(h hash.Hash, g *cyclic.Group, key []byte) []byte {
 		keyInt.SetBytes(expandedKey)
 	}
 
-	return expandedKey
+	g.SetLargeInt(output, keyInt)
+	return output
 }
