@@ -17,23 +17,22 @@ func TestMul3_Consistency(t *testing.T) {
 	grp := cyclic.NewGroup(large.NewInt(107), large.NewInt(23),
 		large.NewInt(27))
 
-    tests := [][]*cyclic.Int{
-    	{grp.NewInt(39), grp.NewInt(65), grp.NewInt(52)},
-    	{grp.NewInt(86), grp.NewInt(44), grp.NewInt(68)},
-    	{grp.NewInt(66), grp.NewInt(94), grp.NewInt(11)},
+	tests := [][]*cyclic.Int{
+		{grp.NewInt(39), grp.NewInt(65), grp.NewInt(52)},
+		{grp.NewInt(86), grp.NewInt(44), grp.NewInt(68)},
+		{grp.NewInt(66), grp.NewInt(94), grp.NewInt(11)},
 	}
-    expected := []*cyclic.Int{
-    	grp.NewInt(103),
-    	grp.NewInt(84),
-    	grp.NewInt(85),
+	expected := []*cyclic.Int{
+		grp.NewInt(103),
+		grp.NewInt(84),
+		grp.NewInt(85),
 	}
-    for i:= range tests {
-        out := grp.NewInt(1)
-        result := Mul3(grp, tests[i][0], tests[i][1], tests[i][2], out)
+	for i := range tests {
+		result := Mul3(grp, tests[i][0], tests[i][1], tests[i][2])
 
-        if expected[i].Cmp(result) != 0{
-        	t.Errorf("Discrepancy at %v. Got %v, expected %v", i,
-        		result.Text(10), result.Text(10))
+		if expected[i].Cmp(tests[i][2]) != 0 {
+			t.Errorf("Discrepancy at %v. Got %v, expected %v", i,
+				result.Text(10), result.Text(10))
 		}
 	}
 }
@@ -85,27 +84,37 @@ func TestMul3_Commutativity(t *testing.T) {
 		}
 		z := grp.NewIntFromBytes(buf)
 
-		// ensure that Mul3 is completely commutative
-		out1 := grp.NewInt(1)
-		out2 := grp.NewInt(1)
-		Mul3(grp, x, y, z, out1)
-		Mul3(grp, x, z, y, out2)
+		//ensure that Mul3 is completely commutative
+		var out1, out2 *cyclic.Int
+		out1 = z.DeepCopy()
+		Mul3(grp, x, y, out1)
+
+		out2 = z.DeepCopy()
+		Mul3(grp, y, x, out2)
 		if out1.Cmp(out2) != 0 {
 			t.Errorf("Out1 not equal to Out2 at index %v", i)
 		}
-		Mul3(grp, z, x, y, out2)
+
+		out2 = y.DeepCopy()
+		Mul3(grp, z, x, out2)
 		if out1.Cmp(out2) != 0 {
 			t.Errorf("Out1 not equal to Out2 at index %v", i)
 		}
-		Mul3(grp, z, y, x, out2)
+
+		out2 = x.DeepCopy()
+		Mul3(grp, z, y, out2)
 		if out1.Cmp(out2) != 0 {
 			t.Errorf("Out1 not equal to Out2 at index %v", i)
 		}
-		Mul3(grp, y, x, z, out2)
+
+		out2 = z.DeepCopy()
+		Mul3(grp, y, x, out2)
 		if out1.Cmp(out2) != 0 {
 			t.Errorf("Out1 not equal to Out2 at index %v", i)
 		}
-		Mul3(grp, y, z, x, out2)
+
+		out2 = x.DeepCopy()
+		Mul3(grp, y, z, out2)
 		if out1.Cmp(out2) != 0 {
 			t.Errorf("Out1 not equal to Out2 at index %v", i)
 		}
@@ -158,32 +167,38 @@ func TestMul3_Correctness(t *testing.T) {
 		z := grp.NewInt(1)
 
 		// start with x*y
-		out := grp.NewInt(1)
-		Mul3(grp, x, y, z, out)
+		Mul3(grp, x, y, z)
+		if z.Cmp(grp.NewInt(1)) == 0 {
+			t.Errorf("Z was 1 after multiplication, "+
+				"indicating that the mul was a no-op somehow and seriously"+
+				" damaging the credibility of the test at index %v", i)
+		}
 
 		xInv := grp.Inverse(x, grp.NewInt(1))
 		yInv := grp.Inverse(y, grp.NewInt(1))
 		// multiply x*y with x inverse and y inverse. result should be 1
-		// initialize to 5 to make sure it changes
-		out2 := grp.NewInt(5)
-		Mul3(grp, out, xInv, yInv, out2)
-		if out2.Cmp(grp.NewInt(1)) != 0 {
-			t.Errorf("Multiplying by modular multiplicative inverse didn't" +
+		Mul3(grp, xInv, yInv, z)
+		if z.Cmp(grp.NewInt(1)) != 0 {
+			t.Errorf("Multiplying by modular multiplicative inverse didn't"+
 				" result in 1 at index %v", i)
 		}
 	}
 }
 
+func TestMul3Inclusion(t *testing.T) {
+	// Test that the value of out is included in the operation
+}
+
 func TestMul3Prototype_GetInputSize(t *testing.T) {
 	expected := uint32(1)
-	if Mul3.GetInputSize() != expected{
+	if Mul3.GetInputSize() != expected {
 		t.Errorf("Mul3 input size was %v, not %v", Mul3.GetInputSize(), expected)
 	}
 }
 
 func TestMul3Prototype_GetName(t *testing.T) {
 	expected := "Mul3"
-	if Mul3.GetName() != expected{
+	if Mul3.GetName() != expected {
 		t.Errorf("Mul3 name was %v, not %v", Mul3.GetName(), expected)
 	}
 }
