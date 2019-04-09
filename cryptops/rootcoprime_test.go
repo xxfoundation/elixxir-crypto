@@ -58,10 +58,10 @@ func TestRootCoprimePrototype_Consistency(t *testing.T) {
 	grp := cyclic.NewGroup(large.NewInt(117), large.NewInt(5), large.NewInt(53))
 
 	testVals := [][]*cyclic.Int{
-		{grp.NewInt(42), grp.NewInt(41), grp.NewInt(9)},
-		{grp.NewInt(42), grp.NewInt(63), grp.NewInt(9)},
-		{grp.NewInt(69), grp.NewInt(42), grp.NewInt(69)},
-		{grp.NewInt(99), grp.NewInt(81), grp.NewInt(99)},
+		{grp.NewInt(3), grp.NewInt(17), grp.NewInt(9)},
+		{grp.NewInt(13), grp.NewInt(23), grp.NewInt(91)},
+		{grp.NewInt(29), grp.NewInt(31), grp.NewInt(53)},
+		{grp.NewInt(7), grp.NewInt(5), grp.NewInt(73)},
 	}
 
 	for _, val := range testVals {
