@@ -238,7 +238,12 @@ func (g *Group) BytesInside(bufs ...[]byte) bool {
 
 // BytesInside returns true of the Int represented by the byte slice is within the group, false if it isn't
 func (g *Group) singleBytesInside(buf []byte) bool {
+
 	if len(buf) == 0 || len(buf) > len(g.primeBytes) {
+		return false
+	}
+
+	if len(buf) == 1 && buf[0] == 0 {
 		return false
 	}
 

@@ -699,6 +699,7 @@ func TestSingleBytesInside(t *testing.T) {
 	group := NewGroup(p, g, q)
 	expected := []bool{
 		false,
+		false,
 		true,
 		true,
 		true,
@@ -707,6 +708,7 @@ func TestSingleBytesInside(t *testing.T) {
 		false,
 	}
 	actual := []bool{
+		group.singleBytesInside([]byte{0}),
 		group.singleBytesInside(large.NewInt(0).Bytes()),
 		group.singleBytesInside(large.NewInt(1).Bytes()),
 		group.singleBytesInside(large.NewInt(17).Bytes()),
