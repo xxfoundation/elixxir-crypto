@@ -18,29 +18,29 @@ type keygenPrototype func(grp *cyclic.Group, salt []byte,
 type EncryptionKeygenPrototype keygenPrototype
 type DecryptionKeygenPrototype keygenPrototype
 
-func (DecryptionKeygenPrototype) GetName() string{
-	return "DecryptionKeygen"
+// Define the actual cryptops
+var EncryptionKeygen EncryptionKeygenPrototype = func(group *cyclic.Group,
+	salt []byte, baseKey *cyclic.Int) (key *cyclic.Int) {
+	return cmix.NewEncryptionKey(salt, baseKey, group)
 }
 
-func (EncryptionKeygenPrototype) GetName() string{
+func (EncryptionKeygenPrototype) GetName() string {
 	return "EncryptionKeygen"
-}
-
-func (DecryptionKeygenPrototype) GetInputSize() uint32 {
-	return 1
 }
 
 func (EncryptionKeygenPrototype) GetInputSize() uint32 {
 	return 1
 }
 
-// Define the actual cryptops
-var EncryptionKeygen EncryptionKeygenPrototype = func(group *cyclic.Group,
-	salt []byte, baseKey *cyclic.Int) (key *cyclic.Int) {
-		return cmix.NewEncryptionKey(salt, baseKey, group)
-}
-
 var DecryptionKeygen DecryptionKeygenPrototype = func(group *cyclic.Group,
 	salt []byte, baseKey *cyclic.Int) (key *cyclic.Int) {
-		return cmix.NewDecryptionKey(salt, baseKey, group)
+	return cmix.NewDecryptionKey(salt, baseKey, group)
+}
+
+func (DecryptionKeygenPrototype) GetName() string {
+	return "DecryptionKeygen"
+}
+
+func (DecryptionKeygenPrototype) GetInputSize() uint32 {
+	return 1
 }
