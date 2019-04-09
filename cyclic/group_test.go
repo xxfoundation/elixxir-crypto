@@ -692,7 +692,7 @@ func TestInside(t *testing.T) {
 }
 
 // Test Inside that checks if a number is inside the group
-func TestBytesInside(t *testing.T) {
+func TestSingleBytesInside(t *testing.T) {
 	p := large.NewInt(1023)
 	g := large.NewInt(7)
 	q := large.NewInt(3)
@@ -707,13 +707,13 @@ func TestBytesInside(t *testing.T) {
 		false,
 	}
 	actual := []bool{
-		group.BytesInside(large.NewInt(0).Bytes()),
-		group.BytesInside(large.NewInt(1).Bytes()),
-		group.BytesInside(large.NewInt(17).Bytes()),
-		group.BytesInside(large.NewInt(70).Bytes()),
-		group.BytesInside(large.NewInt(1022).Bytes()),
-		group.BytesInside(large.NewInt(1111).Bytes()),
-		group.BytesInside(large.NewInt(100000).Bytes()),
+		group.singleBytesInside(large.NewInt(0).Bytes()),
+		group.singleBytesInside(large.NewInt(1).Bytes()),
+		group.singleBytesInside(large.NewInt(17).Bytes()),
+		group.singleBytesInside(large.NewInt(70).Bytes()),
+		group.singleBytesInside(large.NewInt(1022).Bytes()),
+		group.singleBytesInside(large.NewInt(1111).Bytes()),
+		group.singleBytesInside(large.NewInt(100000).Bytes()),
 	}
 
 	for i := 0; i < len(expected); i++ {
@@ -725,7 +725,7 @@ func TestBytesInside(t *testing.T) {
 }
 
 // Test Inside that checks if a number is inside the group
-func TestMultiBytesInside(t *testing.T) {
+func TestBytesInside(t *testing.T) {
 	p := large.NewInt(1023)
 	g := large.NewInt(7)
 	q := large.NewInt(3)
@@ -737,10 +737,10 @@ func TestMultiBytesInside(t *testing.T) {
 		false,
 	}
 	actual := []bool{
-		group.MultiBytesInside(large.NewInt(1).Bytes()),
-		group.MultiBytesInside(large.NewInt(1).Bytes(), large.NewInt(1000).Bytes(), large.NewInt(300).Bytes()),
-		group.MultiBytesInside(large.NewInt(1).Bytes(), large.NewInt(1000).Bytes(), large.NewInt(300).Bytes(), large.NewInt(2000).Bytes()),
-		group.MultiBytesInside(large.NewInt(0).Bytes(), large.NewInt(1100).Bytes(), large.NewInt(30000000).Bytes(), large.NewInt(400900).Bytes()),
+		group.BytesInside(large.NewInt(1).Bytes()),
+		group.BytesInside(large.NewInt(1).Bytes(), large.NewInt(1000).Bytes(), large.NewInt(300).Bytes()),
+		group.BytesInside(large.NewInt(1).Bytes(), large.NewInt(1000).Bytes(), large.NewInt(300).Bytes(), large.NewInt(2000).Bytes()),
+		group.BytesInside(large.NewInt(0).Bytes(), large.NewInt(1100).Bytes(), large.NewInt(30000000).Bytes(), large.NewInt(400900).Bytes()),
 	}
 
 	for i := 0; i < len(expected); i++ {

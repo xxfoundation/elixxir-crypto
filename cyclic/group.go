@@ -224,8 +224,20 @@ func (g *Group) Inside(a *large.Int) bool {
 	return a.Cmp(g.zero) == 1 && a.Cmp(g.prime) == -1
 }
 
+// bytesInside returns true of the all the Ints represented by the byte slices
+// are within the group, false if it isn't
+func (g *Group) BytesInside(bufs ...[]byte) bool {
+	inside := true
+
+	for _, buf := range bufs {
+		inside = inside && g.singleBytesInside(buf)
+	}
+
+	return inside
+}
+
 // BytesInside returns true of the Int represented by the byte slice is within the group, false if it isn't
-func (g *Group) BytesInside(buf []byte) bool {
+func (g *Group) singleBytesInside(buf []byte) bool {
 	if len(buf) == 0 || len(buf) > len(g.primeBytes) {
 		return false
 	}
@@ -243,18 +255,6 @@ func (g *Group) BytesInside(buf []byte) bool {
 	}
 
 	return false
-}
-
-// MultiBytesInside returns true of the all the Ints represented by the byte slices
-// are within the group, false if it isn't
-func (g *Group) MultiBytesInside(bufs ...[]byte) bool {
-	inside := true
-
-	for _, buf := range bufs {
-		inside = inside && g.BytesInside(buf)
-	}
-
-	return inside
 }
 
 // ModP sets z ≡ x mod prime within the group and returns z.
