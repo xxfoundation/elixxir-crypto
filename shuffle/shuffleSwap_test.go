@@ -1,6 +1,5 @@
 package shuffle
 
-
 import (
 	"math"
 	"strconv"
@@ -88,4 +87,3 @@ func TestShuffleSwapLen1(t *testing.T) {
 		testlst[i], testlst[j] = testlst[j], testlst[i]
 	})
 }
-

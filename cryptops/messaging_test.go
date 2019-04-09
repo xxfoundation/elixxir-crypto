@@ -8,35 +8,21 @@ package cryptops
 
 import "testing"
 
-// Ensure that both cryptops implement the Cryptop interface
-// Compilation will fail if they don't
-var _ Cryptop = DecryptionKeygen
-var _ Cryptop = EncryptionKeygen
+// Compilation will fail if Keygen doesn't meet the interface
+var _ Cryptop = Keygen
 
-func TestDecryptionKeygenPrototype_GetName(t *testing.T) {
-	expected := "DecryptionKeygen"
-	if DecryptionKeygen.GetName() != expected {
+func TestKeygenPrototype_GetName(t *testing.T) {
+	expected := "Keygen"
+	if Keygen.GetName() != expected {
 		t.Errorf("GetName didn't match. Expected %v, got %v", expected,
-			DecryptionKeygen.GetName())
-	}
-}
-
-func TestEncryptionKeygenPrototype_GetName(t *testing.T) {
-	expected := "EncryptionKeygen"
-	if EncryptionKeygen.GetName() != expected {
-		t.Errorf("GetName didn't match. Expected %v, got %v", expected,
-			EncryptionKeygen.GetName())
+			Keygen.GetName())
 	}
 }
 
 func TestKeygenPrototype_GetInputSize(t *testing.T) {
 	expected := uint32(1)
-	if EncryptionKeygen.GetInputSize() != expected {
+	if Keygen.GetInputSize() != expected {
 		t.Errorf("GetInputSize didn't match. Expected %v, got %v", expected,
-			EncryptionKeygen.GetInputSize())
-	}
-	if DecryptionKeygen.GetInputSize() != expected {
-		t.Errorf("GetInputSize didn't match. Expected %v, got %v", expected,
-			DecryptionKeygen.GetInputSize())
+			Keygen.GetInputSize())
 	}
 }

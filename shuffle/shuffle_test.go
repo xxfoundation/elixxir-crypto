@@ -7,10 +7,10 @@
 package shuffle
 
 import (
+	"errors"
 	"math"
 	"strconv"
 	"testing"
-	"errors"
 )
 
 type AlwaysErrorReader struct{}
@@ -113,7 +113,6 @@ func TestShuffleCorePanic32(t *testing.T) {
 
 	shuffleCore32(&testlst, AlwaysErrorReader{})
 }
-
 
 func TestShuffle(t *testing.T) {
 	// TODO: calculate false failure rate

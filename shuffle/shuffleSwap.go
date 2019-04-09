@@ -2,8 +2,8 @@ package shuffle
 
 import (
 	"crypto/sha256"
-	"math/rand"
 	"encoding/binary"
+	"math/rand"
 )
 
 // Shuffles anything passed using a Fisher-Yates shuffle backed by a PRNG seeded by a passed slice
@@ -34,4 +34,3 @@ func ShuffleSwap(seedSrc []byte, n int, swap func(i, j int)) {
 		swap(int(curPos), int(randPos))
 	}
 }
-

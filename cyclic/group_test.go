@@ -11,9 +11,9 @@ import (
 	"crypto/sha256"
 	"errors"
 	"gitlab.com/elixxir/crypto/large"
+	"math/rand"
 	"reflect"
 	"testing"
-	"math/rand"
 )
 
 // Tests NewGroup functionality
@@ -71,31 +71,31 @@ func TestGroup_NewIntBuffer(t *testing.T) {
 	//test that the size is correct and the default value is set correctly
 	rng := rand.New(rand.NewSource(42))
 
-	tests:=100
+	tests := 100
 
-	for i:=0;i<tests;i++{
+	for i := 0; i < tests; i++ {
 		defaultInt := grp.Random(grp.NewInt(1))
-		size := rng.Uint32()%10000
+		size := rng.Uint32() % 10000
 		buf := grp.NewIntBuffer(size, defaultInt)
 
 		//test that the length is correct
-		if len(buf.values)!=int(size){
-			t.Errorf("NewIntBuffer did not generate buffer of the correct size: " +
+		if len(buf.values) != int(size) {
+			t.Errorf("NewIntBuffer did not generate buffer of the correct size: "+
 				"Expected %v, Recieved: %v", size, len(buf.values))
 		}
 
-		pass:=true
+		pass := true
 
 		defaultIntLarge := defaultInt.GetLargeInt()
 
 		//test that the default value is set correctly
-		for _, i := range buf.values{
-			if i.Cmp(defaultIntLarge)!=0{
+		for _, i := range buf.values {
+			if i.Cmp(defaultIntLarge) != 0 {
 				pass = false
 			}
 		}
 
-		if !pass{
+		if !pass {
 			t.Errorf("NewIntBuffer internal values not equal to default value")
 		}
 	}
@@ -103,8 +103,8 @@ func TestGroup_NewIntBuffer(t *testing.T) {
 	//test that when passed default int is nil values are set to prime-1
 	buf := grp.NewIntBuffer(10, nil)
 
-	for _, i:=range buf.values{
-		if i.Cmp(grp.psub1)!=0{
+	for _, i := range buf.values {
+		if i.Cmp(grp.psub1) != 0 {
 			t.Errorf("NewIntBuffer internal values not equal to psub1 when nill passed")
 		}
 	}

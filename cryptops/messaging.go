@@ -11,36 +11,21 @@ import (
 	"gitlab.com/elixxir/crypto/cyclic"
 )
 
-// Wraps existing keygen operations in the messaging package
-type keygenPrototype func(grp *cyclic.Group, salt []byte,
+// Wraps existing keygen operations in the cmix package
+type KeygenPrototype func(grp *cyclic.Group, salt []byte,
 	baseKey *cyclic.Int) (key *cyclic.Int)
 
-type EncryptionKeygenPrototype keygenPrototype
-type DecryptionKeygenPrototype keygenPrototype
-
-// Define the actual cryptops
-var EncryptionKeygen EncryptionKeygenPrototype = func(group *cyclic.Group,
+var Keygen KeygenPrototype = func(group *cyclic.Group,
 	salt []byte, baseKey *cyclic.Int) (key *cyclic.Int) {
-	return cmix.NewEncryptionKey(salt, baseKey, group)
+	output := group.NewInt(1)
+	cmix.NodeKeyGen(group, salt, baseKey, output)
+	return output
 }
 
-func (EncryptionKeygenPrototype) GetName() string {
-	return "EncryptionKeygen"
+func (KeygenPrototype) GetName() string {
+	return "Keygen"
 }
 
-func (EncryptionKeygenPrototype) GetInputSize() uint32 {
-	return 1
-}
-
-var DecryptionKeygen DecryptionKeygenPrototype = func(group *cyclic.Group,
-	salt []byte, baseKey *cyclic.Int) (key *cyclic.Int) {
-	return cmix.NewDecryptionKey(salt, baseKey, group)
-}
-
-func (DecryptionKeygenPrototype) GetName() string {
-	return "DecryptionKeygen"
-}
-
-func (DecryptionKeygenPrototype) GetInputSize() uint32 {
+func (KeygenPrototype) GetInputSize() uint32 {
 	return 1
 }

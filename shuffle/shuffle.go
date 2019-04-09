@@ -7,11 +7,11 @@
 package shuffle
 
 import (
+	"encoding/binary"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
 	"math"
 	"math/bits"
-	"encoding/binary"
 )
 
 // Legacy 64-bit shuffle implementation
@@ -19,7 +19,7 @@ import (
 // Used in test to guarantee 100% coverage
 func shuffleCore(shufflee *[]uint64, rng csprng.Source) {
 	size := uint64(len(*shufflee))
-	bufLen := uint64((bits.Len(uint(size-1))+7)>>3)
+	bufLen := uint64((bits.Len(uint(size-1)) + 7) >> 3)
 	buf := make([]byte, bufLen)
 
 	for curPos := uint64(0); curPos < size-1; curPos++ {
@@ -31,7 +31,7 @@ func shuffleCore(shufflee *[]uint64, rng csprng.Source) {
 				"number in Shuffle: %v", err.Error())
 		}
 
-		buf = append(make([]byte,8-len(buf)),buf...)
+		buf = append(make([]byte, 8-len(buf)), buf...)
 
 		// Generate a number between curPos and size-1
 		randPos := binary.BigEndian.Uint64(buf)
@@ -51,7 +51,6 @@ func Shuffle(shufflee *[]uint64) {
 	shuffleCore(shufflee, csprng.NewSystemRNG())
 }
 
-
 // New, shiny 32-bit shuffle implementation
 
 // Used in test to guarantee 100% coverage
@@ -61,7 +60,7 @@ func shuffleCore32(shufflee *[]uint32, rng csprng.Source) {
 	}
 	size := uint32(len(*shufflee))
 	// use 2 times the required bytes to reduce modulo bias to be more acceptable
-	bufLen := 2*(bits.Len(uint(size))+7)>>3
+	bufLen := 2 * (bits.Len(uint(size)) + 7) >> 3
 
 	for curPos := uint32(0); curPos < size-1; curPos++ {
 		buf := make([]byte, bufLen)
@@ -74,7 +73,7 @@ func shuffleCore32(shufflee *[]uint32, rng csprng.Source) {
 		}
 
 		// Left pad buf to make it the right length for binary.BigEndian.Uint64
-		buf = append(make([]byte,8-len(buf)),buf...)
+		buf = append(make([]byte, 8-len(buf)), buf...)
 
 		// Generate a number between curPos and size-1
 		// FIXME We should generate the numbers in a way that isn't biased
