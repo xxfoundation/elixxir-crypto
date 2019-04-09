@@ -32,6 +32,7 @@ type Group struct {
 	rng         csprng.Source
 	random      []byte
 	fingerprint uint64
+	primeBytes  []byte
 }
 
 const GroupFingerprintSize = 8
@@ -59,6 +60,7 @@ func NewGroup(p, g, q *large.Int) *Group {
 		rng:         csprng.NewSystemRNG(),
 		random:      make([]byte, (p.BitLen()+7)/8),
 		fingerprint: value.Uint64(),
+		primeBytes:  p.Bytes(),
 	}
 }
 
@@ -80,8 +82,6 @@ func (g *Group) NewIntBuffer(length uint32, defaultValue *Int) *IntBuffer {
 	}
 	return &newBuffer
 }
-
-// Constructors for cyclicInt
 
 // Create a new cyclicInt in the group from an int64 value
 func (g *Group) NewInt(x int64) *Int {
@@ -222,6 +222,39 @@ func (g *Group) Mul(a, b, c *Int) *Int {
 // Inside returns true of the Int is within the group, false if it isn't
 func (g *Group) Inside(a *large.Int) bool {
 	return a.Cmp(g.zero) == 1 && a.Cmp(g.prime) == -1
+}
+
+// BytesInside returns true of the Int represented by the byte slice is within the group, false if it isn't
+func (g *Group) BytesInside(buf []byte) bool {
+	if len(buf) == 0 || len(buf) > len(g.primeBytes) {
+		return false
+	}
+
+	if len(buf) < len(g.primeBytes) {
+		return true
+	}
+
+	for i := 0; i < len(buf); i++ {
+		if g.primeBytes[i] > buf[i] {
+			return true
+		} else if buf[i] > g.primeBytes[i] {
+			return false
+		}
+	}
+
+	return false
+}
+
+// MultiBytesInside returns true of the all the Ints represented by the byte slices
+// are within the group, false if it isn't
+func (g *Group) MultiBytesInside(bufs ...[]byte) bool {
+	inside := true
+
+	for _, buf := range bufs {
+		inside = inside && g.BytesInside(buf)
+	}
+
+	return inside
 }
 
 // ModP sets z ≡ x mod prime within the group and returns z.

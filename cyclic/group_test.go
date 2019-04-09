@@ -10,9 +10,9 @@ import (
 	"crypto/sha256"
 	"errors"
 	"gitlab.com/elixxir/crypto/large"
+	"math/rand"
 	"reflect"
 	"testing"
-	"math/rand"
 )
 
 // Tests NewGroup functionality
@@ -70,31 +70,31 @@ func TestGroup_NewIntBuffer(t *testing.T) {
 	//test that the size is correct and the default value is set correctly
 	rng := rand.New(rand.NewSource(42))
 
-	tests:=100
+	tests := 100
 
-	for i:=0;i<tests;i++{
+	for i := 0; i < tests; i++ {
 		defaultInt := grp.Random(grp.NewInt(1))
-		size := rng.Uint32()%10000
+		size := rng.Uint32() % 10000
 		buf := grp.NewIntBuffer(size, defaultInt)
 
 		//test that the length is correct
-		if len(buf.values)!=int(size){
-			t.Errorf("NewIntBuffer did not generate buffer of the correct size: " +
+		if len(buf.values) != int(size) {
+			t.Errorf("NewIntBuffer did not generate buffer of the correct size: "+
 				"Expected %v, Recieved: %v", size, len(buf.values))
 		}
 
-		pass:=true
+		pass := true
 
 		defaultIntLarge := defaultInt.GetLargeInt()
 
 		//test that the default value is set correctly
-		for _, i := range buf.values{
-			if i.Cmp(defaultIntLarge)!=0{
+		for _, i := range buf.values {
+			if i.Cmp(defaultIntLarge) != 0 {
 				pass = false
 			}
 		}
 
-		if !pass{
+		if !pass {
 			t.Errorf("NewIntBuffer internal values not equal to default value")
 		}
 	}
@@ -102,8 +102,8 @@ func TestGroup_NewIntBuffer(t *testing.T) {
 	//test that when passed default int is nil values are set to prime-1
 	buf := grp.NewIntBuffer(10, nil)
 
-	for _, i:=range buf.values{
-		if i.Cmp(grp.psub1)!=0{
+	for _, i := range buf.values {
+		if i.Cmp(grp.psub1) != 0 {
 			t.Errorf("NewIntBuffer internal values not equal to psub1 when nill passed")
 		}
 	}
@@ -686,7 +686,67 @@ func TestInside(t *testing.T) {
 	for i := 0; i < len(expected); i++ {
 		if actual[i] != expected[i] {
 			t.Errorf("TestInside failed at index:%v, expected:%v, got:%v",
-				i, expected, actual)
+				i, expected[i], actual[i])
+		}
+	}
+}
+
+// Test Inside that checks if a number is inside the group
+func TestBytesInside(t *testing.T) {
+	p := large.NewInt(1023)
+	g := large.NewInt(7)
+	q := large.NewInt(3)
+	group := NewGroup(p, g, q)
+	expected := []bool{
+		false,
+		true,
+		true,
+		true,
+		true,
+		false,
+		false,
+	}
+	actual := []bool{
+		group.BytesInside(large.NewInt(0).Bytes()),
+		group.BytesInside(large.NewInt(1).Bytes()),
+		group.BytesInside(large.NewInt(17).Bytes()),
+		group.BytesInside(large.NewInt(70).Bytes()),
+		group.BytesInside(large.NewInt(1022).Bytes()),
+		group.BytesInside(large.NewInt(1111).Bytes()),
+		group.BytesInside(large.NewInt(100000).Bytes()),
+	}
+
+	for i := 0; i < len(expected); i++ {
+		if actual[i] != expected[i] {
+			t.Errorf("TestBytesInside failed at index:%v, expected:%v, got:%v",
+				i, expected[i], actual[i])
+		}
+	}
+}
+
+// Test Inside that checks if a number is inside the group
+func TestMultiBytesInside(t *testing.T) {
+	p := large.NewInt(1023)
+	g := large.NewInt(7)
+	q := large.NewInt(3)
+	group := NewGroup(p, g, q)
+	expected := []bool{
+		true,
+		true,
+		false,
+		false,
+	}
+	actual := []bool{
+		group.MultiBytesInside(large.NewInt(1).Bytes()),
+		group.MultiBytesInside(large.NewInt(1).Bytes(), large.NewInt(1000).Bytes(), large.NewInt(300).Bytes()),
+		group.MultiBytesInside(large.NewInt(1).Bytes(), large.NewInt(1000).Bytes(), large.NewInt(300).Bytes(), large.NewInt(2000).Bytes()),
+		group.MultiBytesInside(large.NewInt(0).Bytes(), large.NewInt(1100).Bytes(), large.NewInt(30000000).Bytes(), large.NewInt(400900).Bytes()),
+	}
+
+	for i := 0; i < len(expected); i++ {
+		if actual[i] != expected[i] {
+			t.Errorf("TestBytesInside failed at index:%v, expected:%v, got:%v",
+				i, expected[i], actual[i])
 		}
 	}
 }
