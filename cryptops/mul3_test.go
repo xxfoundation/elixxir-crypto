@@ -37,6 +37,7 @@ func TestMul3_Consistency(t *testing.T) {
 	}
 }
 
+// Makes sure that mul3 operands are commutative
 func TestMul3_Commutativity(t *testing.T) {
 	var primeString = "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
 		"29024E088A67CC74020BBEA63B139B22514A08798E3404DD" +
@@ -185,8 +186,23 @@ func TestMul3_Correctness(t *testing.T) {
 	}
 }
 
+// Shows that the value of out is included in the operation
 func TestMul3Inclusion(t *testing.T) {
-	// Test that the value of out is included in the operation
+	grp := cyclic.NewGroup(large.NewInt(107), large.NewInt(23),
+		large.NewInt(27))
+	timesOne := grp.NewInt(1)
+	x := grp.NewInt(80)
+	y := grp.NewInt(40)
+	timesOne = Mul3(grp, x, y, timesOne)
+
+	timesTwo := grp.NewInt(2)
+	timesTwo = Mul3(grp, x, y, timesTwo)
+	// timesOne times 2 should be equal to timesTwo, if the last parameter is
+	// what's overwritten
+    otherTimesTwo := grp.Mul(timesOne, grp.NewInt(2), grp.NewInt(1))
+    if otherTimesTwo.Cmp(timesTwo) != 0 {
+    	t.Error("Mul3 multiplication didn't accumulate into output parameter")
+	}
 }
 
 func TestMul3Prototype_GetInputSize(t *testing.T) {
