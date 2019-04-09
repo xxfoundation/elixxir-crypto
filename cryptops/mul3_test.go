@@ -3,8 +3,13 @@ package cryptops
 import (
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/large"
+	"math/rand"
 	"testing"
 )
+
+// Ensure that Mul3 satisfies the interface
+// Will cause a compile error if it doesn't
+var _ Cryptop = Mul3
 
 func TestMul3_Consistency(t *testing.T) {
 	// Tests for consistency with the old cryptop, Realtime Encrypt,
@@ -34,11 +39,139 @@ func TestMul3_Consistency(t *testing.T) {
 }
 
 func TestMul3_Commutativity(t *testing.T) {
-	t.Error("Unimplemented")
+	var primeString = "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
+		"29024E088A67CC74020BBEA63B139B22514A08798E3404DD" +
+		"EF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245" +
+		"E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7ED" +
+		"EE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3D" +
+		"C2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F" +
+		"83655D23DCA3AD961C62F356208552BB9ED529077096966D" +
+		"670C354E4ABC9804F1746C08CA18217C32905E462E36CE3B" +
+		"E39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9" +
+		"DE2BCBF6955817183995497CEA956AE515D2261898FA0510" +
+		"15728E5A8AAAC42DAD33170D04507A33A85521ABDF1CBA64" +
+		"ECFB850458DBEF0A8AEA71575D060C7DB3970F85A6E1E4C7" +
+		"ABF5AE8CDB0933D71E8C94E04A25619DCEE3D2261AD2EE6B" +
+		"F12FFA06D98A0864D87602733EC86A64521F2B18177B200C" +
+		"BBE117577A615D6C770988C0BAD946E208E24FA074E5AB31" +
+		"43DB5BFCE0FD108E4B82D120A92108011A723C12A787E6D7" +
+		"88719A10BDBA5B2699C327186AF4E23C1A946834B6150BDA" +
+		"2583E9CA2AD44CE8DBBBC2DB04DE8EF92E8EFC141FBECAA6" +
+		"287C59474E6BC05D99B2964FA090C3A2233BA186515BE7ED" +
+		"1F612970CEE2D7AFB81BDD762170481CD0069127D5B05AA9" +
+		"93B4EA988D8FDDC186FFB7DC90A6C08F4DF435C934063199" +
+		"FFFFFFFFFFFFFFFF"
+	var prime = large.NewIntFromString(primeString, 16)
+	grp := cyclic.NewGroup(prime, large.NewInt(5), large.NewInt(53))
+
+	prng := rand.New(rand.NewSource(82))
+
+	buf := make([]byte, len(prime.Bytes()))
+	for i := 0; i < 100; i++ {
+		// hope that the seed only generates stuff in the group and doesn't panic
+		_, err := prng.Read(buf)
+		if err != nil {
+			t.Error(err)
+		}
+		x := grp.NewIntFromBytes(buf)
+		_, err = prng.Read(buf)
+		if err != nil {
+			t.Error(err)
+		}
+		y := grp.NewIntFromBytes(buf)
+		_, err = prng.Read(buf)
+		if err != nil {
+			t.Error(err)
+		}
+		z := grp.NewIntFromBytes(buf)
+
+		// ensure that Mul3 is completely commutative
+		out1 := grp.NewInt(1)
+		out2 := grp.NewInt(1)
+		Mul3(grp, x, y, z, out1)
+		Mul3(grp, x, z, y, out2)
+		if out1.Cmp(out2) != 0 {
+			t.Errorf("Out1 not equal to Out2 at index %v", i)
+		}
+		Mul3(grp, z, x, y, out2)
+		if out1.Cmp(out2) != 0 {
+			t.Errorf("Out1 not equal to Out2 at index %v", i)
+		}
+		Mul3(grp, z, y, x, out2)
+		if out1.Cmp(out2) != 0 {
+			t.Errorf("Out1 not equal to Out2 at index %v", i)
+		}
+		Mul3(grp, y, x, z, out2)
+		if out1.Cmp(out2) != 0 {
+			t.Errorf("Out1 not equal to Out2 at index %v", i)
+		}
+		Mul3(grp, y, z, x, out2)
+		if out1.Cmp(out2) != 0 {
+			t.Errorf("Out1 not equal to Out2 at index %v", i)
+		}
+	}
 }
 
+// Make sure that multiplying a second time by the modular multiplicative
+// inverse
 func TestMul3_Correctness(t *testing.T) {
-	t.Error("Unimplemented")
+	var primeString = "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
+		"29024E088A67CC74020BBEA63B139B22514A08798E3404DD" +
+		"EF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245" +
+		"E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7ED" +
+		"EE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3D" +
+		"C2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F" +
+		"83655D23DCA3AD961C62F356208552BB9ED529077096966D" +
+		"670C354E4ABC9804F1746C08CA18217C32905E462E36CE3B" +
+		"E39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9" +
+		"DE2BCBF6955817183995497CEA956AE515D2261898FA0510" +
+		"15728E5A8AAAC42DAD33170D04507A33A85521ABDF1CBA64" +
+		"ECFB850458DBEF0A8AEA71575D060C7DB3970F85A6E1E4C7" +
+		"ABF5AE8CDB0933D71E8C94E04A25619DCEE3D2261AD2EE6B" +
+		"F12FFA06D98A0864D87602733EC86A64521F2B18177B200C" +
+		"BBE117577A615D6C770988C0BAD946E208E24FA074E5AB31" +
+		"43DB5BFCE0FD108E4B82D120A92108011A723C12A787E6D7" +
+		"88719A10BDBA5B2699C327186AF4E23C1A946834B6150BDA" +
+		"2583E9CA2AD44CE8DBBBC2DB04DE8EF92E8EFC141FBECAA6" +
+		"287C59474E6BC05D99B2964FA090C3A2233BA186515BE7ED" +
+		"1F612970CEE2D7AFB81BDD762170481CD0069127D5B05AA9" +
+		"93B4EA988D8FDDC186FFB7DC90A6C08F4DF435C934063199" +
+		"FFFFFFFFFFFFFFFF"
+	var prime = large.NewIntFromString(primeString, 16)
+	grp := cyclic.NewGroup(prime, large.NewInt(5), large.NewInt(53))
+
+	prng := rand.New(rand.NewSource(82))
+
+	buf := make([]byte, len(prime.Bytes()))
+	for i := 0; i < 100; i++ {
+		// hope that the seed only generates stuff in the group and doesn't panic
+		_, err := prng.Read(buf)
+		if err != nil {
+			t.Error(err)
+		}
+		x := grp.NewIntFromBytes(buf)
+		_, err = prng.Read(buf)
+		if err != nil {
+			t.Error(err)
+		}
+		y := grp.NewIntFromBytes(buf)
+		z := grp.NewInt(1)
+
+		// start with x*y
+		out := grp.NewInt(1)
+		Mul3(grp, x, y, z, out)
+
+		xInv := grp.Inverse(x, grp.NewInt(1))
+		yInv := grp.Inverse(y, grp.NewInt(1))
+		// multiply x*y with x inverse and y inverse. result should be 1
+		// initialize to 5 to make sure it changes
+		out2 := grp.NewInt(5)
+		Mul3(grp, out, xInv, yInv, out2)
+		if out2.Cmp(grp.NewInt(1)) != 0 {
+			t.Errorf("Multiplying by modular multiplicative inverse didn't" +
+				" result in 1 at index %v", i)
+		}
+	}
 }
 
 func TestMul3Prototype_GetInputSize(t *testing.T) {
