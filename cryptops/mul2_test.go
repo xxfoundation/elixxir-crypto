@@ -172,8 +172,6 @@ func TestMul2_Correctness(t *testing.T) {
 
 
 
-
-
 //Tests that Mul2 conforms to the cryptops interface
 func TestMul2_CryptopsInterface(t *testing.T) {
 
