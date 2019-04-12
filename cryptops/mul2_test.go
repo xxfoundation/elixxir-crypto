@@ -21,25 +21,31 @@ var _ Cryptop = Mul2
 func TestMul2_Consistency(t *testing.T) {
 	// Tests for consistency with the old cryptop, Realtime Encrypt,
 	// message tests
-	grp := cyclic.NewGroup(large.NewInt(107), large.NewInt(23), large.NewInt(27))
+	prime := large.NewInt(11)
+	primeQ := large.NewInt(5)
+	gen := large.NewInt(4)
+	grp := cyclic.NewGroup(prime, gen, primeQ) // g = { 5, 9, 3, 1 }
 
 	tests := [][]*cyclic.Int{
-		{grp.NewInt(39), grp.NewInt(65)},
-		{grp.NewInt(86), grp.NewInt(44)},
-		{grp.NewInt(66), grp.NewInt(94)},
+		{grp.NewInt(1), grp.NewInt(1)},
+		{grp.NewInt(3), grp.NewInt(3)},
+		{grp.NewInt(5), grp.NewInt(1)},
+		{grp.NewInt(1), grp.NewInt(5)},
 	}
+
 	expected := []*cyclic.Int{
-		grp.NewInt(74),
-		grp.NewInt(39),
-		grp.NewInt(105),
+		grp.NewInt(1),
+		grp.NewInt(9),
+		grp.NewInt(5),
+		grp.NewInt(5),
 	}
 
 	for i := range tests {
 		result := Mul2(grp, tests[i][0], tests[i][1])
 
-		if expected[i].Cmp(tests[i][1]) != 0 {
+		if expected[i].Cmp(result) != 0 {
 			t.Errorf("Discrepancy at %v. Got %v, expected %v", i,
-				result.Text(10), result.Text(10))
+				result.Text(10), expected[i].Text(10))
 		}
 	}
 }
