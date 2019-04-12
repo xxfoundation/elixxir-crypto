@@ -9,7 +9,7 @@ import (
 
 // Three tests,
 // Consistency -  if function is used twice with the same numbers the result should be the same
-// Communitive property - order of numbers put in should not effect the out output
+// Commutative property - order of numbers put in should not effect the out output
 // Inverse - if I get the inverse it should return the inputs
 
 
@@ -24,13 +24,15 @@ func TestMul2_Consistency(t *testing.T) {
 	prime := large.NewInt(11)
 	primeQ := large.NewInt(5)
 	gen := large.NewInt(4)
-	grp := cyclic.NewGroup(prime, gen, primeQ) // g = { 5, 9, 3, 1 }
+	// { 4, 5, 9, 3, 1, ... }
+	grp := cyclic.NewGroup(prime, gen, primeQ)
 
 	tests := [][]*cyclic.Int{
 		{grp.NewInt(1), grp.NewInt(1)},
 		{grp.NewInt(3), grp.NewInt(3)},
 		{grp.NewInt(5), grp.NewInt(1)},
 		{grp.NewInt(1), grp.NewInt(5)},
+		{grp.NewInt(4), grp.NewInt(5)},
 	}
 
 	expected := []*cyclic.Int{
@@ -38,6 +40,7 @@ func TestMul2_Consistency(t *testing.T) {
 		grp.NewInt(9),
 		grp.NewInt(5),
 		grp.NewInt(5),
+		grp.NewInt(9),
 	}
 
 	for i := range tests {
@@ -132,6 +135,7 @@ func TestMul2_Correctness(t *testing.T) {
 		"1F612970CEE2D7AFB81BDD762170481CD0069127D5B05AA9" +
 		"93B4EA988D8FDDC186FFB7DC90A6C08F4DF435C934063199" +
 		"FFFFFFFFFFFFFFFF"
+
 	var prime = large.NewIntFromString(primeString, 16)
 	grp := cyclic.NewGroup(prime, large.NewInt(5), large.NewInt(53))
 
