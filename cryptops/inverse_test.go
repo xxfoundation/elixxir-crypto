@@ -118,8 +118,8 @@ func TestInversePrototype_Consistency(t *testing.T) {
 
 	for i := 0; i < 10; i++ {
 		x := grp.NewInt(prng.Int63())
-		inv := grp.NewInt(1)
-		result := grp.Inverse(x, inv)
+		result := grp.NewInt(1)
+		inv := Inverse(grp, x, result)
 		mul := grp.Mul(x, inv, result)
 
 		// The multiplication of x with its inverse should be 1
