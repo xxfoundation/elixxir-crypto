@@ -46,3 +46,7 @@ func (ib *IntBuffer) Len() int {
 func (ib *IntBuffer) GetFingerprint() uint64 {
 	return ib.fingerprint
 }
+
+func (ib *IntBuffer) Contains(index uint32) bool {
+	return index < uint32(len(ib.values))
+}

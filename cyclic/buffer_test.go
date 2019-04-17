@@ -167,3 +167,26 @@ func TestIntBuffer_DeepCopy(t *testing.T) {
 		}
 	}
 }
+
+func TestIntBuffer_Contains(t *testing.T) {
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	q := large.NewInt(1283)
+	grp := NewGroup(p, g, q)
+
+	b := grp.NewIntBuffer(15, nil)
+
+	for i := 0; i < b.Len(); i++ {
+		if !b.Contains(uint32(i)) {
+			t.Errorf("IntBuffer.Contains: Does not contain index %v when it does", i)
+		}
+	}
+
+	if b.Contains(uint32(b.Len())) {
+		t.Errorf("IntBuffer.Contains: Contains index %v when it doesnt", b.Len())
+	}
+
+	if b.Contains(uint32(b.Len() + 1)) {
+		t.Errorf("IntBuffer.Contains: Contains index %v when it doesnt", b.Len()+1)
+	}
+}

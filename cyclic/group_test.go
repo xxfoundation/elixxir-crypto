@@ -702,7 +702,69 @@ func TestInside(t *testing.T) {
 	for i := 0; i < len(expected); i++ {
 		if actual[i] != expected[i] {
 			t.Errorf("TestInside failed at index:%v, expected:%v, got:%v",
-				i, expected, actual)
+				i, expected[i], actual[i])
+		}
+	}
+}
+
+// Test Inside that checks if a number is inside the group
+func TestSingleBytesInside(t *testing.T) {
+	p := large.NewInt(1023)
+	g := large.NewInt(7)
+	q := large.NewInt(3)
+	group := NewGroup(p, g, q)
+	expected := []bool{
+		false,
+		false,
+		true,
+		true,
+		true,
+		true,
+		false,
+		false,
+	}
+	actual := []bool{
+		group.singleBytesInside([]byte{0}),
+		group.singleBytesInside(large.NewInt(0).Bytes()),
+		group.singleBytesInside(large.NewInt(1).Bytes()),
+		group.singleBytesInside(large.NewInt(17).Bytes()),
+		group.singleBytesInside(large.NewInt(70).Bytes()),
+		group.singleBytesInside(large.NewInt(1022).Bytes()),
+		group.singleBytesInside(large.NewInt(1111).Bytes()),
+		group.singleBytesInside(large.NewInt(100000).Bytes()),
+	}
+
+	for i := 0; i < len(expected); i++ {
+		if actual[i] != expected[i] {
+			t.Errorf("TestBytesInside failed at index:%v, expected:%v, got:%v",
+				i, expected[i], actual[i])
+		}
+	}
+}
+
+// Test Inside that checks if a number is inside the group
+func TestBytesInside(t *testing.T) {
+	p := large.NewInt(1023)
+	g := large.NewInt(7)
+	q := large.NewInt(3)
+	group := NewGroup(p, g, q)
+	expected := []bool{
+		true,
+		true,
+		false,
+		false,
+	}
+	actual := []bool{
+		group.BytesInside(large.NewInt(1).Bytes()),
+		group.BytesInside(large.NewInt(1).Bytes(), large.NewInt(1000).Bytes(), large.NewInt(300).Bytes()),
+		group.BytesInside(large.NewInt(1).Bytes(), large.NewInt(1000).Bytes(), large.NewInt(300).Bytes(), large.NewInt(2000).Bytes()),
+		group.BytesInside(large.NewInt(0).Bytes(), large.NewInt(1100).Bytes(), large.NewInt(30000000).Bytes(), large.NewInt(400900).Bytes()),
+	}
+
+	for i := 0; i < len(expected); i++ {
+		if actual[i] != expected[i] {
+			t.Errorf("TestBytesInside failed at index:%v, expected:%v, got:%v",
+				i, expected[i], actual[i])
 		}
 	}
 }
