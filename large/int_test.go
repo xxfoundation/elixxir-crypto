@@ -157,20 +157,20 @@ func TestInt_DeepCopy(t *testing.T) {
 
 	tests := 100
 
-	for i:=0;i<tests;i++{
-		lgBytes := make([]byte,rng.Int()%1000)
+	for i := 0; i < tests; i++ {
+		lgBytes := make([]byte, rng.Int()%1000)
 		lg := NewIntFromBytes(lgBytes)
 
 		lgCopy := lg.DeepCopy()
 
-		if lg.Cmp(lgCopy)!=0{
+		if lg.Cmp(lgCopy) != 0 {
 			t.Errorf("Int.DeepCopy: Copy not equal to original, Expected: %v, Recieved: %v",
 				lg.Text(16), lgCopy.Text(16))
 		}
 
-		lgCopy.Sub(lgCopy,NewInt(1))
+		lgCopy.Sub(lgCopy, NewInt(1))
 
-		if lg.Cmp(lgCopy)==0{
+		if lg.Cmp(lgCopy) == 0 {
 			t.Errorf("Int.DeepCopy: Copy not seperate from original, Expected: %v, Recieved: %v",
 				lg.Text(16), lgCopy.Text(16))
 		}

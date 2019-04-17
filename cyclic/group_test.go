@@ -7,6 +7,7 @@
 package cyclic
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"errors"
 	"gitlab.com/elixxir/crypto/large"
@@ -636,6 +637,21 @@ func TestMul(t *testing.T) {
 		}
 	}
 
+}
+
+// Test left padded bytes getter
+func TestFullBytes(t *testing.T) {
+
+	expected := []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2A}
+
+	actual := grp.NewInt(int64(42))
+
+	actualbytes := grp.FullBytes(actual)
+
+	if !bytes.Equal(actualbytes, expected) {
+		t.Errorf("Test of FullBytes failed, expected: '%v', got: '%v'",
+			actualbytes, expected)
+	}
 }
 
 // Test that mul panics if cyclicInt doesn't belong to the group
