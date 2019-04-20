@@ -280,14 +280,16 @@ func (g *Group) Inverse(a, b *Int) *Int {
 // Sets r to the number and returns it
 func (g *Group) Random(r *Int) *Int {
 	g.checkInts(r)
-	n, err := g.rng.Read(g.random)
-	if err != nil || n != len(g.random) {
-		jww.FATAL.Panicf("Could not generate random "+
-			"number in group: %v", err.Error())
+	p := g.GetP().Bytes()
+	rng := g.rng
+	r.value.Set(g.one)
+	for g.one.Cmp(r.value) == 0 {
+		b, err := csprng.GenerateInGroup(p, len(p), rng)
+		if err != nil {
+			jww.FATAL.Panicf("Could not generate random number in group: %s", err)
+		}
+		r.value.SetBytes(b)
 	}
-	r.value.SetBytes(g.random)
-	r.value.Mod(r.value, g.psub2)
-	r.value.Add(r.value, g.two)
 	return r
 }
 
