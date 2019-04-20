@@ -55,7 +55,7 @@ func Shuffle(shufflee *[]uint64) {
 
 // Used in test to guarantee 100% coverage
 func shuffleCore32(shufflee *[]uint32, rng csprng.Source) {
-	if len(*shufflee) > math.MaxUint32 {
+	if uint64(len(*shufflee)) > math.MaxUint32 {
 		jww.ERROR.Panic("Too many items in the shuffled batch")
 	}
 	size := uint32(len(*shufflee))
