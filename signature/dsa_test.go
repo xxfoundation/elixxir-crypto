@@ -481,3 +481,18 @@ func TestDSAPublicKey_GobDecode(t *testing.T) {
 		t.Errorf("GobDecode() did not produce the expected error\n\treceived: %v\n\texpected: %v", err, errors.New("EOF"))
 	}
 }
+
+// Tests that JsonEncode() produces a correct JSON encoding of a DSAPublicKey by
+// encoding it and then decoding and checking for the same initial values.
+func TestDSAPublicKey_JsonEncode(t *testing.T) {
+	src := rand.NewSource(42)
+	pubKey := GetDefaultDSAParams().PrivateKeyGen(rand.New(src)).PublicKeyGen()
+	test := GetDefaultDSAParams().PrivateKeyGen(rand.New(src)).PublicKeyGen()
+
+	encodedKey, _ := pubKey.JsonEncode()
+	decodedKey, _ := test.JsonDecode(encodedKey)
+
+	if !reflect.DeepEqual(pubKey, decodedKey) {
+		t.Errorf("JsonEncode() and JsonDecode() did not encode and decode correctly\n\treceived: %v\n\texpected: %v", decodedKey, pubKey)
+	}
+}

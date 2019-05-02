@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"crypto/dsa"
 	"encoding/gob"
+	"encoding/json"
+	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/large"
 	"io"
@@ -359,6 +361,64 @@ func (p *DSAPublicKey) GobDecode(b []byte) error {
 	p.key.Y = large.NewIntFromBytes(s.Y).BigInt()
 
 	return nil
+}
+
+// JsonEncode encodes the DSAPublicKey for JSON and return it, unless and error
+// occurs.
+func (p *DSAPublicKey) JsonEncode() ([]byte, error) {
+	// Anonymous structure that flattens nested structures
+	s := struct {
+		P []byte
+		Q []byte
+		G []byte
+		Y []byte
+	}{
+		p.key.Parameters.P.Bytes(),
+		p.key.Parameters.Q.Bytes(),
+		p.key.Parameters.G.Bytes(),
+		p.key.Y.Bytes(),
+	}
+
+	// Encode the structure into JSON
+	jsonData, err := json.Marshal(s)
+
+	if err != nil {
+		fmt.Printf("err: %#v\n", err)
+		return nil, err
+	}
+
+	return jsonData, nil
+}
+
+// JsonDecode decodes JSON data into a DSAPublicKey and returns it.
+func (p *DSAPublicKey) JsonDecode(b []byte) (*DSAPublicKey, error) {
+	// Anonymous, empty, flat structure
+	s := struct {
+		P []byte
+		Q []byte
+		G []byte
+		Y []byte
+	}{
+		[]byte{},
+		[]byte{},
+		[]byte{},
+		[]byte{},
+	}
+
+	// Decode the JSON to a temporary structure
+	err := json.Unmarshal(b, &s)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert decoded bytes and put into structure
+	p.key.Parameters.P = large.NewIntFromBytes(s.P).BigInt()
+	p.key.Parameters.Q = large.NewIntFromBytes(s.Q).BigInt()
+	p.key.Parameters.G = large.NewIntFromBytes(s.G).BigInt()
+	p.key.Y = large.NewIntFromBytes(s.Y).BigInt()
+
+	return p, nil
 }
 
 func (p *DSAPublicKey) Verify(hash []byte, sig DSASignature) bool {
