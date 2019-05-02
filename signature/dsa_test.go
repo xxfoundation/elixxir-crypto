@@ -489,8 +489,8 @@ func TestDSAPublicKey_JsonEncode(t *testing.T) {
 	pubKey := GetDefaultDSAParams().PrivateKeyGen(rand.New(src)).PublicKeyGen()
 	test := GetDefaultDSAParams().PrivateKeyGen(rand.New(src)).PublicKeyGen()
 
-	encodedKey, _ := pubKey.JsonEncode()
-	decodedKey, _ := test.JsonDecode(encodedKey)
+	encodedKey, _ := pubKey.MarshalJSON()
+	decodedKey, _ := test.UnmarshalJSON(encodedKey)
 
 	if !reflect.DeepEqual(pubKey, decodedKey) {
 		t.Errorf("JsonEncode() and JsonDecode() did not encode and decode correctly\n\treceived: %v\n\texpected: %v", decodedKey, pubKey)

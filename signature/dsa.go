@@ -365,7 +365,7 @@ func (p *DSAPublicKey) GobDecode(b []byte) error {
 
 // JsonEncode encodes the DSAPublicKey for JSON and return it, unless and error
 // occurs.
-func (p *DSAPublicKey) JsonEncode() ([]byte, error) {
+func (p *DSAPublicKey) MarshalJSON() ([]byte, error) {
 	// Anonymous structure that flattens nested structures
 	s := struct {
 		P []byte
@@ -391,7 +391,7 @@ func (p *DSAPublicKey) JsonEncode() ([]byte, error) {
 }
 
 // JsonDecode decodes JSON data into a DSAPublicKey and returns it.
-func (p *DSAPublicKey) JsonDecode(b []byte) (*DSAPublicKey, error) {
+func (p *DSAPublicKey) UnmarshalJSON(b []byte) (*DSAPublicKey, error) {
 	// Anonymous, empty, flat structure
 	s := struct {
 		P []byte
