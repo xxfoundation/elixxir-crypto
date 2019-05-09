@@ -7,6 +7,7 @@
 package signature
 
 import (
+	"bytes"
 	cryptoRand "crypto/rand"
 	"errors"
 	"gitlab.com/elixxir/crypto/large"
@@ -494,5 +495,53 @@ func TestDSAPublicKey_JsonEncode(t *testing.T) {
 
 	if !reflect.DeepEqual(pubKey, decodedKey) {
 		t.Errorf("JsonEncode() and JsonDecode() did not encode and decode correctly\n\treceived: %v\n\texpected: %v", decodedKey, pubKey)
+	}
+}
+
+// Tests that a DSAPublicKey can be encoded in the PEM format using PemEncode()
+// and then decoded using PemDecode()
+func TestPemEncodeDecode(t *testing.T) {
+	src := rand.NewSource(42)
+	pubKey := GetDefaultDSAParams().PrivateKeyGen(rand.New(src)).PublicKeyGen()
+	test := GetDefaultDSAParams().PrivateKeyGen(rand.New(src)).PublicKeyGen()
+
+	encodedKey, _ := pubKey.PemEncode()
+	decodedKey, _ := test.PemDecode(encodedKey)
+
+	if !reflect.DeepEqual(pubKey, decodedKey) {
+		t.Errorf("PemEncode() and PemDecode() did not encode and decode "+
+			"correctly\n\treceived: %v\n\texpected: %v", decodedKey, pubKey)
+	}
+}
+
+// Tests that a PemDecode() produces an error when the block data is incorrect.
+func TestPemDecode_WrongPemData(t *testing.T) {
+	src := rand.NewSource(42)
+	pubKey := GetDefaultDSAParams().PrivateKeyGen(rand.New(src)).PublicKeyGen()
+	test := GetDefaultDSAParams().PrivateKeyGen(rand.New(src)).PublicKeyGen()
+
+	encodedKey, _ := pubKey.PemEncode()
+	modifiedKey := bytes.ReplaceAll(encodedKey, []byte("--"), []byte{})
+	_, err := test.PemDecode(modifiedKey)
+
+	if !reflect.DeepEqual(err, ErrPemData) {
+		t.Errorf("PemDecode() did not correctly error on incorrect "+
+			"block data\n\treceived: %#v\n\texpected: %#v", err, ErrPemData)
+	}
+}
+
+// Tests that a PemDecode() produces an error when the block type is incorrect.
+func TestPemDecode_WrongType(t *testing.T) {
+	src := rand.NewSource(42)
+	pubKey := GetDefaultDSAParams().PrivateKeyGen(rand.New(src)).PublicKeyGen()
+	test := GetDefaultDSAParams().PrivateKeyGen(rand.New(src)).PublicKeyGen()
+
+	encodedKey, _ := pubKey.PemEncode()
+	modifiedKey := bytes.ReplaceAll(encodedKey, []byte("PUBLIC KEY"), []byte("PRIVATE KEY"))
+	_, err := test.PemDecode(modifiedKey)
+
+	if !reflect.DeepEqual(err, ErrPemType) {
+		t.Errorf("PemDecode() did not correctly error on incorrect "+
+			"block type\n\treceived: %#v\n\texpected: %#v", err, ErrPemType)
 	}
 }
