@@ -457,7 +457,7 @@ func (p *DSAPublicKey) PemEncode() ([]byte, error) {
 }
 
 // PemDecode returns the PEM encoding of the DSAPublicKey key.
-func PemDecode(pemBytes []byte) (*DSAPublicKey, error) {
+func (p *DSAPublicKey) PemDecode(pemBytes []byte) (*DSAPublicKey, error) {
 
 	// Decode the public key from the PEM encoded structure block
 	block, _ := pem.Decode(pemBytes)
@@ -468,14 +468,11 @@ func PemDecode(pemBytes []byte) (*DSAPublicKey, error) {
 	}
 
 	// Decode the ASN.1 key to the dsa.PublicKey
-	var publicKey dsa.PublicKey
-	_, err := asn1.Unmarshal(block.Bytes, &publicKey)
+	_, err := asn1.Unmarshal(block.Bytes, &p.key)
 	if err != nil {
 		return nil, err
 	}
 
 	// Construct the DSAPublicKey structure and return it
-	return &DSAPublicKey{
-		key: publicKey,
-	}, nil
+	return p, nil
 }

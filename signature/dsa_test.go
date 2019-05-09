@@ -503,9 +503,10 @@ func TestDSAPublicKey_JsonEncode(t *testing.T) {
 func TestPemEncodeDecode(t *testing.T) {
 	src := rand.NewSource(42)
 	pubKey := GetDefaultDSAParams().PrivateKeyGen(rand.New(src)).PublicKeyGen()
+	test := GetDefaultDSAParams().PrivateKeyGen(rand.New(src)).PublicKeyGen()
 
 	encodedKey, _ := pubKey.PemEncode()
-	decodedKey, _ := PemDecode(encodedKey)
+	decodedKey, _ := test.PemDecode(encodedKey)
 
 	if !reflect.DeepEqual(pubKey, decodedKey) {
 		t.Errorf("PemEncode() and PemDecode() did not encode and decode "+
@@ -517,10 +518,11 @@ func TestPemEncodeDecode(t *testing.T) {
 func TestPemDecode_WrongPemData(t *testing.T) {
 	src := rand.NewSource(42)
 	pubKey := GetDefaultDSAParams().PrivateKeyGen(rand.New(src)).PublicKeyGen()
+	test := GetDefaultDSAParams().PrivateKeyGen(rand.New(src)).PublicKeyGen()
 
 	encodedKey, _ := pubKey.PemEncode()
 	modifiedKey := bytes.ReplaceAll(encodedKey, []byte("--"), []byte{})
-	_, err := PemDecode(modifiedKey)
+	_, err := test.PemDecode(modifiedKey)
 
 	if !reflect.DeepEqual(err, ErrPemData) {
 		t.Errorf("PemDecode() did not correctly error on incorrect "+
@@ -532,10 +534,11 @@ func TestPemDecode_WrongPemData(t *testing.T) {
 func TestPemDecode_WrongType(t *testing.T) {
 	src := rand.NewSource(42)
 	pubKey := GetDefaultDSAParams().PrivateKeyGen(rand.New(src)).PublicKeyGen()
+	test := GetDefaultDSAParams().PrivateKeyGen(rand.New(src)).PublicKeyGen()
 
 	encodedKey, _ := pubKey.PemEncode()
 	modifiedKey := bytes.ReplaceAll(encodedKey, []byte("PUBLIC KEY"), []byte("PRIVATE KEY"))
-	_, err := PemDecode(modifiedKey)
+	_, err := test.PemDecode(modifiedKey)
 
 	if !reflect.DeepEqual(err, ErrPemType) {
 		t.Errorf("PemDecode() did not correctly error on incorrect "+
