@@ -4,6 +4,6 @@ import:
   subpackages:
   - blake2b
 - package: gitlab.com/elixxir/primitives
-  version: master
+  version: immutableUserNodeId-xx-1185
   repo: git@gitlab.com:elixxir/primitives
   vcs: git
