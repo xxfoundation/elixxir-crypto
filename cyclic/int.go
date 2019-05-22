@@ -174,3 +174,21 @@ func (z *Int) GobEncode() ([]byte, error) {
 
 	return buf.Bytes(), nil
 }
+
+// Erase removes all underlying data from a cyclic Int by overwriting the value
+// with ones and setting the fingerprint to zero. This function proves that a
+// cyclic Int can be completely obliterated.
+func (z *Int) Erase() {
+	// Get number of bytes in the cyclic Int's value
+	length := (z.BitLen() + 7) / 8
+
+	// Make a new byte slice of the same length and fill it with ones
+	clearedBytes := make([]byte, length)
+	for i := range clearedBytes {
+		clearedBytes[i] = 0xFF
+	}
+
+	// Set the value and fingerprint, overwriting any present data
+	z.value.SetBytes(clearedBytes)
+	z.fingerprint = 0
+}

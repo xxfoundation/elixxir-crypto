@@ -50,3 +50,25 @@ func (ib *IntBuffer) GetFingerprint() uint64 {
 func (ib *IntBuffer) Contains(index uint32) bool {
 	return index < uint32(len(ib.values))
 }
+
+// Erase removes all underlying data from an IntBuffer by overwriting the values
+// with ones and setting the fingerprint to zero.
+func (ib *IntBuffer) Erase() {
+	// Loop through each value in the slice and clear its value
+	for i := range ib.values {
+		// Get number of bytes in the cyclic Int's value
+		length := (ib.values[i].BitLen() + 7) / 8
+
+		// Make a new byte slice of the same length and fill it with ones
+		clearedBytes := make([]byte, length)
+		for j := range clearedBytes {
+			clearedBytes[j] = 0xFF
+		}
+
+		// Overwrite value with the cleared bytes
+		ib.values[i].SetBytes(clearedBytes)
+	}
+
+	// Set the fingerprint to zero, overwriting any present data
+	ib.fingerprint = 0
+}
