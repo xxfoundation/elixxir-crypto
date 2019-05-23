@@ -52,7 +52,8 @@ func (ib *IntBuffer) Contains(index uint32) bool {
 }
 
 // Erase overwrite all underlying data from a Int Buffer by setting its values
-// slice to nil and its fingerprint to zero.
+// slice to nil and its fingerprint to zero. All underlying released data will
+// be removed by the garbage collector.
 func (ib *IntBuffer) Erase() {
 	ib.values = nil
 	ib.fingerprint = 0
