@@ -264,20 +264,19 @@ func TestGobDecode_Error(t *testing.T) {
 
 // Tests that Erase() removes all underlying data from the Int.
 func TestInt_Erase(t *testing.T) {
-	clearedInt := grp.NewInt(42)
 	cycInt := grp.NewInt(42)
-
-	clearedBytes := make([]byte, (cycInt.BitLen()+7)/8)
-	for i := range clearedBytes {
-		clearedBytes[i] = 0xFF
-	}
-	clearedInt.value.SetBytes(clearedBytes)
-	clearedInt.fingerprint = 0
-
+	zeroInt := large.NewInt(5).SetInt64(0)
 	cycInt.Erase()
 
-	if !reflect.DeepEqual(cycInt, clearedInt) {
-		t.Errorf("Erase() did not properly delete Int's underlying data"+
-			"\n\treceived: %v\n\texpected: %v", cycInt, clearedInt)
+	if !reflect.DeepEqual(cycInt.value, zeroInt) {
+		t.Errorf("Erase() did not properly delete Int's underlying value"+
+			"\n\treceived: %#v\n\texpected: %#v",
+			cycInt.value, zeroInt)
+	}
+
+	if cycInt.fingerprint != 0 {
+		t.Errorf("Erase() did not properly delete Int's underlying fingerprint"+
+			"\n\treceived: %#v\n\texpected: %#v",
+			cycInt.fingerprint, 0)
 	}
 }

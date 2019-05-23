@@ -8,7 +8,6 @@ package cyclic
 
 import (
 	"gitlab.com/elixxir/crypto/large"
-	"reflect"
 	"testing"
 )
 
@@ -194,23 +193,14 @@ func TestIntBuffer_Contains(t *testing.T) {
 
 // Tests that Erase() removes all underlying data from the IntBuffer.
 func TestIntBuffer_Erase(t *testing.T) {
-	clearedInt := large.NewInt(42)
 	ib := grp.NewIntBuffer(uint32(20), nil)
 
 	ib.Erase()
 
-	for i := range ib.values {
-		clearedBytes := make([]byte, (ib.values[i].BitLen()+7)/8)
-		for j := range clearedBytes {
-			clearedBytes[j] = 0xFF
-		}
-		clearedInt.SetBytes(clearedBytes)
-
-		if !reflect.DeepEqual(ib.values[i], *clearedInt) {
-			t.Errorf("Erase() did not properly delete the IntBuffer's "+
-				"underlying value at %d\n\treceived: %#v\n\texpected: %#v",
-				i, ib.values[i], *clearedInt)
-		}
+	if ib.values != nil {
+		t.Errorf("Erase() did not properly delete the IntBuffer's "+
+			"underlying value\n\treceived: %v\n\texpected: %v",
+			ib.values, nil)
 	}
 
 	if ib.fingerprint != 0 {
