@@ -174,3 +174,11 @@ func (z *Int) GobEncode() ([]byte, error) {
 
 	return buf.Bytes(), nil
 }
+
+// Erase overwrite all underlying data from a cyclic Int by setting its value
+// and fingerprint to zero. All underlying released data will be removed by the
+// garbage collector.
+func (z *Int) Erase() {
+	z.value.SetInt64(0)
+	z.fingerprint = 0
+}
