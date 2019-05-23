@@ -51,9 +51,6 @@ func (ib *IntBuffer) Contains(index uint32) bool {
 	return index < uint32(len(ib.values))
 }
 
-// Erase removes all underlying data from an IntBuffer by overwriting the values
-// with ones and setting the fingerprint to zero.
-
 // Erase overwrite all underlying data from a Int Buffer by setting its values
 // slice to nil and its fingerprint to zero.
 func (ib *IntBuffer) Erase() {
