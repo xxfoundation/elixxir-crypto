@@ -9,6 +9,7 @@ package csprng
 import (
 	"gitlab.com/elixxir/crypto/large"
 	"testing"
+	"time"
 )
 
 const MODP4096 = "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
@@ -111,5 +112,31 @@ func TestInGroup_Psub1(t *testing.T) {
 	}
 	if !InGroup(p4096sub1.Bytes(), modp4096.Bytes()) {
 		t.Errorf("p4096sub1 is always in group for modp4096!")
+	}
+}
+
+// TestInGroupPsub1 tests that P - 1 is in the group
+func TestGenerateInGroup_LargeSize(t *testing.T) {
+	p107 := large.NewIntFromString(P107, 16)
+	rng := NewSystemRNG()
+
+	timeout := time.After(3 * time.Second)
+	done := make(chan bool)
+	go func() {
+		// do your testing
+		b, err := GenerateInGroup(p107.Bytes(), 32, rng)
+		if err != nil {
+			t.Errorf("%v", err)
+		}
+		if !InGroup(b, p107.Bytes()) {
+			t.Errorf("b not in p107: %v", b)
+		}
+		done <- true
+	}()
+
+	select {
+	case <-timeout:
+		t.Fatal("GenerateInGroup took too long to complete!")
+	case <-done:
 	}
 }

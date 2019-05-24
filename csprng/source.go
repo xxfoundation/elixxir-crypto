@@ -72,17 +72,22 @@ func Generate(size int, rng Source) ([]byte, error) {
 	return key, err
 }
 
-// Generate a byte slice of size inside the given prime group and return the
-// result
+// GenerateInGroup creates a byte slice of at most size inside the given prime
+// group and returns the result
 func GenerateInGroup(prime []byte, size int, rng Source) ([]byte,
 	error) {
+	if size > len(prime) {
+		jww.WARN.Printf("Reducing size to match length of prime "+
+			"(%d -> %d)", size, len(prime))
+		size = len(prime)
+	}
 	for {
 		key, err := Generate(size, rng)
 		// return if we get an error OR if we are in the group
 		if err != nil || InGroup(key, prime) {
 			return key, err
 		}
-		jww.INFO.Printf("Failed to generate key in group. If this message " +
-			"repeats, check for RNG issues...")
+		jww.INFO.Printf("Failed to generate key in group. If this" +
+			" message repeats, check for RNG issues...")
 	}
 }
