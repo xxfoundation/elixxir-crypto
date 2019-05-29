@@ -9,6 +9,7 @@ package csprng
 import (
 	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
+	"io"
 )
 
 //Defines the constructor of a source
@@ -62,7 +63,9 @@ func InGroup(sample, prime []byte) bool {
 }
 
 // Generate a byte slice of size and return the result
-func Generate(size int, rng Source) ([]byte, error) {
+// Note use of io.Reader interface, as Source implements that, we only
+// require a Read function for these utilities.
+func Generate(size int, rng io.Reader) ([]byte, error) {
 	key := make([]byte, size)
 	byteCount, err := rng.Read(key)
 	if err == nil && byteCount != size {
@@ -74,7 +77,7 @@ func Generate(size int, rng Source) ([]byte, error) {
 
 // GenerateInGroup creates a byte slice of at most size inside the given prime
 // group and returns the result
-func GenerateInGroup(prime []byte, size int, rng Source) ([]byte,
+func GenerateInGroup(prime []byte, size int, rng io.Reader) ([]byte,
 	error) {
 	if size > len(prime) {
 		jww.WARN.Printf("Reducing size to match length of prime "+
