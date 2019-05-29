@@ -8,14 +8,15 @@ package hash
 
 import (
 	jww "github.com/spf13/jwalterweatherman"
+	"gitlab.com/elixxir/crypto/csprng"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/large"
 	"golang.org/x/crypto/hkdf"
 	"hash"
 )
 
-// ExpandKey is a function that receives a key and expands such key to a specific size
-// This implementation returns a 2048 bit-size key (or 256 bytes)
+// ExpandKey is a function that receives a key and expands such key to the size
+// of the prime group
 func ExpandKey(h hash.Hash, g *cyclic.Group, key []byte, output *cyclic.Int) *cyclic.Int {
 	// The Hash will be created outside the function, so need to wrap
 	// it into a function to pass to HKDF.Expand
@@ -23,17 +24,16 @@ func ExpandKey(h hash.Hash, g *cyclic.Group, key []byte, output *cyclic.Int) *cy
 		return h
 	}
 	keyGen := hkdf.Expand(foo, key, nil)
-	keyInt := large.NewInt(0)
-	expandedKey := make([]byte, g.GetP().BitLen()>>3)
-	// Make sure generated key is in the group
-	for !g.Inside(keyInt) {
-		size, err := keyGen.Read(expandedKey)
-		if err != nil || size != len(expandedKey) {
-			jww.FATAL.Panicf("Could not expand key: %v", err.Error())
-		}
-		keyInt.SetBytes(expandedKey)
+	pBytes := g.GetP().Bytes()
+	expandedKey, err := csprng.GenerateInGroup(pBytes, len(pBytes), keyGen)
+
+	if err != nil {
+		jww.FATAL.Panicf("Key expansion failure: %v", err)
 	}
 
+	keyInt := large.NewInt(0)
+	keyInt.SetBytes(expandedKey)
 	g.SetLargeInt(output, keyInt)
+
 	return output
 }
