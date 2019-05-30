@@ -238,28 +238,7 @@ func (g *Group) BytesInside(bufs ...[]byte) bool {
 
 // BytesInside returns true of the Int represented by the byte slice is within the group, false if it isn't
 func (g *Group) singleBytesInside(buf []byte) bool {
-
-	if len(buf) == 0 || len(buf) > len(g.primeBytes) {
-		return false
-	}
-
-	if len(buf) == 1 && buf[0] == 0 {
-		return false
-	}
-
-	if len(buf) < len(g.primeBytes) {
-		return true
-	}
-
-	for i := 0; i < len(buf); i++ {
-		if g.primeBytes[i] > buf[i] {
-			return true
-		} else if buf[i] > g.primeBytes[i] {
-			return false
-		}
-	}
-
-	return false
+	return csprng.InGroup(buf, g.primeBytes)
 }
 
 // ModP sets z ≡ x mod prime within the group and returns z.
@@ -280,11 +259,11 @@ func (g *Group) Inverse(a, b *Int) *Int {
 // Sets r to the number and returns it
 func (g *Group) Random(r *Int) *Int {
 	g.checkInts(r)
-	p := g.GetP().Bytes()
 	rng := g.rng
 	r.value.Set(g.one)
 	for g.one.Cmp(r.value) == 0 {
-		b, err := csprng.GenerateInGroup(p, len(p), rng)
+		b, err := csprng.GenerateInGroup(g.primeBytes,
+			len(g.primeBytes), rng)
 		if err != nil {
 			jww.FATAL.Panicf("Could not generate random number in group: %s", err)
 		}

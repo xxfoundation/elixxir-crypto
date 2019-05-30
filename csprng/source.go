@@ -30,33 +30,23 @@ type Source interface {
 // inside the modular cyclic group defined by the prime.
 // NOTE: This code assumes byte 0 is the MSB.
 func InGroup(sample, prime []byte) bool {
-	// Absolute failure when it's got more bits than prime
-	if len(sample) > len(prime) {
+	if len(sample) == 0 || len(sample) > len(prime) {
 		return false
 	}
 
-	// If sample has less bits, then only check for nonzero bytes
+	if len(sample) == 1 && sample[0] == 0 {
+		return false
+	}
+
 	if len(sample) < len(prime) {
-		for i := 0; i < len(sample); i++ {
-			if sample[i] != 0 {
-				return true
-			}
-		}
-		return false
+		return true
 	}
 
-	// Else check for both
-	notZero := false
-	lessThan := false
-	for i := 0; i < len(prime); i++ {
-		if notZero == false && sample[i] != 0 {
-			notZero = true
-		}
-		if lessThan == false && prime[i] > sample[i] {
-			lessThan = true
-		}
-		if lessThan == true && notZero == true {
+	for i := 0; i < len(sample); i++ {
+		if prime[i] > sample[i] {
 			return true
+		} else if sample[i] > prime[i] {
+			return false
 		}
 	}
 	return false
