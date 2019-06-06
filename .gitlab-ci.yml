@@ -16,8 +16,8 @@ before_script:
   - go version || echo "Go executable not found."
   - echo $CI_BUILD_REF
   - echo $CI_PROJECT_DIR
-  - mkdir -p /src/$REPO_DIR
-  - ln -s $CI_PROJECT_DIR /src/$REPO_DIR/$REPO_NAME
+  - mkdir -p /elixxirsrc/$REPO_DIR
+  - ln -s $CI_PROJECT_DIR /elixxirsrc/$REPO_DIR/$REPO_NAME
   - cd /src/$REPO_DIR/$REPO_NAME
   - echo $PWD
 
@@ -61,11 +61,11 @@ setup:
     - git config --global url."git@gitlab.com:".insteadOf "https://gitlab.com/"
 
     - git clean -ffdx
+    - mkdir -p vendor/
     - go mod vendor -v
     - go get -u
     - go build ./...
     - ls
-    - ls $CI_PROJECT_DIR /src/$REPO_DIR/$REPO_NAME
   artifacts:
     paths:
      - vendor/
