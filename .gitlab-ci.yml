@@ -16,9 +16,6 @@ before_script:
   - go version || echo "Go executable not found."
   - echo $CI_BUILD_REF
   - echo $CI_PROJECT_DIR
-  - mkdir -p elixxirsrc/$REPO_DIR
-  - ln -s $CI_PROJECT_DIR elixxirsrc/$REPO_DIR/$REPO_NAME
-  - cd elixxirsrc/$REPO_DIR/$REPO_NAME
   - echo $PWD
 
 stages:
@@ -61,14 +58,9 @@ setup:
     - git config --global url."git@gitlab.com:".insteadOf "https://gitlab.com/"
 
     - git clean -ffdx
-    - mkdir -p vendor/
-    - ls -lha
-    - pwd
     - go mod vendor -v
     - go get -u
     - go build ./...
-    - ls -lha
-    - pwd
   artifacts:
     paths:
      - vendor/
