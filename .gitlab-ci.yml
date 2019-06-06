@@ -62,10 +62,13 @@ setup:
 
     - git clean -ffdx
     - mkdir -p vendor/
+    - ls -lha
+    - pwd
     - go mod vendor -v
     - go get -u
     - go build ./...
-    - ls
+    - ls -lha
+    - pwd
   artifacts:
     paths:
      - vendor/
