@@ -18,7 +18,7 @@ before_script:
   - echo $CI_PROJECT_DIR
   - mkdir -p /elixxirsrc/$REPO_DIR
   - ln -s $CI_PROJECT_DIR /elixxirsrc/$REPO_DIR/$REPO_NAME
-  - cd /src/$REPO_DIR/$REPO_NAME
+  - cd /elixxirsrc/$REPO_DIR/$REPO_NAME
   - echo $PWD
 
 stages:
