@@ -76,17 +76,6 @@ build:
     paths:
      - release/
 
-release:
-  stage: release
-  image: docker:latest
-  script:
-    - cd release
-    # - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
-    # - docker build -t ${CONTAINER_IMAGE} .
-    # - docker tag ${CONTAINER_IMAGE} ${CONTAINER_IMAGE_LATEST}
-    # - docker push ${CONTAINER_IMAGE}
-    # - docker push ${CONTAINER_IMAGE_LATEST}
-
 deploy_staging:
   stage: deploy
   image: lwolf/helm-kubectl-docker:v152_213
