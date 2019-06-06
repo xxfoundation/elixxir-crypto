@@ -58,6 +58,7 @@ setup:
     ## Add SSH key for gitlab.com
     ##
     - ssh-keyscan -t rsa gitlab.com > ~/.ssh/known_hosts
+    - git config --global url."git@gitlab.com:".insteadOf "https://gitlab.com/"
 
     - git clean -ffdx
     - go mod vendor
