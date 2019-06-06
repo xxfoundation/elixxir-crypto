@@ -64,6 +64,7 @@ setup:
     - go mod vendor
     - go get -u
     - go build ./...
+    - ls
   artifacts:
     paths:
      - vendor/
