@@ -16,9 +16,9 @@ before_script:
   - go version || echo "Go executable not found."
   - echo $CI_BUILD_REF
   - echo $CI_PROJECT_DIR
-  - mkdir -p $GOPATH/src/$REPO_DIR
-  - ln -s $CI_PROJECT_DIR $GOPATH/src/$REPO_DIR/$REPO_NAME
-  - cd $GOPATH/src/$REPO_DIR/$REPO_NAME
+  - mkdir -p /src/$REPO_DIR
+  - ln -s $CI_PROJECT_DIR /src/$REPO_DIR/$REPO_NAME
+  - cd /src/$REPO_DIR/$REPO_NAME
   - echo $PWD
 
 stages:
@@ -60,7 +60,9 @@ setup:
     - ssh-keyscan -t rsa gitlab.com > ~/.ssh/known_hosts
 
     - git clean -ffdx
-    - glide install -v
+    - go mod vendor
+    - go get -u
+    - go build ./...
   artifacts:
     paths:
      - vendor/

@@ -1,9 +1,0 @@
-package: gitlab.com/elixxir/crypto
-import:
-- package: golang.org/x/crypto
-  subpackages:
-  - blake2b
-- package: gitlab.com/elixxir/primitives
-  version: master
-  repo: git@gitlab.com:elixxir/primitives
-  vcs: git
