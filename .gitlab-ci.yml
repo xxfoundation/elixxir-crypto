@@ -61,6 +61,7 @@ setup:
     - git config --global url."git@gitlab.com:".insteadOf "https://gitlab.com/"
 
     - git clean -ffdx
+    - pwd
     - go mod vendor
     - go get -u
     - go build ./...
