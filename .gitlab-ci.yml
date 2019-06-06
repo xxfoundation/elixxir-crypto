@@ -16,9 +16,9 @@ before_script:
   - go version || echo "Go executable not found."
   - echo $CI_BUILD_REF
   - echo $CI_PROJECT_DIR
-  - mkdir -p /elixxirsrc/$REPO_DIR
-  - ln -s $CI_PROJECT_DIR /elixxirsrc/$REPO_DIR/$REPO_NAME
-  - cd /elixxirsrc/$REPO_DIR/$REPO_NAME
+  - mkdir -p elixxirsrc/$REPO_DIR
+  - ln -s $CI_PROJECT_DIR elixxirsrc/$REPO_DIR/$REPO_NAME
+  - cd elixxirsrc/$REPO_DIR/$REPO_NAME
   - echo $PWD
 
 stages:
