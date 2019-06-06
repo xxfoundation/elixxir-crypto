@@ -43,6 +43,7 @@ setup:
     - go mod vendor -v
     - go get -u
     - go build ./...
+    - go mod tidy
   artifacts:
     paths:
      - vendor/
