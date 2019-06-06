@@ -62,7 +62,7 @@ setup:
     - go get -u
     - go build ./...
     - git rev-parse --show-toplevel
-    - pwf
+    - pwd
   artifacts:
     paths:
      - vendor/
