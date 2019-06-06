@@ -65,6 +65,7 @@ setup:
     - go get -u
     - go build ./...
     - ls
+    - ls $CI_PROJECT_DIR /src/$REPO_DIR/$REPO_NAME
   artifacts:
     paths:
      - vendor/
