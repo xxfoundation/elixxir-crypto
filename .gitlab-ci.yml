@@ -61,7 +61,7 @@ setup:
     - go mod vendor -v
     - go get -u
     - go build ./...
-    - git status
+    - git rev-parse --show-toplevel
   artifacts:
     paths:
      - vendor/
