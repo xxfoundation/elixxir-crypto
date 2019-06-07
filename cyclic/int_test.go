@@ -218,6 +218,8 @@ func TestTextVerbose(t *testing.T) {
 		}
 	}
 }
+
+//TestByteLen checks if the ByteLen placeholder exists
 func TestByteLen(t *testing.T) {
 	testints := []*Int{
 		grp.NewInt(42),

@@ -885,6 +885,7 @@ func TestBitLen(t *testing.T) {
 	}
 }
 
+//TestByteLen checks if the ByteLen placeholder exists
 func TestByteLen(t *testing.T) {
 	testints := []*Int{
 		NewInt(42),
