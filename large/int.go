@@ -235,6 +235,11 @@ func (z *Int) BitLen() int {
 	return (*big.Int)(z).BitLen()
 }
 
+func (z *Int) ByteLen() int {
+	byteLen := (z.BitLen() + 7) / 8
+	return byteLen
+}
+
 // Cmp compares x and y and returns:
 //	-1 if x < y
 //	 0 if x == y

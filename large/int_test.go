@@ -885,6 +885,30 @@ func TestBitLen(t *testing.T) {
 	}
 }
 
+func TestByteLen(t *testing.T) {
+	testints := []*Int{
+		NewInt(42),
+		NewInt(6553522),
+		NewInt(0),
+		NewInt(-42)}
+
+	testints[2], _ = testints[2].SetString("867530918239450598372829049587", 10)
+
+	expectedlens := []int{
+		1,
+		3,
+		13,
+		1}
+
+	for i, tsti := range testints {
+		actual := tsti.ByteLen()
+		if actual != expectedlens[i] {
+			t.Errorf("Case %v of BitLen failed, got: '%v', expected: '%v'", i, actual,
+				expectedlens[i])
+		}
+	}
+}
+
 //TestCmp checks if the Cmp placeholder exists
 func TestCmp(t *testing.T) {
 

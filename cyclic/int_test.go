@@ -218,6 +218,29 @@ func TestTextVerbose(t *testing.T) {
 		}
 	}
 }
+func TestByteLen(t *testing.T) {
+	testints := []*Int{
+		grp.NewInt(42),
+		grp.NewInt(6553522),
+		grp.NewInt(7777),
+		grp.NewInt(21234),
+	}
+
+	expectedlens := []int{
+		1,
+		3,
+		2,
+		2,
+	}
+
+	for i, tsti := range testints {
+		actual := tsti.ByteLen()
+		if actual != expectedlens[i] {
+			t.Errorf("Case %v of ByteLen failed, got: '%v', expected: '%v'", i, actual,
+				expectedlens[i])
+		}
+	}
+}
 
 // Test GOB encoding/decoding
 func TestGob(t *testing.T) {

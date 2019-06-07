@@ -21,6 +21,11 @@ type Int struct {
 	fingerprint uint64
 }
 
+func (z *Int) ByteLen() int {
+	byteLen := (z.BitLen() + 7) / 8
+	return byteLen
+}
+
 // Gets a deepcopy of the largeInt from cyclicInt
 // This is necessary because otherwise the internal
 // value of the into could be edited and made to be
