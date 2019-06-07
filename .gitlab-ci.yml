@@ -49,7 +49,7 @@ test:
   image: $DOCKER_IMAGE
   script:
     - mkdir -p testdata
-    - goverage -coverprofile=testdata/coverage.out -v ./... | grep -v "no packages being tested depend on" && echo $?
+    - goverage -coverprofile=testdata/coverage.out -v ./... | grep -v "no packages being tested depend on"
     - go tool cover -func=testdata/coverage.out
     - go tool cover -html=testdata/coverage.out -o testdata/coverage.html
 
