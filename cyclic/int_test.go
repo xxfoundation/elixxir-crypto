@@ -219,6 +219,31 @@ func TestTextVerbose(t *testing.T) {
 	}
 }
 
+//TestByteLen checks if the ByteLen placeholder exists
+func TestByteLen(t *testing.T) {
+	testints := []*Int{
+		grp.NewInt(1), 			//1 bits -->  1 byte   (where +7 works)
+		grp.NewInt(8388608), 	//24 bits --> 3 bytes  (exactly)
+		grp.NewInt(7777), 		//13 bits --> 2 bytes  (where +3 works)
+		grp.NewInt(1002),  		//10 bits --> 2 bytes  (where +6 works)
+	}
+
+	expectedlens := []int{
+		1,
+		3,
+		2,
+		2,
+	}
+
+	for i, tsti := range testints {
+		actual := tsti.ByteLen()
+		if actual != expectedlens[i] {
+			t.Errorf("Case %v of ByteLen failed, got: '%v', expected: '%v'", i, actual,
+				expectedlens[i])
+		}
+	}
+}
+
 // Test GOB encoding/decoding
 func TestGob(t *testing.T) {
 	var byteBuf bytes.Buffer
