@@ -24,6 +24,7 @@ before_script:
   - chmod 700 ~/.ssh
   - ssh-keyscan -t rsa gitlab.com > ~/.ssh/known_hosts
   - git config --global url."git@gitlab.com:".insteadOf "https://gitlab.com/"
+  - export GOFLAGS=-mod=vendor
 
 stages:
   - setup
@@ -37,7 +38,6 @@ setup:
   image: $DOCKER_IMAGE
   script:
     - go mod vendor -v
-    - go get -u
     - go build ./...
     - go mod tidy
   artifacts:
