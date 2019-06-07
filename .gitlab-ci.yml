@@ -22,17 +22,13 @@ before_script:
   - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
   - mkdir -p ~/.ssh
   - chmod 700 ~/.ssh
-
   - ssh-keyscan -t rsa gitlab.com > ~/.ssh/known_hosts
-
-  - git clean -ffdx
   - git config --global url."git@gitlab.com:".insteadOf "https://gitlab.com/"
 
 stages:
   - setup
   - test
   - build
-  - release
   - deploy
   - trigger_integration
 
