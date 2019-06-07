@@ -23,7 +23,7 @@ type Int struct {
 
 //gets the byte length of cyclic int
 func (z *Int) ByteLen() int {
-	byteLen := (z.BitLen() + 7) / 8
+	byteLen := (z.value.BitLen() + 7) / 8
 	return byteLen
 }
 
