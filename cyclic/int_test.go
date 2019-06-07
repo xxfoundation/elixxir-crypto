@@ -225,7 +225,7 @@ func TestByteLen(t *testing.T) {
 		grp.NewInt(1), 			//1 bits -->  1 byte   (where +7 works)
 		grp.NewInt(8388608), 	//24 bits --> 3 bytes  (exactly)
 		grp.NewInt(7777), 		//13 bits --> 2 bytes  (where +3 works)
-		grp.NewInt(1002),  		//10 bits --> 2 bytes  (where +6 works_
+		grp.NewInt(1002),  		//10 bits --> 2 bytes  (where +6 works)
 	}
 
 	expectedlens := []int{
