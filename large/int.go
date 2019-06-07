@@ -235,6 +235,7 @@ func (z *Int) BitLen() int {
 	return (*big.Int)(z).BitLen()
 }
 
+//gets the byte length of large int
 func (z *Int) ByteLen() int {
 	byteLen := (z.BitLen() + 7) / 8
 	return byteLen
