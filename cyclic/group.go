@@ -304,9 +304,9 @@ func (g *Group) GetQCyclic() *Int {
 }
 
 //GetPBytes returns a copy of the group's prime bytes
-func (g* Group) GetPBytes() []byte {
+func (g *Group) GetPBytes() []byte {
 	pCopy := make([]byte, len(g.primeBytes))
-	copy(pCopy,g.primeBytes)
+	copy(pCopy, g.primeBytes)
 	return pCopy
 }
 
