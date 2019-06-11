@@ -303,6 +303,13 @@ func (g *Group) GetQCyclic() *Int {
 	return g.NewIntFromLargeInt(g.primeQ)
 }
 
+//GetPBytes returns a copy of the group's prime bytes
+func (g* Group) GetPBytes() []byte {
+	pCopy := make([]byte, len(g.primeBytes))
+	copy(pCopy,g.primeBytes)
+	return pCopy
+}
+
 // GetPSub1 returns a copy of the group's p-1
 func (g *Group) GetPSub1() *Int {
 	n := large.NewInt(1)
@@ -381,6 +388,8 @@ func (g *Group) RandomCoprime(r *Int) *Int {
 // coprime with g.prime-1 (g.psub1)
 func (g Group) RootCoprime(x, y, z *Int) *Int {
 	g.checkInts(x, y, z)
+	//tmp := g.NewInt(1)
+
 	z.value.ModInverse(y.value, g.psub1)
 	g.Exp(x, z, z)
 	return z
