@@ -303,6 +303,13 @@ func (g *Group) GetQCyclic() *Int {
 	return g.NewIntFromLargeInt(g.primeQ)
 }
 
+//GetPBytes returns a copy of the group's prime bytes
+func (g *Group) GetPBytes() []byte {
+	pCopy := make([]byte, len(g.primeBytes))
+	copy(pCopy, g.primeBytes)
+	return pCopy
+}
+
 // GetPSub1 returns a copy of the group's p-1
 func (g *Group) GetPSub1() *Int {
 	n := large.NewInt(1)

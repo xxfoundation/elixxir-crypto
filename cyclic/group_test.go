@@ -981,6 +981,24 @@ func TestGetP(t *testing.T) {
 	}
 }
 
+//Tests the prime byte getter from the group
+//Tests the old manual call against the implementation (p.Bytes() vs grp.GetPBytes())
+//P is never nil, so no edge case there
+func TestGetPBytes(t *testing.T) {
+	// setup test group and generator
+	p := large.NewInt(17)
+	g := large.NewInt(29)
+	q := large.NewInt(3)
+	group := NewGroup(p, g, q)
+	actual := group.GetPBytes()
+
+	if bytes.Compare(p.Bytes(), actual) != 0 {
+		t.Errorf("TestGetPBytes failed, expected: '%v', got: '%v'",
+			p.Text(10), actual)
+	}
+
+}
+
 // Test generator getter from the group
 func TestGetG(t *testing.T) {
 	// setup test group and generator
