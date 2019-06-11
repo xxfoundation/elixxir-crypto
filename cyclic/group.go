@@ -388,8 +388,6 @@ func (g *Group) RandomCoprime(r *Int) *Int {
 // coprime with g.prime-1 (g.psub1)
 func (g Group) RootCoprime(x, y, z *Int) *Int {
 	g.checkInts(x, y, z)
-	//tmp := g.NewInt(1)
-
 	z.value.ModInverse(y.value, g.psub1)
 	g.Exp(x, z, z)
 	return z
