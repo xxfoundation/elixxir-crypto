@@ -384,12 +384,13 @@ func (g *Group) RandomCoprime(r *Int) *Int {
 	return r
 }
 
-// RootCoprime sets z = y√x mod p, and returns z. Only works with y's
+// RootCoprime sets tmp = y√x mod p, and returns tmp. Only works with y's
 // coprime with g.prime-1 (g.psub1)
 func (g Group) RootCoprime(x, y, z *Int) *Int {
 	g.checkInts(x, y, z)
-	z.value.ModInverse(y.value, g.psub1)
-	g.Exp(x, z, z)
+	tmp := g.NewInt(1)
+	tmp.value.ModInverse(y.value, g.psub1)
+	g.Exp(x, tmp, z)
 	return z
 }
 
