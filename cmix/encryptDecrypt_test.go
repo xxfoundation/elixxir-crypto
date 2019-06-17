@@ -7,15 +7,16 @@ import (
 	"testing"
 )
 
-// Fill message with random payload and associated data
+// Fill part of message with random payload and associated data
 func makeMsg() *format.Message {
 	rng := rand.New(rand.NewSource(42))
-	payloadArr := grp.NewInt(rng.Int63()).Bytes()
-	associatedDataArr := grp.NewInt(rng.Int63()).Bytes()
-	msg := &format.Message{
-		Payload:        format.DeserializePayload(payloadArr),
-		AssociatedData: format.DeserializeAssociatedData(associatedDataArr),
-	}
+	payloadA := make([]byte, format.PayloadLen)
+	payloadB := make([]byte, format.PayloadLen)
+	rng.Read(payloadA)
+	rng.Read(payloadB)
+	msg := format.NewMessage()
+	msg.SetPayloadA(payloadA)
+	msg.SetDecryptedPayloadB(payloadB)
 
 	return msg
 }
@@ -34,22 +35,25 @@ func TestEncrypt(t *testing.T) {
 	// Get encryption key
 	keyEnc := ClientKeyGen(grp, salt, baseKeys)
 
-	multPayload := grp.NewInt(1)
-	multAssociatedData := grp.NewInt(1)
-	grp.Mul(keyEnc, grp.NewIntFromBytes(msg.SerializePayload()), multPayload)
-	grp.Mul(keyEnc, grp.NewIntFromBytes(msg.SerializeAssociatedData()), multAssociatedData)
+	multPayloadA := grp.NewInt(1)
+	multPayloadB := grp.NewInt(1)
+	grp.Mul(keyEnc, grp.NewIntFromBytes(msg.GetPayloadA()), multPayloadA)
+	grp.Mul(keyEnc, grp.NewIntFromBytes(msg.GetPayloadBForEncryption()), multPayloadB)
 
-	testMsg := format.Message{
-		Payload:        format.DeserializePayload(multPayload.Bytes()),
-		AssociatedData: format.DeserializeAssociatedData(multAssociatedData.Bytes()),
+	testMsg := format.NewMessage()
+	testMsg.SetPayloadA(multPayloadA.Bytes())
+	testMsg.SetDecryptedPayloadB(multPayloadB.Bytes())
+
+	if !reflect.DeepEqual(encMsg.GetPayloadA(), testMsg.GetPayloadA()) {
+		t.Errorf("EncryptDecrypt("+
+			") did not produce the correct payload\n\treceived: %d\n"+
+			"\texpected: %d", encMsg.GetPayloadA(), testMsg.GetPayloadA())
 	}
 
-	if !reflect.DeepEqual(encMsg.SerializePayload(), testMsg.SerializePayload()) {
-		t.Errorf("EncryptDecrypt() did not produce the correct payload\n\treceived: %d\n\texpected: %d", encMsg.SerializePayload(), testMsg.SerializePayload())
-	}
-
-	if !reflect.DeepEqual(encMsg.SerializeAssociatedData(), testMsg.SerializeAssociatedData()) {
-		t.Errorf("EncryptDecrypt() did not produce the correct associated data\n\treceived: %d\n\texpected: %d", encMsg.SerializeAssociatedData(), testMsg.SerializeAssociatedData())
+	if !reflect.DeepEqual(encMsg.GetPayloadB(), testMsg.GetPayloadB()) {
+		t.Errorf("EncryptDecrypt("+
+			") did not produce the correct associated data\n\treceived: %d\n"+
+			"\texpected: %d", encMsg.GetPayloadB(), testMsg.GetPayloadB())
 	}
 }
 
@@ -68,19 +72,20 @@ func TestDecrypt(t *testing.T) {
 	keyEnc := ClientKeyGen(grp, salt, baseKeys)
 
 	multPayload := grp.NewInt(1)
-	grp.Mul(keyEnc, grp.NewIntFromBytes(msg.SerializePayload()), multPayload)
+	grp.Mul(keyEnc, grp.NewIntFromBytes(msg.GetPayloadA()), multPayload)
 
-	testMsg := format.Message{
-		Payload:        format.DeserializePayload(multPayload.Bytes()),
-		AssociatedData: format.DeserializeAssociatedData(msg.SerializeAssociatedData()),
+    testMsg := format.NewMessage()
+    testMsg.SetPayloadA(multPayload.Bytes())
+    testMsg.SetPayloadB(msg.GetPayloadB())
+
+	if !reflect.DeepEqual(decMsg.GetPayloadA(), testMsg.GetPayloadA()) {
+		t.Errorf("EncryptDecrypt(" +
+			") did not produce the correct payload\n\treceived: %d\n" +
+			"\texpected: %d", decMsg.GetPayloadA(), testMsg.GetPayloadA())
 	}
 
-	if !reflect.DeepEqual(decMsg.SerializePayload(), testMsg.SerializePayload()) {
-		t.Errorf("EncryptDecrypt() did not produce the correct payload\n\treceived: %d\n\texpected: %d", decMsg.SerializePayload(), testMsg.SerializePayload())
-	}
-
-	if !reflect.DeepEqual(decMsg.SerializeAssociatedData(), testMsg.SerializeAssociatedData()) {
-		t.Errorf("EncryptDecrypt() did not produce the correct associated data\n\treceived: %d\n\texpected: %d", decMsg.SerializeAssociatedData(), testMsg.SerializeAssociatedData())
+	if !reflect.DeepEqual(decMsg.GetPayloadB(), testMsg.GetPayloadB()) {
+		t.Errorf("EncryptDecrypt() did not produce the correct associated data\n\treceived: %d\n\texpected: %d", decMsg.GetPayloadB(), testMsg.GetPayloadB())
 	}
 }
 
@@ -88,6 +93,7 @@ func TestDecrypt(t *testing.T) {
 // message.
 func TestEncrypt_Consistency(t *testing.T) {
 	// Create expected values
+	// So, because the input message changed length, these will also fail
 	expectPL := []byte{27, 13, 80, 192, 130, 143, 140, 156, 106, 146, 89, 140, 3, 66, 215, 249, 22, 59, 188, 75, 244,
 		185, 44, 218, 25, 227, 47, 113, 28, 139, 195, 241, 137, 237, 85, 236, 55, 60, 222, 200, 32, 176, 150, 49, 213,
 		20, 117, 156, 54, 138, 124, 204, 227, 178, 218, 230, 6, 196, 11, 128, 182, 24, 49, 226, 123, 202, 52, 251, 107,
@@ -114,16 +120,16 @@ func TestEncrypt_Consistency(t *testing.T) {
 	// Encrypt message
 	encMsg := ClientEncryptDecrypt(true, grp, makeMsg(), salt, makeBaseKeys(10))
 
-	if !reflect.DeepEqual(encMsg.SerializePayload(), expectPL) {
+	if !reflect.DeepEqual(encMsg.GetPayloadA(), expectPL) {
 		t.Errorf("EncryptDecrypt() did not produce the correct payload in consistency test"+
 			"\n\treceived: %d\n\texpected: %d",
-			encMsg.SerializePayload(), expectPL)
+			encMsg.GetPayloadA(), expectPL)
 	}
 
-	if !reflect.DeepEqual(encMsg.SerializeAssociatedData(), expectAD) {
+	if !reflect.DeepEqual(encMsg.GetPayloadB(), expectAD) {
 		t.Errorf("EncryptDecrypt() did not produce the correct associated data in consistency test"+
 			"\n\treceived: %d\n\texpected: %d",
-			encMsg.SerializeAssociatedData(), expectAD)
+			encMsg.GetPayloadB(), expectAD)
 	}
 }
 
@@ -147,16 +153,16 @@ func TestDecrypt_Consistency(t *testing.T) {
 	// Encrypt message
 	encMsg := ClientEncryptDecrypt(false, grp, msg, salt, makeBaseKeys(10))
 
-	if !reflect.DeepEqual(encMsg.SerializePayload(), expectPL) {
+	if !reflect.DeepEqual(encMsg.GetPayloadA(), expectPL) {
 		t.Errorf("EncryptDecrypt() did not produce the correct payload in consistency test"+
 			"\n\treceived: %d\n\texpected: %d",
-			encMsg.SerializePayload(), expectPL)
+			encMsg.GetPayloadA(), expectPL)
 	}
 
-	if !reflect.DeepEqual(encMsg.SerializeAssociatedData(), msg.SerializeAssociatedData()) {
+	if !reflect.DeepEqual(encMsg.GetPayloadB(), msg.GetPayloadB()) {
 		t.Errorf("EncryptDecrypt() did not produce the correct associated data in consistency test"+
 			"\n\treceived: %d\n\texpected: %d",
-			encMsg.SerializeAssociatedData(), msg.SerializeAssociatedData())
+			encMsg.GetPayloadB(), msg.GetPayloadB())
 	}
 }
 
@@ -176,19 +182,19 @@ func TestEncrypt_Invert(t *testing.T) {
 
 	multPayload := grp.NewInt(1)
 	multAssociatedData := grp.NewInt(1)
-	grp.Mul(keyEncInv, grp.NewIntFromBytes(encMsg.SerializePayload()), multPayload)
-	grp.Mul(keyEncInv, grp.NewIntFromBytes(encMsg.SerializeAssociatedData()), multAssociatedData)
+	grp.Mul(keyEncInv, grp.NewIntFromBytes(encMsg.GetPayloadA()), multPayload)
+	grp.Mul(keyEncInv, grp.NewIntFromBytes(encMsg.GetPayloadBForEncryption()),
+		multAssociatedData)
 
-	testMsg := format.Message{
-		Payload:        format.DeserializePayload(multPayload.Bytes()),
-		AssociatedData: format.DeserializeAssociatedData(multAssociatedData.Bytes()),
+	testMsg := format.NewMessage()
+	testMsg.SetPayloadA(multPayload.Bytes())
+	testMsg.SetDecryptedPayloadB(multAssociatedData.Bytes())
+
+	if !reflect.DeepEqual(testMsg.GetPayloadA(), msg.GetPayloadA()) {
+		t.Errorf("EncryptDecrypt() did not produce the correct payload\n\treceived: %d\n\texpected: %d", testMsg.GetPayloadA(), msg.GetPayloadA())
 	}
 
-	if !reflect.DeepEqual(testMsg.SerializePayload(), msg.SerializePayload()) {
-		t.Errorf("EncryptDecrypt() did not produce the correct payload\n\treceived: %d\n\texpected: %d", testMsg.SerializePayload(), msg.SerializePayload())
-	}
-
-	if !reflect.DeepEqual(testMsg.SerializeAssociatedData(), msg.SerializeAssociatedData()) {
-		t.Errorf("EncryptDecrypt() did not produce the correct associated data\n\treceived: %d\n\texpected: %d", testMsg.SerializeAssociatedData(), msg.SerializeAssociatedData())
+	if !reflect.DeepEqual(testMsg.GetPayloadB(), msg.GetPayloadB()) {
+		t.Errorf("EncryptDecrypt() did not produce the correct associated data\n\treceived: %d\n\texpected: %d", testMsg.GetPayloadB(), msg.GetPayloadB())
 	}
 }

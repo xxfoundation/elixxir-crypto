@@ -15,23 +15,20 @@ func ClientEncryptDecrypt(encrypt bool,
 	// Get inverted encrypted key
 	keyEncInv := ClientKeyGen(grp, salt, baseKeys)
 
-	// Get message payload and associated data as cyclic integers
-	payload := grp.NewIntFromBytes(msg.SerializePayload())
-	associatedData := grp.NewIntFromBytes(msg.SerializeAssociatedData())
+	// Get message payloads as cyclic integers
+	payloadA := grp.NewIntFromBytes(msg.GetPayloadA())
+	payloadB := grp.NewIntFromBytes(msg.GetPayloadBForEncryption())
 
 	// Multiply message payload with the key
-	grp.Mul(keyEncInv, payload, payload)
+	grp.Mul(keyEncInv, payloadA, payloadA)
 	// Only multiply associated data if encrypting
 	if encrypt {
-		grp.Mul(keyEncInv, associatedData, associatedData)
+		grp.Mul(keyEncInv, payloadB, payloadB)
 	}
 	// Create new message with multiplied parts
-	encryptedMsg := &format.Message{
-		Payload:        format.DeserializePayload(payload.
-			LeftpadBytes(uint64(format.TOTAL_LEN))),
-		AssociatedData: format.DeserializeAssociatedData(associatedData.
-			LeftpadBytes(uint64(format.TOTAL_LEN))),
-	}
+	encryptedMsg := format.NewMessage()
+	encryptedMsg.SetPayloadA(payloadA.LeftpadBytes(format.PayloadLen))
+	encryptedMsg.SetDecryptedPayloadB(payloadB.LeftpadBytes(format.PayloadLen))
 
 	return encryptedMsg
 }
