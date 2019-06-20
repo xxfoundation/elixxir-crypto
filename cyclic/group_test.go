@@ -1831,3 +1831,15 @@ func BenchmarkInverse(b *testing.B) {
 		grp.Inverse(inputs[i], outputs[i])
 	}
 }
+
+func TestGroup_BytesInside(t *testing.T) {
+	test1 := []byte{5}
+	test2 := []byte{79}
+	test3 := []byte{17}
+	test4 := []byte{36}
+	grp := NewGroup(large.NewInt(107), large.NewInt(4), large.NewInt(53))
+
+	if !grp.BytesInside(test1, test2, test3, test4) {
+		t.Errorf("BytesInside Failed!")
+	}
+}
