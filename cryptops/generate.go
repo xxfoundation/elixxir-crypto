@@ -22,7 +22,7 @@ type GeneratePrototype func(g *cyclic.Group, phaseKey,
 //   https://www.keylength.com/en/4/
 var Generate GeneratePrototype = func(g *cyclic.Group, phaseKey,
 	shareKey *cyclic.Int, rng csprng.Source) error {
-	p := g.GetP().Bytes()
+	p := g.GetPBytes()
 	var shareKeyBytes, phaseKeyBytes []byte
 	var err error
 
