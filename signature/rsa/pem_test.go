@@ -25,6 +25,19 @@ KKEGe30Ura8hwhAWPLziKqqZ9hOd8xKZp2dZAjEAwR/qt7tEmsMkxCbAwxxthGCe
 swZpBfpbLyN2FfSAD64GQ1N5bOhAS9O2hp0WkNhM
 -----END RSA PRIVATE KEY-----`
 
+var junkPemStr = `-----BEGIN JUNK KEY-----
+MIIBygIBAAJhALhySvzEqx4l+18WYAqUwiipIU4CixehO75s8Q1W8bNKGNZRoVpW
+swZpBfpbLyN2FfSAD64GQ1N5bOhAS9O2hp0WkNhM
+-----END JUNK KEY-----
+-----BEGIN RSA PUBLIC KEY-----
+MIIBygIBAAJhALhySvzEqx4l+18WYAqUwiipIU4CixehO75s8Q1W8bNKGNZRoVpW
+swZpBfpbLyN2FfSAD64GQ1N5bOhAS9O2hp0WkNhM
+-----END RSA PUBLIC KEY-----
+-----BEGIN RSA PRIVATE KEY-----
+MIIBygIBAAJhALhySvzEqx4l+18WYAqUwiipIU4CixehO75s8Q1W8bNKGNZRoVpW
+swZpBfpbLyN2FfSAD64GQ1N5bOhAS9O2hp0WkNhM
+-----END RSA PRIVATE KEY-----`
+
 func TestPemSmoke(t *testing.T) {
 	pkBytes := []byte(pemStr)
 	// Load and store, make sure we get what we put in
@@ -49,4 +62,28 @@ func TestPemSmoke(t *testing.T) {
 			pkPubBytes, pkPubBytesIn)
 	}
 
+}
+
+func TestEmptyPem(t *testing.T) {
+	pkBytes := []byte{0, 0, 0, 0}
+	_, err := LoadPrivateKeyFromPem(pkBytes)
+	if err == nil {
+		t.Errorf("Generated RSA PrivKey from empty file!")
+	}
+	_, err = LoadPublicKeyFromPem(pkBytes)
+	if err == nil {
+		t.Errorf("Generated RSA PubKey from empty file!")
+	}
+}
+
+func TestJunkPem(t *testing.T) {
+	pkBytes := []byte(junkPemStr)
+	_, err := LoadPrivateKeyFromPem(pkBytes)
+	if err == nil {
+		t.Errorf("Generated RSA PrivKey from junk file!")
+	}
+	_, err = LoadPublicKeyFromPem(pkBytes)
+	if err == nil {
+		t.Errorf("Generated RSA PubKey from junk file!")
+	}
 }

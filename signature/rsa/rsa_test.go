@@ -74,6 +74,16 @@ func TestRSASmoke(t *testing.T) {
 		114, 94, 129, 29, 218, 179, 245, 11, 132, 245, 77, 73, 110, 237,
 		242, 225, 81, 118, 16, 240, 197, 251, 16, 121, 8, 67, 211, 20,
 		127, 68, 124, 21, 32, 60, 80, 69, 49}
+	expected_N := []byte{191, 1, 94, 54, 139, 93, 174, 126, 207, 161, 246,
+		207, 44, 14, 119, 103, 224, 227, 112, 137, 46, 97, 34, 115, 84,
+		199, 205, 102, 148, 87, 177, 163, 45, 81, 15, 105, 95, 244, 38,
+		249, 108, 129, 56, 147, 147, 56, 132, 120, 20, 90, 74, 231, 48,
+		38, 204, 33, 38, 222, 72, 102, 56, 192, 255, 247, 123, 132, 17,
+		227, 249, 80, 233, 194, 219, 49, 197, 149, 160, 230, 101, 28,
+		10, 46, 136, 21, 214, 201, 238, 66, 198, 120, 87, 98, 152, 249,
+		131, 53, 14, 13, 49, 121, 229, 115, 33, 240, 222, 235, 20, 89,
+		186, 52, 200, 116, 55, 15, 254, 0, 21, 60, 116, 189, 20, 121,
+		236, 106, 244, 136, 36, 201}
 
 	data := []byte("Hello, World")
 	opts := NewDefaultOptions()
@@ -96,6 +106,10 @@ func TestRSASmoke(t *testing.T) {
 		t.Errorf("%v", err)
 	}
 	publicKey := privateKey.Public().(*PublicKey)
+	if bytes.Compare(publicKey.GetN().Bytes(), expected_N) != 0 {
+		t.Logf("N: %v", publicKey.GetN().Bytes())
+		t.Errorf("Bad N-val, expected: %v", expected_N)
+	}
 
 	if bytes.Compare(privateKey.GetD().Bytes(), expected_D) != 0 ||
 		bytes.Compare(privateKey.GetDp().Bytes(), expected_Dp) != 0 ||

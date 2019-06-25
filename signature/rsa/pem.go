@@ -42,7 +42,7 @@ func LoadPublicKeyFromPem(pemBytes []byte) (*PublicKey, error) {
 		block, rest = pem.Decode(rest)
 	}
 	if block == nil {
-		errors.New("No RSA PUBLIC KEY block in PEM file")
+		return nil, errors.New("No RSA PUBLIC KEY block in PEM file")
 	}
 
 	key, err := x509.ParsePKCS1PublicKey(block.Bytes)
