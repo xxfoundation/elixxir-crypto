@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-var pemStr = `-----BEGIN RSA PRIVATE KEY-----
+const pemStr = `-----BEGIN RSA PRIVATE KEY-----
 MIIBygIBAAJhALhySvzEqx4l+18WYAqUwiipIU4CixehO75s8Q1W8bNKGNZRoVpW
 NDuoTZOvjESzF0wMB5hyaCsLIDiyPRT5EolqkJcy2HVnXKq3HdcMIGu+NVjUFhSZ
 8uAH06nfevMBmwIDAQABAmA2wyhkd/feUaSajMgjHBuxetW6laK6d1KHrUy8iy3j
@@ -25,7 +25,7 @@ KKEGe30Ura8hwhAWPLziKqqZ9hOd8xKZp2dZAjEAwR/qt7tEmsMkxCbAwxxthGCe
 swZpBfpbLyN2FfSAD64GQ1N5bOhAS9O2hp0WkNhM
 -----END RSA PRIVATE KEY-----`
 
-var junkPemStr = `-----BEGIN JUNK KEY-----
+const junkPemStr = `-----BEGIN JUNK KEY-----
 MIIBygIBAAJhALhySvzEqx4l+18WYAqUwiipIU4CixehO75s8Q1W8bNKGNZRoVpW
 swZpBfpbLyN2FfSAD64GQ1N5bOhAS9O2hp0WkNhM
 -----END JUNK KEY-----
