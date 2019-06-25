@@ -1,6 +1,7 @@
 package cmix
 
 import (
+	"fmt"
 	"gitlab.com/elixxir/primitives/format"
 	"math/rand"
 	"reflect"
@@ -74,13 +75,13 @@ func TestDecrypt(t *testing.T) {
 	multPayload := grp.NewInt(1)
 	grp.Mul(keyEnc, grp.NewIntFromBytes(msg.GetPayloadA()), multPayload)
 
-    testMsg := format.NewMessage()
-    testMsg.SetPayloadA(multPayload.Bytes())
-    testMsg.SetPayloadB(msg.GetPayloadB())
+	testMsg := format.NewMessage()
+	testMsg.SetPayloadA(multPayload.Bytes())
+	testMsg.SetPayloadB(msg.GetPayloadB())
 
 	if !reflect.DeepEqual(decMsg.GetPayloadA(), testMsg.GetPayloadA()) {
-		t.Errorf("EncryptDecrypt(" +
-			") did not produce the correct payload\n\treceived: %d\n" +
+		t.Errorf("EncryptDecrypt("+
+			") did not produce the correct payload\n\treceived: %d\n"+
 			"\texpected: %d", decMsg.GetPayloadA(), testMsg.GetPayloadA())
 	}
 
@@ -94,17 +95,17 @@ func TestDecrypt(t *testing.T) {
 func TestEncrypt_Consistency(t *testing.T) {
 	// Create expected values
 	// So, because the input message changed length, these will also fail
-	expectPL := []byte{27, 13, 80, 192, 130, 143, 140, 156, 106, 146, 89, 140, 3, 66, 215, 249, 22, 59, 188, 75, 244,
-		185, 44, 218, 25, 227, 47, 113, 28, 139, 195, 241, 137, 237, 85, 236, 55, 60, 222, 200, 32, 176, 150, 49, 213,
-		20, 117, 156, 54, 138, 124, 204, 227, 178, 218, 230, 6, 196, 11, 128, 182, 24, 49, 226, 123, 202, 52, 251, 107,
-		195, 166, 87, 14, 100, 227, 229, 63, 136, 34, 229, 239, 35, 213, 222, 11, 49, 230, 228, 12, 124, 54, 96, 58,
-		103, 52, 61, 226, 23, 119, 213, 4, 52, 69, 83, 14, 215, 69, 24, 208, 191, 32, 7, 114, 253, 217, 243, 56, 117,
-		252, 254, 239, 96, 251, 168, 202, 83, 116, 20, 39, 114, 101, 6, 16, 240, 51, 82, 25, 15, 55, 147, 190, 241, 232,
-		242, 138, 197, 170, 21, 78, 68, 5, 49, 64, 243, 100, 208, 166, 206, 140, 177, 176, 187, 247, 173, 208, 59, 229,
-		60, 47, 64, 243, 199, 169, 155, 209, 250, 117, 224, 37, 108, 26, 187, 105, 29, 151, 91, 207, 43, 202, 193, 211,
-		184, 198, 251, 159, 215, 53, 95, 221, 193, 21, 61, 50, 18, 37, 137, 102, 178, 178, 169, 198, 82, 183, 184, 138,
-		203, 235, 107, 234, 211, 1, 87, 33, 114, 45, 97, 38, 224, 181, 167, 133, 179, 193, 188, 97, 251, 216, 251, 115,
-		110, 203, 219, 199, 225, 195, 194, 136, 27, 169, 146, 183, 109, 130, 232, 241, 99}
+	expectPL := []byte{5, 112, 143, 31, 21, 42, 251, 144, 198, 255, 122, 132, 9, 124, 114, 156, 174, 6, 84, 44, 138,
+		26, 243, 1, 72, 246, 99, 218, 160, 55, 65, 202, 85, 60, 237, 8, 127, 45, 32, 30, 65, 145, 43, 252, 78, 139,
+		135, 37, 245, 193, 216, 29, 183, 215, 91, 124, 172, 38, 104, 245, 38, 56, 81, 242, 44, 197, 53, 227, 100, 254,
+		54, 52, 246, 115, 155, 91, 76, 84, 22, 178, 40, 62, 248, 199, 244, 49, 159, 48, 205, 19, 213, 220, 15, 184,
+		107, 91, 197, 181, 184, 59, 17, 242, 120, 214, 81, 168, 166, 5, 139, 160, 182, 154, 220, 215, 40, 201, 223,
+		168, 147, 166, 20, 26, 155, 17, 246, 166, 47, 237, 79, 253, 178, 194, 206, 56, 153, 240, 145, 233, 253, 66, 42,
+		2, 66, 243, 119, 125, 219, 235, 128, 31, 7, 249, 60, 55, 12, 158, 175, 52, 207, 200, 231, 1, 98, 11, 99, 145,
+		189, 147, 178, 9, 126, 239, 60, 79, 168, 61, 86, 189, 102, 161, 175, 172, 145, 168, 145, 189, 135, 192, 86, 27,
+		85, 106, 88, 75, 228, 97, 139, 112, 28, 241, 12, 250, 137, 159, 36, 1, 60, 120, 45, 203, 212, 237, 116, 14, 181,
+		236, 0, 164, 65, 79, 238, 141, 176, 240, 91, 219, 198, 72, 183, 190, 211, 20, 204, 175, 209, 114, 130, 141, 20,
+		105, 30, 109, 235, 124, 191, 19, 67, 239, 239, 198, 25, 45, 239, 148, 40, 176}
 	expectAD := []byte{107, 71, 75, 145, 192, 76, 9, 52, 247, 76, 228, 4, 133, 157, 36, 173, 94, 188, 7, 138, 71, 199,
 		52, 254, 29, 183, 253, 13, 68, 170, 40, 201, 166, 43, 28, 91, 85, 28, 3, 153, 5, 16, 127, 197, 220, 173, 141,
 		136, 3, 24, 77, 0, 23, 205, 104, 129, 47, 109, 210, 57, 188, 40, 18, 97, 247, 15, 236, 186, 225, 47, 218, 239,
@@ -137,30 +138,34 @@ func TestEncrypt_Consistency(t *testing.T) {
 // message and not changing associated data
 func TestDecrypt_Consistency(t *testing.T) {
 	// Create expected values
-	expectPL := []byte{27, 13, 80, 192, 130, 143, 140, 156, 106, 146, 89, 140, 3, 66, 215, 249, 22, 59, 188, 75, 244,
-		185, 44, 218, 25, 227, 47, 113, 28, 139, 195, 241, 137, 237, 85, 236, 55, 60, 222, 200, 32, 176, 150, 49, 213,
-		20, 117, 156, 54, 138, 124, 204, 227, 178, 218, 230, 6, 196, 11, 128, 182, 24, 49, 226, 123, 202, 52, 251, 107,
-		195, 166, 87, 14, 100, 227, 229, 63, 136, 34, 229, 239, 35, 213, 222, 11, 49, 230, 228, 12, 124, 54, 96, 58,
-		103, 52, 61, 226, 23, 119, 213, 4, 52, 69, 83, 14, 215, 69, 24, 208, 191, 32, 7, 114, 253, 217, 243, 56, 117,
-		252, 254, 239, 96, 251, 168, 202, 83, 116, 20, 39, 114, 101, 6, 16, 240, 51, 82, 25, 15, 55, 147, 190, 241, 232,
-		242, 138, 197, 170, 21, 78, 68, 5, 49, 64, 243, 100, 208, 166, 206, 140, 177, 176, 187, 247, 173, 208, 59, 229,
-		60, 47, 64, 243, 199, 169, 155, 209, 250, 117, 224, 37, 108, 26, 187, 105, 29, 151, 91, 207, 43, 202, 193, 211,
-		184, 198, 251, 159, 215, 53, 95, 221, 193, 21, 61, 50, 18, 37, 137, 102, 178, 178, 169, 198, 82, 183, 184, 138,
-		203, 235, 107, 234, 211, 1, 87, 33, 114, 45, 97, 38, 224, 181, 167, 133, 179, 193, 188, 97, 251, 216, 251, 115,
-		110, 203, 219, 199, 225, 195, 194, 136, 27, 169, 146, 183, 109, 130, 232, 241, 99}
+	expectPL := []byte{5, 112, 143, 31, 21, 42, 251, 144, 198, 255, 122, 132, 9, 124, 114, 156, 174, 6, 84, 44, 138,
+		26, 243, 1, 72, 246, 99, 218, 160, 55, 65, 202, 85, 60, 237, 8, 127, 45, 32, 30, 65, 145, 43, 252, 78, 139,
+		135, 37, 245, 193, 216, 29, 183, 215, 91, 124, 172, 38, 104, 245, 38, 56, 81, 242, 44, 197, 53, 227, 100, 254,
+		54, 52, 246, 115, 155, 91, 76, 84, 22, 178, 40, 62, 248, 199, 244, 49, 159, 48, 205, 19, 213, 220, 15, 184,
+		107, 91, 197, 181, 184, 59, 17, 242, 120, 214, 81, 168, 166, 5, 139, 160, 182, 154, 220, 215, 40, 201, 223,
+		168, 147, 166, 20, 26, 155, 17, 246, 166, 47, 237, 79, 253, 178, 194, 206, 56, 153, 240, 145, 233, 253, 66, 42,
+		2, 66, 243, 119, 125, 219, 235, 128, 31, 7, 249, 60, 55, 12, 158, 175, 52, 207, 200, 231, 1, 98, 11, 99, 145,
+		189, 147, 178, 9, 126, 239, 60, 79, 168, 61, 86, 189, 102, 161, 175, 172, 145, 168, 145, 189, 135, 192, 86, 27,
+		85, 106, 88, 75, 228, 97, 139, 112, 28, 241, 12, 250, 137, 159, 36, 1, 60, 120, 45, 203, 212, 237, 116, 14, 181,
+		236, 0, 164, 65, 79, 238, 141, 176, 240, 91, 219, 198, 72, 183, 190, 211, 20, 204, 175, 209, 114, 130, 141, 20,
+		105, 30, 109, 235, 124, 191, 19, 67, 239, 239, 198, 25, 45, 239, 148, 40, 176}
 
 	msg := makeMsg()
 	// Encrypt message
 	encMsg := ClientEncryptDecrypt(false, grp, msg, salt, makeBaseKeys(10))
+	fmt.Print("payloadA: ")
+	fmt.Println(msg.GetPayloadA())
 
+	fmt.Print("PayuloadB: ")
+	fmt.Println(msg.GetPayloadB())
 	if !reflect.DeepEqual(encMsg.GetPayloadA(), expectPL) {
-		t.Errorf("EncryptDecrypt() did not produce the correct payload in consistency test"+
+		t.Errorf("EncryptDecrypt() did not produce the correct payloadA in consistency test"+
 			"\n\treceived: %d\n\texpected: %d",
 			encMsg.GetPayloadA(), expectPL)
 	}
 
 	if !reflect.DeepEqual(encMsg.GetPayloadB(), msg.GetPayloadB()) {
-		t.Errorf("EncryptDecrypt() did not produce the correct associated data in consistency test"+
+		t.Errorf("EncryptDecrypt() did not produce the correct payloadB in consistency test"+
 			"\n\treceived: %d\n\texpected: %d",
 			encMsg.GetPayloadB(), msg.GetPayloadB())
 	}
@@ -169,7 +174,7 @@ func TestDecrypt_Consistency(t *testing.T) {
 // Shows that multiplying the encrypted message by the inverse key decrypts it.
 func TestEncrypt_Invert(t *testing.T) {
 	msg := makeMsg()
-
+	fmt.Println(msg.GetPayloadB())
 	// Get encrypted message
 	size := 10
 	baseKeys := makeBaseKeys(size)
@@ -177,18 +182,19 @@ func TestEncrypt_Invert(t *testing.T) {
 	encMsg := ClientEncryptDecrypt(true, grp, msg, salt, baseKeys)
 
 	// Get encryption key
+
 	keyEncInv := ClientKeyGen(grp, salt, baseKeys)
 	grp.Inverse(keyEncInv, keyEncInv)
-
+	fmt.Println(encMsg.GetPayloadB())
 	multPayload := grp.NewInt(1)
-	multAssociatedData := grp.NewInt(1)
+	multPayloadB := grp.NewInt(1)
 	grp.Mul(keyEncInv, grp.NewIntFromBytes(encMsg.GetPayloadA()), multPayload)
 	grp.Mul(keyEncInv, grp.NewIntFromBytes(encMsg.GetPayloadBForEncryption()),
-		multAssociatedData)
+		multPayloadB)
 
 	testMsg := format.NewMessage()
 	testMsg.SetPayloadA(multPayload.Bytes())
-	testMsg.SetDecryptedPayloadB(multAssociatedData.Bytes())
+	testMsg.SetDecryptedPayloadB(multPayloadB.Bytes())
 
 	if !reflect.DeepEqual(testMsg.GetPayloadA(), msg.GetPayloadA()) {
 		t.Errorf("EncryptDecrypt() did not produce the correct payload\n\treceived: %d\n\texpected: %d", testMsg.GetPayloadA(), msg.GetPayloadA())

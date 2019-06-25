@@ -18,12 +18,12 @@ func ClientEncryptDecrypt(encrypt bool,
 	// Get message payloads as cyclic integers
 	payloadA := grp.NewIntFromBytes(msg.GetPayloadA())
 	payloadB := grp.NewIntFromBytes(msg.GetPayloadBForEncryption())
-
 	// Multiply message payload with the key
 	grp.Mul(keyEncInv, payloadA, payloadA)
 	// Only multiply associated data if encrypting
 	if encrypt {
 		grp.Mul(keyEncInv, payloadB, payloadB)
+
 	}
 	// Create new message with multiplied parts
 	encryptedMsg := format.NewMessage()
