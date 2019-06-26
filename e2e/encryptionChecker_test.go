@@ -3,6 +3,7 @@ package e2e
 import (
 	"gitlab.com/elixxir/crypto/hash"
 	"gitlab.com/elixxir/primitives/format"
+	"fmt"
 	"math/rand"
 	"testing"
 )
@@ -11,18 +12,19 @@ import (
 // encrypted.
 func TestIsUnencrypted_EncryptedMessage(t *testing.T) {
 	// Generate random byte slice
-	randSlice := make([]byte, rand.Intn(100))
+	randSlice := make([]byte, 256)
 	rand.Read(randSlice)
+	fpSlice := make([]byte, 32)
+	rand.Read(fpSlice)
 
 	// Create message
 	m := format.NewMessage()
-
 	// Set message payload
 	m.SetPayloadA(randSlice)
 	m.SetPayloadB(randSlice)
 
 	// Set the key fingerprint
-	m.SetKeyFP(*format.NewFingerprint(randSlice))
+	m.SetKeyFP(*format.NewFingerprint(fpSlice))
 
 	// Check the message
 	unencrypted := IsUnencrypted(m)
@@ -36,7 +38,7 @@ func TestIsUnencrypted_EncryptedMessage(t *testing.T) {
 // unencrypted.
 func TestIsUnencrypted_UnencryptedMessage(t *testing.T) {
 	// Generate random byte slice
-	randSlice := make([]byte, rand.Intn(100))
+	randSlice := make([]byte, 256)
 	rand.Read(randSlice)
 
 	// Create message
@@ -51,8 +53,13 @@ func TestIsUnencrypted_UnencryptedMessage(t *testing.T) {
 
 	// Set the key fingerprint
 	h.Write(m.Contents.Get())
-	m.SetKeyFP(*format.NewFingerprint(h.Sum(nil)))
-
+	fmt.Println(m.Contents.Get())
+	fp := *format.NewFingerprint(h.Sum(nil))
+	fmt.Println("fp")
+	fmt.Println(fp)
+	m.AssociatedData.SetKeyFP(fp)
+	fmt.Println("msgFP")
+	fmt.Println(m.AssociatedData.GetKeyFP())
 	// Check the message
 	unencrypted := IsUnencrypted(m)
 
@@ -65,9 +72,10 @@ func TestIsUnencrypted_UnencryptedMessage(t *testing.T) {
 // IsUnencrypted().
 func TestSetUnencrypted(t *testing.T) {
 	// Generate random byte slice
-	randSlice := make([]byte, rand.Intn(100))
+	randSlice := make([]byte, 256)
 	rand.Read(randSlice)
-
+	fpSlice := make([]byte, 32)
+	rand.Read(fpSlice)
 	// Create message
 	m := format.NewMessage()
 
@@ -75,7 +83,7 @@ func TestSetUnencrypted(t *testing.T) {
 	m.SetPayloadA(randSlice)
 	m.SetPayloadB(randSlice)
 	// Set the key fingerprint
-	m.SetKeyFP(*format.NewFingerprint(randSlice))
+	m.SetKeyFP(*format.NewFingerprint(fpSlice))
 
 	SetUnencrypted(m)
 
