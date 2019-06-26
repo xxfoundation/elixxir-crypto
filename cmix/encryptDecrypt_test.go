@@ -1,7 +1,6 @@
 package cmix
 
 import (
-	"fmt"
 	"gitlab.com/elixxir/primitives/format"
 	"golang.org/x/crypto/blake2b"
 	"math/rand"
@@ -71,8 +70,6 @@ func TestEncrypt(t *testing.T) {
 // Tests the consistency of ClientEncrypt() to correctly encrypt the
 // message.
 func TestEncrypt_Consistency(t *testing.T) {
-	// Create expected values
-	// So, because the input message changed length, these will also fail
 	expectPayloadA := []byte{226, 222, 67, 222, 255, 124, 97, 243, 80, 71, 244, 142, 251, 152, 192, 195, 85, 39, 39,
 		177, 88, 2, 2, 23, 75, 65, 208, 108, 57, 228, 122, 229, 93, 193, 187, 225, 40, 48, 32, 163, 233, 79, 115, 244,
 		179, 231, 3, 7, 38, 60, 249, 204, 159, 35, 143, 180, 61, 79, 153, 109, 245, 221, 192, 119, 130, 87, 56, 34, 228,
@@ -110,42 +107,6 @@ func TestEncrypt_Consistency(t *testing.T) {
 		t.Errorf("EncryptDecrypt() did not produce the correct associated data in consistency test"+
 			"\n\treceived: %d\n\texpected: %d",
 			encMsg.GetPayloadB(), expectPLB)
-	}
-}
-
-// Tests the consistency of ClientEncrypt() to correctly decrypt
-func TestDecrypt_Consistency(t *testing.T) {
-	// Create expected values
-	expectPL := []byte{226, 222, 67, 222, 255, 124, 97, 243, 80, 71, 244, 142, 251, 152, 192, 195, 85, 39, 39,
-		177, 88, 2, 2, 23, 75, 65, 208, 108, 57, 228, 122, 229, 93, 193, 187, 225, 40, 48, 32, 163, 233, 79, 115, 244,
-		179, 231, 3, 7, 38, 60, 249, 204, 159, 35, 143, 180, 61, 79, 153, 109, 245, 221, 192, 119, 130, 87, 56, 34, 228,
-		192, 4, 220, 90, 82, 166, 97, 55, 101, 107, 214, 207, 95, 119, 246, 154, 80, 127, 51, 160, 49, 101, 197, 165,
-		54, 51, 247, 92, 88, 118, 145, 119, 240, 227, 20, 126, 109, 158, 15, 32, 192, 160, 69, 191, 66, 106, 24, 174,
-		170, 198, 203, 39, 11, 178, 232, 193, 184, 195, 93, 64, 178, 195, 189, 23, 108, 197, 131, 111, 71, 200, 198,
-		152, 10, 70, 150, 161, 180, 239, 215, 156, 148, 145, 192, 157, 132, 217, 52, 82, 121, 29, 24, 247, 20, 190, 105,
-		4, 222, 50, 84, 77, 233, 70, 39, 100, 142, 79, 251, 42, 8, 113, 38, 204, 18, 51, 232, 93, 102, 249, 113, 8, 225,
-		104, 102, 236, 196, 226, 136, 113, 217, 86, 33, 105, 159, 25, 93, 205, 224, 156, 6, 145, 236, 233, 161, 187,
-		169, 188, 62, 20, 194, 139, 15, 144, 112, 104, 254, 53, 112, 139, 96, 39, 225, 113, 227, 208, 247, 184, 234,
-		164, 29, 202, 47, 126, 140, 90, 112, 94, 100, 118, 77, 87, 193, 65, 6, 103, 119, 73, 242}
-
-	msg := makeMsg()
-	// Encrypt message
-	encMsg := ClientEncrypt(grp, msg, salt, makeBaseKeys(10))
-	fmt.Print("payloadA: ")
-	fmt.Println(msg.GetPayloadA())
-
-	fmt.Print("PayloadB: ")
-	fmt.Println(msg.GetPayloadB())
-	if !reflect.DeepEqual(decMsg.GetPayloadA(), expectPL) {
-		t.Errorf("EncryptDecrypt() did not produce the correct payloadA in consistency test"+
-			"\n\treceived: %d\n\texpected: %d",
-			decMsg.GetPayloadA(), expectPL)
-	}
-
-	if !reflect.DeepEqual(decMsg.GetPayloadB(), msg.GetPayloadB()) {
-		t.Errorf("EncryptDecrypt() did not produce the correct payloadB in consistency test"+
-			"\n\treceived: %d\n\texpected: %d",
-			encMsg.GetPayloadB(), msg.GetPayloadB())
 	}
 }
 
