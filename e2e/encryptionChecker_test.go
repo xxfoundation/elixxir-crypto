@@ -3,7 +3,6 @@ package e2e
 import (
 	"gitlab.com/elixxir/crypto/hash"
 	"gitlab.com/elixxir/primitives/format"
-	"fmt"
 	"math/rand"
 	"testing"
 )
@@ -53,13 +52,8 @@ func TestIsUnencrypted_UnencryptedMessage(t *testing.T) {
 
 	// Set the key fingerprint
 	h.Write(m.Contents.Get())
-	fmt.Println(m.Contents.Get())
 	fp := *format.NewFingerprint(h.Sum(nil))
-	fmt.Println("fp")
-	fmt.Println(fp)
-	m.AssociatedData.SetKeyFP(fp)
-	fmt.Println("msgFP")
-	fmt.Println(m.AssociatedData.GetKeyFP())
+	m.SetKeyFP(fp)
 	// Check the message
 	unencrypted := IsUnencrypted(m)
 

@@ -26,9 +26,6 @@ func IsUnencrypted(m *format.Message) bool {
 
 	// Get the key fingerprint
 	keyFingerprint := m.AssociatedData.GetKeyFP()
-	fmt.Println("cmp")
-	fmt.Println(keyFingerprint)
-	fmt.Println(payloadHash)
 
 
 	// Return true if the byte slices are equal
