@@ -23,6 +23,6 @@ func GenUserID(pubKey *signature.DSAPublicKey, salt []byte) *id.User {
 	h, _ := hash.NewCMixHash()
 	h.Write(pubBytes)
 	h.Write(salt)
-	userID := new(id.User).SetBytes(h.Sum(nil))
+	userID := id.NewUserFromBytes(h.Sum(nil))
 	return userID
 }

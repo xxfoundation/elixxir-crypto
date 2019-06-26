@@ -29,7 +29,7 @@ func TestMain(m *testing.M) {
 		"15728E5A8AACAA68FFFFFFFFFFFFFFFF"
 	p := large.NewIntFromString(primeString, 16)
 	g := large.NewInt(2)
-	q := large.NewInt(3)
+	q := large.NewInt(2)
 	grp = cyclic.NewGroup(p, g, q)
 
 	os.Exit(m.Run())
@@ -39,8 +39,8 @@ func TestMain(m *testing.M) {
 // and check that it is the same when decrypting
 func TestEncryptDecrypt(t *testing.T) {
 	// Create key and message
-	key := grp.NewInt(3)
-	msg := []byte{5, 12, 11}
+	key := grp.NewInt(2)
+	msg := []byte{5, 255, 0}
 
 	// Encrypt key
 	encMsg, err := Encrypt(grp, key, msg)

@@ -11,14 +11,14 @@ func EncryptUnsafe(g *cyclic.Group, key *cyclic.Int, msg []byte) []byte {
 	// Modular multiply the key with the message
 	product := g.Mul(key, g.NewIntFromBytes(msg), g.NewInt(1))
 	// Return the result
-	return product.LeftpadBytes(uint64(format.ContentsLen))
+	return product.LeftpadBytes(uint64(format.PayloadLen))
 }
 
 // Encrypt a message by first padding it, using rand.Reader
 // Modular multiplies the key and padded message under the passed group.
 func Encrypt(g *cyclic.Group, key *cyclic.Int, msg []byte) ([]byte, error) {
 	// Get the padded message
-	encMsg, err := Pad(msg, int(format.ContentsLen))
+	encMsg, err := Pad(msg, int(format.PayloadLen))
 
 	// Return if an error occurred
 	if err != nil {
@@ -34,7 +34,7 @@ func DecryptUnsafe(g *cyclic.Group, key *cyclic.Int, encMsg []byte) []byte {
 	keyInv := g.Inverse(key, g.NewInt(1))
 	// Modular multiply the inverted key with the message
 	product := g.Mul(keyInv, g.NewIntFromBytes(encMsg), g.NewInt(1))
-	return product.LeftpadBytes(uint64(format.ContentsLen))
+	return product.LeftpadBytes(uint64(format.PayloadLen))
 }
 
 // Modular inverts the key under the passed group and modular multiplies it with
