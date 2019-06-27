@@ -22,13 +22,14 @@ func TestIsUnencrypted_EncryptedMessage(t *testing.T) {
 	m.SetPayloadA(randSlice)
 	m.SetPayloadB(randSlice)
 
+
 	// Set the key fingerprint
 	m.SetKeyFP(*format.NewFingerprint(fpSlice))
 
 	// Check the message
 	unencrypted := IsUnencrypted(m)
 
-	if unencrypted == true {
+	if unencrypted != false {
 		t.Errorf("IsUnencrypted() determined the message is unencrypted when it is actually encrypted\n\treceived: %v\n\texpected: %v", unencrypted, false)
 	}
 }
@@ -52,8 +53,8 @@ func TestIsUnencrypted_UnencryptedMessage(t *testing.T) {
 
 	// Set the key fingerprint
 	h.Write(m.Contents.Get())
-	fp := *format.NewFingerprint(h.Sum(nil))
-	m.SetKeyFP(fp)
+
+	m.SetKeyFP(*format.NewFingerprint(h.Sum(nil)))
 	// Check the message
 	unencrypted := IsUnencrypted(m)
 

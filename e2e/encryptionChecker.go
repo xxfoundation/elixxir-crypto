@@ -5,7 +5,6 @@ import (
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/hash"
 	"gitlab.com/elixxir/primitives/format"
-	"fmt"
 )
 
 // Determines if the message is unencrypted by comparing the hash of the message
@@ -20,13 +19,11 @@ func IsUnencrypted(m *format.Message) bool {
 	}
 
 	// Hash the message payload
-	fmt.Println(m.Contents.Get())
 	h.Write(m.Contents.Get())
 	payloadHash := h.Sum(nil)
 
 	// Get the key fingerprint
 	keyFingerprint := m.AssociatedData.GetKeyFP()
-
 
 	// Return true if the byte slices are equal
 	return bytes.Equal(payloadHash, keyFingerprint[:])
