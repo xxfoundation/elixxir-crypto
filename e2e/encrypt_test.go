@@ -40,7 +40,7 @@ func TestMain(m *testing.M) {
 func TestEncryptDecrypt(t *testing.T) {
 	// Create key and message
 	key := grp.NewInt(2)
-	msg := []byte{5, 255, 0}
+	msg := []byte{5, 12, 11}
 
 	// Encrypt key
 	encMsg, err := Encrypt(grp, key, msg)

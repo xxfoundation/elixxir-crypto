@@ -22,14 +22,13 @@ func TestIsUnencrypted_EncryptedMessage(t *testing.T) {
 	m.SetPayloadA(randSlice)
 	m.SetPayloadB(randSlice)
 
-
 	// Set the key fingerprint
 	m.SetKeyFP(*format.NewFingerprint(fpSlice))
 
 	// Check the message
 	unencrypted := IsUnencrypted(m)
 
-	if unencrypted != false {
+	if unencrypted == true {
 		t.Errorf("IsUnencrypted() determined the message is unencrypted when it is actually encrypted\n\treceived: %v\n\texpected: %v", unencrypted, false)
 	}
 }
