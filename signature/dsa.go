@@ -3,7 +3,11 @@ package signature
 import (
 	"bytes"
 	"crypto/dsa"
+	"encoding/asn1"
 	"encoding/gob"
+	"encoding/json"
+	"encoding/pem"
+	"errors"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/large"
 	"io"
@@ -39,6 +43,9 @@ const (
 		"BA9AE3F1DD2487199874393CD4D832186800654760E1E34C09E4D155179F9EC0" +
 		"DC4473F996BDCE6EED1CABED8B6F116F7AD9CF505DF0F998E34AB27514B0FFE7"
 )
+
+var ErrPemData = errors.New("failed to find PEM data in block containing public key")
+var ErrPemType = errors.New("PEM block type incorrect; expected \"PUBLIC KEY\"")
 
 func GetDefaultDSAParams() *DSAParameters {
 	bigP := large.NewIntFromString(DSA_GROUP_P, 16)
@@ -361,6 +368,63 @@ func (p *DSAPublicKey) GobDecode(b []byte) error {
 	return nil
 }
 
+// JsonEncode encodes the DSAPublicKey for JSON and return it, unless and error
+// occurs.
+func (p *DSAPublicKey) MarshalJSON() ([]byte, error) {
+	// Anonymous structure that flattens nested structures
+	s := struct {
+		P []byte
+		Q []byte
+		G []byte
+		Y []byte
+	}{
+		p.key.Parameters.P.Bytes(),
+		p.key.Parameters.Q.Bytes(),
+		p.key.Parameters.G.Bytes(),
+		p.key.Y.Bytes(),
+	}
+
+	// Encode the structure into JSON
+	jsonData, err := json.Marshal(s)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return jsonData, nil
+}
+
+// JsonDecode decodes JSON data into a DSAPublicKey and returns it.
+func (p *DSAPublicKey) UnmarshalJSON(b []byte) (*DSAPublicKey, error) {
+	// Anonymous, empty, flat structure
+	s := struct {
+		P []byte
+		Q []byte
+		G []byte
+		Y []byte
+	}{
+		[]byte{},
+		[]byte{},
+		[]byte{},
+		[]byte{},
+	}
+
+	// Decode the JSON to a temporary structure
+	err := json.Unmarshal(b, &s)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert decoded bytes and put into structure
+	p.key.Parameters.P = large.NewIntFromBytes(s.P).BigInt()
+	p.key.Parameters.Q = large.NewIntFromBytes(s.Q).BigInt()
+	p.key.Parameters.G = large.NewIntFromBytes(s.G).BigInt()
+	p.key.Y = large.NewIntFromBytes(s.Y).BigInt()
+
+	return p, nil
+}
+
 func (p *DSAPublicKey) Verify(hash []byte, sig DSASignature) bool {
 	return dsa.Verify(&p.key, hash, sig.R.BigInt(), sig.S.BigInt())
 }
@@ -372,4 +436,43 @@ func (p *DSAPublicKey) GetKey() *large.Int {
 type DSASignature struct {
 	R *large.Int
 	S *large.Int
+}
+
+// PemEncode returns the PEM encoding of the DSAPublicKey key.
+func (p *DSAPublicKey) PemEncode() ([]byte, error) {
+
+	// Encode the public key to ASN.1
+	asn1Bytes, err := asn1.Marshal(p.key)
+	if err != nil {
+		return nil, err
+	}
+
+	// Represents the PEM encoded structure
+	block := &pem.Block{
+		Type:  "PUBLIC KEY",
+		Bytes: asn1Bytes,
+	}
+
+	return pem.EncodeToMemory(block), nil
+}
+
+// PemDecode returns the PEM encoding of the DSAPublicKey key.
+func (p *DSAPublicKey) PemDecode(pemBytes []byte) (*DSAPublicKey, error) {
+
+	// Decode the public key from the PEM encoded structure block
+	block, _ := pem.Decode(pemBytes)
+	if block == nil {
+		return nil, ErrPemData
+	} else if block.Type != "PUBLIC KEY" {
+		return nil, ErrPemType
+	}
+
+	// Decode the ASN.1 key to the dsa.PublicKey
+	_, err := asn1.Unmarshal(block.Bytes, &p.key)
+	if err != nil {
+		return nil, err
+	}
+
+	// Construct the DSAPublicKey structure and return it
+	return p, nil
 }

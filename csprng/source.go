@@ -9,6 +9,7 @@ package csprng
 import (
 	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
+	"io"
 )
 
 //Defines the constructor of a source
@@ -29,40 +30,32 @@ type Source interface {
 // inside the modular cyclic group defined by the prime.
 // NOTE: This code assumes byte 0 is the MSB.
 func InGroup(sample, prime []byte) bool {
-	// Absolute failure when it's got more bits than prime
-	if len(sample) > len(prime) {
+	if len(sample) == 0 || len(sample) > len(prime) {
 		return false
 	}
 
-	// If sample has less bits, then only check for nonzero bytes
+	if len(sample) == 1 && sample[0] == 0 {
+		return false
+	}
+
 	if len(sample) < len(prime) {
-		for i := 0; i < len(sample); i++ {
-			if sample[i] != 0 {
-				return true
-			}
-		}
-		return false
+		return true
 	}
 
-	// Else check for both
-	notZero := false
-	lessThan := false
-	for i := 0; i < len(prime); i++ {
-		if notZero == false && sample[i] != 0 {
-			notZero = true
-		}
-		if lessThan == false && prime[i] > sample[i] {
-			lessThan = true
-		}
-		if lessThan == true && notZero == true {
+	for i := 0; i < len(sample); i++ {
+		if prime[i] > sample[i] {
 			return true
+		} else if sample[i] > prime[i] {
+			return false
 		}
 	}
 	return false
 }
 
 // Generate a byte slice of size and return the result
-func Generate(size int, rng Source) ([]byte, error) {
+// Note use of io.Reader interface, as Source implements that, we only
+// require a Read function for these utilities.
+func Generate(size int, rng io.Reader) ([]byte, error) {
 	key := make([]byte, size)
 	byteCount, err := rng.Read(key)
 	if err == nil && byteCount != size {
@@ -72,17 +65,22 @@ func Generate(size int, rng Source) ([]byte, error) {
 	return key, err
 }
 
-// Generate a byte slice of size inside the given prime group and return the
-// result
-func GenerateInGroup(prime []byte, size int, rng Source) ([]byte,
+// GenerateInGroup creates a byte slice of at most size inside the given prime
+// group and returns the result
+func GenerateInGroup(prime []byte, size int, rng io.Reader) ([]byte,
 	error) {
+	if size > len(prime) {
+		jww.WARN.Printf("Reducing size to match length of prime "+
+			"(%d -> %d)", size, len(prime))
+		size = len(prime)
+	}
 	for {
 		key, err := Generate(size, rng)
 		// return if we get an error OR if we are in the group
 		if err != nil || InGroup(key, prime) {
 			return key, err
 		}
-		jww.INFO.Printf("Failed to generate key in group. If this message " +
-			"repeats, check for RNG issues...")
+		jww.INFO.Printf("Failed to generate key in group. If this" +
+			" message repeats, check for RNG issues...")
 	}
 }

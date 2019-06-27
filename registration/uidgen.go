@@ -1,7 +1,6 @@
 package registration
 
 import (
-	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/hash"
 	"gitlab.com/elixxir/crypto/signature"
@@ -16,7 +15,6 @@ func GenUserID(pubKey *signature.DSAPublicKey, salt []byte) *id.User {
 		jww.ERROR.Panicf("PubKey and/or Salt are nil")
 	}
 	pubBytes := pubKey.GetKey().Bytes()
-	fmt.Printf("%x\n", pubBytes)
 	if len(pubBytes) == 0 || len(salt) == 0 {
 		jww.ERROR.Panicf("PubKey and/or Salt are empty")
 	}

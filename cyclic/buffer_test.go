@@ -190,3 +190,22 @@ func TestIntBuffer_Contains(t *testing.T) {
 		t.Errorf("IntBuffer.Contains: Contains index %v when it doesnt", b.Len()+1)
 	}
 }
+
+// Tests that Erase() removes all underlying data from the IntBuffer.
+func TestIntBuffer_Erase(t *testing.T) {
+	ib := grp.NewIntBuffer(uint32(20), nil)
+
+	ib.Erase()
+
+	if ib.values != nil {
+		t.Errorf("Erase() did not properly delete the IntBuffer's "+
+			"underlying value\n\treceived: %v\n\texpected: %v",
+			ib.values, nil)
+	}
+
+	if ib.fingerprint != 0 {
+		t.Errorf("Erase() did not properly delete the IntBuffer's "+
+			"underlying fingerprint\n\treceived: %v\n\texpected: %v",
+			ib.fingerprint, 0)
+	}
+}

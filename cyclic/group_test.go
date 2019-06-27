@@ -981,6 +981,24 @@ func TestGetP(t *testing.T) {
 	}
 }
 
+//Tests the prime byte getter from the group
+//Tests the old manual call against the implementation (p.Bytes() vs grp.GetPBytes())
+//P is never nil, so no edge case there
+func TestGetPBytes(t *testing.T) {
+	// setup test group and generator
+	p := large.NewInt(17)
+	g := large.NewInt(29)
+	q := large.NewInt(3)
+	group := NewGroup(p, g, q)
+	actual := group.GetPBytes()
+
+	if bytes.Compare(p.Bytes(), actual) != 0 {
+		t.Errorf("TestGetPBytes failed, expected: '%v', got: '%v'",
+			p.Text(10), actual)
+	}
+
+}
+
 // Test generator getter from the group
 func TestGetG(t *testing.T) {
 	// setup test group and generator
@@ -1386,6 +1404,26 @@ func TestRandomCoprime_PanicReadErr(t *testing.T) {
 	group.RandomCoprime(group.NewInt(1))
 }
 
+//Tests whether the z value is prematurely overwritten in the group after RootCoprime is run
+//Tests z value after rootcoprime against a value it's known to be given this input
+func TestRootCoprime_ZVal(t *testing.T) {
+	p := large.NewInt(17)
+	g := large.NewInt(29)
+	q := large.NewInt(3)
+
+	group := NewGroup(p, g, q)
+
+	x := group.NewInt(12)
+	z := group.NewInt(12)
+
+	//tmp in rootCoPrime is 1 in this case, so z=x**1
+	group.RootCoprime(x, z, z)
+	if z.value.Cmp(x.value) != 0 {
+		t.Errorf("RootCoprime overwrote z value")
+	}
+
+}
+
 // You pass a value x = a^y to the RootCoprime function, where y is (supposed to be) coprime with (p-1).
 // If y is coprime, then the function returns the value of a
 func TestRootCoprime(t *testing.T) {
@@ -1408,10 +1446,9 @@ func TestRootCoprime(t *testing.T) {
 	for i := 0; i < 2; i++ {
 		group.Exp(a[i], y[i], x)
 
-		group.RootCoprime(x, y[i], z[i])
-
-		if z[i].value.Cmp(a[i].value) != 0 && passing[i] {
-			t.Errorf("RootCoprime Error: Function did not output expected value!")
+		tmp := group.RootCoprime(x, y[i], z[i])
+		if tmp.value.Cmp(a[i].value) != 0 && passing[i] { //this is wrong, why would z change?
+			t.Errorf("RootCoprime Error: Function did not output expected value! a: %v z: %v", a[i].value.Text(16), z[i].value.Text(16))
 		} else {
 			pass++
 		}

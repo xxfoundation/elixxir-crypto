@@ -50,3 +50,11 @@ func (ib *IntBuffer) GetFingerprint() uint64 {
 func (ib *IntBuffer) Contains(index uint32) bool {
 	return index < uint32(len(ib.values))
 }
+
+// Erase overwrite all underlying data from a Int Buffer by setting its values
+// slice to nil and its fingerprint to zero. All underlying released data will
+// be removed by the garbage collector.
+func (ib *IntBuffer) Erase() {
+	ib.values = nil
+	ib.fingerprint = 0
+}

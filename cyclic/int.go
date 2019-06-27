@@ -21,6 +21,12 @@ type Int struct {
 	fingerprint uint64
 }
 
+//gets the byte length of cyclic int
+func (z *Int) ByteLen() int {
+	byteLen := z.value.ByteLen()
+	return byteLen
+}
+
 // Gets a deepcopy of the largeInt from cyclicInt
 // This is necessary because otherwise the internal
 // value of the into could be edited and made to be
@@ -173,4 +179,12 @@ func (z *Int) GobEncode() ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
+}
+
+// Erase overwrite all underlying data from a cyclic Int by setting its value
+// and fingerprint to zero. All underlying released data will be removed by the
+// garbage collector.
+func (z *Int) Erase() {
+	z.value.SetInt64(0)
+	z.fingerprint = 0
 }

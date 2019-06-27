@@ -238,28 +238,7 @@ func (g *Group) BytesInside(bufs ...[]byte) bool {
 
 // BytesInside returns true of the Int represented by the byte slice is within the group, false if it isn't
 func (g *Group) singleBytesInside(buf []byte) bool {
-
-	if len(buf) == 0 || len(buf) > len(g.primeBytes) {
-		return false
-	}
-
-	if len(buf) == 1 && buf[0] == 0 {
-		return false
-	}
-
-	if len(buf) < len(g.primeBytes) {
-		return true
-	}
-
-	for i := 0; i < len(buf); i++ {
-		if g.primeBytes[i] > buf[i] {
-			return true
-		} else if buf[i] > g.primeBytes[i] {
-			return false
-		}
-	}
-
-	return false
+	return csprng.InGroup(buf, g.primeBytes)
 }
 
 // ModP sets z ≡ x mod prime within the group and returns z.
@@ -280,11 +259,11 @@ func (g *Group) Inverse(a, b *Int) *Int {
 // Sets r to the number and returns it
 func (g *Group) Random(r *Int) *Int {
 	g.checkInts(r)
-	p := g.GetP().Bytes()
 	rng := g.rng
 	r.value.Set(g.one)
 	for g.one.Cmp(r.value) == 0 {
-		b, err := csprng.GenerateInGroup(p, len(p), rng)
+		b, err := csprng.GenerateInGroup(g.primeBytes,
+			len(g.primeBytes), rng)
 		if err != nil {
 			jww.FATAL.Panicf("Could not generate random number in group: %s", err)
 		}
@@ -322,6 +301,13 @@ func (g *Group) GetQ() *large.Int {
 // GetQCyclic returns a new cyclicInt with the group's Q prime
 func (g *Group) GetQCyclic() *Int {
 	return g.NewIntFromLargeInt(g.primeQ)
+}
+
+//GetPBytes returns a copy of the group's prime bytes
+func (g *Group) GetPBytes() []byte {
+	pCopy := make([]byte, len(g.primeBytes))
+	copy(pCopy, g.primeBytes)
+	return pCopy
 }
 
 // GetPSub1 returns a copy of the group's p-1
@@ -398,12 +384,13 @@ func (g *Group) RandomCoprime(r *Int) *Int {
 	return r
 }
 
-// RootCoprime sets z = y√x mod p, and returns z. Only works with y's
+// RootCoprime sets tmp = y√x mod p, and returns tmp. Only works with y's
 // coprime with g.prime-1 (g.psub1)
 func (g Group) RootCoprime(x, y, z *Int) *Int {
 	g.checkInts(x, y, z)
-	z.value.ModInverse(y.value, g.psub1)
-	g.Exp(x, z, z)
+	tmp := g.NewInt(1)
+	tmp.value.ModInverse(y.value, g.psub1)
+	g.Exp(x, tmp, z)
 	return z
 }
 

@@ -219,6 +219,31 @@ func TestTextVerbose(t *testing.T) {
 	}
 }
 
+//TestByteLen checks if the ByteLen placeholder exists
+func TestByteLen(t *testing.T) {
+	testints := []*Int{
+		grp.NewInt(1),       //1 bits -->  1 byte   (where +7 works)
+		grp.NewInt(8388608), //24 bits --> 3 bytes  (exactly)
+		grp.NewInt(7777),    //13 bits --> 2 bytes  (where +3 works)
+		grp.NewInt(1002),    //10 bits --> 2 bytes  (where +6 works)
+	}
+
+	expectedlens := []int{
+		1,
+		3,
+		2,
+		2,
+	}
+
+	for i, tsti := range testints {
+		actual := tsti.ByteLen()
+		if actual != expectedlens[i] {
+			t.Errorf("Case %v of ByteLen failed, got: '%v', expected: '%v'", i, actual,
+				expectedlens[i])
+		}
+	}
+}
+
 // Test GOB encoding/decoding
 func TestGob(t *testing.T) {
 	var byteBuf bytes.Buffer
@@ -259,5 +284,24 @@ func TestGobDecode_Error(t *testing.T) {
 	if !reflect.DeepEqual(err, errors.New("EOF")) {
 		t.Errorf("GobDecode() did not produce the expected error\n\treceived: %v"+
 			"\n\texpected: %v", err, errors.New("EOF"))
+	}
+}
+
+// Tests that Erase() removes all underlying data from the Int.
+func TestInt_Erase(t *testing.T) {
+	cycInt := grp.NewInt(42)
+	zeroInt := large.NewInt(5).SetInt64(0)
+	cycInt.Erase()
+
+	if !reflect.DeepEqual(cycInt.value, zeroInt) {
+		t.Errorf("Erase() did not properly delete Int's underlying value"+
+			"\n\treceived: %#v\n\texpected: %#v",
+			cycInt.value, zeroInt)
+	}
+
+	if cycInt.fingerprint != 0 {
+		t.Errorf("Erase() did not properly delete Int's underlying fingerprint"+
+			"\n\treceived: %#v\n\texpected: %#v",
+			cycInt.fingerprint, 0)
 	}
 }

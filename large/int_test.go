@@ -885,6 +885,32 @@ func TestBitLen(t *testing.T) {
 	}
 }
 
+//TestByteLen checks if the ByteLen placeholder exists
+func TestByteLen(t *testing.T) {
+	testints := []*Int{
+		NewInt(2),  		 	//2 bits  -->  1 bytes (where +6 works)
+		NewInt(8388608),		//24 bits -->  3 bytes (exactly)
+		NewInt(0),			//1 bit   -->  1 byte  (irrelevant b/c it's overwritten before testing)
+		NewInt(-42)}			//6 bits  -->  1 byte
+
+	//overwrites the value 0:    100 bits -->  13 bytes (where +4 works)
+	testints[2], _ = testints[2].SetString("867530918239450598372829049587", 10)
+
+	expectedlens := []int{
+		1,
+		3,
+		13,
+		1}
+
+	for i, tsti := range testints {
+		actual := tsti.ByteLen()
+		if actual != expectedlens[i] {
+			t.Errorf("Case %v of BitLen failed, got: '%v', expected: '%v'", i, actual,
+				expectedlens[i])
+		}
+	}
+}
+
 //TestCmp checks if the Cmp placeholder exists
 func TestCmp(t *testing.T) {
 
