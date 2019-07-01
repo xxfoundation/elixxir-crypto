@@ -71,7 +71,7 @@ func TestSystemRNG_SetSeed(t *testing.T) {
 
 //Checking the functionality of appending the source
 //using the Fortuna construction
-func TestAppendSourceInRead(t *testing.T) {
+func TestStreamRead(t *testing.T) {
 
 	//A large byte array, of which you will read size from src byte array
 	requestedBytes := make([]byte, 4125)
