@@ -72,25 +72,27 @@ func TestSystemRNG_SetSeed(t *testing.T) {
 //Checking the functionality of appending the source
 //using the Fortuna construction
 func TestAppendSourceInRead(t *testing.T) {
+
+	//A large byte array, of which you will read size from src byte array
+	requestedBytes := make([]byte, 4125)
+
+	/*Initialize everything needed for stream*/
+
 	//Mock random source, of arbitrarily insufficient (small) size
 	testSource := make([]byte, 7, 7)
 	_, err := io.ReadFull(crand.Reader, testSource)
 	if err != nil {
 		panic(err.Error())
 	}
-
-	//A large byte array, of which you will read size from src byte array
-	requestedBytes := make([]byte, 4125)
-
-	//Initialize everything needed for stream generator
+	//Mock block cipher
 	testKey := make([]byte, 32)
 	testIV := make([]byte, aes.BlockSize)
 	block, err := aes.NewCipher(testKey[:aes.BlockSize])
 	if err != nil {
 		panic(err)
-
 	}
 	ciph := cipher.NewCTR(block, testIV)
+	//Initialize streamGenerator
 	sg := &StreamGenerator{
 		src:           testSource,
 		entropyCnt:    24,
@@ -98,6 +100,8 @@ func TestAppendSourceInRead(t *testing.T) {
 		AESCtr:        ciph,
 		rng:           NewSystemRNG(),
 	}
+
+	//Initialize the stream with the generator
 	stream := Stream{streamGen: sg}
 	stream.Read(requestedBytes)
 
