@@ -1,6 +1,17 @@
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2018 Privategrity Corporation                                   /
+//                                                                             /
+// All rights reserved.                                                        /
+////////////////////////////////////////////////////////////////////////////////
 package csprng
 
 import (
+	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
+	crand "crypto/rand"
+	"fmt"
+	"io"
 	"math/rand"
 	"reflect"
 	"testing"
@@ -57,4 +68,48 @@ func TestSystemRNG_SetSeed(t *testing.T) {
 	if err != nil {
 		t.Errorf("TestSystemRNG_SetSeed failed: returned unexpected error: %s", err.Error())
 	}
+}
+
+//Checking the functionality of appending the source
+//using the Fortuna construction
+func TestAppendSourceInRead(t *testing.T) {
+	testSource := make([]byte, 7, 7)
+	_, err := io.ReadFull(crand.Reader, testSource)
+	if err != nil {
+		panic(err.Error())
+	}
+	csprig := NewSystemRNG()
+	fmt.Print("source: ")
+	fmt.Println(testSource)
+	testKey := make([]byte, 32)
+	testIV := make([]byte, aes.BlockSize)
+	block, err := aes.NewCipher(testKey[:aes.BlockSize])
+	if err != nil {
+		panic(err)
+
+	}
+	preAppend := make([]byte, len(testSource))
+	copy(preAppend, testSource)
+	ciph := cipher.NewCTR(block, testIV)
+	requestedBytes := make([]byte, 4125)
+	sg := &StreamGenerator{src: testSource,
+		entropyCnt:    24,
+		scalingFactor: 16,
+		AESCtr:        ciph,
+		rng:           csprig,
+	}
+
+	stream := Stream{streamGen: sg}
+	stream.Read(requestedBytes)
+	fmt.Println(testSource)
+	requestRead := 4125
+	testSource = AppendSource(requestRead, testSource)
+	fmt.Print("testSoruce: ")
+	fmt.Println(testSource)
+	fmt.Print("prepend ")
+	fmt.Println(preAppend)
+	if len(testSource) < len(requestedBytes) || bytes.Compare(preAppend, testSource) == 0 {
+		panic("Fortuna construction did not add randomness to the source")
+	}
+	fmt.Println(len(testSource))
 }
