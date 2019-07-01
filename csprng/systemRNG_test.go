@@ -10,7 +10,6 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	crand "crypto/rand"
-	"fmt"
 	"io"
 	"math/rand"
 	"reflect"
@@ -73,14 +72,17 @@ func TestSystemRNG_SetSeed(t *testing.T) {
 //Checking the functionality of appending the source
 //using the Fortuna construction
 func TestAppendSourceInRead(t *testing.T) {
+	//Mock random source, of arbitrarily insufficient (small) size
 	testSource := make([]byte, 7, 7)
 	_, err := io.ReadFull(crand.Reader, testSource)
 	if err != nil {
 		panic(err.Error())
 	}
-	csprig := NewSystemRNG()
-	fmt.Print("source: ")
-	fmt.Println(testSource)
+
+	//A large byte array, of which you will read size from src byte array
+	requestedBytes := make([]byte, 4125)
+
+	//Initialize everything needed for stream generator
 	testKey := make([]byte, 32)
 	testIV := make([]byte, aes.BlockSize)
 	block, err := aes.NewCipher(testKey[:aes.BlockSize])
@@ -88,28 +90,18 @@ func TestAppendSourceInRead(t *testing.T) {
 		panic(err)
 
 	}
-	preAppend := make([]byte, len(testSource))
-	copy(preAppend, testSource)
 	ciph := cipher.NewCTR(block, testIV)
-	requestedBytes := make([]byte, 4125)
-	sg := &StreamGenerator{src: testSource,
+	sg := &StreamGenerator{
+		src:           testSource,
 		entropyCnt:    24,
 		scalingFactor: 16,
 		AESCtr:        ciph,
-		rng:           csprig,
+		rng:           NewSystemRNG(),
 	}
-
 	stream := Stream{streamGen: sg}
 	stream.Read(requestedBytes)
-	fmt.Println(testSource)
-	requestRead := 4125
-	testSource = AppendSource(requestRead, testSource)
-	fmt.Print("testSoruce: ")
-	fmt.Println(testSource)
-	fmt.Print("prepend ")
-	fmt.Println(preAppend)
-	if len(testSource) < len(requestedBytes) || bytes.Compare(preAppend, testSource) == 0 {
+
+	if len(sg.src) < len(requestedBytes) || bytes.Compare(sg.src, testSource) == 0 {
 		panic("Fortuna construction did not add randomness to the source")
 	}
-	fmt.Println(len(testSource))
 }

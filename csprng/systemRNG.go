@@ -67,7 +67,6 @@ func (*RNGStreamGenerator) Close(*RNGStream)
 // blocksize*scalingFactor bytes are read this functions blocks until it rereads csprng.Source.
 // TODO: Add 'blocking' logic, which is blocked by the ticket currently described above
 func (s *Stream) Read(b []byte) int {
-
 	//Generate more randomness, if we are requesting more than exists right now
 	if len(b) > len(s.streamGen.src) {
 		s.streamGen.src = AppendSource(len(b), s.streamGen.src)
@@ -86,6 +85,7 @@ func (s *Stream) Read(b []byte) int {
 	}
 	//Make 'new randomness' by changing the values read through xor'ring
 	s.streamGen.AESCtr.XORKeyStream(s.streamGen.src[:len(b)], b)
+
 	return len(b)
 }
 
