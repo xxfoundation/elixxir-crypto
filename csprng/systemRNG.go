@@ -91,7 +91,7 @@ func (s *Stream) Read(b []byte) int {
 
 // If the source is not large for the amount to be read in, extend the source
 // using the Fortuna construction. Need a new block IV every
-// In usage, src will partially pull from Linux's rng
+// In usage, src will initially pull from Linux's rng
 func AppendSource(lenToApp int, src []byte) []byte {
 	//Initialize key and block
 	key := make([]byte, 0)
