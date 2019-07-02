@@ -63,6 +63,7 @@ func (s *Stream) Read(b []byte) int {
 	if s.streamGen.entropyCnt < uint(len(b)) {
 		s.ReadFromSource(len(b))
 	}
+	s.streamGen.entropyCnt -= uint(len(b))
 	//Make 'new randomness' by changing the values read through xor'ring
 	s.streamGen.AESCtr.XORKeyStream(s.streamGen.src[:len(b)], b)
 
@@ -96,7 +97,7 @@ func (s *Stream) AppendSource(lenToApp int) {
 		temp++
 	}
 }
-
+// TODO: test this function
 // Reads from source up to the length of b, factoring in the amount of entropy we have
 func (s *Stream) ReadFromSource(lenOfB int) {
 	//

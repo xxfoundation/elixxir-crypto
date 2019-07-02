@@ -37,6 +37,7 @@ func TestStreamRead(t *testing.T) {
 		panic(err)
 	}
 	ciph := cipher.NewCTR(block, testIV)
+	//TODO: Replace with constructor after 2nd ticket is done
 	//Initialize streamGenerator
 	sg := &StreamGenerator{
 		src:           testSource,
