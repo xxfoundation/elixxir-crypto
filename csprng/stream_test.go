@@ -68,7 +68,8 @@ func TestRequiredRandomness_ReturnsZero(t *testing.T) {
 	//Try to read less that the amount of entropy
 	var lessThanEntropy uint = 23
 	requiredRandomness := stream.requiredRandomness(lessThanEntropy)
-
+	//Since we are reading less than entropy, reqLen-entropy<0, in which case we return 0
+	//This is tested
 	if requiredRandomness != 0 {
 		panic("Required randomness is not being calculated correctly")
 	}
@@ -83,11 +84,10 @@ func TestRequiredRandomness_ReturnsNonZero(t *testing.T) {
 		rng:           NewSystemRNG(),
 	}
 	stream := Stream{streamGen: sg}
-	//Try to read less that the amount of entropy
+	//Try to read more that the amount of entropy
 	var greaterThanEntropy uint = 25
 	requiredRandomness := stream.requiredRandomness(greaterThanEntropy)
 	if requiredRandomness == 0 {
 		panic("Required randomness is not being calculated correctly")
 	}
-
 }

@@ -71,7 +71,7 @@ func (s *Stream) Read(b []byte) int {
 
 	//
 	s.streamGen.entropyCnt -= uint(len(b))
-	//Make 'new randomness' by changing the values read through xor'ring
+	//Make 'new randomness' by changing the stale values (already read data read through xor'ring
 	//We may also just as easily retire the read values. This is up to discussion?
 	s.streamGen.AESCtr.XORKeyStream(s.streamGen.src[:len(b)], b)
 
