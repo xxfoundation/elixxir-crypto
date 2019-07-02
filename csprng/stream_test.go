@@ -14,8 +14,8 @@ import (
 	"testing"
 )
 
-//Checking the functionality of appending the source
-//using the Fortuna construction
+// Checking the functionality of appending the source
+// using the Fortuna construction
 func TestStreamRead(t *testing.T) {
 
 	//A large byte array, of which you will read size from src byte array
@@ -56,6 +56,38 @@ func TestStreamRead(t *testing.T) {
 	}
 }
 
-func TestStreamReadReturnsZero(t *testing.T) {
+// Checking whether requiredRandomness returns zero when the entropyCount is less than the requestedLen
+func TestRequiredRandomness_ReturnsZero(t *testing.T) {
+	//Initialize a streamGenerator and stream
+	sg := &StreamGenerator{
+		entropyCnt:    24,
+		scalingFactor: 16,
+		rng:           NewSystemRNG(),
+	}
+	stream := Stream{streamGen: sg}
+	//Try to read less that the amount of entropy
+	var lessThanEntropy uint = 23
+	requiredRandomness := stream.requiredRandomness(lessThanEntropy)
+
+	if requiredRandomness != 0 {
+		panic("Required randomness is not being calculated correctly")
+	}
+
+}
+
+func TestRequiredRandomness_ReturnsNonZero(t *testing.T) {
+	//Initialize a streamGenerator and stream
+	sg := &StreamGenerator{
+		entropyCnt:    24,
+		scalingFactor: 16,
+		rng:           NewSystemRNG(),
+	}
+	stream := Stream{streamGen: sg}
+	//Try to read less that the amount of entropy
+	var greaterThanEntropy uint = 25
+	requiredRandomness := stream.requiredRandomness(greaterThanEntropy)
+	if requiredRandomness == 0 {
+		panic("Required randomness is not being calculated correctly")
+	}
 
 }

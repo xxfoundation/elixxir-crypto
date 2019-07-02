@@ -72,6 +72,7 @@ func (s *Stream) Read(b []byte) int {
 	//
 	s.streamGen.entropyCnt -= uint(len(b))
 	//Make 'new randomness' by changing the values read through xor'ring
+	//We may also just as easily retire the read values. This is up to discussion?
 	s.streamGen.AESCtr.XORKeyStream(s.streamGen.src[:len(b)], b)
 
 	return len(b)
@@ -106,8 +107,10 @@ func (s *Stream) AppendSource(lenToApp int) {
 }
 
 // TODO: test this function
-// Reads from source up to the length of b, factoring in the amount of entropy we have
-
+// Sets the required randomness, ie the amount we will read from source by factoring in the amount of entropy we
+// actually have and the sources of entropy we have.
+// ScalingFactor is how much we let the pools grow before reseeding
+// EntropyCnt is the amount of pools we have
 func (s *Stream) requiredRandomness(requestLen uint) uint {
 	//Such that (requestLen - entropyCnt is never negative
 	if s.streamGen.entropyCnt < requestLen {
