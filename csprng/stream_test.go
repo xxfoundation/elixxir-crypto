@@ -56,6 +56,6 @@ func TestStreamRead(t *testing.T) {
 	}
 }
 
-func TestStreamReadReturnsZero(t *testing.T)  {
+func TestStreamReadReturnsZero(t *testing.T) {
 
 }

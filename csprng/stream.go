@@ -60,17 +60,14 @@ func (s *Stream) Read(b []byte) int {
 	}
 
 	//Read from source
-	if requiredRandomness := s.requiredRandomness(uint(len(b)));requiredRandomness!=0{
+	if requiredRandomness := s.requiredRandomness(uint(len(b))); requiredRandomness != 0 {
 		_, err := s.streamGen.rng.Read(s.streamGen.src[0:requiredRandomness])
 		if err != nil {
 			jww.ERROR.Printf(err.Error())
 		}
 		//
-		s.streamGen.entropyCnt += requiredRandomness * s.streamGen.scalingFactor
+		s.SetEntropyCount(requiredRandomness)
 	}
-
-
-
 
 	//
 	s.streamGen.entropyCnt -= uint(len(b))
@@ -107,19 +104,20 @@ func (s *Stream) AppendSource(lenToApp int) {
 		temp++
 	}
 }
+
 // TODO: test this function
 // Reads from source up to the length of b, factoring in the amount of entropy we have
-func (s *Stream) ReadFromSource(lenOfB int) {
-	//
-	requiredRandomness := (uint(lenOfB) - s.streamGen.entropyCnt + s.streamGen.scalingFactor - 1) / s.streamGen.scalingFactor
-	//Read from source up to that required randomness
 
-}
-
-
-func (s *Stream) requiredRandomness(requestLen uint)uint{
+func (s *Stream) requiredRandomness(requestLen uint) uint {
+	//Such that (requestLen - entropyCnt is never negative
 	if s.streamGen.entropyCnt < requestLen {
+		//The addition (scalingFactor - 1) ensures that the returned value is always a ceiling rather than a floor
+		//as an integer. e.g ceiling(a/b) = (a+b-1)/b
 		return (requestLen - s.streamGen.entropyCnt + s.streamGen.scalingFactor - 1) / s.streamGen.scalingFactor
 	}
 	return 0
+}
+
+func (s *Stream) SetEntropyCount(reqRandomness uint) {
+	s.streamGen.entropyCnt += reqRandomness * s.streamGen.scalingFactor
 }
