@@ -66,7 +66,7 @@ func (s *Stream) Read(b []byte) int {
 			jww.ERROR.Printf(err.Error())
 		}
 		//
-		s.SetEntropyCount(requiredRandomness)
+		s.SetEntropyCount(uint(len(b)))
 	}
 
 	//
@@ -108,9 +108,8 @@ func (s *Stream) AppendSource(lenToApp int) {
 
 // TODO: test this function
 // Sets the required randomness, ie the amount we will read from source by factoring in the amount of entropy we
-// actually have and the sources of entropy we have.
-// ScalingFactor is how much we let the pools grow before reseeding
-// EntropyCnt is the amount of pools we have
+// actually have and the sources of entropy we have. Definitions:
+
 func (s *Stream) requiredRandomness(requestLen uint) uint {
 	//Such that (requestLen - entropyCnt is never negative
 	if s.streamGen.entropyCnt < requestLen {
@@ -121,6 +120,7 @@ func (s *Stream) requiredRandomness(requestLen uint) uint {
 	return 0
 }
 
-func (s *Stream) SetEntropyCount(reqRandomness uint) {
-	s.streamGen.entropyCnt += reqRandomness * s.streamGen.scalingFactor
+// Increases the entryopy
+func (s *Stream) SetEntropyCount(requestedLen uint) {
+	s.streamGen.entropyCnt += requestedLen * s.streamGen.scalingFactor
 }
