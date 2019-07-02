@@ -55,3 +55,7 @@ func TestStreamRead(t *testing.T) {
 		panic("Fortuna construction did not add randomness to the source")
 	}
 }
+
+func TestStreamReadReturnsZero(t *testing.T)  {
+
+}

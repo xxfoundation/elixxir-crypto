@@ -60,9 +60,19 @@ func (s *Stream) Read(b []byte) int {
 	}
 
 	//Read from source
-	if s.streamGen.entropyCnt < uint(len(b)) {
-		s.ReadFromSource(len(b))
+	if requiredRandomness := s.requiredRandomness(uint(len(b)));requiredRandomness!=0{
+		_, err := s.streamGen.rng.Read(s.streamGen.src[0:requiredRandomness])
+		if err != nil {
+			jww.ERROR.Printf(err.Error())
+		}
+		//
+		s.streamGen.entropyCnt += requiredRandomness * s.streamGen.scalingFactor
 	}
+
+
+
+
+	//
 	s.streamGen.entropyCnt -= uint(len(b))
 	//Make 'new randomness' by changing the values read through xor'ring
 	s.streamGen.AESCtr.XORKeyStream(s.streamGen.src[:len(b)], b)
@@ -103,10 +113,13 @@ func (s *Stream) ReadFromSource(lenOfB int) {
 	//
 	requiredRandomness := (uint(lenOfB) - s.streamGen.entropyCnt + s.streamGen.scalingFactor - 1) / s.streamGen.scalingFactor
 	//Read from source up to that required randomness
-	_, err := s.streamGen.rng.Read(s.streamGen.src[0:requiredRandomness])
-	if err != nil {
-		jww.ERROR.Printf(err.Error())
+
+}
+
+
+func (s *Stream) requiredRandomness(requestLen uint)uint{
+	if s.streamGen.entropyCnt < requestLen {
+		return (requestLen - s.streamGen.entropyCnt + s.streamGen.scalingFactor - 1) / s.streamGen.scalingFactor
 	}
-	//
-	s.streamGen.entropyCnt += requiredRandomness * s.streamGen.scalingFactor
+	return 0
 }
