@@ -63,4 +63,3 @@ func TestSystemRNG_SetSeed(t *testing.T) {
 		t.Errorf("TestSystemRNG_SetSeed failed: returned unexpected error: %s", err.Error())
 	}
 }
-

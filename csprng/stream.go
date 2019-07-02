@@ -1,3 +1,12 @@
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2018 Privategrity Corporation                                   /
+//                                                                             /
+// All rights reserved.                                                        /
+////////////////////////////////////////////////////////////////////////////////
+
+// Implementation of the Fortuna construction as specified by Feruson, Schnier and Kohno
+// in 'Cryptography Engineering: Design Principles and Practical Applications'
+// Link: https://www.schneier.com/academic/paperfiles/fortuna.pdf
 package csprng
 
 import (
@@ -6,6 +15,8 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"fmt"
+	"github.com/spf13/jwalterweatherman"
+	jww "github.com/spf13/jwalterweatherman/jwalterweatherman"
 	"sync"
 )
 
@@ -42,21 +53,14 @@ func (*RNGStreamGenerator) Close(*RNGStream)
 // blocksize*scalingFactor bytes are read this functions blocks until it rereads csprng.Source.
 // TODO: Add 'blocking' logic, which is blocked by the ticket currently described above
 func (s *Stream) Read(b []byte) int {
-	//Generate more randomness, if we are requesting more than exists right now
+	//If the requested buffer exceeds the randomness generated thus far, then append until we have enough
 	if len(b) > len(s.streamGen.src) {
-		s.streamGen.src = AppendSource(len(b), s.streamGen.src)
+		s.AppendSource(len(b))
 	}
 
 	//Read from source up to required randomness
 	if s.streamGen.entropyCnt < uint(len(b)) {
-		requiredRandomness := (uint(len(b)) - s.streamGen.entropyCnt + s.streamGen.scalingFactor - 1) / s.streamGen.scalingFactor
-
-		_, err := s.streamGen.rng.Read(s.streamGen.src[0:requiredRandomness])
-		if err != nil {
-			fmt.Println(err.Error())
-		}
-
-		s.streamGen.entropyCnt += requiredRandomness * s.streamGen.scalingFactor
+		s.ReadFromSource(len(b))
 	}
 	//Make 'new randomness' by changing the values read through xor'ring
 	s.streamGen.AESCtr.XORKeyStream(s.streamGen.src[:len(b)], b)
@@ -67,28 +71,37 @@ func (s *Stream) Read(b []byte) int {
 // If the source is not large for the amount to be read in, extend the source
 // using the Fortuna construction. Need a new block IV every
 // In usage, src will initially pull from Linux's rng
-func AppendSource(lenToApp int, src []byte) []byte {
+func (s *Stream) AppendSource(lenToApp int) {
 	//Initialize key and block
 	key := make([]byte, 0)
-	seedArr := append(key, src...)
+	seedArr := append(key, s.streamGen.src...)
 	key = sha256.New().Sum(seedArr)
 	block, err := aes.NewCipher(key[:aes.BlockSize])
 	if err != nil {
 		panic(err)
 	}
-
 	ciphertext := make([]byte, aes.BlockSize+len(key))
 	var temp uint32 = 0
 	counter := make([]byte, aes.BlockSize)
-	for len(src) < lenToApp {
+	for len(s.streamGen.src) < lenToApp {
 		//Encrypt the key and counter, inc ctr for next round of generation
 		binary.LittleEndian.PutUint32(counter, temp)
 		stream := cipher.NewCTR(block, counter)
 		stream.XORKeyStream(ciphertext[aes.BlockSize:], key)
 		//So there is no predictable iv appended to the random src
 		tmp := ciphertext[aes.BlockSize:]
-		src = append(src, tmp...)
+		s.streamGen.src = append(s.streamGen.src, tmp...)
 		temp++
 	}
-	return src
+}
+
+//
+func (s *Stream) ReadFromSource(lenOfB int) {
+	//
+	requiredRandomness := (uint(lenOfB) - s.streamGen.entropyCnt + s.streamGen.scalingFactor - 1) / s.streamGen.scalingFactor
+	_, err := s.streamGen.rng.Read(s.streamGen.src[0:requiredRandomness])
+	if err != nil {
+		jww.ERROR.Printf(err.Error())
+	}
+	s.streamGen.entropyCnt += requiredRandomness * s.streamGen.scalingFactor
 }

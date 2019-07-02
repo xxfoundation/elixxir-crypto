@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/rand"
 	"io"
 	"testing"
 )
@@ -24,7 +25,7 @@ func TestStreamRead(t *testing.T) {
 
 	//Mock random source, of arbitrarily insufficient (small) size
 	testSource := make([]byte, 7, 7)
-	_, err := io.ReadFull(crand.Reader, testSource)
+	_, err := io.ReadFull(rand.Reader, testSource)
 	if err != nil {
 		panic(err.Error())
 	}
