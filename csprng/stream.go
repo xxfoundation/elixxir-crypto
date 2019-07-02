@@ -14,11 +14,12 @@ import (
 	"crypto/cipher"
 	"crypto/sha256"
 	"encoding/binary"
-	"fmt"
-	"github.com/spf13/jwalterweatherman"
 	jww "github.com/spf13/jwalterweatherman/jwalterweatherman"
 	"sync"
 )
+
+//Global hashing variable, used in the Fortuna construction
+var newHash = sha256.New()
 
 type StreamGenerator struct {
 	AESCtr        cipher.Stream
@@ -58,7 +59,7 @@ func (s *Stream) Read(b []byte) int {
 		s.AppendSource(len(b))
 	}
 
-	//Read from source up to required randomness
+	//Read from source
 	if s.streamGen.entropyCnt < uint(len(b)) {
 		s.ReadFromSource(len(b))
 	}
@@ -75,7 +76,8 @@ func (s *Stream) AppendSource(lenToApp int) {
 	//Initialize key and block
 	key := make([]byte, 0)
 	seedArr := append(key, s.streamGen.src...)
-	key = sha256.New().Sum(seedArr)
+	key = newHash.Sum(seedArr)
+
 	block, err := aes.NewCipher(key[:aes.BlockSize])
 	if err != nil {
 		panic(err)
@@ -95,13 +97,15 @@ func (s *Stream) AppendSource(lenToApp int) {
 	}
 }
 
-//
+// Reads from source up to the length of b, factoring in the amount of entropy we have
 func (s *Stream) ReadFromSource(lenOfB int) {
 	//
 	requiredRandomness := (uint(lenOfB) - s.streamGen.entropyCnt + s.streamGen.scalingFactor - 1) / s.streamGen.scalingFactor
+	//Read from source up to that required randomness
 	_, err := s.streamGen.rng.Read(s.streamGen.src[0:requiredRandomness])
 	if err != nil {
 		jww.ERROR.Printf(err.Error())
 	}
+	//
 	s.streamGen.entropyCnt += requiredRandomness * s.streamGen.scalingFactor
 }
