@@ -39,6 +39,9 @@ func TestStreamRead(t *testing.T) {
 	ciph := cipher.NewCTR(block, testIV)
 	//TODO: Replace with constructor after 2nd ticket is done
 	//Initialize streamGenerator
+	//sg := NewStreamGenerator(NewSystemRNG, scalingFactor 16, streamCount 2)
+	//sg.src = testSource
+	//sg.AESCtr = ciph
 	sg := &StreamGenerator{
 		src:           testSource,
 		entropyCnt:    24,

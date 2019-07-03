@@ -54,6 +54,7 @@ func (*RNGStreamGenerator) Close(*RNGStream)
 // blocksize*scalingFactor bytes are read this functions blocks until it rereads csprng.Source.
 // TODO: Add 'blocking' logic, which is blocked by the ticket currently described above
 func (s *Stream) Read(b []byte) int {
+	//s.mutex.Lock()
 	//If the requested buffer exceeds the randomness generated thus far, then append until we have enough
 	if len(b) > len(s.streamGen.src) {
 		s.AppendSource(len(b))
@@ -74,7 +75,7 @@ func (s *Stream) Read(b []byte) int {
 	//Make 'new randomness' by changing the stale values (already read data read through xor'ring
 	//We may also just as easily retire the read values. This is up to discussion?
 	s.streamGen.AESCtr.XORKeyStream(s.streamGen.src[:len(b)], b)
-
+	//s.mutex.Unlock()
 	return len(b)
 }
 
@@ -122,7 +123,7 @@ func (s *Stream) requiredRandomness(requestLen uint) uint {
 	return 0
 }
 
-// Increases the entryopy
+// Increases the entropy
 func (s *Stream) SetEntropyCount(requestedLen uint) {
 	s.streamGen.entropyCnt += requestedLen * s.streamGen.scalingFactor
 }
