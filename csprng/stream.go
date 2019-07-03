@@ -94,8 +94,10 @@ func (s *Stream) AppendSource(lenToApp int) {
 	ciphertext := make([]byte, aes.BlockSize+len(key))
 	var temp uint32 = 0
 	counter := make([]byte, aes.BlockSize)
+	//Encrypt the key and counter, inc ctr for next round of generation
 	for len(s.streamGen.src) < lenToApp {
-		//Encrypt the key and counter, inc ctr for next round of generation
+		//Increment the temp, place in the counter. When the temp var overflows, the 1 is carried over to the next byte
+		//in counter
 		binary.LittleEndian.PutUint32(counter, temp)
 		stream := cipher.NewCTR(block, counter)
 		stream.XORKeyStream(ciphertext[aes.BlockSize:], key)
