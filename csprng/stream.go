@@ -19,7 +19,7 @@ import (
 )
 
 //Global hashing variable, used in the Fortuna construction
-var newHash = sha256.New()
+var globalHash = sha256.New()
 
 type StreamGenerator struct {
 	AESCtr        cipher.Stream
@@ -86,20 +86,20 @@ func (s *Stream) AppendSource(lenToApp int) {
 	//Initialize key and block
 	key := make([]byte, 0)
 	seedArr := append(key, s.streamGen.src...)
-	key = newHash.Sum(seedArr)
+	key = globalHash.Sum(seedArr)
 
 	block, err := aes.NewCipher(key[:aes.BlockSize])
 	if err != nil {
 		panic(err)
 	}
 	ciphertext := make([]byte, aes.BlockSize+len(key))
-	var temp uint32 = 0
+	var temp uint16 = 0
 	counter := make([]byte, aes.BlockSize)
 	//Encrypt the key and counter, inc ctr for next round of generation
 	for len(s.streamGen.src) < lenToApp {
 		//Increment the temp, place in the counter. When the temp var overflows, the 1 is carried over to the next byte
-		//in counter
-		binary.LittleEndian.PutUint32(counter, temp)
+		//in counter, treating it like a binary number
+		binary.LittleEndian.PutUint16(counter, temp)
 		stream := cipher.NewCTR(block, counter)
 		stream.XORKeyStream(ciphertext[aes.BlockSize:], key)
 		//So there is no predictable iv appended to the random src
@@ -112,7 +112,6 @@ func (s *Stream) AppendSource(lenToApp int) {
 // TODO: test this function
 // Sets the required randomness, ie the amount we will read from source by factoring in the amount of entropy we
 // actually have and the sources of entropy we have. Definitions:
-
 func (s *Stream) requiredRandomness(requestLen uint) uint {
 	//Such that (requestLen - entropyCnt is never negative
 	if s.streamGen.entropyCnt < requestLen {

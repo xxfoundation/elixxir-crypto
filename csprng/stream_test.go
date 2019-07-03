@@ -42,6 +42,7 @@ func TestStreamRead(t *testing.T) {
 	//sg := NewStreamGenerator(NewSystemRNG, scalingFactor 16, streamCount 2)
 	//sg.src = testSource
 	//sg.AESCtr = ciph
+	//Wont need to set entropy count
 	sg := &StreamGenerator{
 		src:           testSource,
 		entropyCnt:    24,
@@ -55,7 +56,7 @@ func TestStreamRead(t *testing.T) {
 	stream.Read(requestedBytes)
 
 	if len(sg.src) < len(requestedBytes) || bytes.Compare(sg.src, testSource) == 0 {
-		panic("Fortuna construction did not add randomness to the source")
+		t.Errorf("Fortuna construction did not add randomness to the source")
 	}
 }
 
@@ -74,7 +75,7 @@ func TestRequiredRandomness_ReturnsZero(t *testing.T) {
 	//Since we are reading less than entropy, reqLen-entropy<0, in which case we return 0
 	//This is tested
 	if requiredRandomness != 0 {
-		panic("Required randomness is not being calculated correctly")
+		t.Errorf("Required randomness is not being calculated correctly")
 	}
 
 }
@@ -91,6 +92,18 @@ func TestRequiredRandomness_ReturnsNonZero(t *testing.T) {
 	var greaterThanEntropy uint = 25
 	requiredRandomness := stream.requiredRandomness(greaterThanEntropy)
 	if requiredRandomness == 0 {
-		panic("Required randomness is not being calculated correctly")
+		t.Errorf("Required randomness is not being calculated correctly")
 	}
+}
+
+func TestStream_SetEntropyCount(t *testing.T) {
+	sg := &StreamGenerator{
+		entropyCnt:    24,
+		scalingFactor: 16,
+		rng:           NewSystemRNG(),
+	}
+
+	stream := Stream{streamGen:sg}
+	stream.SetEntropyCount(2)
+	//if
 }
