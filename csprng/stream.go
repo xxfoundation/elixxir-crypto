@@ -122,7 +122,8 @@ func (s *Stream) requiredRandomness(requestLen uint) uint {
 	return 0
 }
 
-// Increases the entropy
+// Increases the entropy by a factor of the requestedLen
+//
 func (s *Stream) SetEntropyCount(requestedLen uint) {
 	s.streamGen.entropyCnt += requestedLen * s.streamGen.scalingFactor
 }

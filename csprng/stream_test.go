@@ -103,9 +103,9 @@ func TestStream_SetEntropyCount(t *testing.T) {
 		rng:           NewSystemRNG(),
 	}
 
-	stream := Stream{streamGen:sg}
+	stream := Stream{streamGen: sg}
 	stream.SetEntropyCount(2)
-	var testVal uint = 24 + 2 *16
+	var testVal uint = 24 + 2*16
 
 	if sg.entropyCnt != testVal {
 		t.Errorf("Entropy count not reset correctly")
