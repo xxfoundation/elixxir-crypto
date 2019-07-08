@@ -7,3 +7,7 @@ import:
   version: master
   repo: git@gitlab.com:elixxir/primitives
   vcs: git
+- package: github.com/go-pg/pg
+  subpackages:
+    - github.com/jinzhu/inflection
+  version: v8.0.4

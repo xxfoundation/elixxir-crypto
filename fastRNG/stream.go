@@ -15,6 +15,7 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	jww "github.com/spf13/jwalterweatherman/jwalterweatherman"
+	"gitlab.com/elixxir/crypto/csprng"
 	"sync"
 )
 
@@ -25,7 +26,7 @@ type StreamGenerator struct {
 	AESCtr        cipher.Stream
 	scalingFactor uint
 	entropyCnt    uint
-	rng           Source
+	rng           csprng.Source
 	src           []byte
 }
 

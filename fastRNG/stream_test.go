@@ -10,6 +10,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"gitlab.com/elixxir/crypto/csprng"
 	"io"
 	"testing"
 )
@@ -48,7 +49,7 @@ func TestStreamRead(t *testing.T) {
 		entropyCnt:    24,
 		scalingFactor: 16,
 		AESCtr:        ciph,
-		rng:           NewSystemRNG(),
+		rng:           csprng.NewSystemRNG(),
 	}
 
 	//Initialize the stream with the generator
@@ -66,7 +67,7 @@ func TestRequiredRandomness_ReturnsZero(t *testing.T) {
 	sg := &StreamGenerator{
 		entropyCnt:    24,
 		scalingFactor: 16,
-		rng:           NewSystemRNG(),
+		rng:          csprng.NewSystemRNG(),
 	}
 	stream := Stream{streamGen: sg}
 	//Try to read less that the amount of entropy
@@ -85,7 +86,7 @@ func TestRequiredRandomness_ReturnsNonZero(t *testing.T) {
 	sg := &StreamGenerator{
 		entropyCnt:    24,
 		scalingFactor: 16,
-		rng:           NewSystemRNG(),
+		rng:           csprng.NewSystemRNG(),
 	}
 	stream := Stream{streamGen: sg}
 	//Try to read more that the amount of entropy
@@ -100,7 +101,7 @@ func TestStream_SetEntropyCount(t *testing.T) {
 	sg := &StreamGenerator{
 		entropyCnt:    24,
 		scalingFactor: 16,
-		rng:           NewSystemRNG(),
+		rng:           csprng.NewSystemRNG(),
 	}
 
 	stream := Stream{streamGen: sg}
