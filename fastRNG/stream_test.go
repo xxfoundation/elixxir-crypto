@@ -1,1 +1,99 @@
+///////////////////////////////////////////////////////////////////////////////
+// Copyright © 2018 Privategrity Corporation                                   /
+//                                                                             /
+// All rights reserved.                                                        /
+////////////////////////////////////////////////////////////////////////////////
 package fastRNG
+
+import (
+	"gitlab.com/elixxir/crypto/csprng"
+	"testing"
+)
+
+
+func TestNewStreamGenerator(t *testing.T) {
+	sg := NewStreamGenerator(csprng.NewSystemRNG(), 12, 20)
+	if sg.scalingFactor != 12 || len(sg.streams) != 20 || sg.rng != csprng.NewSystemRNG() {
+		t.Errorf("Failure to initialize a stream generator correctly")
+	}
+}
+
+func TestStreamGenerator_Close(t *testing.T) {
+	sg := NewStreamGenerator(csprng.NewSystemRNG(), 12, 3)
+	sg.NewStream()
+
+}
+
+//Test the creation of new streams and that the counters are in fact working
+func TestStreamGenerator_NewStream(t *testing.T) {
+	sg := NewStreamGenerator(csprng.NewSystemRNG(), 12, 3)
+	sg.NewStream()
+	sg.NewStream()
+	sg.NewStream()
+	//See if there are the appropriate amount of streams in the streams slice and the stream count
+	if sg.numStreams!=uint(len(sg.streams)) {
+		t.Errorf("New streams bookkeeping is not working.")
+	}
+}
+
+//Test that the stream generator panics when there are too many streams being made
+func TestStreamGenerator_NewStreamPanic(t *testing.T){
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("FastRNG should panic when too many streams are made!")
+		}
+	}()
+	sg := NewStreamGenerator(csprng.NewSystemRNG(), 12, 3)
+	//Streamcount is 3, but 4 streams are being created, thus it should panic
+	sg.NewStream()
+	sg.NewStream()
+	sg.NewStream()
+	sg.NewStream()
+
+}
+
+/*
+func TestStream_Close(t *testing.T) {
+	stream := sg.GetStream()
+	testStream := Stream{}
+	testStream.Close(stream)
+	fmt.Println(stream)
+	fmt.Println(sg.streams[0])
+	if sg.streams[0].isBusy == true {
+		panic("Did not close a stream correctly")
+	}
+}
+
+func TestGetStream_WithNoBusyStreams(t *testing.T) {
+	sg := NewStreamGenerator(NewSystemRNG(), 12, 20)
+	stream := sg.GetStream()
+	stream2 := sg.GetStream()
+	fmt.Println(stream)
+	fmt.Println(sg.streams[0])
+	fmt.Println(stream2)
+	fmt.Println(sg.streams[1])
+	if !reflect.DeepEqual(&sg.streams[0], stream) || !reflect.DeepEqual(&sg.streams[1], stream2) {
+		panic("It didn't grab the first available stream")
+	}
+}
+
+//Makes all the streams busy, then tries to grab one
+func TestGetStream_WithBusyStreams(t *testing.T) {
+	sg := NewStreamGenerator(NewSystemRNG(), 12, 3)
+	//Make all the streams busy
+	stream0 := sg.GetStream()
+	sg.GetStream()
+	sg.GetStream()
+	go func() {
+		time.Sleep(500 * time.Millisecond)
+		//Close a stream, making it available
+		stream0.Close(stream0) //alternatively testStream.Close(stream0)
+	}()
+	//Now try to get another stream, test blocking
+	afterStream := sg.GetStream()
+	if !reflect.DeepEqual(&sg.streams[0], afterStream) {
+		panic("Did not grab the correct stream")
+	}
+	fmt.Println("looking")
+
+} /**/
