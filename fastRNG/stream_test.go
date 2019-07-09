@@ -6,7 +6,6 @@
 package fastRNG
 
 import (
-	"fmt"
 	"gitlab.com/elixxir/crypto/csprng"
 	"reflect"
 	"testing"
