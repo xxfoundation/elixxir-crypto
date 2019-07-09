@@ -40,6 +40,7 @@ type Stream struct {
 	streamGen *StreamGenerator
 	mutex     sync.Mutex
 	isBusy    atomic.Bool //throw mutex around changing value to make thread-safe
+	numStream uint
 }
 
 // NewStreamGenerator creates a StreamGenerator object containing up to streamCount streams.
@@ -72,13 +73,14 @@ func (sg *StreamGenerator) NewStream() *Stream {
 	}
 	tmpStream := &Stream{
 		streamGen: sg,
+		numStream:sg.numStreams,
 	}
 	sg.streams = append(sg.streams, tmpStream)
 	sg.numStreams++
 	return tmpStream
 }
 
-/**/
+
 // GetStream gets an existing stream or creates a new Stream object. If the # of open streams exceeds streamCount,
 // this function blocks (and prints a log warning) until a stream is available
 func (sg *StreamGenerator) GetStream() *Stream {

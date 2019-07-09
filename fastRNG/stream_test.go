@@ -66,7 +66,7 @@ func TestNewStream_NotPanic(t *testing.T) {
 	sg.NewStream()
 }
 
-//Test that the getStream calls the newstream correctly
+//Test that the getStream calls newStream correctly/appropriately
 func TestGetStream_NewStream(t *testing.T) {
 	sg := NewStreamGenerator(csprng.NewSystemRNG(), 12, 3)
 	sg.GetStream()
@@ -89,10 +89,8 @@ func TestGetStream_GrabsWaitingStream(t *testing.T) {
 		time.Sleep(500 * time.Millisecond)
 		sg.Close(stream0)
 	}()
-
 	newStream := sg.GetStream()
-
-	if !reflect.DeepEqual(newStream, stream0) {
+	if !reflect.DeepEqual(newStream,stream0) {
 		t.Errorf("The next stream did not grab the correct stream")
 	}
 }
