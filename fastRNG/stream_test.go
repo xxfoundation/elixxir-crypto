@@ -10,18 +10,12 @@ import (
 	"testing"
 )
 
-
+//Test the creation of a new stream generator and that it is configured correctly
 func TestNewStreamGenerator(t *testing.T) {
 	sg := NewStreamGenerator(csprng.NewSystemRNG(), 12, 20)
 	if sg.scalingFactor != 12 || len(sg.streams) != 20 || sg.rng != csprng.NewSystemRNG() {
 		t.Errorf("Failure to initialize a stream generator correctly")
 	}
-}
-
-func TestStreamGenerator_Close(t *testing.T) {
-	sg := NewStreamGenerator(csprng.NewSystemRNG(), 12, 3)
-	sg.NewStream()
-
 }
 
 //Test the creation of new streams and that the counters are in fact working
@@ -31,26 +25,58 @@ func TestStreamGenerator_NewStream(t *testing.T) {
 	sg.NewStream()
 	sg.NewStream()
 	//See if there are the appropriate amount of streams in the streams slice and the stream count
-	if sg.numStreams!=uint(len(sg.streams)) {
+	if sg.numStreams != uint(len(sg.streams)) && sg.numStreams!=3 {
 		t.Errorf("New streams bookkeeping is not working.")
 	}
 }
 
 //Test that the stream generator panics when there are too many streams being made
-func TestStreamGenerator_NewStreamPanic(t *testing.T){
+func TestStreamGenerator_NewStream_DoesPanic(t *testing.T) {
+	//The defer function will catch the panic
 	defer func() {
 		if r := recover(); r == nil {
 			t.Errorf("FastRNG should panic when too many streams are made!")
 		}
 	}()
+	//Stream count is 3, but 4 streams are being created, thus it should panic
 	sg := NewStreamGenerator(csprng.NewSystemRNG(), 12, 3)
-	//Streamcount is 3, but 4 streams are being created, thus it should panic
 	sg.NewStream()
 	sg.NewStream()
 	sg.NewStream()
 	sg.NewStream()
 
+	t.Errorf("Fast RNG should have panicked here, too many streams were created")
+
 }
+
+//Test that it does not panic when it reaches capacity
+func TestStreamGenerator_NewStream_NotPanic(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			t.Errorf("FastRNG should not panic when there are exactly max streams " +
+				"made!")
+		}
+	}()
+	//Stream count is 3, and 3 streams are being created, thus it should not panic
+	sg := NewStreamGenerator(csprng.NewSystemRNG(), 12, 3)
+	sg.NewStream()
+	sg.NewStream()
+	sg.NewStream()
+}
+
+//Test that the getStream calls the newstream correctly
+func TestStreamGenerator_GetStream_NewStream(t *testing.T) {
+	sg := NewStreamGenerator(csprng.NewSystemRNG(), 12, 3)
+	sg.GetStream()
+	sg.GetStream()
+	sg.GetStream()
+
+	if sg.numStreams != uint(len(sg.streams)) && sg.numStreams!=3 {
+		t.Errorf("New streams bookkeeping is not working.")
+	}
+}
+
+
 
 /*
 func TestStream_Close(t *testing.T) {
