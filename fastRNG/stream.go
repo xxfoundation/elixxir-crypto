@@ -14,7 +14,7 @@ import (
 	"crypto/cipher"
 	"crypto/sha256"
 	"encoding/binary"
-	jww "github.com/spf13/jwalterweatherman/jwalterweatherman"
+	jww "github.com/spf13/jwalterweatherman/"
 	"gitlab.com/elixxir/crypto/csprng"
 	"sync"
 )
