@@ -32,7 +32,6 @@ type StreamGenerator struct {
 	streams        []*Stream
 	waitingStreams chan *Stream
 	maxStreams     uint
-	order          []uint64
 	numStreams     uint
 }
 
@@ -45,20 +44,12 @@ type Stream struct {
 
 // NewStreamGenerator creates a StreamGenerator object containing up to streamCount streams.
 func NewStreamGenerator(source csprng.Source, scalingFactor uint, streamCount uint) *StreamGenerator {
-	//Initialize an order to shuffle indexes in waiting streams
-	//NOTE: We do this because we do not want to redo the shuffle algorithm. It would (probably) be more
-	//efficient, but it would come down to reiterating code and having to manage two code sources doing the same thing
-	randIndex := make([]uint64, streamCount)
-	for i := uint(0); i < streamCount; i++ {
-		randIndex[i] = uint64(i)
-	}
 	return &StreamGenerator{
 		rng:            source,
 		scalingFactor:  scalingFactor,
 		entropyCnt:     20, //Some default value for our use?
 		waitingStreams: make(chan *Stream, streamCount),
 		maxStreams:     streamCount,
-		order:          randIndex,
 		numStreams:     uint(0),
 		streams:        make([]*Stream, 0, streamCount),
 	}

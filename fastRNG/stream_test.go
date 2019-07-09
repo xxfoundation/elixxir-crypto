@@ -6,6 +6,7 @@
 package fastRNG
 
 import (
+	"fmt"
 	"gitlab.com/elixxir/crypto/csprng"
 	"reflect"
 	"testing"
@@ -15,7 +16,9 @@ import (
 //Test the creation of a new stream generator and that it is configured correctly
 func TestNewStreamGenerator(t *testing.T) {
 	sg := NewStreamGenerator(csprng.NewSystemRNG(), 12, 20)
-	if sg.scalingFactor != 12 || len(sg.streams) != 20 || sg.rng != csprng.NewSystemRNG() {
+	fmt.Println(sg.rng)
+	fmt.Println(csprng.NewSystemRNG())
+	if sg.maxStreams != 20 || sg.scalingFactor != 12 || !reflect.DeepEqual(sg.rng, csprng.NewSystemRNG() ){
 		t.Errorf("Failure to initialize a stream generator correctly")
 	}
 }
