@@ -27,7 +27,7 @@ func TestNewStream(t *testing.T) {
 	sg.NewStream()
 	sg.NewStream()
 	//See if there are the appropriate amount of streams in the streams slice and the stream count
-	if sg.numStreams != uint(len(sg.streams)) && sg.numStreams!=3 {
+	if sg.numStreams != uint(len(sg.streams)) && sg.numStreams != 3 {
 		t.Errorf("New streams bookkeeping is not working.")
 	}
 }
@@ -73,16 +73,18 @@ func TestGetStream_NewStream(t *testing.T) {
 	sg.GetStream()
 	sg.GetStream()
 
-	if sg.numStreams != uint(len(sg.streams)) && sg.numStreams!=3 {
+	if sg.numStreams != uint(len(sg.streams)) && sg.numStreams != 3 {
 		t.Errorf("New streams bookkeeping is not working.")
 	}
 }
 
+//Test that a blocked channel will grab a stream when it becomes available
 func TestGetStream_GrabsWaitingStream(t *testing.T) {
 	sg := NewStreamGenerator(csprng.NewSystemRNG(), 12, 3)
 	stream0 := sg.GetStream()
 	sg.GetStream()
 	sg.GetStream()
+	//Allow the main thread to block as streams aren't available, then close it
 	go func() {
 		time.Sleep(500 * time.Millisecond)
 		sg.Close(stream0)
@@ -90,7 +92,7 @@ func TestGetStream_GrabsWaitingStream(t *testing.T) {
 
 	newStream := sg.GetStream()
 
-	if !reflect.DeepEqual(newStream,stream0) {
+	if !reflect.DeepEqual(newStream, stream0) {
 		t.Errorf("The next stream did not grab the correct stream")
 	}
 }
