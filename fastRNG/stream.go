@@ -4,10 +4,10 @@
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
 
-// Implementation of the Fortuna construction as specified by Feruson, Schnier and Kohno
+// Implementation of the Fortuna construction as specified by Ferguson, Schnier and Kohno
 // in 'Cryptography Engineering: Design Principles and Practical Applications'
 // Link: https://www.schneier.com/academic/paperfiles/fortuna.pdf
-package csprng
+package fastRNG
 
 import (
 	"crypto/aes"
@@ -58,7 +58,7 @@ func (s *Stream) Read(b []byte) int {
 	//s.mutex.Lock()
 	//If the requested buffer exceeds the randomness generated thus far, then append until we have enough
 	if len(b) > len(s.streamGen.src) {
-		s.AppendSource(len(b))
+		s.extendSource(len(b))
 	}
 
 	//Read from source
@@ -83,28 +83,27 @@ func (s *Stream) Read(b []byte) int {
 // If the source is not large for the amount to be read in, extend the source
 // using the Fortuna construction. Need a new block IV every
 // In usage, src will initially pull from Linux's rng
-func (s *Stream) AppendSource(lenToApp int) {
+func (s *Stream) extendSource(extensionLen int) {
 	//Initialize key and block
-	key := make([]byte, 0)
-	seedArr := append(key, s.streamGen.src...)
-	key = globalHash.Sum(seedArr)
+	seedArr := s.streamGen.src
+	key := globalHash.Sum(seedArr)
 
 	block, err := aes.NewCipher(key[:aes.BlockSize])
-	if err != nil {
-		panic(err)
+	if err != nil || {
+		jww.ERROR.Println(err)
 	}
-	ciphertext := make([]byte, aes.BlockSize+len(key))
+	aesRngBuf := make([]byte, aes.BlockSize+len(key))
 	var temp uint16 = 0
 	counter := make([]byte, aes.BlockSize)
 	//Encrypt the key and counter, inc ctr for next round of generation
-	for len(s.streamGen.src) < lenToApp {
+	for len(s.streamGen.src) < extensionLen {
 		//Increment the temp, place in the counter. When the temp var overflows, the 1 is carried over to the next byte
 		//in counter, treating it like a binary number
 		binary.LittleEndian.PutUint16(counter, temp)
 		stream := cipher.NewCTR(block, counter)
-		stream.XORKeyStream(ciphertext[aes.BlockSize:], key)
+		stream.XORKeyStream(aesRngBuf[aes.BlockSize:], key)
 		//So there is no predictable iv appended to the random src
-		tmp := ciphertext[aes.BlockSize:]
+		tmp := aesRngBuf[aes.BlockSize:]
 		s.streamGen.src = append(s.streamGen.src, tmp...)
 		temp++
 	}

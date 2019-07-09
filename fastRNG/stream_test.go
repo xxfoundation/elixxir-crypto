@@ -3,7 +3,7 @@
 //                                                                             /
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
-package csprng
+package fastRNG
 
 import (
 	"bytes"
