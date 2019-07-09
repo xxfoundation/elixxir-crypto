@@ -7,7 +7,9 @@ package fastRNG
 
 import (
 	"gitlab.com/elixxir/crypto/csprng"
+	"reflect"
 	"testing"
+	"time"
 )
 
 //Test the creation of a new stream generator and that it is configured correctly
@@ -19,7 +21,7 @@ func TestNewStreamGenerator(t *testing.T) {
 }
 
 //Test the creation of new streams and that the counters are in fact working
-func TestStreamGenerator_NewStream(t *testing.T) {
+func TestNewStream(t *testing.T) {
 	sg := NewStreamGenerator(csprng.NewSystemRNG(), 12, 3)
 	sg.NewStream()
 	sg.NewStream()
@@ -31,7 +33,7 @@ func TestStreamGenerator_NewStream(t *testing.T) {
 }
 
 //Test that the stream generator panics when there are too many streams being made
-func TestStreamGenerator_NewStream_DoesPanic(t *testing.T) {
+func TestNewStream_DoesPanic(t *testing.T) {
 	//The defer function will catch the panic
 	defer func() {
 		if r := recover(); r == nil {
@@ -50,7 +52,7 @@ func TestStreamGenerator_NewStream_DoesPanic(t *testing.T) {
 }
 
 //Test that it does not panic when it reaches capacity
-func TestStreamGenerator_NewStream_NotPanic(t *testing.T) {
+func TestNewStream_NotPanic(t *testing.T) {
 	defer func() {
 		if r := recover(); r != nil {
 			t.Errorf("FastRNG should not panic when there are exactly max streams " +
@@ -65,7 +67,7 @@ func TestStreamGenerator_NewStream_NotPanic(t *testing.T) {
 }
 
 //Test that the getStream calls the newstream correctly
-func TestStreamGenerator_GetStream_NewStream(t *testing.T) {
+func TestGetStream_NewStream(t *testing.T) {
 	sg := NewStreamGenerator(csprng.NewSystemRNG(), 12, 3)
 	sg.GetStream()
 	sg.GetStream()
@@ -76,7 +78,39 @@ func TestStreamGenerator_GetStream_NewStream(t *testing.T) {
 	}
 }
 
+func TestGetStream_GrabsWaitingStream(t *testing.T) {
+	sg := NewStreamGenerator(csprng.NewSystemRNG(), 12, 3)
+	stream0 := sg.GetStream()
+	sg.GetStream()
+	sg.GetStream()
+	go func() {
+		time.Sleep(500 * time.Millisecond)
+		sg.Close(stream0)
+	}()
 
+	newStream := sg.GetStream()
+
+	if !reflect.DeepEqual(newStream,stream0) {
+		t.Errorf("The next stream did not grab the correct stream")
+	}
+}
+
+func TestClose_WaitingChannelLength(t *testing.T) {
+	sg := NewStreamGenerator(csprng.NewSystemRNG(), 12, 3)
+	stream0 := sg.GetStream()
+	stream1 := sg.GetStream()
+	stream2 := sg.GetStream()
+
+	//Close all the streams created
+	sg.Close(stream0)
+	sg.Close(stream1)
+	sg.Close(stream2)
+
+	//Check that the waiting streams channel is the appropriate length
+	if len(sg.waitingStreams) != 3 {
+		t.Errorf("Waiting channel isn't the appropriate size after closing streams")
+	}
+}
 
 /*
 func TestStream_Close(t *testing.T) {
