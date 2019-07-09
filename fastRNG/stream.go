@@ -85,8 +85,7 @@ func (s *Stream) Read(b []byte) int {
 // In usage, src will initially pull from Linux's rng
 func (s *Stream) extendSource(extensionLen int) {
 	//Initialize key and block
-	seedArr := s.streamGen.src
-	key := globalHash.Sum(seedArr)
+	key := globalHash.Sum(s.streamGen.src)
 
 	block, err := aes.NewCipher(key[:aes.BlockSize])
 	if err != nil {
