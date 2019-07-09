@@ -11,4 +11,4 @@ import:
 - package: github.com/go-pg/pg
   subpackages:
   - github.com/jinzhu/inflection
-  version: v8.0.4```
+  version: v8.0.4
