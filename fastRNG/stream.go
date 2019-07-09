@@ -14,13 +14,12 @@ import (
 	"crypto/cipher"
 	"crypto/sha256"
 	"encoding/binary"
-	jww "github.com/spf13/jwalterweatherman/"
+	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
 	"sync"
 )
 
 //Global hashing variable, used in the Fortuna construction
-var globalHash = sha256.New()
 
 type StreamGenerator struct {
 	AESCtr        cipher.Stream
@@ -34,20 +33,6 @@ type Stream struct {
 	streamGen *StreamGenerator
 	mutex     sync.Mutex
 }
-
-/* Different ticket, put here for my convenience
-// NewStreamGenerator creates a StreamGenerator object containing up to streamCount streams.
-func NewStreamGenerator(source Source, scalingFactor uint, streamCount uint) *StreamGenerator{
-	return &StreamGenerator
-}
-// GetStream gets an existing or creates a new Stream object. If the # of open streams exceeds streamCount,
-// this function blocks (and prints a log warning) until a stream is available
-func (*StreamGenerator) GetStream() *Stream{
-
-}
-// Close closes the stream object, locking it from external users and marking it as avaialble in the stream list
-func (*RNGStreamGenerator) Close(*RNGStream)
-*/
 
 // Read reads up to len(b) bytes from the csprng.Source object. This function panics if the stream is locked.
 // Users of stream objects should close them when they are finished using them. We read the AES256
@@ -67,7 +52,7 @@ func (s *Stream) Read(b []byte) int {
 		if err != nil {
 			jww.ERROR.Printf(err.Error())
 		}
-		//
+
 		s.SetEntropyCount(uint(len(b)))
 	}
 
@@ -85,11 +70,17 @@ func (s *Stream) Read(b []byte) int {
 // In usage, src will initially pull from Linux's rng
 func (s *Stream) extendSource(extensionLen int) {
 	//Initialize key and block
+	var globalHash = sha256.New()
 	key := globalHash.Sum(s.streamGen.src)
+	key = key[len(s.streamGen.src):]
 
 	block, err := aes.NewCipher(key[:aes.BlockSize])
 	if err != nil {
 		jww.ERROR.Println(err)
+	}
+	//Make sure the key is the key size (32 bytes), panic otherwise
+	if len(key) != 32 {
+		panic("The key is not the correct length (ie not 32 bytes)!")
 	}
 	aesRngBuf := make([]byte, aes.BlockSize+len(key))
 	var temp uint16 = 0
@@ -97,9 +88,8 @@ func (s *Stream) extendSource(extensionLen int) {
 	//Encrypt the key and counter, inc ctr for next round of generation
 	for len(s.streamGen.src) < extensionLen {
 		//Increment the temp, place in the counter. When the temp var overflows, the 1 is carried over to the next byte
-		//in counter, treating it like a binary number
+		//in counter, treating it like a binary number. Counter is used as the IV
 		binary.LittleEndian.PutUint16(counter, temp)
-		//The counter is used as the IV
 		stream := cipher.NewCTR(block, counter)
 		stream.XORKeyStream(aesRngBuf[aes.BlockSize:], key)
 		//So there is no predictable iv appended to the random src

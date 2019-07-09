@@ -25,7 +25,7 @@ func TestStreamRead(t *testing.T) {
 	/*Initialize everything needed for stream*/
 
 	//Mock random source, of arbitrarily insufficient (small) size
-	testSource := make([]byte, 7, 7)
+	testSource := make([]byte, 8, 8)
 	_, err := io.ReadFull(rand.Reader, testSource)
 	if err != nil {
 		panic(err.Error())
@@ -72,7 +72,7 @@ func TestRequiredRandomness_ReturnsZero(t *testing.T) {
 	stream := Stream{streamGen: sg}
 	//Try to read less that the amount of entropy
 	var lessThanEntropy uint = 23
-	requiredRandomness := stream.requiredRandomness(lessThanEntropy)
+	requiredRandomness := stream.getEntropyNeeded(lessThanEntropy)
 	//Since we are reading less than entropy, reqLen-entropy<0, in which case we return 0
 	//This is tested
 	if requiredRandomness != 0 {
@@ -91,7 +91,7 @@ func TestRequiredRandomness_ReturnsNonZero(t *testing.T) {
 	stream := Stream{streamGen: sg}
 	//Try to read more that the amount of entropy
 	var greaterThanEntropy uint = 25
-	requiredRandomness := stream.requiredRandomness(greaterThanEntropy)
+	requiredRandomness := stream.getEntropyNeeded(greaterThanEntropy)
 	if requiredRandomness == 0 {
 		t.Errorf("Required randomness is not being calculated correctly")
 	}
