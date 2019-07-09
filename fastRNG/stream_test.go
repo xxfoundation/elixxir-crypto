@@ -67,7 +67,7 @@ func TestRequiredRandomness_ReturnsZero(t *testing.T) {
 	sg := &StreamGenerator{
 		entropyCnt:    24,
 		scalingFactor: 16,
-		rng:          csprng.NewSystemRNG(),
+		rng:           csprng.NewSystemRNG(),
 	}
 	stream := Stream{streamGen: sg}
 	//Try to read less that the amount of entropy

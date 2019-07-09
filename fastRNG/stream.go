@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2018 Privategrity Corporation                                   /
+// Copyright © 2019 Privategrity Corporation                                   /
 //                                                                             /
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
@@ -62,7 +62,7 @@ func (s *Stream) Read(b []byte) int {
 	}
 
 	//Read from source
-	if requiredRandomness := s.requiredRandomness(uint(len(b))); requiredRandomness != 0 {
+	if requiredRandomness := s.getEntropyNeeded(uint(len(b))); requiredRandomness != 0 {
 		_, err := s.streamGen.rng.Read(s.streamGen.src[0:requiredRandomness])
 		if err != nil {
 			jww.ERROR.Printf(err.Error())
@@ -89,7 +89,7 @@ func (s *Stream) extendSource(extensionLen int) {
 	key := globalHash.Sum(seedArr)
 
 	block, err := aes.NewCipher(key[:aes.BlockSize])
-	if err != nil || {
+	if err != nil {
 		jww.ERROR.Println(err)
 	}
 	aesRngBuf := make([]byte, aes.BlockSize+len(key))
@@ -100,6 +100,7 @@ func (s *Stream) extendSource(extensionLen int) {
 		//Increment the temp, place in the counter. When the temp var overflows, the 1 is carried over to the next byte
 		//in counter, treating it like a binary number
 		binary.LittleEndian.PutUint16(counter, temp)
+		//The counter is used as the IV
 		stream := cipher.NewCTR(block, counter)
 		stream.XORKeyStream(aesRngBuf[aes.BlockSize:], key)
 		//So there is no predictable iv appended to the random src
@@ -111,15 +112,17 @@ func (s *Stream) extendSource(extensionLen int) {
 
 // TODO: test this function
 // Sets the required randomness, ie the amount we will read from source by factoring in the amount of entropy we
-// actually have and the sources of entropy we have. Definitions:
-func (s *Stream) requiredRandomness(requestLen uint) uint {
-	//Such that (requestLen - entropyCnt is never negative
-	if s.streamGen.entropyCnt < requestLen {
-		//The addition (scalingFactor - 1) ensures that the returned value is always a ceiling rather than a floor
-		//as an integer. e.g ceiling(a/b) = (a+b-1)/b
-		return (requestLen - s.streamGen.entropyCnt + s.streamGen.scalingFactor - 1) / s.streamGen.scalingFactor
+// actually have and the sources of entropy we have.
+func (s *Stream) getEntropyNeeded(requestLen uint) uint {
+	//Such that the return value is never negative (requestedLen - entropyCnt) would be negative
+	// if entropyCnt > requestedLen
+	if s.streamGen.entropyCnt >= requestLen {
+		return 0
 	}
-	return 0
+
+	//The addition (scalingFactor - 1) ensures that the returned value is always a ceiling rather than a floor
+	//as an integer. e.g ceiling(a/b) = (a+b-1)/b
+	return (requestLen - s.streamGen.entropyCnt + s.streamGen.scalingFactor - 1) / s.streamGen.scalingFactor
 }
 
 // Increases the entropy by a factor of the requestedLen
