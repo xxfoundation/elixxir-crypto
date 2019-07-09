@@ -73,13 +73,12 @@ func (sg *StreamGenerator) NewStream() *Stream {
 	}
 	tmpStream := &Stream{
 		streamGen: sg,
-		numStream:sg.numStreams,
+		numStream: sg.numStreams,
 	}
 	sg.streams = append(sg.streams, tmpStream)
 	sg.numStreams++
 	return tmpStream
 }
-
 
 // GetStream gets an existing stream or creates a new Stream object. If the # of open streams exceeds streamCount,
 // this function blocks (and prints a log warning) until a stream is available

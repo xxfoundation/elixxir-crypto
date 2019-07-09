@@ -90,7 +90,7 @@ func TestGetStream_GrabsWaitingStream(t *testing.T) {
 		sg.Close(stream0)
 	}()
 	newStream := sg.GetStream()
-	if !reflect.DeepEqual(newStream,stream0) {
+	if !reflect.DeepEqual(newStream, stream0) {
 		t.Errorf("The next stream did not grab the correct stream")
 	}
 }
@@ -111,49 +111,3 @@ func TestClose_WaitingChannelLength(t *testing.T) {
 		t.Errorf("Waiting channel isn't the appropriate size after closing streams")
 	}
 }
-
-/*
-func TestStream_Close(t *testing.T) {
-	stream := sg.GetStream()
-	testStream := Stream{}
-	testStream.Close(stream)
-	fmt.Println(stream)
-	fmt.Println(sg.streams[0])
-	if sg.streams[0].isBusy == true {
-		panic("Did not close a stream correctly")
-	}
-}
-
-func TestGetStream_WithNoBusyStreams(t *testing.T) {
-	sg := NewStreamGenerator(NewSystemRNG(), 12, 20)
-	stream := sg.GetStream()
-	stream2 := sg.GetStream()
-	fmt.Println(stream)
-	fmt.Println(sg.streams[0])
-	fmt.Println(stream2)
-	fmt.Println(sg.streams[1])
-	if !reflect.DeepEqual(&sg.streams[0], stream) || !reflect.DeepEqual(&sg.streams[1], stream2) {
-		panic("It didn't grab the first available stream")
-	}
-}
-
-//Makes all the streams busy, then tries to grab one
-func TestGetStream_WithBusyStreams(t *testing.T) {
-	sg := NewStreamGenerator(NewSystemRNG(), 12, 3)
-	//Make all the streams busy
-	stream0 := sg.GetStream()
-	sg.GetStream()
-	sg.GetStream()
-	go func() {
-		time.Sleep(500 * time.Millisecond)
-		//Close a stream, making it available
-		stream0.Close(stream0) //alternatively testStream.Close(stream0)
-	}()
-	//Now try to get another stream, test blocking
-	afterStream := sg.GetStream()
-	if !reflect.DeepEqual(&sg.streams[0], afterStream) {
-		panic("Did not grab the correct stream")
-	}
-	fmt.Println("looking")
-
-} /**/
