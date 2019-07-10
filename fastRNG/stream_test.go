@@ -6,7 +6,7 @@
 package fastRNG
 
 import (
-	jww "github.com/spf13/jwalterweatherman/jwalterweatherman"
+	jww "github.com/spf13/jwalterweatherman"
 	"reflect"
 	"testing"
 	"time"
