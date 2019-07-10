@@ -22,15 +22,16 @@ import (
 //Global hashing variable, used in the Fortuna construction
 
 type StreamGenerator struct {
+
+}
+
+type Stream struct {
+	streamGen *StreamGenerator
 	AESCtr        cipher.Stream
 	scalingFactor uint
 	entropyCnt    uint
 	rng           csprng.Source
 	src           []byte
-}
-
-type Stream struct {
-	streamGen *StreamGenerator
 	mutex     sync.Mutex
 }
 
