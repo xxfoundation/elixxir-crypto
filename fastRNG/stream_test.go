@@ -6,7 +6,6 @@
 package fastRNG
 
 import (
-	"fmt"
 	jww "github.com/spf13/jwalterweatherman/jwalterweatherman"
 	"reflect"
 	"testing"
@@ -37,7 +36,6 @@ func TestNewStream(t *testing.T) {
 func TestNewStream_DoesPanic(t *testing.T) {
 	//The defer function will catch the panic
 	defer func() {
-		fmt.Println("hi")
 		if r := recover(); r != nil {
 		}
 	}()

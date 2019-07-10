@@ -54,8 +54,8 @@ func (sg *StreamGenerator) NewStream() *Stream {
 		streamGen:  sg,
 		numStream:  sg.numStreams,
 		entropyCnt: 20, //Some default value for our use?,
-
 	}
+
 	sg.streams = append(sg.streams, tmpStream)
 	sg.numStreams++
 	return tmpStream
@@ -70,7 +70,6 @@ func (sg *StreamGenerator) GetStream() *Stream {
 	select {
 	case retStream = <-sg.waitingStreams:
 	default:
-
 	}
 
 	//If there was no waiting channels, ie we exited the select statement
