@@ -7,6 +7,7 @@
 package hash
 
 import (
+	"crypto"
 	"crypto/hmac"
 	"crypto/sha256"
 	"golang.org/x/crypto/blake2b"
@@ -19,6 +20,9 @@ func NewCMixHash() (hash.Hash, error) {
 
 	return blake2b.New256(nil)
 }
+
+// CMixHash type is currently BLAKE2b_256
+var CMixHash = crypto.BLAKE2b_256
 
 // NewHMAC creates a new Message Authentication Code from a message payload and a key.
 // This function does not accept keys that are less than 256 bits (or 32 bytes)
