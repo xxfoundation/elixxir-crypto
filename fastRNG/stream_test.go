@@ -7,11 +7,10 @@ package fastRNG
 
 import (
 	"bytes"
-	"crypto/aes"
-	"crypto/cipher"
+	//"crypto/aes"
+	//"crypto/cipher"
 	"crypto/rand"
 	jww "github.com/spf13/jwalterweatherman"
-	"gitlab.com/elixxir/crypto/csprng"
 	"io"
 	"reflect"
 	"testing"
@@ -134,13 +133,13 @@ func TestStreamRead(t *testing.T) {
 		panic(err.Error())
 	}
 	//Mock block cipher
-	testKey := make([]byte, 32)
-	testIV := make([]byte, aes.BlockSize)
-	block, err := aes.NewCipher(testKey[:aes.BlockSize])
+	//testKey := make([]byte, 32)
+	//testIV := make([]byte, aes.BlockSize)
+	//block, err := aes.NewCipher(testKey[:aes.BlockSize])
 	if err != nil {
 		panic(err)
 	}
-	ciph := cipher.NewCTR(block, testIV)
+	//ciph := cipher.NewCTR(block, testIV)
 	//TODO: Replace with constructor after 2nd ticket is done
 	//Initialize streamGenerator
 	//sg := NewStreamGenerator(NewSystemRNG, scalingFactor 16, streamCount 2)
@@ -151,21 +150,20 @@ func TestStreamRead(t *testing.T) {
 
 
 	//Initialize the stream with the generator
-	stream := Stream{streamGen: sg}
+	stream := sg.NewStream()
 	stream.Read(requestedBytes)
 
-	if len(sg.src) < len(requestedBytes) || bytes.Compare(sg.src, testSource) == 0 {
+	if len(stream.src) < len(requestedBytes) || bytes.Compare(stream.src, testSource) == 0 {
 		t.Errorf("Fortuna construction did not add randomness to the source")
 	}
 }
 
 // Checking whether requiredRandomness returns zero when the entropyCount is less than the requestedLen
-func TestRequiredRandomness_ReturnsZero(t *testing.T) {
+func TestGetEntropy_ReturnsZero(t *testing.T) {
 	//Initialize a streamGenerator and stream
-	sg := &StreamGenerator{
-		scalingFactor: 16,
-	}
-	stream := Stream{streamGen: sg}
+	sg := NewStreamGenerator(16,2)
+
+	stream := sg.NewStream()
 	//Try to read less that the amount of entropy
 	var lessThanEntropy uint = 23
 	requiredRandomness := stream.getEntropyNeeded(lessThanEntropy)
@@ -177,7 +175,7 @@ func TestRequiredRandomness_ReturnsZero(t *testing.T) {
 
 }
 
-func TestRequiredRandomness_ReturnsNonZero(t *testing.T) {
+func TestGetEntropy_ReturnsNonZero(t *testing.T) {
 	//Initialize a streamGenerator and stream
 	sg := NewStreamGenerator(16, 20)
 
@@ -198,7 +196,7 @@ func TestStream_SetEntropyCount(t *testing.T) {
 	stream.SetEntropyCount(2)
 	var testVal uint = 24 + 2*16
 
-	if sg.entropyCnt != testVal {
+	if stream.entropyCnt != testVal {
 		t.Errorf("Entropy count not reset correctly")
 	}
 }

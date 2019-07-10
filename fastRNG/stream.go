@@ -58,7 +58,7 @@ func (sg *StreamGenerator) NewStream() *Stream {
 	tmpStream := &Stream{
 		streamGen:  sg,
 		numStream:  sg.numStreams,
-		entropyCnt: 20, //Some default value for our use?,
+		entropyCnt: 16, //Some default value for our use?,
 	}
 	sg.streams = append(sg.streams, tmpStream)
 	sg.numStreams++
@@ -166,17 +166,17 @@ func (s *Stream) extendSource(extensionLen int) {
 func (s *Stream) getEntropyNeeded(requestLen uint) uint {
 	//Such that the return value is never negative (requestedLen - entropyCnt) would be negative
 	// if entropyCnt > requestedLen
-	if s.streamGen.entropyCnt >= requestLen {
+	if s.entropyCnt >= requestLen {
 		return 0
 	}
 
 	//The addition (scalingFactor - 1) ensures that the returned value is always a ceiling rather than a floor
 	//as an integer. e.g ceiling(a/b) = (a+b-1)/b
-	return (requestLen - s.streamGen.entropyCnt + s.streamGen.scalingFactor - 1) / s.streamGen.scalingFactor
+	return (requestLen - s.entropyCnt + s.streamGen.scalingFactor - 1) / s.streamGen.scalingFactor
 }
 
 // Increases the entropy by a factor of the requestedLen
 //arghh
 func (s *Stream) SetEntropyCount(requestedLen uint) {
-	s.streamGen.entropyCnt += requestedLen * s.streamGen.scalingFactor
+	s.entropyCnt += requestedLen * s.streamGen.scalingFactor
 }
