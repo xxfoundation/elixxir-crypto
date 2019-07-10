@@ -28,9 +28,9 @@ func TestNewStreamGenerator(t *testing.T) {
 //Test the creation of new streams and that the counters are in fact working
 func TestNewStream(t *testing.T) {
 	sg := NewStreamGenerator(12, 3)
-	sg.NewStream()
-	sg.NewStream()
-	sg.NewStream()
+	sg.NewStream(1)
+	sg.NewStream(1)
+	sg.NewStream(1)
 	//See if there are the appropriate amount of streams in the streams slice and the stream count
 	if sg.numStreams != uint(len(sg.streams)) && sg.numStreams != 3 {
 		t.Errorf("New streams bookkeeping is not working.")
@@ -46,10 +46,10 @@ func TestNewStream_DoesPanic(t *testing.T) {
 	}()
 	//Stream count is 3, but 4 streams are being created, thus it should panic
 	sg := NewStreamGenerator(12, 3)
-	sg.NewStream()
-	sg.NewStream()
-	sg.NewStream()
-	sg.NewStream()
+	sg.NewStream(1)
+	sg.NewStream(1)
+	sg.NewStream(1)
+	sg.NewStream(1)
 	//If no fatal is error is appended (ie jww is default), then jww was not logged that there were too many streams
 	if jww.LevelFatal.String() == "FATAL" {
 		t.Errorf("FastRNG should panic when too many streams are made!")
@@ -61,9 +61,9 @@ func TestNewStream_DoesPanic(t *testing.T) {
 func TestNewStream_NotPanic(t *testing.T) {
 	//Stream count is 3, and 3 streams are being created, thus it should not panic
 	sg := NewStreamGenerator(12, 3)
-	sg.NewStream()
-	sg.NewStream()
-	sg.NewStream()
+	sg.NewStream(1)
+	sg.NewStream(1)
+	sg.NewStream(1)
 	if jww.LevelFatal.String() != "FATAL" {
 		t.Errorf("FastRNG should not panic when there are exactly maxStream streams")
 	}
@@ -72,9 +72,9 @@ func TestNewStream_NotPanic(t *testing.T) {
 //Test that the getStream calls newStream correctly/appropriately
 func TestGetStream_NewStream(t *testing.T) {
 	sg := NewStreamGenerator(12, 3)
-	sg.GetStream()
-	sg.GetStream()
-	sg.GetStream()
+	sg.GetStream(1)
+	sg.GetStream(1)
+	sg.GetStream(1)
 
 	if sg.numStreams != uint(len(sg.streams)) && sg.numStreams != 3 {
 		t.Errorf("New streams bookkeeping is not working.")
@@ -84,15 +84,15 @@ func TestGetStream_NewStream(t *testing.T) {
 //Test that a blocked channel will grab a stream when it becomes available
 func TestGetStream_GrabsWaitingStream(t *testing.T) {
 	sg := NewStreamGenerator(12, 3)
-	stream0 := sg.GetStream()
-	sg.GetStream()
-	sg.GetStream()
+	stream0 := sg.GetStream(1)
+	sg.GetStream(1)
+	sg.GetStream(1)
 	//Allow the main thread to block as streams aren't available, then close it
 	go func() {
 		time.Sleep(500 * time.Millisecond)
 		sg.Close(stream0)
 	}()
-	newStream := sg.GetStream()
+	newStream := sg.GetStream(1)
 	if !reflect.DeepEqual(newStream, stream0) {
 		t.Errorf("The next stream did not grab the correct stream")
 	}
@@ -100,9 +100,9 @@ func TestGetStream_GrabsWaitingStream(t *testing.T) {
 
 func TestClose_WaitingChannelLength(t *testing.T) {
 	sg := NewStreamGenerator(12, 3)
-	stream0 := sg.GetStream()
-	stream1 := sg.GetStream()
-	stream2 := sg.GetStream()
+	stream0 := sg.GetStream(1)
+	stream1 := sg.GetStream(1)
+	stream2 := sg.GetStream(1)
 
 	//Close all the streams created
 	sg.Close(stream0)

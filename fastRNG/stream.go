@@ -50,7 +50,7 @@ func NewStreamGenerator(scalingFactor uint, streamCount uint) *StreamGenerator {
 //Create a new stream, having it point to the corresponding stream generator
 //Also increment the amount of streams created in the stream generator
 //Bookkeeping slice for streams made
-func (sg *StreamGenerator) NewStream() *Stream {
+func (sg *StreamGenerator) NewStream(entropyCnt uint) *Stream {
 	if sg.numStreams == sg.maxStreams {
 		jww.FATAL.Panicln("Attempting to create too many streams")
 		return &Stream{}
@@ -58,7 +58,7 @@ func (sg *StreamGenerator) NewStream() *Stream {
 	tmpStream := &Stream{
 		streamGen:  sg,
 		numStream:  sg.numStreams,
-		entropyCnt: 16, //Some default value for our use?,
+		entropyCnt: entropyCnt, //Some default value for our use?,
 	}
 	sg.streams = append(sg.streams, tmpStream)
 	sg.numStreams++
@@ -67,7 +67,7 @@ func (sg *StreamGenerator) NewStream() *Stream {
 
 // GetStream gets an existing stream or creates a new Stream object. If the # of open streams exceeds streamCount,
 // this function blocks (and prints a log warning) until a stream is available
-func (sg *StreamGenerator) GetStream() *Stream {
+func (sg *StreamGenerator) GetStream(entropyCnt uint) *Stream {
 	//Initialize a stream
 	var retStream *Stream
 	//If there is a stream waiting to be used, take that from the channel and return in
@@ -80,7 +80,7 @@ func (sg *StreamGenerator) GetStream() *Stream {
 	if retStream == nil {
 		//If we have not reached the maximum amount of streams (specified by streamCount), then create a new one
 		if sg.numStreams < sg.maxStreams {
-			retStream = sg.NewStream()
+			retStream = sg.NewStream(entropyCnt)
 		} else {
 			//Else block until a stream is put in the waiting channel
 			retStream = <-sg.waitingStreams
@@ -168,6 +168,7 @@ func (s *Stream) getEntropyNeeded(requestLen uint) uint {
 	fmt.Println(s.entropyCnt)
 	fmt.Println(requestLen)
 	if s.entropyCnt >= requestLen {
+		fmt.Println("in if, brug")
 		return 0
 	}
 
