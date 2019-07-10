@@ -146,8 +146,7 @@ func TestStreamRead(t *testing.T) {
 	//sg.src = testSource
 	//sg.AESCtr = ciph
 	//Wont need to set entropy count
-	sg := NewStreamGenerator(20,2)
-
+	sg := NewStreamGenerator(20, 2)
 
 	//Initialize the stream with the generator
 	stream := sg.NewStream()
@@ -161,7 +160,7 @@ func TestStreamRead(t *testing.T) {
 // Checking whether requiredRandomness returns zero when the entropyCount is less than the requestedLen
 func TestGetEntropy_ReturnsZero(t *testing.T) {
 	//Initialize a streamGenerator and stream
-	sg := NewStreamGenerator(16,2)
+	sg := NewStreamGenerator(16, 2)
 
 	stream := sg.NewStream()
 	//Try to read less that the amount of entropy
@@ -187,10 +186,10 @@ func TestGetEntropy_ReturnsNonZero(t *testing.T) {
 		t.Errorf("Required randomness is not being calculated correctly")
 	}
 }
+
 //testing
 func TestStream_SetEntropyCount(t *testing.T) {
 	sg := NewStreamGenerator(16, 20)
-
 
 	stream := sg.NewStream()
 	stream.SetEntropyCount(2)

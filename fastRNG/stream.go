@@ -14,6 +14,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/binary"
+	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
 )
@@ -52,8 +53,7 @@ func NewStreamGenerator(scalingFactor uint, streamCount uint) *StreamGenerator {
 func (sg *StreamGenerator) NewStream() *Stream {
 	if sg.numStreams == sg.maxStreams {
 		jww.FATAL.Panicln("Attempting to create too many streams")
-		return &Stream{
-		}
+		return &Stream{}
 	}
 	tmpStream := &Stream{
 		streamGen:  sg,
@@ -93,7 +93,6 @@ func (sg *StreamGenerator) GetStream() *Stream {
 func (sg *StreamGenerator) Close(stream *Stream) {
 	sg.waitingStreams <- stream
 }
-
 
 // Read reads up to len(b) bytes from the csprng.Source object. This function panics if the stream is locked.
 // Users of stream objects should close them when they are finished using them. We read the AES256
@@ -166,6 +165,8 @@ func (s *Stream) extendSource(extensionLen int) {
 func (s *Stream) getEntropyNeeded(requestLen uint) uint {
 	//Such that the return value is never negative (requestedLen - entropyCnt) would be negative
 	// if entropyCnt > requestedLen
+	fmt.Println(s.entropyCnt)
+	fmt.Println(requestLen)
 	if s.entropyCnt >= requestLen {
 		return 0
 	}
