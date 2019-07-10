@@ -20,14 +20,19 @@ const (
 		"cdc392fed7267caef8398e817512ee46aedf6019b6d82a1d9040204d09873d78"
 	TEST_USERID    = 42
 	TEST_PARTNERID = 11
-	EXPECTED_KEY   = "73612b3df0defe6fa5227dce1180f1b540d50d6647da2a334753d4b316adc1ac" +
-		"bc7b2dd89519e04d072eb8fa973e1567625a07e20d6fc4ed4c3146121f43f5a0" +
-		"35660fa38995dbe77238dd92b981c4e8a1d351a793b57644afba38272b6c87df" +
-		"2ad83c39fa8881ba066860e8fffa9dbb11dc991d8553045cf4c961145e57f4a6" +
-		"6664860bdc72491492fb890685d30c7832dc8ac822b62c1b8a69991d3b0e1412" +
-		"893d8ce8c18ff7c82332d1cd1a1a207fb3d100eadb0b8de8a8bc9d7d40cc0661" +
-		"75eb5d1dea4cd6e93303922ac470a29f09eb841affa1f285282c9c224aa8790c" +
-		"c07fc8026ef843c25db983a5bb8944cfa8d8b93a8e04b8e9876b2998c2d8bea8"
+	EXPECTED_KEY   = "73612b3df0defe6fa5227dce1180f1b540d50d6647da2a33475" +
+		"3d4b316adc1acbc7b2dd89519e04d072eb8fa973e1567625a07e20d6fc4ed4c3" +
+		"146121f43f5a035660fa38995dbe77238dd92b981c4e8a1d351a793b57644afb" +
+		"a38272b6c87df2ad83c39fa8881ba066860e8fffa9dbb11dc991d8553045cf4c" +
+		"961145e57f4a66664860bdc72491492fb890685d30c7832dc8ac822b62c1b8a6" +
+		"9991d3b0e1412893d8ce8c18ff7c82332d1cd1a1a207fb3d100eadb0b8de8a8b" +
+		"c9d7d40cc066175eb5d1dea4cd6e93303922ac470a29f09eb841affa1f285282" +
+		"c9c224aa8790cc07fc8026ef843c25db983a5bb8944cfa8d8b93a8e04b8e9876" +
+		"b2998c2d8bea80443909ec9b15e1728b047edfcfb77a38f4cbe618c0294b938f" +
+		"d6a10409a2db2c60d5a7e827e9aeadf6dec32f54572b382e5f947e0d15ad7d70" +
+		"8aeed9d15bf71346c69942647766184b0798d464dd922ce839baa8fe772b6dc5" +
+		"009cba62feac814c340d98ffc2b7cad8acedab58fc0eb4bdf0872a0c697984ff" +
+		"6e29dccc9ee5cef01501e25b6b1c41ecc95d7117255"
 )
 
 type testFun func(a *cyclic.Group, b *cyclic.Int, c *id.User, d uint) []*cyclic.Int
@@ -41,8 +46,8 @@ func TestDeriveSingleKey(t *testing.T) {
 	result := deriveSingleKey(sha256.New(), grp, data, 0)
 	expected := grp.NewIntFromString(EXPECTED_KEY, 16)
 	if result.Cmp(expected) != 0 {
-		t.Errorf("Generated Key %v doesn't match expected %v",
-			result.Text(16), EXPECTED_KEY)
+		t.Errorf("Generated Key \n %v \n doesn't match expected \n %v",
+			result.TextVerbose(16, 0), EXPECTED_KEY)
 	}
 }
 
