@@ -11,40 +11,31 @@ package fastRNG
 
 import (
 	"crypto/cipher"
-	"crypto/sha256"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
-	"go.uber.org/atomic"
-	"sync"
 )
 
-//Global hashing variable, used in the Fortuna construction
-var newHash = sha256.New()
-
 type StreamGenerator struct {
-
 	streams        []*Stream
 	waitingStreams chan *Stream
 	maxStreams     uint
 	numStreams     uint
+	scalingFactor  uint
 }
 
 type Stream struct {
-	streamGen *StreamGenerator
-	AESCtr         cipher.Stream
-	scalingFactor  uint
-	entropyCnt     uint
-	rng            csprng.Source
-	src            []byte
-	numStream uint
+	streamGen  *StreamGenerator
+	AESCtr     cipher.Stream
+	entropyCnt uint
+	rng        csprng.Source
+	src        []byte
+	numStream  uint
 }
 
 // NewStreamGenerator creates a StreamGenerator object containing up to streamCount streams.
-func NewStreamGenerator( streamCount uint) *StreamGenerator {
+func NewStreamGenerator(scalingFactor uint, streamCount uint) *StreamGenerator {
 	return &StreamGenerator{
-		rng:            source,
 		scalingFactor:  scalingFactor,
-		entropyCnt:     20, //Some default value for our use?
 		waitingStreams: make(chan *Stream, streamCount),
 		maxStreams:     streamCount,
 		numStreams:     uint(0),
@@ -60,8 +51,10 @@ func (sg *StreamGenerator) NewStream() *Stream {
 		jww.FATAL.Printf("Attempting to create too many streams")
 	}
 	tmpStream := &Stream{
-		streamGen: sg,
-		numStream: sg.numStreams,
+		streamGen:  sg,
+		numStream:  sg.numStreams,
+		entropyCnt: 20, //Some default value for our use?,
+
 	}
 	sg.streams = append(sg.streams, tmpStream)
 	sg.numStreams++
@@ -97,5 +90,3 @@ func (sg *StreamGenerator) GetStream() *Stream {
 func (sg *StreamGenerator) Close(stream *Stream) {
 	sg.waitingStreams <- stream
 }
-
-
