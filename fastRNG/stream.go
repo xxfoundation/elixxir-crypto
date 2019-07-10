@@ -12,6 +12,7 @@ package fastRNG
 import (
 	"crypto/cipher"
 	"crypto/sha256"
+	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
 	"go.uber.org/atomic"
 	"sync"
@@ -21,11 +22,7 @@ import (
 var newHash = sha256.New()
 
 type StreamGenerator struct {
-	AESCtr         cipher.Stream
-	scalingFactor  uint
-	entropyCnt     uint
-	rng            csprng.Source
-	src            []byte
+
 	streams        []*Stream
 	waitingStreams chan *Stream
 	maxStreams     uint
@@ -34,13 +31,16 @@ type StreamGenerator struct {
 
 type Stream struct {
 	streamGen *StreamGenerator
-	mutex     sync.Mutex
-	isBusy    atomic.Bool //throw mutex around changing value to make thread-safe
+	AESCtr         cipher.Stream
+	scalingFactor  uint
+	entropyCnt     uint
+	rng            csprng.Source
+	src            []byte
 	numStream uint
 }
 
 // NewStreamGenerator creates a StreamGenerator object containing up to streamCount streams.
-func NewStreamGenerator(source csprng.Source, scalingFactor uint, streamCount uint) *StreamGenerator {
+func NewStreamGenerator( streamCount uint) *StreamGenerator {
 	return &StreamGenerator{
 		rng:            source,
 		scalingFactor:  scalingFactor,
@@ -57,7 +57,7 @@ func NewStreamGenerator(source csprng.Source, scalingFactor uint, streamCount ui
 //Bookkeeping slice for streams made
 func (sg *StreamGenerator) NewStream() *Stream {
 	if sg.numStreams == sg.maxStreams {
-		panic("Attempting to create too many streams")
+		jww.FATAL.Printf("Attempting to create too many streams")
 	}
 	tmpStream := &Stream{
 		streamGen: sg,
