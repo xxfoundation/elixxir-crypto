@@ -48,7 +48,9 @@ func NewStreamGenerator(scalingFactor uint, streamCount uint) *StreamGenerator {
 //Bookkeeping slice for streams made
 func (sg *StreamGenerator) NewStream() *Stream {
 	if sg.numStreams == sg.maxStreams {
-		jww.FATAL.Printf("Attempting to create too many streams")
+		jww.FATAL.Panicln("Attempting to create too many streams")
+		return &Stream{
+		}
 	}
 	tmpStream := &Stream{
 		streamGen:  sg,
