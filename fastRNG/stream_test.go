@@ -190,6 +190,9 @@ func TestGetEntropy_ReturnsNonZero(t *testing.T) {
 	}
 }
 
+//TODO: MULTIPLE entropyCnt's test needed (probably)
+//TODO: MULTIPLE entropyCnt's test needed (probably)
+//TODO: MULTIPLE entropyCnt's test needed (probably)
 //testing
 func TestStream_SetEntropyCount(t *testing.T) {
 	sg := NewStreamGenerator(16, 20)
