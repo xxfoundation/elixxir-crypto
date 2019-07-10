@@ -57,7 +57,6 @@ func (sg *StreamGenerator) NewStream() *Stream {
 		numStream:  sg.numStreams,
 		entropyCnt: 20, //Some default value for our use?,
 	}
-
 	sg.streams = append(sg.streams, tmpStream)
 	sg.numStreams++
 	return tmpStream
