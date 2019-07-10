@@ -14,7 +14,6 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/binary"
-	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
 )
@@ -165,10 +164,7 @@ func (s *Stream) extendSource(extensionLen int) {
 func (s *Stream) getEntropyNeeded(requestLen uint) uint {
 	//Such that the return value is never negative (requestedLen - entropyCnt) would be negative
 	// if entropyCnt > requestedLen
-	fmt.Println(s.entropyCnt)
-	fmt.Println(requestLen)
 	if s.entropyCnt >= requestLen {
-		fmt.Println("in if, brug")
 		return 0
 	}
 

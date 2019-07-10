@@ -116,6 +116,9 @@ func TestClose_WaitingChannelLength(t *testing.T) {
 }
 
 //TODO: fix the funky tests below!
+//TODO: fix the funky tests below!
+//TODO: fix the funky tests below!
+//TODO: fix the funky tests below!
 
 // Checking the functionality of appending the source
 // using the Fortuna construction
@@ -164,8 +167,8 @@ func TestGetEntropy_ReturnsZero(t *testing.T) {
 
 	stream := sg.NewStream()
 	//Try to read less that the amount of entropy
-	var lessThanEntropy uint = 23
-	requiredRandomness := stream.getEntropyNeeded(lessThanEntropy)
+	var lessThanEqualEntropy uint = 0
+	requiredRandomness := stream.getEntropyNeeded(lessThanEqualEntropy)
 	//Since we are reading less than entropy, reqLen-entropy<0, in which case we return 0
 	//This is tested
 	if requiredRandomness != 0 {
@@ -180,7 +183,7 @@ func TestGetEntropy_ReturnsNonZero(t *testing.T) {
 
 	stream := sg.NewStream()
 	//Try to read more that the amount of entropy
-	var greaterThanEntropy uint = 25
+	var greaterThanEntropy uint = 1
 	requiredRandomness := stream.getEntropyNeeded(greaterThanEntropy)
 	if requiredRandomness == 0 {
 		t.Errorf("Required randomness is not being calculated correctly")
@@ -193,9 +196,11 @@ func TestStream_SetEntropyCount(t *testing.T) {
 
 	stream := sg.NewStream()
 	stream.SetEntropyCount(2)
-	var testVal uint = 24 + 2*16
+	var testVal uint = 0 + 2*16
 
 	if stream.entropyCnt != testVal {
 		t.Errorf("Entropy count not reset correctly")
 	}
 }
+
+//TODO: MULTIPLE entropyCnt's test needed (probably)
