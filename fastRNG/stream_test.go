@@ -122,7 +122,8 @@ func TestClose_WaitingChannelLength(t *testing.T) {
 
 // Checking the functionality of appending the source
 // using the Fortuna construction
-func TestStreamRead(t *testing.T) {
+//TODO fix this
+func TestRead_ReadMoreThanSource(t *testing.T) {
 
 	//A large byte array, of which you will read size from src byte array
 	requestedBytes := make([]byte, 4125)
@@ -146,18 +147,21 @@ func TestStreamRead(t *testing.T) {
 	//TODO: Replace with constructor after 2nd ticket is done
 	//Initialize streamGenerator
 	//sg := NewStreamGenerator(NewSystemRNG, scalingFactor 16, streamCount 2)
-	//sg.src = testSource
-	//sg.AESCtr = ciph
 	//Wont need to set entropy count
 	sg := NewStreamGenerator(20, 2)
+	stream := sg.NewStream()
+	stream.src = testSource
 
 	//Initialize the stream with the generator
-	stream := sg.NewStream()
 	stream.Read(requestedBytes)
 
 	if len(stream.src) < len(requestedBytes) || bytes.Compare(stream.src, testSource) == 0 {
 		t.Errorf("Fortuna construction did not add randomness to the source")
 	}
+}
+
+func TestRead_ReadLessThanSource(t *testing.T)  {
+
 }
 
 // Checking whether requiredRandomness returns zero when the entropyCount is less than the requestedLen

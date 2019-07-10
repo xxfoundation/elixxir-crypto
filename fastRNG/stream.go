@@ -10,9 +10,9 @@
 package fastRNG
 
 import (
-	"crypto"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/sha256"
 	"encoding/binary"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
@@ -129,8 +129,8 @@ func (s *Stream) Read(b []byte) int {
 // In usage, src will initially pull from Linux's rng
 func (s *Stream) extendSource(extensionLen int) {
 	//Initialize key and block
-	var fortunaHash = crypto.SHA256
-	key := fortunaHash.New().Sum(s.src)
+	var fortunaHash = sha256.New()
+	key := fortunaHash.Sum(s.src)
 	key = key[len(s.src):]
 
 	block, err := aes.NewCipher(key[:aes.BlockSize])
