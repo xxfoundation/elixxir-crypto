@@ -23,6 +23,9 @@ import (
 =======
 //Global hashing variable, used in the Fortuna construction
 var globalHash = sha256.New()
+<<<<<<< HEAD
+>>>>>>> parent of d8055c7... more reviewing
+=======
 >>>>>>> parent of d8055c7... more reviewing
 
 type StreamGenerator struct {
@@ -37,6 +40,20 @@ type Stream struct {
 	AESCtr        cipher.Stream
 	rng           csprng.Source
 }
+
+/* Different ticket, put here for my convenience
+// NewStreamGenerator creates a StreamGenerator object containing up to streamCount streams.
+func NewStreamGenerator(source Source, scalingFactor uint, streamCount uint) *StreamGenerator{
+	return &StreamGenerator
+}
+// GetStream gets an existing or creates a new Stream object. If the # of open streams exceeds streamCount,
+// this function blocks (and prints a log warning) until a stream is available
+func (*StreamGenerator) GetStream() *Stream{
+
+}
+// Close closes the stream object, locking it from external users and marking it as avaialble in the stream list
+func (*RNGStreamGenerator) Close(*RNGStream)
+*/
 
 /* Different ticket, put here for my convenience
 // NewStreamGenerator creates a StreamGenerator object containing up to streamCount streams.
@@ -89,9 +106,13 @@ func (s *Stream) Read(b []byte) int {
 func (s *Stream) extendSource(extensionLen int) {
 	//Initialize key and block
 <<<<<<< HEAD
+<<<<<<< HEAD
 	var fortunaHash = crypto.SHA256
 	key := fortunaHash.New().Sum(s.src)
 	key = key[len(s.src):]
+=======
+	key := globalHash.Sum(s.streamGen.src)
+>>>>>>> parent of d8055c7... more reviewing
 =======
 	key := globalHash.Sum(s.streamGen.src)
 >>>>>>> parent of d8055c7... more reviewing
