@@ -52,7 +52,7 @@ func NewStreamGenerator(scalingFactor uint, streamCount uint) *StreamGenerator {
 //Create a new stream, having it point to the corresponding stream generator
 //Also increment the amount of streams created in the stream generator
 //Bookkeeping slice for streams made
-func (sg *StreamGenerator) NewStream() *Stream {
+func (sg *StreamGenerator) newStream() *Stream {
 	if sg.numStreams == sg.maxStreams {
 		jww.FATAL.Panicf("Attempting to create too many streams")
 		return &Stream{}
@@ -83,7 +83,7 @@ func (sg *StreamGenerator) GetStream() *Stream {
 	if retStream == nil {
 		//If we have not reached the maximum amount of streams (specified by streamCount), then create a new one
 		if sg.numStreams < sg.maxStreams {
-			retStream = sg.NewStream()
+			retStream = sg.newStream()
 		} else {
 			//Else block until a stream is put in the waiting channel
 			retStream = <-sg.waitingStreams
