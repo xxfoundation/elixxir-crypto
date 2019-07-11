@@ -10,6 +10,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"fmt"
 	"gitlab.com/elixxir/crypto/csprng"
 	"io"
 	"reflect"
@@ -156,11 +157,11 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 	stream := sg.GetStream()
 	stream.src = testSource
 	stream.AESCtr = ciph
-	stream.rng = newMockRNG()
+	stream.rng = csprng.NewSystemRNG()
 	//Initialize the stream with the generator
 	stream.Read(requestedBytes)
-	//Make sure that the original source is not same after read
-	if bytes.Compare(stream.src, testSource) == 0 {
+	//Make sure that the original source and the original entropyCnt are not same after read
+	if bytes.Compare(stream.src, testSource) == 0 || stream.entropyCnt == 0 {
 		t.Errorf("Fortuna construction did not add randomness to the source")
 	}
 }
@@ -214,6 +215,7 @@ func TestRead_ReadLessThanSource(t *testing.T) {
 	if err != nil {
 		panic(err.Error())
 	}
+	fmt.Println(stream.entropyCnt)
 	//Mock block cipher
 	testKey := make([]byte, 32)
 	testIV := make([]byte, aes.BlockSize)
@@ -228,8 +230,8 @@ func TestRead_ReadLessThanSource(t *testing.T) {
 	stream.rng = csprng.NewSystemRNG()
 
 	stream.Read(requestedBytes)
-
-	if len(stream.src) != origSrcLen {
+	fmt.Println(stream.entropyCnt)
+	if len(stream.src) != origSrcLen || stream.entropyCnt == 0 {
 		t.Errorf("Unexpected lengthening of the stream's source")
 	}
 }
@@ -264,10 +266,7 @@ func TestGetEntropy_ReturnsNonZero(t *testing.T) {
 	}
 }
 
-//TODO: MULTIPLE entropyCnt's test needed (probably)
-//TODO: MULTIPLE entropyCnt's test needed (probably)
-//TODO: MULTIPLE entropyCnt's test needed (probably)
-//testing
+//Testing whether the entropy count is being set correctly
 func TestStream_SetEntropyCount(t *testing.T) {
 	sg := NewStreamGenerator(16, 20)
 
@@ -279,5 +278,3 @@ func TestStream_SetEntropyCount(t *testing.T) {
 		t.Errorf("Entropy count not reset correctly")
 	}
 }
-
-//TODO: MULTIPLE entropyCnt's test needed (probably)

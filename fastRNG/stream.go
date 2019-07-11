@@ -138,7 +138,7 @@ func (s *Stream) extendSource(extensionLen int) {
 
 	block, err := aes.NewCipher(key[:aes.BlockSize])
 	if err != nil {
-		jww.ERROR.Printf(err)
+		jww.ERROR.Printf(err.Error())
 	}
 	//Make sure the key is the key size (32 bytes), panic otherwise
 	if len(key) != 32 {
