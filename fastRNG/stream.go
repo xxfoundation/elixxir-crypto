@@ -101,11 +101,9 @@ func (sg *StreamGenerator) Close(stream *Stream) {
 // Users of stream objects should close them when they are finished using them. We read the AES256
 // blocksize into AES then run it until blockSize*scalingFactor bytes are read. Every time
 // blocksize*scalingFactor bytes are read this functions blocks until it rereads csprng.Source.
-// TODO: Add 'blocking' logic, which is blocked by the ticket currently described above
 func (s *Stream) Read(b []byte) int {
-	//s.mutex.Lock()
-	//If the requested buffer exceeds the randomness generated thus far, then append until we have enough
 	s.mut.Lock()
+	//If the requested buffer exceeds the randomness generated thus far, then append until we have enough
 	if len(b) > len(s.src) {
 		s.extendSource(len(b))
 	}
@@ -120,7 +118,7 @@ func (s *Stream) Read(b []byte) int {
 		s.SetEntropyCount(uint(len(b)))
 	}
 
-	//
+	//Decrease the amount of entropy by how much we read, now that this is known
 	s.entropyCnt -= uint(len(b))
 
 	//Make 'new randomness' by changing the stale values (already read data read through xor'ring
@@ -150,18 +148,22 @@ func (s *Stream) extendSource(extensionLen int) {
 	aesRngBuf := make([]byte, aes.BlockSize+len(key))
 	var temp uint16 = 0
 	counter := make([]byte, aes.BlockSize)
+	streamCipher := cipher.NewCTR(block, counter)
+
 	//Encrypt the key and counter, inc ctr for next round of generation
 	for len(s.src) < extensionLen {
 		//Increment the temp, place in the counter. When the temp var overflows, the 1 is carried over to the next byte
 		//in counter, treating it like a binary number. Counter is used as the IV
 		binary.LittleEndian.PutUint16(counter, temp)
-		streamCipher := cipher.NewCTR(block, counter)
-		streamCipher.XORKeyStream(aesRngBuf[aes.BlockSize:], key)
+
+		streamCipher.XORKeyStream(aesRngBuf[aes.BlockSize:], counter)
+
 		//So there is no predictable iv appended to the random src
-		tmp := aesRngBuf[aes.BlockSize:]
-		s.src = append(s.src, tmp...)
+		appendTmp := aesRngBuf[aes.BlockSize:aes.BlockSize+16]
+		s.src = append(s.src, appendTmp...)
 		temp++
 	}
+
 }
 
 // TODO: test this function

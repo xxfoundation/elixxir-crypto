@@ -161,6 +161,7 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 		panic(err)
 	}
 	ciph := cipher.NewCTR(block, testIV)
+
 	//Initialize streamGenerator
 	sg := NewStreamGenerator(20, 2)
 	stream := sg.GetStream()
@@ -174,6 +175,10 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 	if len(stream.src) < len(requestedBytes) || bytes.Compare(stream.src, testSource) == 0 {
 		t.Errorf("Fortuna construction did not add randomness to the source")
 	}
+}
+
+func TestExtendSource(t *testing.T){
+
 }
 
 //Test with a mock read that returns predictably every time
@@ -190,9 +195,9 @@ func TestRead_MockRNG(t *testing.T) {
 
 // Read read a length smaller than the currently existing source
 func TestRead_ReadLessThanSource(t *testing.T) {
-	sg := NewStreamGenerator(20, 2)
-	stream := sg.GetStream()
-	requestedBytes := make([]byte, 20)
+	//sg := NewStreamGenerator(20, 2)
+	//stream := sg.GetStream()
+	//requestedBytes := make([]byte, 20)
 	testSource := make([]byte, 2048, 2048)
 	fmt.Println(testSource)
 }
