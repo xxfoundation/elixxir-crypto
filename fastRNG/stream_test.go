@@ -238,7 +238,7 @@ func TestGetEntropy_ReturnsZero(t *testing.T) {
 	//Initialize a streamGenerator and stream
 	sg := NewStreamGenerator(16, 2)
 
-	stream := sg.NewStream()
+	stream := sg.GetStream()
 	//Try to read less that the amount of entropy
 	var lessThanEqualEntropy uint = 0
 	requiredRandomness := stream.getEntropyNeeded(lessThanEqualEntropy)
@@ -254,7 +254,7 @@ func TestGetEntropy_ReturnsNonZero(t *testing.T) {
 	//Initialize a streamGenerator and stream
 	sg := NewStreamGenerator(16, 20)
 
-	stream := sg.NewStream()
+	stream := sg.GetStream()
 	//Try to read more that the amount of entropy
 	var greaterThanEntropy uint = 1
 	requiredRandomness := stream.getEntropyNeeded(greaterThanEntropy)
@@ -267,7 +267,7 @@ func TestGetEntropy_ReturnsNonZero(t *testing.T) {
 func TestStream_SetEntropyCount(t *testing.T) {
 	sg := NewStreamGenerator(16, 20)
 
-	stream := sg.NewStream()
+	stream := sg.GetStream()
 	stream.SetEntropyCount(2)
 	var testVal uint = 0 + 2*16
 
