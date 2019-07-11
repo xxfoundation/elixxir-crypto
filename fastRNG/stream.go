@@ -145,7 +145,7 @@ func (s *Stream) extendSource(extensionLen int) {
 		jww.ERROR.Printf("The key is not the correct length (ie not 32 bytes)!")
 	}
 	aesRngBuf := make([]byte, aes.BlockSize+len(key))
-	var temp uint16 = 0
+	var count uint16 = 0
 	counter := make([]byte, aes.BlockSize)
 	streamCipher := cipher.NewCTR(block, counter)
 
@@ -153,14 +153,14 @@ func (s *Stream) extendSource(extensionLen int) {
 	for len(s.src) < extensionLen {
 		//Increment the temp, place in the counter. When the temp var overflows, the 1 is carried over to the next byte
 		//in counter, treating it like a binary number. Counter is used as the IV
-		binary.LittleEndian.PutUint16(counter, temp)
+		binary.LittleEndian.PutUint16(counter, count)
 
 		streamCipher.XORKeyStream(aesRngBuf[aes.BlockSize:], counter)
 
 		//So there is no predictable iv appended to the random src
 		appendTmp := aesRngBuf[aes.BlockSize : aes.BlockSize+16]
 		s.src = append(s.src, appendTmp...)
-		temp++
+		count++
 	}
 
 }
