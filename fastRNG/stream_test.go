@@ -161,15 +161,12 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 		panic(err)
 	}
 	ciph := cipher.NewCTR(block, testIV)
-	//TODO: Replace with constructor after 2nd ticket is done
 	//Initialize streamGenerator
-	//sg := NewStreamGenerator(NewSystemRNG, scalingFactor 16, streamCount 2)
-	//Wont need to set entropy count
 	sg := NewStreamGenerator(20, 2)
 	stream := sg.GetStream()
 	stream.src = testSource
 	stream.AESCtr = ciph
-	stream.rng = newMockRNG() //csprng.NewSystemRNG()
+	stream.rng = newMockRNG()
 	fmt.Println(stream.AESCtr)
 	//Initialize the stream with the generator
 	stream.Read(requestedBytes)

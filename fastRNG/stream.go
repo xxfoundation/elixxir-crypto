@@ -17,7 +17,7 @@ import (
 	"encoding/binary"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
-	//"gitlab.com/elixxir/crypto/csprng"
+	"sync"
 )
 
 type StreamGenerator struct {
@@ -35,6 +35,7 @@ type Stream struct {
 	rng        csprng.Source
 	src        []byte
 	numStream  uint
+	mut        sync.Mutex
 }
 
 // NewStreamGenerator creates a StreamGenerator object containing up to streamCount streams.
@@ -104,6 +105,7 @@ func (sg *StreamGenerator) Close(stream *Stream) {
 func (s *Stream) Read(b []byte) int {
 	//s.mutex.Lock()
 	//If the requested buffer exceeds the randomness generated thus far, then append until we have enough
+	s.mut.Lock()
 	if len(b) > len(s.src) {
 		s.extendSource(len(b))
 	}
@@ -120,16 +122,16 @@ func (s *Stream) Read(b []byte) int {
 
 	//
 	s.entropyCnt -= uint(len(b))
+
 	//Make 'new randomness' by changing the stale values (already read data read through xor'ring
 	//We may also just as easily retire the read values. This is up to discussion?
 	s.AESCtr.XORKeyStream(s.src[:len(b)], b)
-	//s.mutex.Unlock()
+	s.mut.Unlock()
 	return len(b)
 }
 
-//var fortunaHash = crypto.SHA256
 // If the source is not large for the amount to be read in, extend the source
-// using the Fortuna construction. Need a new block IV every
+// using the Fortuna construction.
 // In usage, src will initially pull from Linux's rng
 func (s *Stream) extendSource(extensionLen int) {
 	//Initialize key and block
@@ -153,8 +155,8 @@ func (s *Stream) extendSource(extensionLen int) {
 		//Increment the temp, place in the counter. When the temp var overflows, the 1 is carried over to the next byte
 		//in counter, treating it like a binary number. Counter is used as the IV
 		binary.LittleEndian.PutUint16(counter, temp)
-		stream := cipher.NewCTR(block, counter)
-		stream.XORKeyStream(aesRngBuf[aes.BlockSize:], key)
+		streamCipher := cipher.NewCTR(block, counter)
+		streamCipher.XORKeyStream(aesRngBuf[aes.BlockSize:], key)
 		//So there is no predictable iv appended to the random src
 		tmp := aesRngBuf[aes.BlockSize:]
 		s.src = append(s.src, tmp...)
