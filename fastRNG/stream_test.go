@@ -19,6 +19,23 @@ import (
 	"time"
 )
 
+type mockRNG struct {
+
+}
+
+func newMockRNG()  csprng.Source {
+	return &mockRNG{}
+}
+
+func (m *mockRNG) Read(b []byte) (int,error) {
+	return 0, nil
+}
+
+func (m *mockRNG) SetSeed(seed []byte) error {
+	return nil
+}
+
+
 //Test the creation of a new stream generator and that it is configured correctly
 func TestNewStreamGenerator(t *testing.T) {
 	sg := NewStreamGenerator(12, 20)
@@ -154,13 +171,24 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 	stream := sg.NewStream()
 	stream.src = testSource
 	stream.AESCtr = ciph
-	stream.rng = csprng.NewSystemRNG()
+	stream.rng = newMockRNG()//csprng.NewSystemRNG()
 	fmt.Println(stream.AESCtr)
 	//Initialize the stream with the generator
 	stream.Read(requestedBytes)
 
 	if len(stream.src) < len(requestedBytes) || bytes.Compare(stream.src, testSource) == 0 {
 		t.Errorf("Fortuna construction did not add randomness to the source")
+	}
+}
+
+func TestRead_MockRNG(t *testing.T) {
+	sg := NewStreamGenerator(20,2)
+	read := make([]byte, 24)
+	stream := sg.GetStream()
+	stream.rng = newMockRNG()
+	length, err := stream.rng.Read(read)
+	if length != 0 || err != nil {
+		t.Errorf("Mock read failed")
 	}
 }
 
