@@ -7,10 +7,12 @@ package fastRNG
 
 import (
 	"bytes"
-	//"crypto/aes"
-	//"crypto/cipher"
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/rand"
+	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
+	"gitlab.com/elixxir/crypto/csprng"
 	"io"
 	"reflect"
 	"testing"
@@ -137,13 +139,13 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 		panic(err.Error())
 	}
 	//Mock block cipher
-	//testKey := make([]byte, 32)
-	//testIV := make([]byte, aes.BlockSize)
-	//block, err := aes.NewCipher(testKey[:aes.BlockSize])
+	testKey := make([]byte, 32)
+	testIV := make([]byte, aes.BlockSize)
+	block, err := aes.NewCipher(testKey[:aes.BlockSize])
 	if err != nil {
 		panic(err)
 	}
-	//ciph := cipher.NewCTR(block, testIV)
+	ciph := cipher.NewCTR(block, testIV)
 	//TODO: Replace with constructor after 2nd ticket is done
 	//Initialize streamGenerator
 	//sg := NewStreamGenerator(NewSystemRNG, scalingFactor 16, streamCount 2)
@@ -151,7 +153,9 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 	sg := NewStreamGenerator(20, 2)
 	stream := sg.NewStream()
 	stream.src = testSource
-
+	stream.AESCtr = ciph
+	stream.rng = csprng.NewSystemRNG()
+	fmt.Println(stream.AESCtr)
 	//Initialize the stream with the generator
 	stream.Read(requestedBytes)
 

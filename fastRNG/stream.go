@@ -10,12 +10,15 @@
 package fastRNG
 
 import (
+	"crypto"
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/sha256"
+	_ "crypto/sha256"
 	"encoding/binary"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
+
+	//"gitlab.com/elixxir/crypto/csprng"
 )
 
 type StreamGenerator struct {
@@ -54,6 +57,7 @@ func (sg *StreamGenerator) NewStream() *Stream {
 		jww.FATAL.Panicln("Attempting to create too many streams")
 		return &Stream{}
 	}
+
 	tmpStream := &Stream{
 		streamGen:  sg,
 		numStream:  sg.numStreams,
@@ -123,13 +127,13 @@ func (s *Stream) Read(b []byte) int {
 	//s.mutex.Unlock()
 	return len(b)
 }
-
+//var fortunaHash = crypto.SHA256
 // If the source is not large for the amount to be read in, extend the source
 // using the Fortuna construction. Need a new block IV every
 // In usage, src will initially pull from Linux's rng
 func (s *Stream) extendSource(extensionLen int) {
 	//Initialize key and block
-	var fortunaHash = sha256.New()
+	fortunaHash := crypto.SHA256.New()
 	key := fortunaHash.Sum(s.src)
 	key = key[len(s.src):]
 
