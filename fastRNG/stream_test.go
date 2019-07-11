@@ -41,9 +41,9 @@ func TestNewStreamGenerator(t *testing.T) {
 //Test the creation of new streams and that the counters are in fact working
 func TestNewStream(t *testing.T) {
 	sg := NewStreamGenerator(12, 3)
-	sg.NewStream()
-	sg.NewStream()
-	sg.NewStream()
+	sg.GetStream()
+	sg.GetStream()
+	sg.GetStream()
 	//See if there are the appropriate amount of streams in the streams slice and the stream count
 	if sg.numStreams != uint(len(sg.streams)) && sg.numStreams != 3 {
 		t.Errorf("New streams bookkeeping is not working.")
@@ -60,9 +60,9 @@ func TestNewStream_DoesPanic(t *testing.T) {
 	}()
 	//Stream count is 2, but 3 streams are being created, thus it should panic
 	sg := NewStreamGenerator(12, 2)
-	sg.NewStream()
-	sg.NewStream()
-	sg.NewStream()
+	sg.newStream()
+	sg.newStream()
+	sg.newStream()
 	//It should panic after the 3rd newStream and get deffered. If it doesn't it has failed
 	t.Errorf("FastRNG should panic when too many streams are made!")
 
@@ -78,8 +78,8 @@ func TestNewStream_NotPanic(t *testing.T) {
 	}()
 	//Stream count is 2, and 2 streams are being created, thus it should not panic
 	sg := NewStreamGenerator(12, 2)
-	sg.NewStream()
-	sg.NewStream()
+	sg.newStream()
+	sg.newStream()
 }
 
 //Test that the getStream calls newStream correctly/appropriately
