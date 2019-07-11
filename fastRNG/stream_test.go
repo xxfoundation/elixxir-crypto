@@ -171,7 +171,7 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 	fmt.Println(stream.AESCtr)
 	//Initialize the stream with the generator
 	stream.Read(requestedBytes)
-
+	//TODO sepearate into multiple tests!
 	if len(stream.src) < len(requestedBytes) || bytes.Compare(stream.src, testSource) == 0 {
 		t.Errorf("Fortuna construction did not add randomness to the source")
 	}
@@ -194,12 +194,38 @@ func TestRead_MockRNG(t *testing.T) {
 }
 
 // Read read a length smaller than the currently existing source
+//In this case, extend source should not be called, thus the len of src should not change
 func TestRead_ReadLessThanSource(t *testing.T) {
-	//sg := NewStreamGenerator(20, 2)
-	//stream := sg.GetStream()
-	//requestedBytes := make([]byte, 20)
-	testSource := make([]byte, 2048, 2048)
+	sg := NewStreamGenerator(20, 2)
+	stream := sg.GetStream()
+	requestedBytes := make([]byte, 20)
+	origSrcLen := 2048
+	testSource := make([]byte, origSrcLen, origSrcLen)
 	fmt.Println(testSource)
+
+	//Initialize everything needed in stream for a read
+	_, err := io.ReadFull(rand.Reader, testSource)
+	if err != nil {
+		panic(err.Error())
+	}
+	//Mock block cipher
+	testKey := make([]byte, 32)
+	testIV := make([]byte, aes.BlockSize)
+	block, err := aes.NewCipher(testKey[:aes.BlockSize])
+	if err != nil {
+		panic(err)
+	}
+	ciph := cipher.NewCTR(block, testIV)
+
+	stream.src = testSource
+	stream.AESCtr = ciph
+	stream.rng = csprng.NewSystemRNG()
+
+	stream.Read(requestedBytes)
+
+	if len(stream.src) != origSrcLen {
+		t.Errorf("Unexpected lengthening of the stream's source")
+	}
 }
 
 // Checking whether requiredRandomness returns zero when the entropyCount is less than the requestedLen
