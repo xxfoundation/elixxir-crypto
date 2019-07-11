@@ -107,6 +107,10 @@ func (s *Stream) Read(b []byte) int {
 	if len(b) > len(s.src) {
 		s.extendSource(len(b))
 	}
+	for numBlock := 0; numBlock<len(s.src)/aes.BlockSize; numBlock++ {
+		s.fortuna(b)
+
+	}
 
 	//Read from source
 	if requiredRandomness := s.getEntropyNeeded(uint(len(b))); requiredRandomness != 0 {
@@ -127,6 +131,25 @@ func (s *Stream) Read(b []byte) int {
 	s.mut.Unlock()
 	return len(b)
 }
+
+func (s *Stream) fortuna(b []byte) {
+	src := s.src
+	var dst []byte
+	i := 0
+	for i < len(b) {
+		var extension []byte
+		s.entropyCnt--
+		if(s.entropyCnt==0) {
+			extension = make([]byte,aes.BlockSize)
+			s.rng.Read(extension)
+		}
+	}
+}
+
+func fortunaCore(src []byte, dst []byte, hash crypto.Hash, ctr []*byte, ext []byte)  {
+
+}
+
 
 // If the source is not large for the amount to be read in, extend the source
 // using the Fortuna construction. In usage, src will initially pull from Linux's rng
