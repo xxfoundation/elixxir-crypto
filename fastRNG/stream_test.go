@@ -10,7 +10,6 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
 	"io"
 	"reflect"
@@ -24,11 +23,9 @@ type mockRNG struct {
 func newMockRNG() csprng.Source {
 	return &mockRNG{}
 }
-
 func (m *mockRNG) Read(b []byte) (int, error) {
 	return 0, nil
 }
-
 func (m *mockRNG) SetSeed(seed []byte) error {
 	return nil
 }
@@ -58,31 +55,31 @@ func TestNewStream_DoesPanic(t *testing.T) {
 	//The defer function will catch the panic
 	defer func() {
 		if r := recover(); r != nil {
+
 		}
 	}()
-	//Stream count is 3, but 4 streams are being created, thus it should panic
-	sg := NewStreamGenerator(12, 3)
+	//Stream count is 2, but 3 streams are being created, thus it should panic
+	sg := NewStreamGenerator(12, 2)
 	sg.NewStream()
 	sg.NewStream()
 	sg.NewStream()
-	sg.NewStream()
-	//If no fatal is error is appended (ie jww is default), then jww was not logged that there were too many streams
-	if jww.LevelFatal.String() == "FATAL" {
-		t.Errorf("FastRNG should panic when too many streams are made!")
-	}
+	//It should panic after the 3rd newStream and get deffered. If it doesn't it has failed
+	t.Errorf("FastRNG should panic when too many streams are made!")
 
 }
 
 //Test that it does not panic when it reaches capacity
 func TestNewStream_NotPanic(t *testing.T) {
-	//Stream count is 3, and 3 streams are being created, thus it should not panic
-	sg := NewStreamGenerator(12, 3)
+	//The defer function should not be encountered here, as we are not exceeding capactity, we are at it
+	defer func() {
+		if r := recover(); r != nil {
+			t.Errorf("FastRNG should not panic when there are exactly maxStream Streams")
+		}
+	}()
+	//Stream count is 2, and 2 streams are being created, thus it should not panic
+	sg := NewStreamGenerator(12, 2)
 	sg.NewStream()
 	sg.NewStream()
-	sg.NewStream()
-	if jww.LevelFatal.String() != "FATAL" {
-		t.Errorf("FastRNG should not panic when there are exactly maxStream streams")
-	}
 }
 
 //Test that the getStream calls newStream correctly/appropriately
@@ -131,14 +128,7 @@ func TestClose_WaitingChannelLength(t *testing.T) {
 	}
 }
 
-//TODO: fix the funky tests below!
-//TODO: fix the funky tests below!
-//TODO: fix the funky tests below!
-//TODO: fix the funky tests below!
-
-// Checking the functionality of appending the source
-// using the Fortuna construction
-//TODO fix this
+// Checking the functionality of appending the source using the Fortuna construction
 func TestRead_ReadMoreThanSource(t *testing.T) {
 
 	//A large byte array, of which you will read size from src byte array
@@ -161,7 +151,7 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 	}
 	ciph := cipher.NewCTR(block, testIV)
 
-	//Initialize streamGenerator
+	//Initialize streamGenerator & streams
 	sg := NewStreamGenerator(20, 2)
 	stream := sg.GetStream()
 	stream.src = testSource
@@ -169,7 +159,7 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 	stream.rng = newMockRNG()
 	//Initialize the stream with the generator
 	stream.Read(requestedBytes)
-	//TODO sepearate into multiple tests!
+	//Make sure that the original source is not same after read
 	if bytes.Compare(stream.src, testSource) == 0 {
 		t.Errorf("Fortuna construction did not add randomness to the source")
 	}
@@ -188,11 +178,10 @@ func TestRead_MockRNG(t *testing.T) {
 }
 
 //Test that extend source actually adds to source
-func TestExtendSource(t *testing.T){
+func TestExtendSource(t *testing.T) {
 	requestedBytes := make([]byte, 4125)
 
 	/*Initialize everything needed for stream*/
-
 	//Mock random source, of arbitrarily insufficient (small) size
 	origSrcLen := 2048
 	testSource := make([]byte, origSrcLen, origSrcLen)
@@ -210,8 +199,6 @@ func TestExtendSource(t *testing.T){
 		t.Errorf("Extend source did not append to source when it should have")
 	}
 }
-
-
 
 // Read read a length smaller than the currently existing source
 //In this case, extend source should not be called, thus the len of src should not change

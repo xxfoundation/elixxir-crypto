@@ -54,14 +54,14 @@ func NewStreamGenerator(scalingFactor uint, streamCount uint) *StreamGenerator {
 //Bookkeeping slice for streams made
 func (sg *StreamGenerator) NewStream() *Stream {
 	if sg.numStreams == sg.maxStreams {
-		jww.FATAL.Panicln("Attempting to create too many streams")
+		jww.FATAL.Panicf("Attempting to create too many streams")
 		return &Stream{}
 	}
 
 	tmpStream := &Stream{
 		streamGen:  sg,
 		numStream:  sg.numStreams,
-		entropyCnt: 0, //Some default value for our use?,
+		entropyCnt: 0,
 	}
 	sg.streams = append(sg.streams, tmpStream)
 	sg.numStreams++
@@ -129,8 +129,7 @@ func (s *Stream) Read(b []byte) int {
 }
 
 // If the source is not large for the amount to be read in, extend the source
-// using the Fortuna construction.
-// In usage, src will initially pull from Linux's rng
+// using the Fortuna construction. In usage, src will initially pull from Linux's rng
 func (s *Stream) extendSource(extensionLen int) {
 	//Initialize key and block
 	fortunaHash := crypto.SHA256.New()
@@ -139,11 +138,11 @@ func (s *Stream) extendSource(extensionLen int) {
 
 	block, err := aes.NewCipher(key[:aes.BlockSize])
 	if err != nil {
-		jww.ERROR.Println(err)
+		jww.ERROR.Printf(err)
 	}
 	//Make sure the key is the key size (32 bytes), panic otherwise
 	if len(key) != 32 {
-		panic("The key is not the correct length (ie not 32 bytes)!")
+		jww.ERROR.Printf("The key is not the correct length (ie not 32 bytes)!")
 	}
 	aesRngBuf := make([]byte, aes.BlockSize+len(key))
 	var temp uint16 = 0
@@ -159,14 +158,13 @@ func (s *Stream) extendSource(extensionLen int) {
 		streamCipher.XORKeyStream(aesRngBuf[aes.BlockSize:], counter)
 
 		//So there is no predictable iv appended to the random src
-		appendTmp := aesRngBuf[aes.BlockSize:aes.BlockSize+16]
+		appendTmp := aesRngBuf[aes.BlockSize : aes.BlockSize+16]
 		s.src = append(s.src, appendTmp...)
 		temp++
 	}
 
 }
 
-// TODO: test this function
 // Sets the required randomness, ie the amount we will read from source by factoring in the amount of entropy we
 // actually have and the sources of entropy we have.
 func (s *Stream) getEntropyNeeded(requestLen uint) uint {
