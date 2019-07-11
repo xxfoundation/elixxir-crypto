@@ -10,7 +10,6 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"fmt"
 	"gitlab.com/elixxir/crypto/csprng"
 	"io"
 	"reflect"
@@ -166,6 +165,39 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 	}
 }
 
+// Read read a length smaller than the currently existing source
+//In this case, extend source should not be called, thus the len of src should not change
+func TestRead_ReadLessThanSource(t *testing.T) {
+	sg := NewStreamGenerator(20, 2)
+	stream := sg.GetStream()
+	requestedBytes := make([]byte, 20)
+	origSrcLen := 2048
+	testSource := make([]byte, origSrcLen, origSrcLen)
+
+	//Initialize everything needed in stream for a read
+	_, err := io.ReadFull(rand.Reader, testSource)
+	if err != nil {
+		panic(err.Error())
+	}
+	//Mock block cipher
+	testKey := make([]byte, 32)
+	testIV := make([]byte, aes.BlockSize)
+	block, err := aes.NewCipher(testKey[:aes.BlockSize])
+	if err != nil {
+		panic(err)
+	}
+	ciph := cipher.NewCTR(block, testIV)
+
+	stream.src = testSource
+	stream.AESCtr = ciph
+	stream.rng = csprng.NewSystemRNG()
+
+	stream.Read(requestedBytes)
+	if len(stream.src) != origSrcLen || stream.entropyCnt == 0 {
+		t.Errorf("Unexpected lengthening of the stream's source")
+	}
+}
+
 //Test with a mock read that returns predictably every time
 func TestRead_MockRNG(t *testing.T) {
 	sg := NewStreamGenerator(20, 2)
@@ -198,41 +230,6 @@ func TestExtendSource(t *testing.T) {
 
 	if origSrcLen == len(stream.src) || len(stream.src) < len(requestedBytes) {
 		t.Errorf("Extend source did not append to source when it should have")
-	}
-}
-
-// Read read a length smaller than the currently existing source
-//In this case, extend source should not be called, thus the len of src should not change
-func TestRead_ReadLessThanSource(t *testing.T) {
-	sg := NewStreamGenerator(20, 2)
-	stream := sg.GetStream()
-	requestedBytes := make([]byte, 20)
-	origSrcLen := 2048
-	testSource := make([]byte, origSrcLen, origSrcLen)
-
-	//Initialize everything needed in stream for a read
-	_, err := io.ReadFull(rand.Reader, testSource)
-	if err != nil {
-		panic(err.Error())
-	}
-	fmt.Println(stream.entropyCnt)
-	//Mock block cipher
-	testKey := make([]byte, 32)
-	testIV := make([]byte, aes.BlockSize)
-	block, err := aes.NewCipher(testKey[:aes.BlockSize])
-	if err != nil {
-		panic(err)
-	}
-	ciph := cipher.NewCTR(block, testIV)
-
-	stream.src = testSource
-	stream.AESCtr = ciph
-	stream.rng = csprng.NewSystemRNG()
-
-	stream.Read(requestedBytes)
-	fmt.Println(stream.entropyCnt)
-	if len(stream.src) != origSrcLen || stream.entropyCnt == 0 {
-		t.Errorf("Unexpected lengthening of the stream's source")
 	}
 }
 
