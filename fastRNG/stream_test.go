@@ -177,10 +177,6 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 	}
 }
 
-func TestExtendSource(t *testing.T){
-
-}
-
 //Test with a mock read that returns predictably every time
 func TestRead_MockRNG(t *testing.T) {
 	sg := NewStreamGenerator(20, 2)
@@ -192,6 +188,32 @@ func TestRead_MockRNG(t *testing.T) {
 		t.Errorf("Mock read failed")
 	}
 }
+
+//Test that extend source actually adds to source
+func TestExtendSource(t *testing.T){
+	requestedBytes := make([]byte, 4125)
+
+	/*Initialize everything needed for stream*/
+
+	//Mock random source, of arbitrarily insufficient (small) size
+	origSrcLen := 2048
+	testSource := make([]byte, origSrcLen, origSrcLen)
+	_, err := io.ReadFull(rand.Reader, testSource)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	sg := NewStreamGenerator(20, 2)
+	stream := sg.GetStream()
+
+	stream.extendSource(len(requestedBytes))
+
+	if origSrcLen == len(stream.src) {
+		t.Errorf("Extend source did not append to source when it should have")
+	}
+}
+
+
 
 // Read read a length smaller than the currently existing source
 //In this case, extend source should not be called, thus the len of src should not change
