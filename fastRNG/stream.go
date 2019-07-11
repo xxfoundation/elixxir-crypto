@@ -4,7 +4,7 @@
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
 
-// Implementation of the Fortuna construction as specified by Ferguson, Schnier and Kohno
+// Implementation of the Fortuna construction as specified by Ferguson, Schneier and Kohno
 // in 'Cryptography Engineering: Design Principles and Practical Applications'
 // Link: https://www.schneier.com/academic/paperfiles/fortuna.pdf
 package fastRNG
