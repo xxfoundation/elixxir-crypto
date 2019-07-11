@@ -10,7 +10,6 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
 	"io"
@@ -168,11 +167,10 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 	stream.src = testSource
 	stream.AESCtr = ciph
 	stream.rng = newMockRNG()
-	fmt.Println(stream.AESCtr)
 	//Initialize the stream with the generator
 	stream.Read(requestedBytes)
 	//TODO sepearate into multiple tests!
-	if len(stream.src) < len(requestedBytes) || bytes.Compare(stream.src, testSource) == 0 {
+	if bytes.Compare(stream.src, testSource) == 0 {
 		t.Errorf("Fortuna construction did not add randomness to the source")
 	}
 }
@@ -208,7 +206,7 @@ func TestExtendSource(t *testing.T){
 
 	stream.extendSource(len(requestedBytes))
 
-	if origSrcLen == len(stream.src) {
+	if origSrcLen == len(stream.src) || len(stream.src) < len(requestedBytes) {
 		t.Errorf("Extend source did not append to source when it should have")
 	}
 }
@@ -223,7 +221,6 @@ func TestRead_ReadLessThanSource(t *testing.T) {
 	requestedBytes := make([]byte, 20)
 	origSrcLen := 2048
 	testSource := make([]byte, origSrcLen, origSrcLen)
-	fmt.Println(testSource)
 
 	//Initialize everything needed in stream for a read
 	_, err := io.ReadFull(rand.Reader, testSource)
