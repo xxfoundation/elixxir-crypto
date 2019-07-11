@@ -17,7 +17,6 @@ import (
 	"encoding/binary"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
-
 	//"gitlab.com/elixxir/crypto/csprng"
 )
 
@@ -127,6 +126,7 @@ func (s *Stream) Read(b []byte) int {
 	//s.mutex.Unlock()
 	return len(b)
 }
+
 //var fortunaHash = crypto.SHA256
 // If the source is not large for the amount to be read in, extend the source
 // using the Fortuna construction. Need a new block IV every
@@ -178,7 +178,6 @@ func (s *Stream) getEntropyNeeded(requestLen uint) uint {
 }
 
 // Increases the entropy by a factor of the requestedLen
-//arghh
 func (s *Stream) SetEntropyCount(requestedLen uint) {
 	s.entropyCnt += requestedLen * s.streamGen.scalingFactor
 }

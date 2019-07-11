@@ -20,21 +20,19 @@ import (
 )
 
 type mockRNG struct {
-
 }
 
-func newMockRNG()  csprng.Source {
+func newMockRNG() csprng.Source {
 	return &mockRNG{}
 }
 
-func (m *mockRNG) Read(b []byte) (int,error) {
+func (m *mockRNG) Read(b []byte) (int, error) {
 	return 0, nil
 }
 
 func (m *mockRNG) SetSeed(seed []byte) error {
 	return nil
 }
-
 
 //Test the creation of a new stream generator and that it is configured correctly
 func TestNewStreamGenerator(t *testing.T) {
@@ -168,10 +166,10 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 	//sg := NewStreamGenerator(NewSystemRNG, scalingFactor 16, streamCount 2)
 	//Wont need to set entropy count
 	sg := NewStreamGenerator(20, 2)
-	stream := sg.NewStream()
+	stream := sg.GetStream()
 	stream.src = testSource
 	stream.AESCtr = ciph
-	stream.rng = newMockRNG()//csprng.NewSystemRNG()
+	stream.rng = newMockRNG() //csprng.NewSystemRNG()
 	fmt.Println(stream.AESCtr)
 	//Initialize the stream with the generator
 	stream.Read(requestedBytes)
@@ -181,8 +179,9 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 	}
 }
 
+//Test with a mock read that returns predictably every time
 func TestRead_MockRNG(t *testing.T) {
-	sg := NewStreamGenerator(20,2)
+	sg := NewStreamGenerator(20, 2)
 	read := make([]byte, 24)
 	stream := sg.GetStream()
 	stream.rng = newMockRNG()
@@ -192,8 +191,13 @@ func TestRead_MockRNG(t *testing.T) {
 	}
 }
 
-func TestRead_ReadLessThanSource(t *testing.T)  {
-
+// Read read a length smaller than the currently existing source
+func TestRead_ReadLessThanSource(t *testing.T) {
+	sg := NewStreamGenerator(20, 2)
+	stream := sg.GetStream()
+	requestedBytes := make([]byte, 20)
+	testSource := make([]byte, 2048, 2048)
+	fmt.Println(testSource)
 }
 
 // Checking whether requiredRandomness returns zero when the entropyCount is less than the requestedLen
