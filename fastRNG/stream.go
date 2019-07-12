@@ -139,7 +139,7 @@ func (s *Stream) fortuna(b []byte) {
 	for i < len(b) {
 		var extension []byte
 		s.entropyCnt--
-		if(s.entropyCnt==0) {
+		if s.entropyCnt==0 {
 			extension = make([]byte,aes.BlockSize)
 			s.rng.Read(extension)
 		}
