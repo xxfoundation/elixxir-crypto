@@ -92,7 +92,7 @@ func TestGetStream_NewStream(t *testing.T) {
 	}
 }
 
-//Test that a blocked channel will grab a stream when it becomes available
+//Test that a blocked channel will grab a stream what it becomes available
 func TestGetStream_GrabsWaitingStream(t *testing.T) {
 	sg := NewStreamGenerator(12, 3)
 	stream0 := sg.GetStream()
@@ -100,9 +100,25 @@ func TestGetStream_GrabsWaitingStream(t *testing.T) {
 	sg.GetStream()
 	//Allow the main thread to block as streams aren't available, then close it
 	go func() {
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(1 * time.Second)
 		sg.Close(stream0)
 	}()
+	newStream := sg.GetStream()
+	if !reflect.DeepEqual(newStream, stream0) {
+		t.Errorf("The next stream did not grab the correct stream")
+	}
+}
+//Test that a blocked channel will grab a stream that is available
+func TestGetStream_GrabsAlreadyWaitingStream(t *testing.T) {
+	sg := NewStreamGenerator(12, 3)
+	stream0 := sg.GetStream()
+
+	steam1 := sg.GetStream()
+	sg.GetStream()
+	//Allow the main thread to block as streams aren't available, then close it
+	sg.Close(stream0)
+	sg.Close(steam1)
+
 	newStream := sg.GetStream()
 	if !reflect.DeepEqual(newStream, stream0) {
 		t.Errorf("The next stream did not grab the correct stream")
