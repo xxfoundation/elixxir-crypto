@@ -15,7 +15,6 @@ import (
 	"crypto/cipher"
 	_ "crypto/sha256"
 	"encoding/binary"
-	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
 	"hash"
@@ -177,102 +176,6 @@ func Fortuna(src, dst, ext []byte, fortunaHash hash.Hash, counter *[]byte) {
 	streamCipher := cipher.NewCTR(block, iv)
 
 	streamCipher.XORKeyStream(src, *counter)
-
-}
-
-func (s *Stream) fortuna(b []byte) { //, src []byte) {
-	src := s.source //just a block? or the entire thing??
-	var dst []byte
-	i := 0
-	//Initialize indexers to use as block start & end positions
-	startOfBlock := i * 16
-	endOfBlock := (i + 1) * 16
-	//Initialze a counter and hash to be used in the core function
-	hash := crypto.SHA256
-	counter := make([]byte, aes.BlockSize)
-	count := uint16(0)
-	//Go until you have reached the end
-	for endOfBlock < len(b) {
-		count++
-		binary.LittleEndian.PutUint16(counter, count)
-		var extension []byte
-		s.entropyCnt--
-		//where is entropy cnt changed??
-
-		if s.entropyCnt == 0 {
-			extension = make([]byte, aes.BlockSize)
-			_, _ = s.rng.Read(extension)
-		}
-		dst = b[startOfBlock:endOfBlock]
-
-		fortunaCore(src, dst, hash, &counter, extension)
-		src = b[startOfBlock:endOfBlock]
-		startOfBlock = i * aes.BlockSize
-		endOfBlock = (i + 1) * aes.BlockSize
-		i++
-
-	}
-	if startOfBlock > len(b) {
-		startOfBlock = len(b) - 1
-	}
-	endOfBlock = len(b) - 1
-	copy(s.source, b[startOfBlock:endOfBlock])
-}
-
-func fortunaCore(src []byte, dst []byte, hash crypto.Hash, ctr *[]byte, ext []byte) {
-	fortunaHash := hash.New()
-	fortunaHash.Write(src)
-	fortunaHash.Write(ext)
-	key := fortunaHash.Sum(nil)
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		jww.ERROR.Printf(err.Error())
-	}
-	//Make sure the key is the key size (32 bytes), panic otherwise
-	if len(key) != 32 {
-		jww.ERROR.Printf("The key is not the correct length (ie not 32 bytes)!")
-	}
-	streamCipher := cipher.NewCTR(block, *ctr)
-
-	streamCipher.XORKeyStream(src, *ctr)
-
-}
-
-// If the source is not large for the amount to be read in, extend the source
-// using the Fortuna construction. In usage, src will initially pull from Linux's rng
-func (s *Stream) extendSource(extensionLen int) {
-	//Initialize key and block
-	fortunaHash := crypto.SHA256.New()
-	key := fortunaHash.Sum(s.source)
-
-	key = key[len(s.source):]
-	fmt.Println(key)
-	block, err := aes.NewCipher(key[:aes.BlockSize])
-	if err != nil {
-		jww.ERROR.Printf(err.Error())
-	}
-	//Make sure the key is the key size (32 bytes), panic otherwise
-	if len(key) != 32 {
-		jww.ERROR.Printf("The key is not the correct length (ie not 32 bytes)!")
-	}
-	aesRngBuf := make([]byte, aes.BlockSize+len(key))
-	var count uint16 = 0
-	counter := make([]byte, aes.BlockSize)
-	streamCipher := cipher.NewCTR(block, counter)
-
-	//Encrypt the key and counter, inc ctr for next round of generation
-	for len(s.source) < extensionLen {
-		//Increment the temp, place in the counter. When the temp var overflows, the 1 is carried over to the next byte
-		//in counter, treating it like a binary number. Counter is used as the IV
-		binary.LittleEndian.PutUint16(counter, count)
-
-		streamCipher.XORKeyStream(aesRngBuf[aes.BlockSize:], counter)
-
-		//So there is no predictable iv appended to the random src
-		appendTmp := aesRngBuf[aes.BlockSize : aes.BlockSize+16]
-		s.source = append(s.source, appendTmp...)
-		count++
-	}
 
 }
 
