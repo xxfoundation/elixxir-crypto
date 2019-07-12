@@ -7,8 +7,6 @@ package fastRNG
 
 import (
 	"bytes"
-	"crypto/aes"
-	"crypto/cipher"
 	"crypto/rand"
 	"fmt"
 	"gitlab.com/elixxir/crypto/csprng"
@@ -132,27 +130,51 @@ func TestClose_WaitingChannelLength(t *testing.T) {
 func TestFortunaConstruction(t *testing.T) {
 	sg := NewStreamGenerator(12, 3)
 	stream0 := sg.GetStream()
-	b := make([]byte, 92)
+	requestedBytes := make([]byte, 92)
 	testSource := make([]byte, 128, 128)
 	_, err := io.ReadFull(rand.Reader, testSource)
 	if err != nil {
 		panic(err.Error())
 	}
-	//Mock block cipher
-	testKey := make([]byte, 32)
-	testIV := make([]byte, aes.BlockSize)
-	block, err := aes.NewCipher(testKey[:aes.BlockSize])
-	if err != nil {
-		panic(err)
-	}
-	ciph := cipher.NewCTR(block, testIV)
 	stream0.source = testSource
 	//stream0.AESCtr = ciph
 	stream0.rng = csprng.NewSystemRNG()
 	fmt.Println(stream0.source)
-	stream0.Read(b)
+	stream0.Read(requestedBytes)
 	fmt.Println(stream0.source)
 
+}
+
+func TestRead_NotByteAligned(t *testing.T)  {
+	defer func() {
+		if r := recover(); r != nil {
+
+		}
+	}()
+	sg := NewStreamGenerator(12, 3)
+	stream0 := sg.GetStream()
+	requestedBytes := make([]byte, 95)
+	testSource := make([]byte, 128, 128)
+	stream0.source = testSource
+	stream0.rng = csprng.NewSystemRNG()
+	stream0.Read(requestedBytes)
+	t.Errorf("Test should have panicked here, read must be aligned by AES blocksize")}
+
+
+func TestRead_ByteAligned(t *testing.T)  {
+	defer func() {
+		if r := recover(); r != nil {
+			t.Errorf("Test should not have panicked here, read must be aligned by AES blocksize")
+		}
+	}()
+	sg := NewStreamGenerator(12, 3)
+	stream0 := sg.GetStream()
+	//96 is a multiple of 16 (AES Blocksize)
+	requestedBytes := make([]byte, 96)
+	testSource := make([]byte, 128, 128)
+	stream0.source = testSource
+	stream0.rng = csprng.NewSystemRNG()
+	stream0.Read(requestedBytes)
 }
 
 // Checking the functionality of appending the source using the Fortuna construction

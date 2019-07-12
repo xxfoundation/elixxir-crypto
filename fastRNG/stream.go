@@ -106,7 +106,7 @@ func (sg *StreamGenerator) Close(stream *Stream) {
 func (s *Stream) Read(b []byte) int {
 	s.mut.Lock()
 	if len(b)%aes.BlockSize != 0 {
-		jww.ERROR.Printf("Requested read length is not byte aligned!")
+		jww.FATAL.Panicf("Requested read length is not byte aligned!")
 	}
 
 	src := s.source //just a block? or the entire thing??
@@ -128,7 +128,7 @@ func (s *Stream) Read(b []byte) int {
 			_, err := s.rng.Read(extension)
 
 			if err != nil {
-				jww.ERROR.Printf(err.Error())
+				jww.FATAL.Panicf(err.Error())
 			}
 			s.entropyCnt = s.streamGen.scalingFactor
 		}
@@ -142,20 +142,6 @@ func (s *Stream) Read(b []byte) int {
 
 	copy(s.source, dst)
 
-	//DO WE NEED THIS ANYMORE?? put this at the top maybe?
-	//Read from source
-	if requiredRandomness := s.getEntropyNeeded(uint(len(b))); requiredRandomness != 0 {
-		_, err := s.rng.Read(s.source[0:requiredRandomness])
-		if err != nil {
-			jww.ERROR.Printf(err.Error())
-		}
-
-		s.SetEntropyCount(uint(len(b)))
-	}
-
-	//Decrease the amount of entropy by how much we read, now that this is known
-	//s.entropyCnt -= uint(len(b))
-
 	s.mut.Unlock()
 	return len(b)
 }
@@ -168,7 +154,7 @@ func Fortuna(src, dst, ext []byte, fortunaHash hash.Hash, counter *[]byte) {
 	key := fortunaHash.Sum(nil)
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		jww.ERROR.Printf(err.Error())
+		jww.FATAL.Panicf(err.Error())
 	}
 	//Make sure the key is the key size (32 bytes), panic otherwise
 	if len(key) != 32 {
