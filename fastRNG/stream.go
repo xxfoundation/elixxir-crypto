@@ -140,7 +140,7 @@ func (s *Stream) Read(b []byte) int {
 		src = b[block*aes.BlockSize : (block+1)*aes.BlockSize]
 	}
 
-	copy(s.source,dst)
+	copy(s.source, dst)
 
 	//DO WE NEED THIS ANYMORE?? put this at the top maybe?
 	//Read from source

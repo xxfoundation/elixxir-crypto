@@ -146,12 +146,12 @@ func TestFortunaConstruction(t *testing.T) {
 		panic(err)
 	}
 	ciph := cipher.NewCTR(block, testIV)
-	stream0.src = testSource
-	stream0.AESCtr = ciph
+	stream0.source = testSource
+	//stream0.AESCtr = ciph
 	stream0.rng = csprng.NewSystemRNG()
-	fmt.Println(stream0.src)
+	fmt.Println(stream0.source)
 	stream0.Read(b)
-	fmt.Println(stream0.src)
+	fmt.Println(stream0.source)
 
 }
 
@@ -169,25 +169,16 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 	if err != nil {
 		panic(err.Error())
 	}
-	//Mock block cipher
-	testKey := make([]byte, 32)
-	testIV := make([]byte, aes.BlockSize)
-	block, err := aes.NewCipher(testKey[:aes.BlockSize])
-	if err != nil {
-		panic(err)
-	}
-	ciph := cipher.NewCTR(block, testIV)
 
 	//Initialize streamGenerator & streams
 	sg := NewStreamGenerator(20, 2)
 	stream := sg.GetStream()
-	stream.src = testSource
-	stream.AESCtr = ciph
+	stream.source = testSource
 	stream.rng = csprng.NewSystemRNG()
 	//Initialize the stream with the generator
 	stream.Read(requestedBytes)
 	//Make sure that the original source and the original entropyCnt are not same after read
-	if bytes.Compare(stream.src, testSource) == 0 || stream.entropyCnt == 0 {
+	if bytes.Compare(stream.source, testSource) == 0 || stream.entropyCnt == 0 {
 		t.Errorf("Fortuna construction did not add randomness to the source")
 	}
 }
@@ -207,20 +198,12 @@ func TestRead_ReadLessThanSource(t *testing.T) {
 		panic(err.Error())
 	}
 	//Mock block cipher
-	testKey := make([]byte, 32)
-	testIV := make([]byte, aes.BlockSize)
-	block, err := aes.NewCipher(testKey[:aes.BlockSize])
-	if err != nil {
-		panic(err)
-	}
-	ciph := cipher.NewCTR(block, testIV)
 
-	stream.src = testSource
-	stream.AESCtr = ciph
+	stream.source = testSource
 	stream.rng = csprng.NewSystemRNG()
 
 	stream.Read(requestedBytes)
-	if len(stream.src) != origSrcLen || stream.entropyCnt == 0 {
+	if len(stream.source) != origSrcLen || stream.entropyCnt == 0 {
 		t.Errorf("Unexpected lengthening of the stream's source")
 	}
 }
