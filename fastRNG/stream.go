@@ -104,11 +104,12 @@ func (sg *StreamGenerator) Close(stream *Stream) {
 // blocksize*scalingFactor bytes are read this functions blocks until it rereads csprng.Source.
 func (s *Stream) Read(b []byte) int {
 	s.mut.Lock()
+	/*
 	//If the requested buffer exceeds the randomness generated thus far, then append until we have enough
 	if len(b) > len(s.src) {
 		s.extendSource(len(b))
 	}
-
+	*/
 	for numBlock := 0; numBlock < len(s.src)/aes.BlockSize; numBlock++ {
 		s.fortuna(b)
 	}
