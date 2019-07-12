@@ -139,7 +139,7 @@ func (s *Stream) fortuna(b []byte) {
 	i := 0
 	startOfBlock := i * 16
 	endOfBlock := (i + 1) * 16
-	fortunaHash := crypto.SHA256
+	hash := crypto.SHA256
 	counter := make([]byte, aes.BlockSize)
 	count := uint16(0)
 	for endOfBlock < len(b) {
@@ -155,7 +155,7 @@ func (s *Stream) fortuna(b []byte) {
 		}
 		dst = b[startOfBlock:endOfBlock]
 
-		fortunaCore(src, dst, fortunaHash, &counter, extension)
+		fortunaCore(src, dst, hash, &counter, extension)
 		src = b[startOfBlock:endOfBlock]
 		startOfBlock = i * 16
 		endOfBlock = (i + 1) * 16
@@ -165,6 +165,19 @@ func (s *Stream) fortuna(b []byte) {
 }
 
 func fortunaCore(src []byte, dst []byte, hash crypto.Hash, ctr *[]byte, ext []byte) {
+	fortunaHash := hash.New()
+	fortunaHash.Write(src)
+	fortunaHash.Write(ext)
+	key := fortunaHash.Sum(nil)
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		jww.ERROR.Printf(err.Error())
+	}
+	//Make sure the key is the key size (32 bytes), panic otherwise
+	if len(key) != 32 {
+		jww.ERROR.Printf("The key is not the correct length (ie not 32 bytes)!")
+	}
+
 
 }
 
