@@ -10,8 +10,8 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"gitlab.com/elixxir/crypto/csprng"
 	"fmt"
+	"gitlab.com/elixxir/crypto/csprng"
 	"io"
 	"reflect"
 	"testing"
@@ -130,10 +130,10 @@ func TestClose_WaitingChannelLength(t *testing.T) {
 }
 
 func TestFortunaConstruction(t *testing.T) {
-	sg := NewStreamGenerator(12,3)
+	sg := NewStreamGenerator(12, 3)
 	stream0 := sg.GetStream()
 	b := make([]byte, 92)
-	testSource := make([]byte,128,128)
+	testSource := make([]byte, 128, 128)
 	_, err := io.ReadFull(rand.Reader, testSource)
 	if err != nil {
 		panic(err.Error())

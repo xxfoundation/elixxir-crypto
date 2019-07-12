@@ -15,9 +15,10 @@ import (
 	"crypto/cipher"
 	_ "crypto/sha256"
 	"encoding/binary"
+	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
-	"fmt"
+	"google.golang.org/grpc"
 	"hash"
 	"sync"
 )
@@ -31,15 +32,14 @@ type StreamGenerator struct {
 }
 
 type Stream struct {
-	streamGen  *StreamGenerator
+	streamGen *StreamGenerator
 	//AESCtr     cipher.Stream
-	entropyCnt uint
-	rng        csprng.Source
-	source     []byte
-	numStream  uint
-	mut        sync.Mutex
+	entropyCnt  uint
+	rng         csprng.Source
+	source      []byte
+	numStream   uint
+	mut         sync.Mutex
 	fortunaHash hash.Hash
-
 }
 
 // NewStreamGenerator creates a StreamGenerator object containing up to streamCount streams.
@@ -62,10 +62,10 @@ func (sg *StreamGenerator) newStream() *Stream {
 		return &Stream{}
 	}
 	tmpStream := &Stream{
-		streamGen:  sg,
-		numStream:  sg.numStreams,
-		entropyCnt: 0,
-		fortunaHash:crypto.SHA256.New(),
+		streamGen:   sg,
+		numStream:   sg.numStreams,
+		entropyCnt:  0,
+		fortunaHash: crypto.SHA256.New(),
 	}
 	sg.streams = append(sg.streams, tmpStream)
 	sg.numStreams++
@@ -107,26 +107,25 @@ func (sg *StreamGenerator) Close(stream *Stream) {
 // blocksize*scalingFactor bytes are read this functions blocks until it rereads csprng.Source.
 func (s *Stream) Read(b []byte) int {
 	s.mut.Lock()
-	if len(b)%aes.BlockSize!=0 {
+	if len(b)%aes.BlockSize != 0 {
 		jww.ERROR.Printf("Requested read length is not byte aligned!")
 	}
 
 	src := s.source //just a block? or the entire thing??
 	var dst []byte
-	i := 0
-	//Initialize indexers to use as block start & end positions
-	startOfBlock := i * 16
-	endOfBlock := (i + 1) * 16
 	//Initialze a counter and hash to be used in the core function
-	counter := make([]byte,aes.BlockSize)
+	counter := make([]byte, aes.BlockSize)
 	count := uint64(0)
-	for block:=0;block<len(b)/aes.BlockSize;block++ {
+
+	aesRngBuf := make([]byte, aes.BlockSize+len(key))
+	for block := 0; block < len(b)/aes.BlockSize; block++ {
 		count++
 		binary.LittleEndian.PutUint16(counter, count)
 		var extension []byte
 		s.entropyCnt--
 		//where is entropy cnt changed??
-
+		count++
+		binary.LittleEndian.PutUint64(counter, count)
 		if s.entropyCnt == 0 {
 			extension = make([]byte, aes.BlockSize)
 			_, err := s.rng.Read(extension)
@@ -134,6 +133,11 @@ func (s *Stream) Read(b []byte) int {
 				jww.ERROR.Printf(err.Error())
 			}
 		}
+
+		dst = b[block*aes.BlockSize : (block+1)*aes.BlockSize]
+
+		Fortuna(src, dst, extension, s.fortunaHash, &counter)
+
 	}
 	//for numBlock := 0; numBlock < len(s.src)/aes.BlockSize; numBlock++ {
 	//src := s.src[numBlock*aes.BlockSize:(numBlock+1)*aes.BlockSize]
@@ -158,6 +162,27 @@ func (s *Stream) Read(b []byte) int {
 	s.AESCtr.XORKeyStream(s.source[:len(b)], b)
 	s.mut.Unlock()
 	return len(b)
+}
+
+func Fortuna(src, dst, ext []byte, fortunaHash hash.Hash, counter *[]byte) {
+	fortunaHash.Reset()
+	fortunaHash.Write(src)
+	fortunaHash.Write(ext)
+
+	key := fortunaHash.Sum(nil)
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		jww.ERROR.Printf(err.Error())
+	}
+	//Make sure the key is the key size (32 bytes), panic otherwise
+	if len(key) != 32 {
+		jww.ERROR.Printf("The key is not the correct length (ie not 32 bytes)!")
+	}
+	iv := make([]byte, aes.BlockSize)
+	streamCipher := cipher.NewCTR(block, iv)
+
+	streamCipher.XORKeyStream(src, *counter)
+
 }
 
 func (s *Stream) fortuna(b []byte) { //, src []byte) {
