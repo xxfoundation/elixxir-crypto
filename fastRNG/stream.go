@@ -104,14 +104,10 @@ func (sg *StreamGenerator) Close(stream *Stream) {
 // blocksize*scalingFactor bytes are read this functions blocks until it rereads csprng.Source.
 func (s *Stream) Read(b []byte) int {
 	s.mut.Lock()
-	/*
-	//If the requested buffer exceeds the randomness generated thus far, then append until we have enough
-	if len(b) > len(s.src) {
-		s.extendSource(len(b))
-	}
-	*/
+
 	for numBlock := 0; numBlock < len(s.src)/aes.BlockSize; numBlock++ {
-		s.fortuna(b)
+		//src := s.src[numBlock*aes.BlockSize:(numBlock+1)*aes.BlockSize]
+		s.fortuna(b,src)
 	}
 
 	//Read from source
@@ -134,7 +130,7 @@ func (s *Stream) Read(b []byte) int {
 	return len(b)
 }
 
-func (s *Stream) fortuna(b []byte) {
+func (s *Stream) fortuna(b []byte){//, src []byte) {
 	src := s.src
 	var dst []byte
 	i := 0
@@ -158,8 +154,8 @@ func (s *Stream) fortuna(b []byte) {
 
 		fortunaCore(src, dst, hash, &counter, extension)
 		src = b[startOfBlock:endOfBlock]
-		startOfBlock = i * 16
-		endOfBlock = (i + 1) * 16
+		startOfBlock = i * aes.BlockSize
+		endOfBlock = (i + 1) * aes.BlockSize
 		i++
 
 	}

@@ -210,29 +210,6 @@ func TestRead_MockRNG(t *testing.T) {
 	}
 }
 
-//Test that extend source actually adds to source
-func TestExtendSource(t *testing.T) {
-	requestedBytes := make([]byte, 4125)
-
-	/*Initialize everything needed for stream*/
-	//Mock random source, of arbitrarily insufficient (small) size
-	origSrcLen := 2048
-	testSource := make([]byte, origSrcLen, origSrcLen)
-	_, err := io.ReadFull(rand.Reader, testSource)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	sg := NewStreamGenerator(20, 2)
-	stream := sg.GetStream()
-
-	stream.extendSource(len(requestedBytes))
-
-	if origSrcLen == len(stream.src) || len(stream.src) < len(requestedBytes) {
-		t.Errorf("Extend source did not append to source when it should have")
-	}
-}
-
 // Checking whether requiredRandomness returns zero when the entropyCount is less than the requestedLen
 func TestGetEntropy_ReturnsZero(t *testing.T) {
 	//Initialize a streamGenerator and stream
