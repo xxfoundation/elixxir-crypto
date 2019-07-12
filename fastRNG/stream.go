@@ -18,7 +18,6 @@ import (
 	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
-	"google.golang.org/grpc"
 	"hash"
 	"sync"
 )
@@ -117,10 +116,9 @@ func (s *Stream) Read(b []byte) int {
 	counter := make([]byte, aes.BlockSize)
 	count := uint64(0)
 
-	aesRngBuf := make([]byte, aes.BlockSize+len(key))
 	for block := 0; block < len(b)/aes.BlockSize; block++ {
 		count++
-		binary.LittleEndian.PutUint16(counter, count)
+		binary.LittleEndian.PutUint64(counter, count)
 		var extension []byte
 		s.entropyCnt--
 		//where is entropy cnt changed??
@@ -138,12 +136,12 @@ func (s *Stream) Read(b []byte) int {
 
 		Fortuna(src, dst, extension, s.fortunaHash, &counter)
 
+		src = b[block*aes.BlockSize : (block+1)*aes.BlockSize]
 	}
-	//for numBlock := 0; numBlock < len(s.src)/aes.BlockSize; numBlock++ {
-	//src := s.src[numBlock*aes.BlockSize:(numBlock+1)*aes.BlockSize]
-	s.fortuna(b)
-	//}
 
+	copy(s.source,dst)
+
+	//DO WE NEED THIS ANYMORE
 	//Read from source
 	if requiredRandomness := s.getEntropyNeeded(uint(len(b))); requiredRandomness != 0 {
 		_, err := s.rng.Read(s.source[0:requiredRandomness])
@@ -157,9 +155,6 @@ func (s *Stream) Read(b []byte) int {
 	//Decrease the amount of entropy by how much we read, now that this is known
 	s.entropyCnt -= uint(len(b))
 
-	//Make 'new randomness' by changing the stale values (already read data read through xor'ring
-	//We may also just as easily retire the read values. This is up to discussion?
-	s.AESCtr.XORKeyStream(s.source[:len(b)], b)
 	s.mut.Unlock()
 	return len(b)
 }
