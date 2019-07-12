@@ -17,7 +17,8 @@ import (
 	"encoding/binary"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
-	"golang.org/x/tools/go/ssa/interp/testdata/src/fmt"
+	"fmt"
+	"hash"
 	"sync"
 )
 
@@ -31,12 +32,14 @@ type StreamGenerator struct {
 
 type Stream struct {
 	streamGen  *StreamGenerator
-	AESCtr     cipher.Stream
+	//AESCtr     cipher.Stream
 	entropyCnt uint
 	rng        csprng.Source
-	src        []byte
+	source     []byte
 	numStream  uint
 	mut        sync.Mutex
+	fortunaHash hash.Hash
+
 }
 
 // NewStreamGenerator creates a StreamGenerator object containing up to streamCount streams.
@@ -58,11 +61,11 @@ func (sg *StreamGenerator) newStream() *Stream {
 		jww.FATAL.Panicf("Attempting to create too many streams")
 		return &Stream{}
 	}
-
 	tmpStream := &Stream{
 		streamGen:  sg,
 		numStream:  sg.numStreams,
 		entropyCnt: 0,
+		fortunaHash:crypto.SHA256.New(),
 	}
 	sg.streams = append(sg.streams, tmpStream)
 	sg.numStreams++
@@ -104,7 +107,34 @@ func (sg *StreamGenerator) Close(stream *Stream) {
 // blocksize*scalingFactor bytes are read this functions blocks until it rereads csprng.Source.
 func (s *Stream) Read(b []byte) int {
 	s.mut.Lock()
+	if len(b)%aes.BlockSize!=0 {
+		jww.ERROR.Printf("Requested read length is not byte aligned!")
+	}
 
+	src := s.source //just a block? or the entire thing??
+	var dst []byte
+	i := 0
+	//Initialize indexers to use as block start & end positions
+	startOfBlock := i * 16
+	endOfBlock := (i + 1) * 16
+	//Initialze a counter and hash to be used in the core function
+	counter := make([]byte,aes.BlockSize)
+	count := uint64(0)
+	for block:=0;block<len(b)/aes.BlockSize;block++ {
+		count++
+		binary.LittleEndian.PutUint16(counter, count)
+		var extension []byte
+		s.entropyCnt--
+		//where is entropy cnt changed??
+
+		if s.entropyCnt == 0 {
+			extension = make([]byte, aes.BlockSize)
+			_, err := s.rng.Read(extension)
+			if err != nil {
+				jww.ERROR.Printf(err.Error())
+			}
+		}
+	}
 	//for numBlock := 0; numBlock < len(s.src)/aes.BlockSize; numBlock++ {
 	//src := s.src[numBlock*aes.BlockSize:(numBlock+1)*aes.BlockSize]
 	s.fortuna(b)
@@ -112,7 +142,7 @@ func (s *Stream) Read(b []byte) int {
 
 	//Read from source
 	if requiredRandomness := s.getEntropyNeeded(uint(len(b))); requiredRandomness != 0 {
-		_, err := s.rng.Read(s.src[0:requiredRandomness])
+		_, err := s.rng.Read(s.source[0:requiredRandomness])
 		if err != nil {
 			jww.ERROR.Printf(err.Error())
 		}
@@ -125,13 +155,13 @@ func (s *Stream) Read(b []byte) int {
 
 	//Make 'new randomness' by changing the stale values (already read data read through xor'ring
 	//We may also just as easily retire the read values. This is up to discussion?
-	s.AESCtr.XORKeyStream(s.src[:len(b)], b)
+	s.AESCtr.XORKeyStream(s.source[:len(b)], b)
 	s.mut.Unlock()
 	return len(b)
 }
 
 func (s *Stream) fortuna(b []byte) { //, src []byte) {
-	src := s.src //just a block? or the entire thing??
+	src := s.source //just a block? or the entire thing??
 	var dst []byte
 	i := 0
 	//Initialize indexers to use as block start & end positions
@@ -166,7 +196,7 @@ func (s *Stream) fortuna(b []byte) { //, src []byte) {
 		startOfBlock = len(b) - 1
 	}
 	endOfBlock = len(b) - 1
-	copy(s.src, b[startOfBlock:endOfBlock])
+	copy(s.source, b[startOfBlock:endOfBlock])
 }
 
 func fortunaCore(src []byte, dst []byte, hash crypto.Hash, ctr *[]byte, ext []byte) {
@@ -193,9 +223,9 @@ func fortunaCore(src []byte, dst []byte, hash crypto.Hash, ctr *[]byte, ext []by
 func (s *Stream) extendSource(extensionLen int) {
 	//Initialize key and block
 	fortunaHash := crypto.SHA256.New()
-	key := fortunaHash.Sum(s.src)
+	key := fortunaHash.Sum(s.source)
 
-	key = key[len(s.src):]
+	key = key[len(s.source):]
 	fmt.Println(key)
 	block, err := aes.NewCipher(key[:aes.BlockSize])
 	if err != nil {
@@ -211,7 +241,7 @@ func (s *Stream) extendSource(extensionLen int) {
 	streamCipher := cipher.NewCTR(block, counter)
 
 	//Encrypt the key and counter, inc ctr for next round of generation
-	for len(s.src) < extensionLen {
+	for len(s.source) < extensionLen {
 		//Increment the temp, place in the counter. When the temp var overflows, the 1 is carried over to the next byte
 		//in counter, treating it like a binary number. Counter is used as the IV
 		binary.LittleEndian.PutUint16(counter, count)
@@ -220,7 +250,7 @@ func (s *Stream) extendSource(extensionLen int) {
 
 		//So there is no predictable iv appended to the random src
 		appendTmp := aesRngBuf[aes.BlockSize : aes.BlockSize+16]
-		s.src = append(s.src, appendTmp...)
+		s.source = append(s.source, appendTmp...)
 		count++
 	}
 

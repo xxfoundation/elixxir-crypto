@@ -11,6 +11,7 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"gitlab.com/elixxir/crypto/csprng"
+	"fmt"
 	"io"
 	"reflect"
 	"testing"
@@ -129,6 +130,28 @@ func TestClose_WaitingChannelLength(t *testing.T) {
 }
 
 func TestFortunaConstruction(t *testing.T) {
+	sg := NewStreamGenerator(12,3)
+	stream0 := sg.GetStream()
+	b := make([]byte, 92)
+	testSource := make([]byte,128,128)
+	_, err := io.ReadFull(rand.Reader, testSource)
+	if err != nil {
+		panic(err.Error())
+	}
+	//Mock block cipher
+	testKey := make([]byte, 32)
+	testIV := make([]byte, aes.BlockSize)
+	block, err := aes.NewCipher(testKey[:aes.BlockSize])
+	if err != nil {
+		panic(err)
+	}
+	ciph := cipher.NewCTR(block, testIV)
+	stream0.src = testSource
+	stream0.AESCtr = ciph
+	stream0.rng = csprng.NewSystemRNG()
+	fmt.Println(stream0.src)
+	stream0.Read(b)
+	fmt.Println(stream0.src)
 
 }
 
