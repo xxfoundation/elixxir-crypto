@@ -115,7 +115,8 @@ func (s *Stream) Read(b []byte) int {
 	//Initialze a counter and hash to be used in the core function
 	counter := make([]byte, aes.BlockSize)
 	count := uint64(0)
-
+	fmt.Println("in read, source: ")
+	fmt.Println(s.source)
 	for block := 0; block < len(b)/aes.BlockSize; block++ {
 		count++
 		binary.LittleEndian.PutUint64(counter, count)
@@ -136,21 +137,21 @@ func (s *Stream) Read(b []byte) int {
 
 		dst = b[block*aes.BlockSize : (block+1)*aes.BlockSize]
 
-		Fortuna(src, dst, extension, s.fortunaHash, &counter)
+		Fortuna(&src, &dst, &extension, s.fortunaHash, &counter)
 
 		src = b[block*aes.BlockSize : (block+1)*aes.BlockSize]
 	}
 
-	copy(s.source, dst)
+	copy(s.source, b)
 
 	s.mut.Unlock()
 	return len(b)
 }
 
-func Fortuna(src, dst, ext []byte, fortunaHash hash.Hash, counter *[]byte) {
+func Fortuna(src, dst, ext *[]byte, fortunaHash hash.Hash, counter *[]byte) {
 	fortunaHash.Reset()
-	fortunaHash.Write(src)
-	fortunaHash.Write(ext)
+	fortunaHash.Write(*src)
+	fortunaHash.Write(*ext)
 
 	key := fortunaHash.Sum(nil)
 	block, err := aes.NewCipher(key)
@@ -164,7 +165,11 @@ func Fortuna(src, dst, ext []byte, fortunaHash hash.Hash, counter *[]byte) {
 	iv := make([]byte, aes.BlockSize)
 	streamCipher := cipher.NewCTR(block, iv)
 	fmt.Println(*counter)
+	fmt.Println("in fortuna, source")
 	fmt.Println(src)
-	streamCipher.XORKeyStream(src, *counter)
+	streamCipher.XORKeyStream(*src, *counter)
+	fmt.Println("in fortune, source post")
+	fmt.Println(src)
+	*src = (*src)[:aes.BlockSize]
 
 }
