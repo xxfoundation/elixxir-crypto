@@ -105,10 +105,10 @@ func (sg *StreamGenerator) Close(stream *Stream) {
 func (s *Stream) Read(b []byte) int {
 	s.mut.Lock()
 
-	for numBlock := 0; numBlock < len(s.src)/aes.BlockSize; numBlock++ {
-		//src := s.src[numBlock*aes.BlockSize:(numBlock+1)*aes.BlockSize]
-		s.fortuna(b,src)
-	}
+	//for numBlock := 0; numBlock < len(s.src)/aes.BlockSize; numBlock++ {
+	//src := s.src[numBlock*aes.BlockSize:(numBlock+1)*aes.BlockSize]
+	s.fortuna(b)
+	//}
 
 	//Read from source
 	if requiredRandomness := s.getEntropyNeeded(uint(len(b))); requiredRandomness != 0 {
@@ -130,15 +130,18 @@ func (s *Stream) Read(b []byte) int {
 	return len(b)
 }
 
-func (s *Stream) fortuna(b []byte){//, src []byte) {
-	src := s.src
+func (s *Stream) fortuna(b []byte) { //, src []byte) {
+	src := s.src //just a block? or the entire thing??
 	var dst []byte
 	i := 0
+	//Initialize indexers to use as block start & end positions
 	startOfBlock := i * 16
 	endOfBlock := (i + 1) * 16
+	//Initialze a counter and hash to be used in the core function
 	hash := crypto.SHA256
 	counter := make([]byte, aes.BlockSize)
 	count := uint16(0)
+	//Go until you have reached the end
 	for endOfBlock < len(b) {
 		count++
 		binary.LittleEndian.PutUint16(counter, count)

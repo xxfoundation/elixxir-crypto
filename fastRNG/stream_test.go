@@ -128,6 +128,10 @@ func TestClose_WaitingChannelLength(t *testing.T) {
 	}
 }
 
+func TestFortunaConstruction(t *testing.T) {
+
+}
+
 // Checking the functionality of appending the source using the Fortuna construction
 func TestRead_ReadMoreThanSource(t *testing.T) {
 
