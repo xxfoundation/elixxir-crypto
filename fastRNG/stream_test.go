@@ -130,7 +130,7 @@ func TestClose_WaitingChannelLength(t *testing.T) {
 func TestFortunaConstruction(t *testing.T) {
 	sg := NewStreamGenerator(12, 3)
 	stream0 := sg.GetStream()
-	requestedBytes := make([]byte, 92)
+	requestedBytes := make([]byte, 96)
 	testSource := make([]byte, 128, 128)
 	_, err := io.ReadFull(rand.Reader, testSource)
 	if err != nil {
@@ -145,7 +145,9 @@ func TestFortunaConstruction(t *testing.T) {
 
 }
 
-func TestRead_NotByteAligned(t *testing.T)  {
+// Tests that the read length is byte aligned
+// Tests that the read length is byte aligned
+func TestRead_NotByteAligned(t *testing.T) {
 	defer func() {
 		if r := recover(); r != nil {
 
@@ -158,10 +160,10 @@ func TestRead_NotByteAligned(t *testing.T)  {
 	stream0.source = testSource
 	stream0.rng = csprng.NewSystemRNG()
 	stream0.Read(requestedBytes)
-	t.Errorf("Test should have panicked here, read must be aligned by AES blocksize")}
+	t.Errorf("Test should have panicked here, read must be aligned by AES blocksize")
+}
 
-
-func TestRead_ByteAligned(t *testing.T)  {
+func TestRead_ByteAligned(t *testing.T) {
 	defer func() {
 		if r := recover(); r != nil {
 			t.Errorf("Test should not have panicked here, read must be aligned by AES blocksize")
@@ -181,12 +183,12 @@ func TestRead_ByteAligned(t *testing.T)  {
 func TestRead_ReadMoreThanSource(t *testing.T) {
 
 	//A large byte array, of which you will read size from src byte array
-	requestedBytes := make([]byte, 4125)
+	requestedBytes := make([]byte, 128)
 
 	/*Initialize everything needed for stream*/
 
 	//Mock random source, of arbitrarily insufficient (small) size
-	testSource := make([]byte, 8, 8)
+	testSource := make([]byte, 16, 16)
 	_, err := io.ReadFull(rand.Reader, testSource)
 	if err != nil {
 		panic(err.Error())
@@ -198,9 +200,13 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 	stream.source = testSource
 	stream.rng = csprng.NewSystemRNG()
 	//Initialize the stream with the generator
+	fmt.Println("orig source")
+	fmt.Println(testSource)
 	stream.Read(requestedBytes)
+	fmt.Println("after read")
+	fmt.Println(stream.source)
 	//Make sure that the original source and the original entropyCnt are not same after read
-	if bytes.Compare(stream.source, testSource) == 0 || stream.entropyCnt == 0 {
+	if bytes.Compare(stream.source, testSource) == 0 {
 		t.Errorf("Fortuna construction did not add randomness to the source")
 	}
 }
@@ -210,7 +216,7 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 func TestRead_ReadLessThanSource(t *testing.T) {
 	sg := NewStreamGenerator(20, 2)
 	stream := sg.GetStream()
-	requestedBytes := make([]byte, 20)
+	requestedBytes := make([]byte, 32)
 	origSrcLen := 2048
 	testSource := make([]byte, origSrcLen, origSrcLen)
 
@@ -239,48 +245,5 @@ func TestRead_MockRNG(t *testing.T) {
 	length, err := stream.rng.Read(read)
 	if length != 0 || err != nil {
 		t.Errorf("Mock read failed")
-	}
-}
-
-// Checking whether requiredRandomness returns zero when the entropyCount is less than the requestedLen
-func TestGetEntropy_ReturnsZero(t *testing.T) {
-	//Initialize a streamGenerator and stream
-	sg := NewStreamGenerator(16, 2)
-
-	stream := sg.GetStream()
-	//Try to read less that the amount of entropy
-	var lessThanEqualEntropy uint = 0
-	requiredRandomness := stream.getEntropyNeeded(lessThanEqualEntropy)
-	//Since we are reading less than entropy, reqLen-entropy<0, in which case we return 0
-	//This is tested
-	if requiredRandomness != 0 {
-		t.Errorf("Required randomness is not being calculated correctly")
-	}
-
-}
-
-func TestGetEntropy_ReturnsNonZero(t *testing.T) {
-	//Initialize a streamGenerator and stream
-	sg := NewStreamGenerator(16, 20)
-
-	stream := sg.GetStream()
-	//Try to read more that the amount of entropy
-	var greaterThanEntropy uint = 1
-	requiredRandomness := stream.getEntropyNeeded(greaterThanEntropy)
-	if requiredRandomness == 0 {
-		t.Errorf("Required randomness is not being calculated correctly")
-	}
-}
-
-//Testing whether the entropy count is being set correctly
-func TestStream_SetEntropyCount(t *testing.T) {
-	sg := NewStreamGenerator(16, 20)
-
-	stream := sg.GetStream()
-	stream.SetEntropyCount(2)
-	var testVal uint = 0 + 2*16
-
-	if stream.entropyCnt != testVal {
-		t.Errorf("Entropy count not reset correctly")
 	}
 }

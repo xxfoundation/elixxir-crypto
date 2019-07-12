@@ -15,6 +15,7 @@ import (
 	"crypto/cipher"
 	_ "crypto/sha256"
 	"encoding/binary"
+	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
 	"hash"
@@ -162,26 +163,8 @@ func Fortuna(src, dst, ext []byte, fortunaHash hash.Hash, counter *[]byte) {
 	}
 	iv := make([]byte, aes.BlockSize)
 	streamCipher := cipher.NewCTR(block, iv)
-
+	fmt.Println(*counter)
+	fmt.Println(src)
 	streamCipher.XORKeyStream(src, *counter)
 
-}
-
-// Sets the required randomness, ie the amount we will read from source by factoring in the amount of entropy we
-// actually have and the sources of entropy we have.
-func (s *Stream) getEntropyNeeded(requestLen uint) uint {
-	//Such that the return value is never negative (requestedLen - entropyCnt) would be negative
-	// if entropyCnt > requestedLen
-	if s.entropyCnt >= requestLen {
-		return 0
-	}
-
-	//The addition (scalingFactor - 1) ensures that the returned value is always a ceiling rather than a floor
-	//as an integer. e.g ceiling(a/b) = (a+b-1)/b
-	return (requestLen - s.entropyCnt + s.streamGen.scalingFactor - 1) / s.streamGen.scalingFactor
-}
-
-// Increases the entropy by a factor of the requestedLen
-func (s *Stream) SetEntropyCount(requestedLen uint) {
-	s.entropyCnt += requestedLen * s.streamGen.scalingFactor
 }
