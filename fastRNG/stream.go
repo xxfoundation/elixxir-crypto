@@ -123,7 +123,7 @@ func (s *Stream) Read(b []byte) int {
 		//where is entropy cnt changed??
 		count++
 		binary.LittleEndian.PutUint64(counter, count)
-		if s.entropyCnt == 0 {
+		if s.entropyCnt <= 0 {
 			extension = make([]byte, aes.BlockSize)
 			_, err := s.rng.Read(extension)
 
