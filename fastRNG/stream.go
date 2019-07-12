@@ -126,9 +126,11 @@ func (s *Stream) Read(b []byte) int {
 		if s.entropyCnt == 0 {
 			extension = make([]byte, aes.BlockSize)
 			_, err := s.rng.Read(extension)
+
 			if err != nil {
 				jww.ERROR.Printf(err.Error())
 			}
+			s.entropyCnt = s.streamGen.scalingFactor
 		}
 
 		dst = b[block*aes.BlockSize : (block+1)*aes.BlockSize]
@@ -140,7 +142,7 @@ func (s *Stream) Read(b []byte) int {
 
 	copy(s.source,dst)
 
-	//DO WE NEED THIS ANYMORE
+	//DO WE NEED THIS ANYMORE?? put this at the top maybe?
 	//Read from source
 	if requiredRandomness := s.getEntropyNeeded(uint(len(b))); requiredRandomness != 0 {
 		_, err := s.rng.Read(s.source[0:requiredRandomness])
@@ -152,7 +154,7 @@ func (s *Stream) Read(b []byte) int {
 	}
 
 	//Decrease the amount of entropy by how much we read, now that this is known
-	s.entropyCnt -= uint(len(b))
+	//s.entropyCnt -= uint(len(b))
 
 	s.mut.Unlock()
 	return len(b)
