@@ -105,7 +105,7 @@ func (sg *StreamGenerator) Close(stream *Stream) {
 // blocksize into AES then run it until blockSize*scalingFactor bytes are read. Every time
 // blocksize*scalingFactor bytes are read this functions blocks until it rereads csprng.Source.
 func (s *Stream) Read(b []byte) int {
-	s.mut.Lock()
+	//s.mut.Lock()
 	if len(b)%aes.BlockSize != 0 {
 		jww.FATAL.Panicf("Requested read length is not byte aligned!")
 	}
@@ -121,10 +121,16 @@ func (s *Stream) Read(b []byte) int {
 		count++
 		binary.LittleEndian.PutUint64(counter, count)
 		var extension []byte
-		s.entropyCnt--
+		fmt.Println("lololol")
+		fmt.Println(s.entropyCnt)
+		if s.entropyCnt != 0 {
+			s.entropyCnt--
+		}
 		//where is entropy cnt changed??
 		count++
 		binary.LittleEndian.PutUint64(counter, count)
+		fmt.Println("lololol")
+		fmt.Println(s.entropyCnt)
 		if s.entropyCnt <= 0 {
 			extension = make([]byte, aes.BlockSize)
 			_, err := s.rng.Read(extension)
@@ -144,7 +150,7 @@ func (s *Stream) Read(b []byte) int {
 
 	copy(s.source, b)
 
-	s.mut.Unlock()
+	//s.mut.Unlock()
 	return len(b)
 }
 

@@ -6,6 +6,7 @@
 package fastRNG
 
 import (
+	"bytes"
 	"crypto/rand"
 	"fmt"
 	"gitlab.com/elixxir/crypto/csprng"
@@ -108,6 +109,7 @@ func TestGetStream_GrabsWaitingStream(t *testing.T) {
 		t.Errorf("The next stream did not grab the correct stream")
 	}
 }
+
 //Test that a blocked channel will grab a stream that is available
 func TestGetStream_GrabsAlreadyWaitingStream(t *testing.T) {
 	sg := NewStreamGenerator(12, 3)
@@ -196,13 +198,11 @@ func TestRead_ByteAligned(t *testing.T) {
 
 // Checking the functionality of appending the source using the Fortuna construction
 //TODO problem: what should happen when you try to read more than is actually in source
-/*
+
 func TestRead_ReadMoreThanSource(t *testing.T) {
 
 	//A large byte array, of which you will read size from src byte array
 	requestedBytes := make([]byte, 128)
-
-
 
 	//Mock random source, of arbitrarily insufficient (small) size
 	testSource := make([]byte, 16, 16)
@@ -227,7 +227,7 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 		t.Errorf("Fortuna construction did not add randomness to the source")
 	}
 }
-*/
+
 // Read read a length smaller than the currently existing source
 //In this case, extend source should not be called, thus the len of src should not change
 func TestRead_ReadLessThanSource(t *testing.T) {
