@@ -108,9 +108,9 @@ func (s *Stream) Read(b []byte) int {
 	if len(b) > len(s.src) {
 		s.extendSource(len(b))
 	}
+
 	for numBlock := 0; numBlock < len(s.src)/aes.BlockSize; numBlock++ {
 		s.fortuna(b)
-
 	}
 
 	//Read from source
@@ -151,7 +151,7 @@ func (s *Stream) fortuna(b []byte) {
 
 		if s.entropyCnt == 0 {
 			extension = make([]byte, aes.BlockSize)
-			s.rng.Read(extension)
+			_, _ = s.rng.Read(extension)
 		}
 		dst = b[startOfBlock:endOfBlock]
 
@@ -162,6 +162,11 @@ func (s *Stream) fortuna(b []byte) {
 		i++
 
 	}
+	if startOfBlock > len(b) {
+		startOfBlock = len(b) - 1
+	}
+	endOfBlock = len(b) - 1
+	copy(s.src, b[startOfBlock:endOfBlock])
 }
 
 func fortunaCore(src []byte, dst []byte, hash crypto.Hash, ctr *[]byte, ext []byte) {
@@ -177,7 +182,9 @@ func fortunaCore(src []byte, dst []byte, hash crypto.Hash, ctr *[]byte, ext []by
 	if len(key) != 32 {
 		jww.ERROR.Printf("The key is not the correct length (ie not 32 bytes)!")
 	}
+	streamCipher := cipher.NewCTR(block, *ctr)
 
+	streamCipher.XORKeyStream(src, *ctr)
 
 }
 
