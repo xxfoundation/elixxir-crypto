@@ -17,6 +17,7 @@ import (
 	"encoding/binary"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
+	"golang.org/x/tools/go/ssa/interp/testdata/src/fmt"
 	"sync"
 )
 
@@ -107,7 +108,7 @@ func (s *Stream) Read(b []byte) int {
 	if len(b) > len(s.src) {
 		s.extendSource(len(b))
 	}
-	for numBlock := 0; numBlock<len(s.src)/aes.BlockSize; numBlock++ {
+	for numBlock := 0; numBlock < len(s.src)/aes.BlockSize; numBlock++ {
 		s.fortuna(b)
 
 	}
@@ -136,20 +137,36 @@ func (s *Stream) fortuna(b []byte) {
 	src := s.src
 	var dst []byte
 	i := 0
-	for i < len(b) {
+	startOfBlock := i * 16
+	endOfBlock := (i + 1) * 16
+	fortunaHash := crypto.SHA256
+	counter := make([]byte, aes.BlockSize)
+	count := uint16(0)
+	for endOfBlock < len(b) {
+		count++
+		binary.LittleEndian.PutUint16(counter, count)
 		var extension []byte
 		s.entropyCnt--
-		if s.entropyCnt==0 {
-			extension = make([]byte,aes.BlockSize)
+		//where is entropy cnt changed??
+
+		if s.entropyCnt == 0 {
+			extension = make([]byte, aes.BlockSize)
 			s.rng.Read(extension)
 		}
+		dst = b[startOfBlock:endOfBlock]
+
+		fortunaCore(src, dst, fortunaHash, &counter, extension)
+		src = b[startOfBlock:endOfBlock]
+		startOfBlock = i * 16
+		endOfBlock = (i + 1) * 16
+		i++
+
 	}
 }
 
-func fortunaCore(src []byte, dst []byte, hash crypto.Hash, ctr []*byte, ext []byte)  {
+func fortunaCore(src []byte, dst []byte, hash crypto.Hash, ctr *[]byte, ext []byte) {
 
 }
-
 
 // If the source is not large for the amount to be read in, extend the source
 // using the Fortuna construction. In usage, src will initially pull from Linux's rng
@@ -157,8 +174,9 @@ func (s *Stream) extendSource(extensionLen int) {
 	//Initialize key and block
 	fortunaHash := crypto.SHA256.New()
 	key := fortunaHash.Sum(s.src)
-	key = key[len(s.src):]
 
+	key = key[len(s.src):]
+	fmt.Println(key)
 	block, err := aes.NewCipher(key[:aes.BlockSize])
 	if err != nil {
 		jww.ERROR.Printf(err.Error())
