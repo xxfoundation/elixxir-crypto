@@ -110,27 +110,22 @@ func (s *Stream) Read(b []byte) int {
 		jww.FATAL.Panicf("Requested read length is not byte aligned!")
 	}
 
-	src := s.source //just a block? or the entire thing??
+	src := s.source
 	var dst []byte
 	//Initialze a counter and hash to be used in the core function
 	counter := make([]byte, aes.BlockSize)
 	count := uint64(0)
-	fmt.Println("in read, source: ")
-	fmt.Println(s.source)
+	tmp := 0
 	for block := 0; block < len(b)/aes.BlockSize; block++ {
 		count++
 		binary.LittleEndian.PutUint64(counter, count)
 		var extension []byte
-		fmt.Println("lololol")
-		fmt.Println(s.entropyCnt)
 		if s.entropyCnt != 0 {
 			s.entropyCnt--
 		}
 		//where is entropy cnt changed??
 		count++
 		binary.LittleEndian.PutUint64(counter, count)
-		fmt.Println("lololol")
-		fmt.Println(s.entropyCnt)
 		if s.entropyCnt <= 0 {
 			extension = make([]byte, aes.BlockSize)
 			_, err := s.rng.Read(extension)
@@ -146,14 +141,16 @@ func (s *Stream) Read(b []byte) int {
 		Fortuna(&src, &dst, &extension, s.fortunaHash, &counter)
 
 		src = b[block*aes.BlockSize : (block+1)*aes.BlockSize]
+		tmp++
 	}
-
+	fmt.Println(tmp)
 	copy(s.source, b)
 
 	//s.mut.Unlock()
 	return len(b)
 }
 
+// The Fortuna construction is
 func Fortuna(src, dst, ext *[]byte, fortunaHash hash.Hash, counter *[]byte) {
 	fortunaHash.Reset()
 	fortunaHash.Write(*src)
@@ -170,12 +167,6 @@ func Fortuna(src, dst, ext *[]byte, fortunaHash hash.Hash, counter *[]byte) {
 	}
 	iv := make([]byte, aes.BlockSize)
 	streamCipher := cipher.NewCTR(block, iv)
-	fmt.Println(*counter)
-	fmt.Println("in fortuna, source")
-	fmt.Println(src)
 	streamCipher.XORKeyStream(*src, *counter)
-	fmt.Println("in fortune, source post")
-	fmt.Println(src)
-	*src = (*src)[:aes.BlockSize]
-
+	//*src = (*src)[:aes.BlockSize]
 }

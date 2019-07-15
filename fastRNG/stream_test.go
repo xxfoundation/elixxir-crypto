@@ -202,10 +202,10 @@ func TestRead_ByteAligned(t *testing.T) {
 func TestRead_ReadMoreThanSource(t *testing.T) {
 
 	//A large byte array, of which you will read size from src byte array
-	requestedBytes := make([]byte, 128)
-
+	requestedBytes := make([]byte, 2048)
+	io.ReadFull(rand.Reader,requestedBytes)
 	//Mock random source, of arbitrarily insufficient (small) size
-	testSource := make([]byte, 16, 16)
+	testSource := make([]byte, 256, 256)
 	_, err := io.ReadFull(rand.Reader, testSource)
 	if err != nil {
 		panic(err.Error())
@@ -214,14 +214,16 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 	//Initialize streamGenerator & streams
 	sg := NewStreamGenerator(20, 2)
 	stream := sg.GetStream()
-	stream.source = testSource
+	stream.source = append(stream.source, testSource...)
 	stream.rng = csprng.NewSystemRNG()
 	//Initialize the stream with the generator
 	fmt.Println("orig source")
 	fmt.Println(testSource)
+	fmt.Println(stream.source)
 	stream.Read(requestedBytes)
 	fmt.Println("after read")
 	fmt.Println(stream.source)
+	fmt.Println(testSource)
 	//Make sure that the original source and the original entropyCnt are not same after read
 	if bytes.Compare(stream.source, testSource) == 0 {
 		t.Errorf("Fortuna construction did not add randomness to the source")
