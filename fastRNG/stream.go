@@ -15,7 +15,6 @@ import (
 	"crypto/cipher"
 	_ "crypto/sha256"
 	"encoding/binary"
-	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
 	"hash"
@@ -111,7 +110,7 @@ func (s *Stream) Read(b []byte) int {
 	}
 
 	src := s.source
-
+	var dst []byte
 	//Initialze a counter and hash to be used in the core function
 	counter := make([]byte, aes.BlockSize)
 	count := uint64(0)
@@ -134,15 +133,11 @@ func (s *Stream) Read(b []byte) int {
 			}
 			s.entropyCnt = s.streamGen.scalingFactor
 		}
-
-		Fortuna(&b, &extension, s.fortunaHash, &counter)
+		dst = b[block*aes.BlockSize : (block+1)*aes.BlockSize]
+		Fortuna(&src, &dst, &extension, s.fortunaHash, &counter)
 		src = b[block*aes.BlockSize : (block+1)*aes.BlockSize]
 		tmp++
 	}
-	var tmpArr []byte
-	Fortuna(&src, &tmpArr, s.fortunaHash, &counter)
-	fmt.Println("b")
-	fmt.Println(b)
 	copy(s.source, b)
 
 	//s.mut.Unlock()
@@ -150,14 +145,11 @@ func (s *Stream) Read(b []byte) int {
 }
 
 // The Fortuna construction is
-func Fortuna(src, ext *[]byte, fortunaHash hash.Hash, counter *[]byte) {
+func Fortuna(src, dst, ext *[]byte, fortunaHash hash.Hash, counter *[]byte) {
 	fortunaHash.Reset()
 	fortunaHash.Write(*src)
 	fortunaHash.Write(*ext)
-	//fmt.Println(src)
 	key := fortunaHash.Sum(nil)
-	//fmt.Println("key")
-	//fmt.Println(key)
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		jww.FATAL.Panicf(err.Error())
@@ -168,6 +160,6 @@ func Fortuna(src, ext *[]byte, fortunaHash hash.Hash, counter *[]byte) {
 	}
 	iv := make([]byte, aes.BlockSize)
 	streamCipher := cipher.NewCTR(block, iv)
-	streamCipher.XORKeyStream(*src, *counter)
+	streamCipher.XORKeyStream(*dst, *counter)
 	//*src = (*src)[:aes.BlockSize]
 }

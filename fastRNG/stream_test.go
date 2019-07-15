@@ -156,9 +156,7 @@ func TestFortunaConstruction(t *testing.T) {
 	stream0.source = testSource
 	//stream0.AESCtr = ciph
 	stream0.rng = csprng.NewSystemRNG()
-	fmt.Println(stream0.source)
 	stream0.Read(requestedBytes)
-	fmt.Println(stream0.source)
 
 }
 
@@ -217,13 +215,7 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 	stream.source = append(stream.source, testSource...)
 	stream.rng = csprng.NewSystemRNG()
 	//Initialize the stream with the generator
-	fmt.Println("orig source")
-	fmt.Println(testSource)
-	fmt.Println(stream.source)
 	stream.Read(requestedBytes)
-	fmt.Println("after read")
-	fmt.Println(stream.source)
-	//fmt.Println(testSource)
 	//Make sure that the original source and the original entropyCnt are not same after read
 	if bytes.Compare(stream.source, testSource) == 0 {
 		t.Errorf("Fortuna construction did not add randomness to the source")
@@ -248,11 +240,7 @@ func TestRead_ReadLessThanSource(t *testing.T) {
 
 	stream.source = testSource
 	stream.rng = csprng.NewSystemRNG()
-	fmt.Println("pre")
-	fmt.Println(stream.source)
 	stream.Read(requestedBytes)
-	fmt.Println("post")
-	fmt.Println(stream.source)
 	if len(stream.source) != origSrcLen {
 		t.Errorf("Unexpected lengthening of the stream's source")
 	}
