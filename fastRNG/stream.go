@@ -148,8 +148,8 @@ func (s *Stream) Read(b []byte) int {
 func Fortuna(src, dst, ext []byte, fortunaHash hash.Hash, counter *[]byte) {
 	//Create a key based on the hash of the src and an extension (extension used if entropyCnt had reached 0)
 	fortunaHash.Reset()
-	fortunaHash.Write(*src)
-	fortunaHash.Write(*ext)
+	fortunaHash.Write(src)
+	fortunaHash.Write(ext)
 	key := fortunaHash.Sum(nil)
 	//Initialize a block cipher on that key
 	block, err := aes.NewCipher(key)
@@ -163,5 +163,5 @@ func Fortuna(src, dst, ext []byte, fortunaHash hash.Hash, counter *[]byte) {
 	//Encrypt the counter and place into destination
 	iv := make([]byte, aes.BlockSize)
 	streamCipher := cipher.NewCTR(block, iv)
-	streamCipher.XORKeyStream(*dst, *counter)
+	streamCipher.XORKeyStream(dst, *counter)
 }
