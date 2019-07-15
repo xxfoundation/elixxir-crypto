@@ -259,7 +259,7 @@ func TestRead_DelinkedSource(t *testing.T) {
 	//Overwrite the entirety of requestedBytes
 	_, err2 := io.ReadFull(rand.Reader, requestedBytes)
 	if err2 != nil {
-		jww.WARN.Printf(err.Error())
+		jww.WARN.Printf(err2.Error())
 	}
 	//Test if source has changed from it's copy
 	if bytes.Compare(sourceAfterRead, stream.source) != 0 {
@@ -280,8 +280,6 @@ func TestRead_ReadLessThanSource(t *testing.T) {
 	if err != nil {
 		panic(err.Error())
 	}
-	//Mock block cipher
-
 	stream.source = testSource
 	stream.rng = csprng.NewSystemRNG()
 	stream.Read(requestedBytes)
