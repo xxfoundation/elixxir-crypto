@@ -223,7 +223,7 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 	stream.Read(requestedBytes)
 	fmt.Println("after read")
 	fmt.Println(stream.source)
-	fmt.Println(testSource)
+	//fmt.Println(testSource)
 	//Make sure that the original source and the original entropyCnt are not same after read
 	if bytes.Compare(stream.source, testSource) == 0 {
 		t.Errorf("Fortuna construction did not add randomness to the source")

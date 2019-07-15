@@ -111,7 +111,7 @@ func (s *Stream) Read(b []byte) int {
 	}
 
 	src := s.source
-	var dst []byte
+
 	//Initialze a counter and hash to be used in the core function
 	counter := make([]byte, aes.BlockSize)
 	count := uint64(0)
@@ -123,29 +123,25 @@ func (s *Stream) Read(b []byte) int {
 		if s.entropyCnt != 0 {
 			s.entropyCnt--
 		}
-		//where is entropy cnt changed??
+
 		count++
 		binary.LittleEndian.PutUint64(counter, count)
 		if s.entropyCnt <= 0 {
 			extension = make([]byte, aes.BlockSize)
 			_, err := s.rng.Read(extension)
-			fmt.Println(extension)
-			fmt.Println("only once")
-			fmt.Println(block)
 			if err != nil {
 				jww.FATAL.Panicf(err.Error())
 			}
 			s.entropyCnt = s.streamGen.scalingFactor
 		}
 
-		//dst = b[block*aes.BlockSize : (block+1)*aes.BlockSize]
-
-		Fortuna(&src, &dst, &extension, s.fortunaHash, &counter)
-		//src = append(src,b...)
+		Fortuna(&b, &extension, s.fortunaHash, &counter)
 		src = b[block*aes.BlockSize : (block+1)*aes.BlockSize]
 		tmp++
 	}
-	fmt.Println(tmp)
+	var tmpArr []byte
+	Fortuna(&src, &tmpArr, s.fortunaHash, &counter)
+	fmt.Println("b")
 	fmt.Println(b)
 	copy(s.source, b)
 
@@ -154,12 +150,14 @@ func (s *Stream) Read(b []byte) int {
 }
 
 // The Fortuna construction is
-func Fortuna(src, dst, ext *[]byte, fortunaHash hash.Hash, counter *[]byte) {
+func Fortuna(src, ext *[]byte, fortunaHash hash.Hash, counter *[]byte) {
 	fortunaHash.Reset()
 	fortunaHash.Write(*src)
 	fortunaHash.Write(*ext)
-
+	//fmt.Println(src)
 	key := fortunaHash.Sum(nil)
+	//fmt.Println("key")
+	//fmt.Println(key)
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		jww.FATAL.Panicf(err.Error())
