@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Copyright © 2018 Privategrity Corporation                                   /
+// Copyright © 2019 Privategrity Corporation                                   /
 //                                                                             /
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
@@ -16,6 +16,7 @@ import (
 	"time"
 )
 
+// Mock struct and memebers for a mockRead test
 type mockRNG struct {
 }
 

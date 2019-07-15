@@ -137,6 +137,7 @@ func (s *Stream) Read(b []byte) int {
 		Fortuna(&src, &dst, &extension, s.fortunaHash, &counter)
 		src = b[block*aes.BlockSize : (block+1)*aes.BlockSize]
 	}
+
 	copy(s.source, b)
 
 	s.mut.Unlock()
