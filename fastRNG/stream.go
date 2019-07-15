@@ -104,28 +104,26 @@ func (sg *StreamGenerator) Close(stream *Stream) {
 // blocksize into AES then run it until blockSize*scalingFactor bytes are read. Every time
 // blocksize*scalingFactor bytes are read this functions blocks until it rereads csprng.Source.
 func (s *Stream) Read(b []byte) int {
-	//s.mut.Lock()
+	s.mut.Lock()
 	if len(b)%aes.BlockSize != 0 {
 		jww.FATAL.Panicf("Requested read length is not byte aligned!")
 	}
 
 	src := s.source
-	//
 	var dst []byte
-	//Initialze a counter and hash to be used in the core function
+	//Initialze a counter to be used in Fortuna
 	counter := make([]byte, aes.BlockSize)
 	count := uint64(0)
-	tmp := 0
 	for block := 0; block < len(b)/aes.BlockSize; block++ {
+		//Little endian used as a straighforward way to increment a byte array
 		count++
 		binary.LittleEndian.PutUint64(counter, count)
 		var extension []byte
+		//Decrease the entropy count
 		if s.entropyCnt != 0 {
 			s.entropyCnt--
 		}
 
-		count++
-		binary.LittleEndian.PutUint64(counter, count)
 		if s.entropyCnt <= 0 {
 			extension = make([]byte, aes.BlockSize)
 			_, err := s.rng.Read(extension)
@@ -134,24 +132,25 @@ func (s *Stream) Read(b []byte) int {
 			}
 			s.entropyCnt = s.streamGen.scalingFactor
 		}
+
 		dst = b[block*aes.BlockSize : (block+1)*aes.BlockSize]
 		Fortuna(&src, &dst, &extension, s.fortunaHash, &counter)
-		//fmt.Println(s.source)
 		src = b[block*aes.BlockSize : (block+1)*aes.BlockSize]
-		tmp++
 	}
 	copy(s.source, b)
 
-	//s.mut.Unlock()
+	s.mut.Unlock()
 	return len(b)
 }
 
 // The Fortuna construction is
 func Fortuna(src, dst, ext *[]byte, fortunaHash hash.Hash, counter *[]byte) {
+	//Create a key based on the hash of the src and an extension (extension used if entropyCnt had reached 0)
 	fortunaHash.Reset()
 	fortunaHash.Write(*src)
 	fortunaHash.Write(*ext)
 	key := fortunaHash.Sum(nil)
+	//Initialize a block cipher on that key
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		jww.FATAL.Panicf(err.Error())
@@ -160,8 +159,8 @@ func Fortuna(src, dst, ext *[]byte, fortunaHash hash.Hash, counter *[]byte) {
 	if len(key) != 32 {
 		jww.ERROR.Printf("The key is not the correct length (ie not 32 bytes)!")
 	}
+	//Encrypt the counter and place into destination
 	iv := make([]byte, aes.BlockSize)
 	streamCipher := cipher.NewCTR(block, iv)
 	streamCipher.XORKeyStream(*dst, *counter)
-	//*src = (*src)[:aes.BlockSize]
 }

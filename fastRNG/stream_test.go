@@ -8,7 +8,6 @@ package fastRNG
 import (
 	"bytes"
 	"crypto/rand"
-	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
 	"io"
@@ -123,7 +122,7 @@ func TestGetStream_GrabsAlreadyWaitingStream(t *testing.T) {
 	sg.Close(steam1)
 
 	newStream := sg.GetStream()
-	if !reflect.DeepEqual(newStream, stream0) {
+	if !reflect.DeepEqual(newStream, sg.streams[0]) {
 		t.Errorf("The next stream did not grab the correct stream")
 	}
 }
@@ -145,24 +144,7 @@ func TestClose_WaitingChannelLength(t *testing.T) {
 	}
 }
 
-func TestFortunaConstruction(t *testing.T) {
-	sg := NewStreamGenerator(12, 3)
-	stream0 := sg.GetStream()
-	requestedBytes := make([]byte, 96)
-	testSource := make([]byte, 128, 128)
-	_, err := io.ReadFull(rand.Reader, testSource)
-	if err != nil {
-		panic(err.Error())
-	}
-	stream0.source = testSource
-	//stream0.AESCtr = ciph
-	stream0.rng = csprng.NewSystemRNG()
-	stream0.Read(requestedBytes)
-
-}
-
-// Tests that the read length is byte aligned
-// Tests that the read length is byte aligned
+// Tests that the read length is not byte aligned
 func TestRead_NotByteAligned(t *testing.T) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -179,6 +161,7 @@ func TestRead_NotByteAligned(t *testing.T) {
 	t.Errorf("Test should have panicked here, read must be aligned by AES blocksize")
 }
 
+// Tests that the read length is byte aligned
 func TestRead_ByteAligned(t *testing.T) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -197,8 +180,6 @@ func TestRead_ByteAligned(t *testing.T) {
 
 // Checking that the fortuna construct outputs random when reading more than source has
 func TestRead_ReadMoreThanSource(t *testing.T) {
-
-	//A large byte array, of which you will read size from src byte array
 	requestedBytes := make([]byte, 512)
 	//Mock random source, of arbitrarily insufficient (small) size
 	testSource := make([]byte, 256, 256)
@@ -212,8 +193,10 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 	stream := sg.GetStream()
 	stream.source = append(stream.source, testSource...)
 	stream.rng = csprng.NewSystemRNG()
+
 	//Initialize the stream with the generator
 	stream.Read(requestedBytes)
+
 	//Make sure that the original source and the original entropyCnt are not same after read
 	if bytes.Compare(stream.source, testSource) == 0 {
 		t.Errorf("Fortuna construction did not add randomness to the source")
@@ -224,7 +207,6 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 func TestRead_MultipleStreams_DifferentOutputs(t *testing.T) {
 	//A large byte array, of which you will read size from src byte array
 	requestedBytes := make([]byte, 512)
-	//Mock random source, of arbitrarily insufficient (small) size
 	testSource0 := make([]byte, 256, 256)
 	testSource1 := make([]byte, 256, 256)
 	_, err := io.ReadFull(rand.Reader, testSource0)
@@ -247,9 +229,6 @@ func TestRead_MultipleStreams_DifferentOutputs(t *testing.T) {
 
 	stream0.Read(requestedBytes)
 	stream1.Read(requestedBytes)
-
-	fmt.Println(stream1.source)
-	fmt.Println(stream0.source)
 
 	if bytes.Compare(stream0.source, stream1.source) == 0 {
 		t.Errorf("Streams should not produce the same output with different sources upon reading")
