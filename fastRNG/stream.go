@@ -134,7 +134,7 @@ func (s *Stream) Read(b []byte) int {
 		}
 
 		dst = b[block*aes.BlockSize : (block+1)*aes.BlockSize]
-		Fortuna(&src, &dst, &extension, s.fortunaHash, &counter)
+		Fortuna(src, dst, extension, s.fortunaHash, &counter)
 		src = b[block*aes.BlockSize : (block+1)*aes.BlockSize]
 	}
 
@@ -145,7 +145,7 @@ func (s *Stream) Read(b []byte) int {
 }
 
 // The Fortuna construction is
-func Fortuna(src, dst, ext *[]byte, fortunaHash hash.Hash, counter *[]byte) {
+func Fortuna(src, dst, ext []byte, fortunaHash hash.Hash, counter *[]byte) {
 	//Create a key based on the hash of the src and an extension (extension used if entropyCnt had reached 0)
 	fortunaHash.Reset()
 	fortunaHash.Write(*src)
