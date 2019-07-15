@@ -123,7 +123,7 @@ func (s *Stream) Read(b []byte) int {
 		if s.entropyCnt != 0 {
 			s.entropyCnt--
 		}
-
+		//If entropyCnt is decreased too far, add an extension and set the entropyCnt
 		if s.entropyCnt <= 0 {
 			extension = make([]byte, aes.BlockSize)
 			_, err := s.rng.Read(extension)
