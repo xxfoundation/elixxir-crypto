@@ -161,6 +161,7 @@ func Fortuna(src, dst, ext []byte, fortunaHash hash.Hash, counter *[]byte) {
 		jww.ERROR.Printf("The key is not the correct length (ie not 32 bytes)!")
 	}
 	//Encrypt the counter and place into destination
+	//TODO Go over iv with mario
 	iv := make([]byte, aes.BlockSize)
 	streamCipher := cipher.NewCTR(block, iv)
 	streamCipher.XORKeyStream(dst, *counter)
