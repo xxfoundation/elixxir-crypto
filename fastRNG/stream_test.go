@@ -8,7 +8,6 @@ package fastRNG
 import (
 	"bytes"
 	"crypto/rand"
-	"fmt"
 	"gitlab.com/elixxir/crypto/csprng"
 	"io"
 	"reflect"
@@ -194,9 +193,7 @@ func TestRead_ByteAligned(t *testing.T) {
 	stream0.Read(requestedBytes)
 }
 
-// Checking the functionality of appending the source using the Fortuna construction
-//TODO problem: what should happen when you try to read more than is actually in source
-
+// Checking that the fortuna construct outputs random when reading more than source has
 func TestRead_ReadMoreThanSource(t *testing.T) {
 
 	//A large byte array, of which you will read size from src byte array
@@ -221,9 +218,22 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 		t.Errorf("Fortuna construction did not add randomness to the source")
 	}
 }
-
+/*
+func TestMultipleStreams_DifferentOutputs(t *testing.T)  {
+	//A large byte array, of which you will read size from src byte array
+	requestedBytes := make([]byte, 512)
+	//io.ReadFull(rand.Reader,requestedBytes)
+	//Mock random source, of arbitrarily insufficient (small) size
+	testSource := make([]byte, 256, 256)
+	_, err := io.ReadFull(rand.Reader, testSource)
+	if err != nil {
+		panic(err.Error())
+	}
+}
+*/
+//prove that b is delinked from source
+//TODO write new test that overwrites b and makes sure that src has not changed afterwards, ie that b is delinked from source
 // Read read a length smaller than the currently existing source
-//In this case, extend source should not be called, thus the len of src should not change
 func TestRead_ReadLessThanSource(t *testing.T) {
 	sg := NewStreamGenerator(20, 2)
 	stream := sg.GetStream()

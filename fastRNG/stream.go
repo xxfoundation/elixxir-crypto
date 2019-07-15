@@ -15,6 +15,7 @@ import (
 	"crypto/cipher"
 	_ "crypto/sha256"
 	"encoding/binary"
+	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
 	"hash"
@@ -110,6 +111,7 @@ func (s *Stream) Read(b []byte) int {
 	}
 
 	src := s.source
+	//
 	var dst []byte
 	//Initialze a counter and hash to be used in the core function
 	counter := make([]byte, aes.BlockSize)
@@ -135,6 +137,7 @@ func (s *Stream) Read(b []byte) int {
 		}
 		dst = b[block*aes.BlockSize : (block+1)*aes.BlockSize]
 		Fortuna(&src, &dst, &extension, s.fortunaHash, &counter)
+		fmt.Println(s.source)
 		src = b[block*aes.BlockSize : (block+1)*aes.BlockSize]
 		tmp++
 	}
