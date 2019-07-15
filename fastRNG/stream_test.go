@@ -202,8 +202,8 @@ func TestRead_ByteAligned(t *testing.T) {
 func TestRead_ReadMoreThanSource(t *testing.T) {
 
 	//A large byte array, of which you will read size from src byte array
-	requestedBytes := make([]byte, 2048)
-	io.ReadFull(rand.Reader,requestedBytes)
+	requestedBytes := make([]byte, 512)
+	//io.ReadFull(rand.Reader,requestedBytes)
 	//Mock random source, of arbitrarily insufficient (small) size
 	testSource := make([]byte, 256, 256)
 	_, err := io.ReadFull(rand.Reader, testSource)

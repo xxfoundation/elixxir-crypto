@@ -129,21 +129,24 @@ func (s *Stream) Read(b []byte) int {
 		if s.entropyCnt <= 0 {
 			extension = make([]byte, aes.BlockSize)
 			_, err := s.rng.Read(extension)
-
+			fmt.Println(extension)
+			fmt.Println("only once")
+			fmt.Println(block)
 			if err != nil {
 				jww.FATAL.Panicf(err.Error())
 			}
 			s.entropyCnt = s.streamGen.scalingFactor
 		}
 
-		dst = b[block*aes.BlockSize : (block+1)*aes.BlockSize]
+		//dst = b[block*aes.BlockSize : (block+1)*aes.BlockSize]
 
 		Fortuna(&src, &dst, &extension, s.fortunaHash, &counter)
-
+		//src = append(src,b...)
 		src = b[block*aes.BlockSize : (block+1)*aes.BlockSize]
 		tmp++
 	}
 	fmt.Println(tmp)
+	fmt.Println(b)
 	copy(s.source, b)
 
 	//s.mut.Unlock()
