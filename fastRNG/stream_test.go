@@ -200,7 +200,6 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 
 	//A large byte array, of which you will read size from src byte array
 	requestedBytes := make([]byte, 512)
-	//io.ReadFull(rand.Reader,requestedBytes)
 	//Mock random source, of arbitrarily insufficient (small) size
 	testSource := make([]byte, 256, 256)
 	_, err := io.ReadFull(rand.Reader, testSource)
@@ -221,10 +220,10 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 	}
 }
 
-func TestMultipleStreams_DifferentOutputs(t *testing.T)  {
+//Test that different streams under same stream generator output differently upon reading
+func TestRead_MultipleStreams_DifferentOutputs(t *testing.T) {
 	//A large byte array, of which you will read size from src byte array
 	requestedBytes := make([]byte, 512)
-	//io.ReadFull(rand.Reader,requestedBytes)
 	//Mock random source, of arbitrarily insufficient (small) size
 	testSource0 := make([]byte, 256, 256)
 	testSource1 := make([]byte, 256, 256)
@@ -237,7 +236,7 @@ func TestMultipleStreams_DifferentOutputs(t *testing.T)  {
 		jww.WARN.Printf(err.Error())
 	}
 
-	sg := NewStreamGenerator(20,2)
+	sg := NewStreamGenerator(20, 2)
 	stream0 := sg.GetStream()
 	stream1 := sg.GetStream()
 
@@ -252,13 +251,42 @@ func TestMultipleStreams_DifferentOutputs(t *testing.T)  {
 	fmt.Println(stream1.source)
 	fmt.Println(stream0.source)
 
-	if bytes.Compare(stream0.source,stream1.source) ==0 {
+	if bytes.Compare(stream0.source, stream1.source) == 0 {
 		t.Errorf("Streams should not produce the same output with different sources upon reading")
 	}
 }
 
-//prove that b is delinked from source
-//TODO write new test that overwrites b and makes sure that src has not changed afterwards, ie that b is delinked from source
+//Test that b (requestedBytes) is delinked from source by overwriting b and checking that source has not changed
+func TestRead_DelinkedSource(t *testing.T) {
+	//A large byte array, of which you will read size from src byte array
+	requestedBytes := make([]byte, 512)
+	//Mock random source, of arbitrarily insufficient (small) size
+	testSource := make([]byte, 256, 256)
+	_, err := io.ReadFull(rand.Reader, testSource)
+	if err != nil {
+		jww.WARN.Printf(err.Error())
+	}
+
+	//Initialize streamGenerator & streams
+	sg := NewStreamGenerator(20, 2)
+	stream := sg.GetStream()
+	stream.source = append(stream.source, testSource...)
+	stream.rng = csprng.NewSystemRNG()
+	//Initialize the stream with the generator
+	stream.Read(requestedBytes)
+	sourceAfterRead := make([]byte, len(stream.source))
+	copy(sourceAfterRead, stream.source)
+	//Overwrite the entirety of requestedBytes
+	_, err2 := io.ReadFull(rand.Reader, requestedBytes)
+	if err2 != nil {
+		jww.WARN.Printf(err.Error())
+	}
+	//Test if source has changed from it's copy
+	if bytes.Compare(sourceAfterRead, stream.source) != 0 {
+		t.Errorf("The reading byte slice and the stream's source have not been delinked")
+	}
+}
+
 // Read read a length smaller than the currently existing source
 func TestRead_ReadLessThanSource(t *testing.T) {
 	sg := NewStreamGenerator(20, 2)
