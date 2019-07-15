@@ -134,7 +134,7 @@ func (s *Stream) Read(b []byte) int {
 		}
 
 		dst = b[block*aes.BlockSize : (block+1)*aes.BlockSize]
-		Fortuna(&src, &dst, &extension, s.fortunaHash, &counter)
+		Fortuna(src, dst, extension, s.fortunaHash, &counter)
 		src = b[block*aes.BlockSize : (block+1)*aes.BlockSize]
 	}
 
@@ -145,11 +145,11 @@ func (s *Stream) Read(b []byte) int {
 }
 
 // The Fortuna construction is
-func Fortuna(src, dst, ext *[]byte, fortunaHash hash.Hash, counter *[]byte) {
+func Fortuna(src, dst, ext []byte, fortunaHash hash.Hash, counter *[]byte) {
 	//Create a key based on the hash of the src and an extension (extension used if entropyCnt had reached 0)
 	fortunaHash.Reset()
-	fortunaHash.Write(*src)
-	fortunaHash.Write(*ext)
+	fortunaHash.Write(src)
+	fortunaHash.Write(ext)
 	key := fortunaHash.Sum(nil)
 	//Initialize a block cipher on that key
 	block, err := aes.NewCipher(key)
@@ -161,7 +161,8 @@ func Fortuna(src, dst, ext *[]byte, fortunaHash hash.Hash, counter *[]byte) {
 		jww.ERROR.Printf("The key is not the correct length (ie not 32 bytes)!")
 	}
 	//Encrypt the counter and place into destination
+	//TODO Go over iv with mario
 	iv := make([]byte, aes.BlockSize)
 	streamCipher := cipher.NewCTR(block, iv)
-	streamCipher.XORKeyStream(*dst, *counter)
+	streamCipher.XORKeyStream(dst, *counter)
 }
