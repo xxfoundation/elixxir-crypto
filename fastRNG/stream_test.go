@@ -8,6 +8,8 @@ package fastRNG
 import (
 	"bytes"
 	"crypto/rand"
+	"fmt"
+	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
 	"io"
 	"reflect"
@@ -203,7 +205,7 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 	testSource := make([]byte, 256, 256)
 	_, err := io.ReadFull(rand.Reader, testSource)
 	if err != nil {
-		panic(err.Error())
+		jww.WARN.Printf(err.Error())
 	}
 
 	//Initialize streamGenerator & streams
@@ -218,19 +220,43 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 		t.Errorf("Fortuna construction did not add randomness to the source")
 	}
 }
-/*
+
 func TestMultipleStreams_DifferentOutputs(t *testing.T)  {
 	//A large byte array, of which you will read size from src byte array
 	requestedBytes := make([]byte, 512)
 	//io.ReadFull(rand.Reader,requestedBytes)
 	//Mock random source, of arbitrarily insufficient (small) size
-	testSource := make([]byte, 256, 256)
-	_, err := io.ReadFull(rand.Reader, testSource)
+	testSource0 := make([]byte, 256, 256)
+	testSource1 := make([]byte, 256, 256)
+	_, err := io.ReadFull(rand.Reader, testSource0)
 	if err != nil {
-		panic(err.Error())
+		jww.WARN.Printf(err.Error())
+	}
+	_, err1 := io.ReadFull(rand.Reader, testSource1)
+	if err1 != nil {
+		jww.WARN.Printf(err.Error())
+	}
+
+	sg := NewStreamGenerator(20,2)
+	stream0 := sg.GetStream()
+	stream1 := sg.GetStream()
+
+	stream0.source = testSource0
+	stream1.source = testSource1
+	stream0.rng = csprng.NewSystemRNG()
+	stream1.rng = csprng.NewSystemRNG()
+
+	stream0.Read(requestedBytes)
+	stream1.Read(requestedBytes)
+
+	fmt.Println(stream1.source)
+	fmt.Println(stream0.source)
+
+	if bytes.Compare(stream0.source,stream1.source) ==0 {
+		t.Errorf("Streams should not produce the same output with different sources upon reading")
 	}
 }
-*/
+
 //prove that b is delinked from source
 //TODO write new test that overwrites b and makes sure that src has not changed afterwards, ie that b is delinked from source
 // Read read a length smaller than the currently existing source
