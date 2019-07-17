@@ -100,7 +100,7 @@ func (sg *StreamGenerator) Close(stream *Stream) {
 }
 
 // Read reads up to len(b) bytes from the csprng.Source object. This function panics if the stream is locked.
-// Users of stream objects should close them when they are finished using them. We read the AES256
+// Users of stream objects should close them when they are finished using them. We read the AES
 // blocksize into AES then run it until blockSize*scalingFactor bytes are read. Every time
 // blocksize*scalingFactor bytes are read this functions blocks until it rereads csprng.Source.
 func (s *Stream) Read(b []byte) int {
@@ -143,7 +143,7 @@ func (s *Stream) Read(b []byte) int {
 	return len(b)
 }
 
-// The Fortuna construction is
+// The Fortuna construction is used to generate randomness
 func Fortuna(src, ext []byte, fortunaHash hash.Hash) cipher.Stream {
 	//Create a key based on the hash of the src and an extension (extension used if entropyCnt had reached 0)
 	fortunaHash.Reset()
