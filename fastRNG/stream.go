@@ -13,10 +13,10 @@ import (
 	"crypto"
 	"crypto/aes"
 	"crypto/cipher"
-	_ "crypto/sha256"
 	"encoding/binary"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
+	_ "golang.org/x/crypto/blake2b"
 	"hash"
 	"sync"
 )
