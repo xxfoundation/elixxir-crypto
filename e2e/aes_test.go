@@ -33,6 +33,19 @@ const (
 		"b2eb05e2c39be9fcda6c19078c6a9d1b"
 )
 
+func TestErrorCases(t *testing.T) {
+	_, err := pkcs7PadAES(nil)
+	if err == nil {
+		t.Error("Failed to detect a nil pad")
+	}
+
+	_, err = pkcs7UnpadAES(nil)
+	if err == nil {
+		t.Error("Failed to detect a nil pad")
+	}
+
+}
+
 // Test Encryption core against test vectors
 func TestEncryptCore(t *testing.T) {
 	iv, _ := hex.DecodeString(TEST_VECTOR_IV)
