@@ -514,6 +514,40 @@ func TestPemEncodeDecode(t *testing.T) {
 	}
 }
 
+func TestPemEncodeDecodePrivate(t *testing.T) {
+	src := rand.NewSource(42)
+	privKey := GetDefaultDSAParams().PrivateKeyGen(rand.New(src))
+	test := GetDefaultDSAParams().PrivateKeyGen(rand.New(src))
+
+	encodedKey, _ := privKey.PemEncode()
+	decodedKey, _ := test.PemDecode(encodedKey)
+
+	if !reflect.DeepEqual(privKey, decodedKey) {
+		t.Errorf("PemEncode() and PemDecode() did not encode and decode "+
+			"correctly\n\treceived: %v\n\texpected: %v", decodedKey, privKey)
+	}
+
+}
+
+func TestPemEncodeDecodePrivatePublic_ErrorCases(t *testing.T) {
+	testBytes := []byte("I am not a properly encoded byte array")
+
+	src := rand.NewSource(42)
+	privKey := GetDefaultDSAParams().PrivateKeyGen(rand.New(src))
+	pubKey := GetDefaultDSAParams().PrivateKeyGen(rand.New(src)).PublicKeyGen()
+
+	_, err := privKey.PemDecode(testBytes)
+	if err == nil {
+		t.Error("Could not detect an improperly encoded byte array")
+	}
+
+	_, err = pubKey.PemDecode(testBytes)
+	if err == nil {
+		t.Error("Could not detect an improperly encoded byte array")
+	}
+
+}
+
 // Tests that a PemDecode() produces an error when the block data is incorrect.
 func TestPemDecode_WrongPemData(t *testing.T) {
 	src := rand.NewSource(42)

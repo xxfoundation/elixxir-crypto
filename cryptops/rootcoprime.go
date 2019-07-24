@@ -16,7 +16,7 @@ type RootCoprimePrototype func(g *cyclic.Group, x, y, z *cyclic.Int) *cyclic.Int
 // Sets tmp = y√x mod p, and returns z.
 // Only works with y's coprime with g.prime-1 (g.psub1)
 var RootCoprime RootCoprimePrototype = func(g *cyclic.Group, x, y, z *cyclic.Int) *cyclic.Int {
-	return g.RootCoprime(x,y,z)
+	return g.RootCoprime(x, y, z)
 }
 
 // Returns the function name for debugging.

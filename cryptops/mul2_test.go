@@ -12,8 +12,6 @@ import (
 // Commutative property - order of numbers put in should not effect the out output
 // Inverse - if I get the inverse it should return the inputs
 
-
-
 // Ensure that Mul2 satisfies the interface
 // Will cause a compile error if it doesn't
 var _ Cryptop = Mul2
@@ -96,7 +94,6 @@ func TestMul2_Commutativity(t *testing.T) {
 		}
 		y := grp.NewIntFromBytes(buf)
 
-
 		//ensure that Mul2 is completely commutative
 		var in1, in2, out1, out2 *cyclic.Int
 		in1 = y.DeepCopy()
@@ -170,8 +167,6 @@ func TestMul2_Correctness(t *testing.T) {
 	}
 }
 
-
-
 //Tests that Mul2 conforms to the cryptops interface
 func TestMul2_CryptopsInterface(t *testing.T) {
 
@@ -186,7 +181,6 @@ func TestMul2_CryptopsInterface(t *testing.T) {
 		t.Errorf("Mul2: Does not conform to the cryptops interface")
 	}
 }
-
 
 //testMul2Signature_GetMinSize shows that Mul2.MinSize returns the correct min size
 func TestMul2Signature_GetInputSize(t *testing.T) {
