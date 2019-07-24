@@ -514,6 +514,21 @@ func TestPemEncodeDecode(t *testing.T) {
 	}
 }
 
+func TestPemEncodeDecodePrivate(t *testing.T) {
+	src := rand.NewSource(42)
+	privKey := GetDefaultDSAParams().PrivateKeyGen(rand.New(src))
+	test := GetDefaultDSAParams().PrivateKeyGen(rand.New(src))
+
+	encodedKey, _ := privKey.PemEncode()
+	decodedKey, _ := test.PemDecode(encodedKey)
+
+	if !reflect.DeepEqual(privKey, decodedKey) {
+		t.Errorf("PemEncode() and PemDecode() did not encode and decode "+
+			"correctly\n\treceived: %v\n\texpected: %v", decodedKey, privKey)
+	}
+
+}
+
 // Tests that a PemDecode() produces an error when the block data is incorrect.
 func TestPemDecode_WrongPemData(t *testing.T) {
 	src := rand.NewSource(42)

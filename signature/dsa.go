@@ -46,6 +46,8 @@ const (
 
 var ErrPemData = errors.New("failed to find PEM data in block containing public key")
 var ErrPemType = errors.New("PEM block type incorrect; expected \"PUBLIC KEY\"")
+var ErrPemDataPriv = errors.New("failed to find PEM data in block containing private key")
+var ErrPemTypePriv = errors.New("PEM block type incorrect; expected \"PRIVATE KEY\"")
 
 func GetDefaultDSAParams() *DSAParameters {
 	bigP := large.NewIntFromString(DSA_GROUP_P, 16)
@@ -475,4 +477,36 @@ func (p *DSAPublicKey) PemDecode(pemBytes []byte) (*DSAPublicKey, error) {
 
 	// Construct the DSAPublicKey structure and return it
 	return p, nil
+}
+
+func (p *DSAPrivateKey) PemEncode() ([]byte, error) {
+	asn1Bytes, err := asn1.Marshal(p.key)
+	if err != nil {
+		return nil, err
+	}
+
+	block := &pem.Block{
+		Type:  "PRIVATE KEY",
+		Bytes: asn1Bytes,
+	}
+
+	return pem.EncodeToMemory(block), nil
+}
+
+func (p *DSAPrivateKey) PemDecode(pemBytes []byte) (*DSAPrivateKey, error) {
+	block, _ := pem.Decode(pemBytes)
+	if block == nil {
+		return nil, ErrPemDataPriv
+	} else if block.Type != "PRIVATE KEY" {
+		return nil, ErrPemTypePriv
+	}
+
+	//Decode the ASN.1 key to the dsa.PrivateKey
+	_, err := asn1.Unmarshal(block.Bytes, &p.key)
+	if err != nil {
+		return nil, err
+	}
+
+	return p, nil
+
 }
