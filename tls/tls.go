@@ -31,3 +31,19 @@ func LoadCertificate(certContents string) (*x509.Certificate, error) {
 	}
 	return cert, nil
 }
+
+func loadPrivateKey(privContents string) (interface{}, error) {
+	certDecoded, _ := pem.Decode([]byte(privContents))
+	if certDecoded == nil {
+		err := errors.New("Decoding PEM Failed")
+		return nil, err
+	}
+
+	//Openssl creates pkcs8 keys by default as of openSSL 1.0.0
+	privateKey, err := x509.ParsePKCS8PrivateKey(certDecoded.Bytes)
+
+	if err != nil {
+		return nil, err
+	}
+	return privateKey, nil
+}
