@@ -25,6 +25,7 @@ func LoadCertificate(certContents string) (*x509.Certificate, error) {
 		err := errors.New("Decoding PEM Failed")
 		return nil, err
 	}
+	//
 	cert, err := x509.ParseCertificate(certDecoded.Bytes)
 	if err != nil {
 		return nil, err
