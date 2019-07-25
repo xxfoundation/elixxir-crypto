@@ -70,6 +70,60 @@ A8Q=
 -----END CERTIFICATE REQUEST-----
 `
 
+const PrivateKey = `-----BEGIN PRIVATE KEY-----
+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
+SfY1Wi5vbO2siizZUuyyr7jqIQr7bg==
+-----END PRIVATE KEY-----
+`
+
 func TestEmptyFile(t *testing.T) {
 	empty := ""
 	//Pass an empty string into loading the request
@@ -82,13 +136,15 @@ func TestEmptyFile(t *testing.T) {
 	_, err = LoadCertificate(empty)
 	if err == nil {
 		t.Error("Generated a certificate from an empty file!")
-
 	}
+
+	//Pass the empty string into loading the private key
+	_, err = LoadPrivateKey(empty)
 }
 
 func TestLoadIncorrectly(t *testing.T) {
 	//Pass the CSR into the certificate request loader
-	_, err := LoadCertificate(CertReq)
+	_, err := LoadCertificate(PrivateKey)
 	if err == nil {
 		t.Error("Failed to detect passing in a non-certificate into LoadCertificate")
 	}
@@ -96,6 +152,11 @@ func TestLoadIncorrectly(t *testing.T) {
 	_, err = LoadCSR(Cert)
 	if err == nil {
 		t.Error("Failed to detect passing a non-CSR into LoadCSR")
+	}
+
+	_, err = LoadPrivateKey(CertReq)
+	if err == nil {
+		t.Error("Failed to detect passing a non-private key into LoadPrivateKey")
 	}
 }
 
@@ -109,13 +170,19 @@ func TestTLS_SmokeTest(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if csr == nil  {
+	privKey, err := LoadPrivateKey(PrivateKey)
+
+	if csr == nil {
 		t.Error("Failed to load a correctly formatted CSR")
 	}
 
-	if  cert == nil {
+	if cert == nil {
 		t.Error("Failed to load a correctly formatted Certificate")
 	}
 
-}
+	if privKey == nil {
+		t.Error("Failed to load a correctly formatted private key")
 
+	}
+
+}

@@ -32,7 +32,7 @@ func LoadCertificate(certContents string) (*x509.Certificate, error) {
 	return cert, nil
 }
 
-func loadPrivateKey(privContents string) (interface{}, error) {
+func LoadPrivateKey(privContents string) (interface{}, error) {
 	certDecoded, _ := pem.Decode([]byte(privContents))
 	if certDecoded == nil {
 		err := errors.New("Decoding PEM Failed")
