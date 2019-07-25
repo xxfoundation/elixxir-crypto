@@ -888,10 +888,10 @@ func TestBitLen(t *testing.T) {
 //TestByteLen checks if the ByteLen placeholder exists
 func TestByteLen(t *testing.T) {
 	testints := []*Int{
-		NewInt(2),  		 	//2 bits  -->  1 bytes (where +6 works)
-		NewInt(8388608),		//24 bits -->  3 bytes (exactly)
-		NewInt(0),			//1 bit   -->  1 byte  (irrelevant b/c it's overwritten before testing)
-		NewInt(-42)}			//6 bits  -->  1 byte
+		NewInt(2),       //2 bits  -->  1 bytes (where +6 works)
+		NewInt(8388608), //24 bits -->  3 bytes (exactly)
+		NewInt(0),       //1 bit   -->  1 byte  (irrelevant b/c it's overwritten before testing)
+		NewInt(-42)}     //6 bits  -->  1 byte
 
 	//overwrites the value 0:    100 bits -->  13 bytes (where +4 works)
 	testints[2], _ = testints[2].SetString("867530918239450598372829049587", 10)

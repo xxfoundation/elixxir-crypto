@@ -199,9 +199,9 @@ func TestMul3Inclusion(t *testing.T) {
 	timesTwo = Mul3(grp, x, y, timesTwo)
 	// timesOne times 2 should be equal to timesTwo, if the last parameter is
 	// what's overwritten
-    otherTimesTwo := grp.Mul(timesOne, grp.NewInt(2), grp.NewInt(1))
-    if otherTimesTwo.Cmp(timesTwo) != 0 {
-    	t.Error("Mul3 multiplication didn't accumulate into output parameter")
+	otherTimesTwo := grp.Mul(timesOne, grp.NewInt(2), grp.NewInt(1))
+	if otherTimesTwo.Cmp(timesTwo) != 0 {
+		t.Error("Mul3 multiplication didn't accumulate into output parameter")
 	}
 }
 
