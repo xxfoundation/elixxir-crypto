@@ -1,6 +1,8 @@
 package tls
 
-import "testing"
+import (
+	"testing"
+)
 
 const Cert = `-----BEGIN CERTIFICATE-----
 MIIF9zCCA9+gAwIBAgIUYB+0GVtMD3SyDP5tVTgCbpoZjJEwDQYJKoZIhvcNAQEL
@@ -68,18 +70,52 @@ A8Q=
 -----END CERTIFICATE REQUEST-----
 `
 
-func TestLoadCSR_EmptyRequest(t *testing.T) {
-	csrBytes := ""
-	_, err := LoadCSR(csrBytes)
+func TestEmptyFile(t *testing.T) {
+	empty := ""
+	//Pass an empty string into loading the request
+	_, err := LoadCSR(empty)
+	//It should not have generated a CSR object
 	if err == nil {
 		t.Error("Generated a certificate request from an empty file!")
 	}
-}
-
-func TestLoadCertificate_EmptyCert(t *testing.T) {
-	certBytes := ""
-	_, err := LoadCertificate(certBytes)
+	//Pass the empty string into loading the certificate
+	_, err = LoadCertificate(empty)
 	if err == nil {
 		t.Error("Generated a certificate from an empty file!")
+
 	}
 }
+
+func TestLoadIncorrectly(t *testing.T) {
+	//Pass the CSR into the certificate request loader
+	_, err := LoadCertificate(CertReq)
+	if err == nil {
+		t.Error("Failed to detect passing in a non-certificate into LoadCertificate")
+	}
+	//Pass the cert into the CSR loader
+	_, err = LoadCSR(Cert)
+	if err == nil {
+		t.Error("Failed to detect passing a non-CSR into LoadCSR")
+	}
+}
+
+func TestTLS_SmokeTest(t *testing.T) {
+	cert, err := LoadCertificate(Cert)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	csr, err := LoadCSR(CertReq)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	if csr == nil  {
+		t.Error("Failed to load a correctly formatted CSR")
+	}
+
+	if  cert == nil {
+		t.Error("Failed to load a correctly formatted Certificate")
+	}
+
+}
+
