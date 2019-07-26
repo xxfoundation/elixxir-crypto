@@ -1,11 +1,21 @@
 package tls
 
 import (
+	"github.com/mitchellh/go-homedir"
 	"gitlab.com/elixxir/crypto/signature/rsa"
 	"gitlab.com/elixxir/crypto/testkeys"
 	"google.golang.org/grpc/credentials"
 	"testing"
 )
+
+func TestGetFullPath(t *testing.T) {
+	h, _ := homedir.Dir()
+	p := "~/test/test"
+	full := getFullPath(p)
+	if full != h+p[1:] {
+		t.Errorf("Failed")
+	}
+}
 
 func TestNewCredentialsFromFile(t *testing.T) {
 	path := testkeys.GetTestCertPath()
