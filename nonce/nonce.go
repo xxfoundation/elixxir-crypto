@@ -7,6 +7,8 @@
 package nonce
 
 import (
+	"fmt"
+	"github.com/pkg/errors"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
 	"time"
@@ -31,7 +33,7 @@ type Nonce struct {
 }
 
 // Generate a fresh nonce with the given TTL in seconds
-func NewNonce(ttl uint) Nonce {
+func NewNonce(ttl uint) (Nonce, error) {
 	if ttl == 0 {
 		jww.FATAL.Panicf("TTL cannot be 0")
 	}
@@ -39,13 +41,13 @@ func NewNonce(ttl uint) Nonce {
 	randGen := csprng.SystemRNG{}
 	size, err := randGen.Read(newValue)
 	if err != nil || size != len(newValue) {
-		jww.FATAL.Panicf("Could not generate nonce: %v", err.Error())
+		err = errors.New(fmt.Sprintf("Could not generate nonce: %v", err.Error()))
 	}
 	newNonce := Nonce{GenTime: time.Now(),
 		TTL: time.Duration(ttl) * time.Second}
 	copy(newNonce.Value[:], newValue)
 	newNonce.ExpiryTime = newNonce.GenTime.Add(newNonce.TTL)
-	return newNonce
+	return newNonce, err
 }
 
 func (n Nonce) Bytes() []byte {
