@@ -7,8 +7,6 @@
 package nonce
 
 import (
-	"fmt"
-	"github.com/pkg/errors"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
 	"time"
@@ -41,7 +39,7 @@ func NewNonce(ttl uint) (Nonce, error) {
 	randGen := csprng.SystemRNG{}
 	size, err := randGen.Read(newValue)
 	if err != nil || size != len(newValue) {
-		err = errors.New(fmt.Sprintf("Could not generate nonce: %v", err.Error()))
+		jww.FATAL.Panicf("Could not generate nonce: %v", err.Error())
 	}
 	newNonce := Nonce{GenTime: time.Now(),
 		TTL: time.Duration(ttl) * time.Second}
@@ -52,20 +50,4 @@ func NewNonce(ttl uint) (Nonce, error) {
 
 func (n Nonce) Bytes() []byte {
 	return n.Value[:]
-}
-
-func (n Nonce) IsValid() bool {
-	return time.Now().Before(n.ExpiryTime)
-}
-
-func (n Nonce) GenTimeStr() string {
-	return n.GenTime.Format(time.RFC3339)
-}
-
-func (n Nonce) ExpiryTimeStr() string {
-	return n.ExpiryTime.Format(time.RFC3339)
-}
-
-func (n Nonce) TTLStr() string {
-	return n.TTL.String()
 }

@@ -38,7 +38,7 @@ func TestNewNonce(t *testing.T) {
 		t.Error(err)
 	}
 
-	if !n.IsValid() {
+	if !IsValid(n) {
 		t.Errorf("Nonce was just created, so it should be valid")
 	}
 }
@@ -61,6 +61,22 @@ func TestNewNonceMultiple(t *testing.T) {
 	}
 }
 
+func IsValid(n Nonce) bool {
+	return time.Now().Before(n.ExpiryTime)
+}
+
+func GenTimeStr(n Nonce) string {
+	return n.GenTime.Format(time.RFC3339)
+}
+
+func ExpiryTimeStr(n Nonce) string {
+	return n.ExpiryTime.Format(time.RFC3339)
+}
+
+func TTLStr(n Nonce) string {
+	return n.TTL.String()
+}
+
 // Test new Nonce generation with various TTLs
 func TestNewNonceVarious(t *testing.T) {
 	for i := 0; i < NumTests; i++ {
@@ -76,7 +92,7 @@ func TestNewNonceVarious(t *testing.T) {
 			t.Errorf("TestNewNonce: Nonce size is %d bytes instead of %d", len(val), NonceLen)
 		}
 
-		if !n.IsValid() {
+		if !IsValid(n) {
 			t.Errorf("Nonce was just created, so it should be valid")
 		}
 	}
@@ -110,13 +126,13 @@ func TestNonceTTLStr(t *testing.T) {
 	pass := 0
 
 	for i := 0; i < tests; i++ {
-		n,err := NewNonce(ttls[i])
+		n, err := NewNonce(ttls[i])
 
 		if err != nil {
 			t.Error(err)
 		}
 
-		if ttlStr := n.TTLStr(); ttlStr != expected[i] {
+		if ttlStr := TTLStr(n); ttlStr != expected[i] {
 			t.Errorf("Nonce TTL is %s instead of %s", ttlStr, expected[i])
 		} else {
 			pass++
@@ -154,7 +170,7 @@ func TestNonceExpiryTime(t *testing.T) {
 
 	if calcTime := genTime.Add(ttl); !calcTime.Equal(expTime) {
 		t.Errorf("Nonce expiry time %s doesn't match with generation time %s + TTL %s: %s",
-			n.ExpiryTimeStr(), n.GenTimeStr(), n.TTLStr(), calcTime.Format(time.RFC3339))
+			ExpiryTimeStr(n), GenTimeStr(n), TTLStr(n), calcTime.Format(time.RFC3339))
 	}
 }
 
@@ -171,7 +187,7 @@ func TestNonceExpiration(t *testing.T) {
 	case <-wait:
 	}
 
-	if n.IsValid() {
+	if IsValid(n) {
 		t.Errorf("Nonce should be expired")
 	}
 }
