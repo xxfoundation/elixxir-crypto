@@ -38,7 +38,7 @@ func TestNewNonce(t *testing.T) {
 		t.Error(err)
 	}
 
-	if !IsValid(n) {
+	if !n.IsValid() {
 		t.Errorf("Nonce was just created, so it should be valid")
 	}
 }
@@ -183,7 +183,7 @@ func TestNonceExpiration(t *testing.T) {
 	case <-wait:
 	}
 
-	if IsValid(n) {
+	if n.IsValid() {
 		t.Errorf("Nonce should be expired")
 	}
 }
