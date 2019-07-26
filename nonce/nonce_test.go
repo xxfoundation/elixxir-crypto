@@ -110,7 +110,7 @@ func TestNonceTTLStr(t *testing.T) {
 	pass := 0
 
 	for i := 0; i < tests; i++ {
-		n,err := NewNonce(ttls[i])
+		n, err := NewNonce(ttls[i])
 
 		if err != nil {
 			t.Error(err)
