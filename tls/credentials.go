@@ -13,6 +13,7 @@ import (
 	"strings"
 )
 
+// getFullPath is a helper method which resolves ~ used in relative paths
 func getFullPath(path string) string {
 	if len(path) > 0 && path[0] == '~' {
 		// Find home directory.
@@ -26,6 +27,8 @@ func getFullPath(path string) string {
 	return path
 }
 
+// NewCredentialsFromPEM creates a TransportCredentials object out of a string
+// Accepts a nameOverride for use in test environments
 func NewCredentialsFromPEM(certificate string, nameOverride string) (credentials.TransportCredentials, error) {
 	if nameOverride == "" {
 		jww.WARN.Printf("Failure to provide name override can result in" +
@@ -40,6 +43,8 @@ func NewCredentialsFromPEM(certificate string, nameOverride string) (credentials
 	return credentials.NewClientTLSFromCert(pool, nameOverride), nil
 }
 
+// NewCredentialsFromFile creates a TransportCredentials object from the contents of a file
+// Accepts a nameOverride for use in test environments
 func NewCredentialsFromFile(filePath string, nameOverride string) (credentials.TransportCredentials, error) {
 	if nameOverride == "" {
 		jww.WARN.Printf("Failure to provide name override can result in" +
@@ -55,6 +60,7 @@ func NewCredentialsFromFile(filePath string, nameOverride string) (credentials.T
 	return result, nil
 }
 
+// NewPublicKeyFromFile reads the contents of a file and uses it to create a PublicKey object
 func NewPublicKeyFromFile(filePath string) (*rsa.PublicKey, error) {
 	filePath = getFullPath(filePath)
 	keyBytes, err := ioutil.ReadFile(filePath)
@@ -78,6 +84,8 @@ func NewPublicKeyFromFile(filePath string) (*rsa.PublicKey, error) {
 	}, nil
 }
 
+// NewPublicKeyFromPEM accepts a PEM certificate block in []byte format
+// and returns a *rsa.PublicKey object
 func NewPublicKeyFromPEM(certPEMblock []byte) (*rsa.PublicKey, error) {
 	block, _ := pem.Decode(certPEMblock)
 

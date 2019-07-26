@@ -71,14 +71,14 @@ func TestNewPublicKeyFromFile(t *testing.T) {
 func TestNewPublicKeyFromFileError(t *testing.T) {
 	path := testkeys.GetTestCertPath() + "sdfsd"
 	badCertPath := testkeys.GetTestKeyPath()
-	_, err := NewPublicKeyFromFile(path)
+	k, err := NewPublicKeyFromFile(path)
 	if err == nil {
-		t.Errorf("Expected to receive error, instead got: %+v", err)
+		t.Errorf("Expected to receive error, instead got: %+v", k)
 	}
 
-	_, err2 := NewPublicKeyFromFile(badCertPath)
+	k, err2 := NewPublicKeyFromFile(badCertPath)
 	if err2 == nil {
-		t.Errorf("Expected to receive error, instead got: %+v", err)
+		t.Errorf("Expected to receive error, instead got: %+v", k)
 	}
 }
 
