@@ -28,7 +28,8 @@ func getFullPath(path string) string {
 
 func NewCredentialsFromPEM(certificate string, nameOverride string) credentials.TransportCredentials {
 	if nameOverride == "" {
-		jww.WARN.Printf("")
+		jww.WARN.Printf("Failure to provide name override can result in" +
+			" TLS connection timeouts")
 	}
 
 	pool := x509.NewCertPool()
@@ -40,7 +41,8 @@ func NewCredentialsFromPEM(certificate string, nameOverride string) credentials.
 
 func NewCredentialsFromFile(filePath string, nameOverride string) credentials.TransportCredentials {
 	if nameOverride == "" {
-		jww.WARN.Printf("")
+		jww.WARN.Printf("Failure to provide name override can result in" +
+			" TLS connection timeouts")
 	}
 
 	filePath = getFullPath(filePath)
@@ -57,12 +59,15 @@ func NewPublicKeyFromFile(filePath string) *rsa.PublicKey {
 	if err != nil {
 		jww.FATAL.Panicf("Failed to read public key file at %s: %+v", filePath, err)
 	}
+
 	block, _ := pem.Decode(keyBytes)
+
 	var cert *x509.Certificate
 	cert, err = x509.ParseCertificate(block.Bytes)
 	if err != nil {
-
+		jww.ERROR.Printf("Error parsing PEM into certificate: %+v", err)
 	}
+
 	rsaPublicKey := cert.PublicKey.(*gorsa.PublicKey)
 	return &rsa.PublicKey{
 		PublicKey: *rsaPublicKey,
