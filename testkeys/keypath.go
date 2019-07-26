@@ -15,3 +15,7 @@ func getDirForFile() string {
 func GetTestCertPath() string {
 	return filepath.Join(getDirForFile(), "cmix.rip.crt")
 }
+
+func GetTestKeyPath() string {
+	return filepath.Join(getDirForFile(), "cmix.rip.key")
+}

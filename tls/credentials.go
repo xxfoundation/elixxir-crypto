@@ -18,7 +18,7 @@ func getFullPath(path string) string {
 		// Find home directory.
 		home, err := homedir.Dir()
 		if err != nil {
-			jww.FATAL.Panicf("Unable to locate home directory: %v", err)
+			jww.ERROR.Printf("Unable to locate home directory: %v", err)
 		}
 		// Append the home directory to the path
 		return home + strings.TrimLeft(path, "~")
@@ -26,7 +26,7 @@ func getFullPath(path string) string {
 	return path
 }
 
-func NewCredentialsFromPEM(certificate string, nameOverride string) credentials.TransportCredentials {
+func NewCredentialsFromPEM(certificate string, nameOverride string) (credentials.TransportCredentials, error) {
 	if nameOverride == "" {
 		jww.WARN.Printf("Failure to provide name override can result in" +
 			" TLS connection timeouts")
@@ -34,12 +34,13 @@ func NewCredentialsFromPEM(certificate string, nameOverride string) credentials.
 
 	pool := x509.NewCertPool()
 	if !pool.AppendCertsFromPEM([]byte(certificate)) {
-		jww.FATAL.Panicf("")
+		jww.ERROR.Printf("Error appending certs to cert pool: %+v", certificate)
+		return nil, errors.New("failed to append cert to pool")
 	}
-	return credentials.NewClientTLSFromCert(pool, nameOverride)
+	return credentials.NewClientTLSFromCert(pool, nameOverride), nil
 }
 
-func NewCredentialsFromFile(filePath string, nameOverride string) credentials.TransportCredentials {
+func NewCredentialsFromFile(filePath string, nameOverride string) (credentials.TransportCredentials, error) {
 	if nameOverride == "" {
 		jww.WARN.Printf("Failure to provide name override can result in" +
 			" TLS connection timeouts")
@@ -48,16 +49,18 @@ func NewCredentialsFromFile(filePath string, nameOverride string) credentials.Tr
 	filePath = getFullPath(filePath)
 	result, err := credentials.NewClientTLSFromFile(filePath, nameOverride)
 	if err != nil {
-		jww.FATAL.Panicf("Could not load TLS keys: %s", errors.New(err.Error()))
+		jww.ERROR.Printf("Could not load TLS keys: %s", err)
+		return nil, err
 	}
-	return result
+	return result, nil
 }
 
-func NewPublicKeyFromFile(filePath string) *rsa.PublicKey {
+func NewPublicKeyFromFile(filePath string) (*rsa.PublicKey, error) {
 	filePath = getFullPath(filePath)
 	keyBytes, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		jww.FATAL.Panicf("Failed to read public key file at %s: %+v", filePath, err)
+		jww.ERROR.Printf("Failed to read public key file at %s: %+v", filePath, err)
+		return nil, err
 	}
 
 	block, _ := pem.Decode(keyBytes)
@@ -66,10 +69,11 @@ func NewPublicKeyFromFile(filePath string) *rsa.PublicKey {
 	cert, err = x509.ParseCertificate(block.Bytes)
 	if err != nil {
 		jww.ERROR.Printf("Error parsing PEM into certificate: %+v", err)
+		return nil, err
 	}
 
 	rsaPublicKey := cert.PublicKey.(*gorsa.PublicKey)
 	return &rsa.PublicKey{
 		PublicKey: *rsaPublicKey,
-	}
+	}, nil
 }
