@@ -77,3 +77,19 @@ func NewPublicKeyFromFile(filePath string) (*rsa.PublicKey, error) {
 		PublicKey: *rsaPublicKey,
 	}, nil
 }
+
+func NewPublicKeyFromPEM(certPEMblock []byte) (*rsa.PublicKey, error) {
+	block, _ := pem.Decode(certPEMblock)
+
+	var cert *x509.Certificate
+	cert, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		jww.ERROR.Printf("Error parsing PEM into certificate: %+v", err)
+		return nil, err
+	}
+
+	rsaPublicKey := cert.PublicKey.(*gorsa.PublicKey)
+	return &rsa.PublicKey{
+		PublicKey: *rsaPublicKey,
+	}, nil
+}

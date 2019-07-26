@@ -5,6 +5,7 @@ import (
 	"gitlab.com/elixxir/crypto/signature/rsa"
 	"gitlab.com/elixxir/crypto/testkeys"
 	"google.golang.org/grpc/credentials"
+	"io/ioutil"
 	"testing"
 )
 
@@ -78,5 +79,23 @@ func TestNewPublicKeyFromFileError(t *testing.T) {
 	_, err2 := NewPublicKeyFromFile(badCertPath)
 	if err2 == nil {
 		t.Errorf("Expected to receive error, instead got: %+v", err)
+	}
+}
+
+func TestNewPublicKeyFromPEM(t *testing.T) {
+	path := testkeys.GetTestCertPath()
+	filePath := getFullPath(path)
+	keyBytes, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		t.Errorf("Failed to read public key file at %s: %+v", filePath, err)
+	}
+
+	var p *rsa.PublicKey
+	p, err = NewPublicKeyFromPEM(keyBytes)
+	if err != nil {
+		t.Errorf("Error setting tls credentials: %+v", err)
+	}
+	if p == nil {
+		t.Errorf("Failed to set tls credentials")
 	}
 }
