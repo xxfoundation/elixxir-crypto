@@ -124,6 +124,7 @@ SfY1Wi5vbO2siizZUuyyr7jqIQr7bg==
 -----END PRIVATE KEY-----
 `
 
+//pass an empty file into the loaders
 func TestEmptyFile(t *testing.T) {
 	empty := ""
 	//Pass an empty string into loading the request
@@ -140,10 +141,14 @@ func TestEmptyFile(t *testing.T) {
 
 	//Pass the empty string into loading the private key
 	_, err = LoadPrivateKey(empty)
+	if err == nil {
+		t.Error("Generated a private key from an empty file!")
+	}
 }
 
+//Pass incorrectly formated contents into the loaders
 func TestLoadIncorrectly(t *testing.T) {
-	//Pass the CSR into the certificate request loader
+	//Pass the private key into the certificate loader
 	_, err := LoadCertificate(PrivateKey)
 	if err == nil {
 		t.Error("Failed to detect passing in a non-certificate into LoadCertificate")
@@ -153,13 +158,14 @@ func TestLoadIncorrectly(t *testing.T) {
 	if err == nil {
 		t.Error("Failed to detect passing a non-CSR into LoadCSR")
 	}
-
+	//Pass the request into the private key loader
 	_, err = LoadPrivateKey(CertReq)
 	if err == nil {
 		t.Error("Failed to detect passing a non-private key into LoadPrivateKey")
 	}
 }
 
+//pass everything as intended. No errors should occur in this test
 func TestTLS_SmokeTest(t *testing.T) {
 	cert, err := LoadCertificate(Cert)
 	if err != nil {
