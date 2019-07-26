@@ -6,26 +6,33 @@ import (
 	"errors"
 )
 
+// LoadCSR takes a pem encoded certificate request (ie the contents of a csr file),
+// parses it and outputs an x509 cert request object
 func LoadCSR(csrContents string) (*x509.CertificateRequest, error) {
-	certDecoded, _ := pem.Decode([]byte(csrContents))
-	if certDecoded == nil {
+	//Decode the pem encoded CSR
+	requestDecoded, _ := pem.Decode([]byte(csrContents))
+	if requestDecoded == nil {
 		err := errors.New("Decoding PEM Failed")
 		return nil, err
 	}
-	csr, err := x509.ParseCertificateRequest(certDecoded.Bytes)
+	//parse it to create a certificate request object
+	csr, err := x509.ParseCertificateRequest(requestDecoded.Bytes)
 	if err != nil {
 		return nil, err
 	}
 	return csr, nil
 }
 
+// LoadCertificate takes a pem encoded certificate (ie the contents of a crt file),
+// parses it and outputs an x509 certificate object
 func LoadCertificate(certContents string) (*x509.Certificate, error) {
+	//Decode the pem encoded cert
 	certDecoded, _ := pem.Decode([]byte(certContents))
 	if certDecoded == nil {
 		err := errors.New("Decoding PEM Failed")
 		return nil, err
 	}
-	//
+	//Parse the cert to create a new cert object
 	cert, err := x509.ParseCertificate(certDecoded.Bytes)
 	if err != nil {
 		return nil, err
@@ -33,15 +40,18 @@ func LoadCertificate(certContents string) (*x509.Certificate, error) {
 	return cert, nil
 }
 
+// LoadPrivateKey takes a pem encoded private key (ie the contents of a private key file),
+// parses it and outputs an x509 private key object
 func LoadPrivateKey(privContents string) (interface{}, error) {
-	certDecoded, _ := pem.Decode([]byte(privContents))
-	if certDecoded == nil {
+	//Decode the pem encoded privatekey
+	privKeyDecoded, _ := pem.Decode([]byte(privContents))
+	if privKeyDecoded == nil {
 		err := errors.New("Decoding PEM Failed")
 		return nil, err
 	}
 
 	//Openssl creates pkcs8 keys by default as of openSSL 1.0.0
-	privateKey, err := x509.ParsePKCS8PrivateKey(certDecoded.Bytes)
+	privateKey, err := x509.ParsePKCS8PrivateKey(privKeyDecoded.Bytes)
 
 	if err != nil {
 		return nil, err

@@ -38,7 +38,7 @@ func TestNewNonce(t *testing.T) {
 		t.Error(err)
 	}
 
-	if !IsValid(n) {
+	if !n.IsValid() {
 		t.Errorf("Nonce was just created, so it should be valid")
 	}
 }
@@ -59,10 +59,6 @@ func TestNewNonceMultiple(t *testing.T) {
 	if len(tmap) < NumTests {
 		t.Errorf("At least two nonces out of %d have the same value", NumTests)
 	}
-}
-
-func IsValid(n Nonce) bool {
-	return time.Now().Before(n.ExpiryTime)
 }
 
 func GenTimeStr(n Nonce) string {
@@ -92,7 +88,7 @@ func TestNewNonceVarious(t *testing.T) {
 			t.Errorf("TestNewNonce: Nonce size is %d bytes instead of %d", len(val), NonceLen)
 		}
 
-		if !IsValid(n) {
+		if !n.IsValid() {
 			t.Errorf("Nonce was just created, so it should be valid")
 		}
 	}
@@ -187,7 +183,7 @@ func TestNonceExpiration(t *testing.T) {
 	case <-wait:
 	}
 
-	if IsValid(n) {
+	if n.IsValid() {
 		t.Errorf("Nonce should be expired")
 	}
 }

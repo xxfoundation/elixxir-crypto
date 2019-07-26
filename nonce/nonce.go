@@ -51,3 +51,7 @@ func NewNonce(ttl uint) (Nonce, error) {
 func (n Nonce) Bytes() []byte {
 	return n.Value[:]
 }
+
+func (n Nonce) IsValid() bool {
+	return time.Now().Before(n.ExpiryTime)
+}
