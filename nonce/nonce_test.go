@@ -61,10 +61,6 @@ func TestNewNonceMultiple(t *testing.T) {
 	}
 }
 
-func IsValid(n Nonce) bool {
-	return time.Now().Before(n.ExpiryTime)
-}
-
 func GenTimeStr(n Nonce) string {
 	return n.GenTime.Format(time.RFC3339)
 }
@@ -92,7 +88,7 @@ func TestNewNonceVarious(t *testing.T) {
 			t.Errorf("TestNewNonce: Nonce size is %d bytes instead of %d", len(val), NonceLen)
 		}
 
-		if !IsValid(n) {
+		if !n.IsValid() {
 			t.Errorf("Nonce was just created, so it should be valid")
 		}
 	}
