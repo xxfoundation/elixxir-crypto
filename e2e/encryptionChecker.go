@@ -19,11 +19,11 @@ func IsUnencrypted(m *format.Message) bool {
 	}
 
 	// Hash the message payload
-	h.Write(m.SerializePayload())
+	h.Write(m.Contents.Get())
 	payloadHash := h.Sum(nil)
 
 	// Get the key fingerprint
-	keyFingerprint := m.GetKeyFingerprint()
+	keyFingerprint := m.AssociatedData.GetKeyFP()
 
 	// Return true if the byte slices are equal
 	return bytes.Equal(payloadHash, keyFingerprint[:])
@@ -40,12 +40,12 @@ func SetUnencrypted(m *format.Message) {
 	}
 
 	// Hash the message payload
-	h.Write(m.SerializePayload())
+	h.Write(m.Contents.Get())
 	payloadHash := h.Sum(nil)
 
 	// Create fingerprint from the payload hash
 	keyFingerprint := format.NewFingerprint(payloadHash)
 
 	// Set the fingerprint
-	m.SetKeyFingerprint(*keyFingerprint)
+	m.AssociatedData.SetKeyFP(*keyFingerprint)
 }

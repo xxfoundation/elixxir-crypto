@@ -305,11 +305,11 @@ func (z *Int) LeftpadBytes(length uint64) []byte {
 			"): Byte array too long! Expected: %v, Received: %v", length, len(b))
 	}
 
-	rtnslc := make([]byte, length-uint64(len(b)))
+	leftpaddedBytes := make([]byte, length-uint64(len(b)))
 
-	rtnslc = append(rtnslc, b...)
+	leftpaddedBytes = append(leftpaddedBytes, b...)
 
-	return rtnslc
+	return leftpaddedBytes
 }
 
 // -------------- String representation getters -------------- //
