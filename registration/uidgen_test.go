@@ -4,17 +4,18 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"gitlab.com/elixxir/crypto/csprng"
-	"gitlab.com/elixxir/crypto/large"
-	"gitlab.com/elixxir/crypto/signature"
+	"gitlab.com/elixxir/crypto/signature/rsa"
 	"testing"
 )
 
 // Test GenUserID normal operation with a randomly
 // generated public key and a fixed salt
 func TestGenUserID(t *testing.T) {
-	params := signature.NewDSAParams(rand.Reader, signature.L2048N256)
-	privKey := params.PrivateKeyGen(rand.Reader)
-	pubKey := privKey.PublicKeyGen()
+	privKey, err := rsa.GenerateKey(rand.Reader, 768)
+	if err != nil {
+		t.Errorf("Could not generate private key: %+v", err)
+	}
+	pubKey := privKey.GetPublic()
 	salt := []byte("0123456789ABCDEF0123456789ABCDEF")
 
 	user := GenUserID(pubKey, salt)
@@ -25,9 +26,11 @@ func TestGenUserID(t *testing.T) {
 
 // Test GenUserID panics with empty byte slice salt
 func TestGenUserID_EmptySalt(t *testing.T) {
-	params := signature.NewDSAParams(rand.Reader, signature.L2048N256)
-	privKey := params.PrivateKeyGen(rand.Reader)
-	pubKey := privKey.PublicKeyGen()
+	privKey, err := rsa.GenerateKey(rand.Reader, 768)
+	if err != nil {
+		t.Errorf("Could not generate private key: %+v", err)
+	}
+	pubKey := privKey.GetPublic()
 	salt := []byte("")
 
 	defer func() {
@@ -40,9 +43,11 @@ func TestGenUserID_EmptySalt(t *testing.T) {
 
 // Test GenUserID panics with nil salt
 func TestGenUserID_NilSalt(t *testing.T) {
-	params := signature.NewDSAParams(rand.Reader, signature.L2048N256)
-	privKey := params.PrivateKeyGen(rand.Reader)
-	pubKey := privKey.PublicKeyGen()
+	privKey, err := rsa.GenerateKey(rand.Reader, 768)
+	if err != nil {
+		t.Errorf("Could not generate private key: %+v", err)
+	}
+	pubKey := privKey.GetPublic()
 
 	defer func() {
 		if r := recover(); r == nil {
@@ -50,22 +55,6 @@ func TestGenUserID_NilSalt(t *testing.T) {
 		}
 	}()
 	GenUserID(pubKey, nil)
-}
-
-// Test GenUserID panics with empty byte slice public key
-func TestGenUserID_EmptyKey(t *testing.T) {
-	params := signature.NewDSAParams(rand.Reader, signature.L2048N256)
-	pubKey := signature.ReconstructPublicKey(
-		params,
-		large.NewIntFromBytes([]byte("")))
-	salt := []byte("0123456789ABCDEF0123456789ABCDEF")
-
-	defer func() {
-		if r := recover(); r == nil {
-			t.Errorf("UserID Generation should panic on empty key")
-		}
-	}()
-	GenUserID(pubKey, salt)
 }
 
 // Test GenUserID panics with nil public key
@@ -81,16 +70,17 @@ func TestGenUserID_NilKey(t *testing.T) {
 }
 
 func TestGenUserID_Random(t *testing.T) {
-	params := signature.NewDSAParams(rand.Reader, signature.L1024N160)
-
 	tests := 100
 
 	userMap := make(map[string]bool)
 	csprig := csprng.NewSystemRNG()
 
 	for i := 0; i < tests; i++ {
-		privKey := params.PrivateKeyGen(rand.Reader)
-		pubKey := privKey.PublicKeyGen()
+		privKey, err := rsa.GenerateKey(rand.Reader, 768)
+		if err != nil {
+			t.Errorf("Could not generate private key: %+v", err)
+		}
+		pubKey := privKey.GetPublic()
 		salt := make([]byte, 32)
 		csprig.Read(salt)
 		user := GenUserID(pubKey, salt)

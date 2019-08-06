@@ -66,6 +66,11 @@ func (priv *PrivateKey) GetDq() *large.Int {
 	return large.NewIntFromBigInt(priv.Precomputed.Dq)
 }
 
+// GetPublicKey returns the public key in *rsa.PublicKey format
+func (priv *PrivateKey) GetPublic() *PublicKey {
+	return &PublicKey{priv.PublicKey}
+}
+
 /* NOTE: This is included for completeness, but since we don't use
          the multi configuration, the CRTValues struct inside the PrivateKey
          should always be empty for our purposes. Leaving this present and
