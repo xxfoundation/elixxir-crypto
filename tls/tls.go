@@ -1,7 +1,6 @@
 package tls
 
 import (
-	"crypto"
 	"crypto/ecdsa"
 	"crypto/rsa"
 	"crypto/x509"
@@ -43,9 +42,9 @@ func LoadCertificate(certContents string) (*x509.Certificate, error) {
 	return cert, nil
 }
 
-// LoadPrivateKey takes a pem encoded private key (ie the contents of a private key file),
+// LoadRSAPrivateKey takes a pem encoded private key (ie the contents of a private key file),
 // parses it and outputs an x509 private key object
-func LoadPrivateKey(privContents string) (crypto.PrivateKey, error) {
+func LoadRSAPrivateKey(privContents string) (*rsa.PrivateKey, error) {
 	//Decode the pem encoded cert
 	keyDecoded, _ := pem.Decode([]byte(privContents))
 	if keyDecoded == nil {
@@ -57,14 +56,13 @@ func LoadPrivateKey(privContents string) (crypto.PrivateKey, error) {
 	}
 	if key, err := x509.ParsePKCS8PrivateKey(keyDecoded.Bytes); err == nil {
 		switch key := key.(type) {
-		case *rsa.PrivateKey, *ecdsa.PrivateKey:
+		case *rsa.PrivateKey:
 			return key, nil
+		case *ecdsa.PrivateKey:
+			return nil, errors.New("found unknown or invalid private key type in PKCS#8 wrapping")
 		default:
-			return nil, errors.New("found unknown private key type in PKCS#8 wrapping")
+			return nil, errors.New("found unknown or invalid private key type in PKCS#8 wrapping")
 		}
-	}
-	if key, err := x509.ParseECPrivateKey(keyDecoded.Bytes); err == nil {
-		return key, nil
 	}
 	return nil, errors.New("failed to parse private key")
 }

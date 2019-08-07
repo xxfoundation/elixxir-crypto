@@ -1,6 +1,8 @@
 package tls
 
 import (
+	"fmt"
+	"reflect"
 	"testing"
 )
 
@@ -115,7 +117,7 @@ func TestEmptyFile(t *testing.T) {
 	}
 
 	//Pass the empty string into loading the private key
-	_, err = LoadPrivateKey(empty)
+	_, err = LoadRSAPrivateKey(empty)
 	if err == nil {
 		t.Error("Generated a private key from an empty file!")
 	}
@@ -134,9 +136,9 @@ func TestLoadIncorrectly(t *testing.T) {
 		t.Error("Failed to detect passing a non-CSR into LoadCSR")
 	}
 	//Pass the request into the private key loader
-	_, err = LoadPrivateKey(CertReq)
+	_, err = LoadRSAPrivateKey(CertReq)
 	if err == nil {
-		t.Error("Failed to detect passing a non-private key into LoadPrivateKey")
+		t.Error("Failed to detect passing a non-private key into LoadRSAPrivateKey")
 	}
 }
 
@@ -151,10 +153,12 @@ func TestTLS_SmokeTest(t *testing.T) {
 		t.Errorf("Unable to load cert: %+v", err.Error())
 	}
 
-	privKey, err := LoadPrivateKey(PrivateKey)
+	privKey, err := LoadRSAPrivateKey(PrivateKey)
 	if err != nil {
 		t.Errorf("Unable to load private key: %+v", err.Error())
 	}
+
+	fmt.Println(reflect.TypeOf(privKey))
 
 	if csr == nil {
 		t.Error("Failed to load a correctly formatted CSR")
