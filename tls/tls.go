@@ -1,6 +1,9 @@
 package tls
 
 import (
+	"crypto"
+	"crypto/ecdsa"
+	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
@@ -12,7 +15,7 @@ func LoadCSR(csrContents string) (*x509.CertificateRequest, error) {
 	//Decode the pem encoded CSR
 	requestDecoded, _ := pem.Decode([]byte(csrContents))
 	if requestDecoded == nil {
-		err := errors.New("Decoding PEM Failed")
+		err := errors.New("decoding PEM Failed")
 		return nil, err
 	}
 	//parse it to create a certificate request object
@@ -29,7 +32,7 @@ func LoadCertificate(certContents string) (*x509.Certificate, error) {
 	//Decode the pem encoded cert
 	certDecoded, _ := pem.Decode([]byte(certContents))
 	if certDecoded == nil {
-		err := errors.New("Decoding PEM Failed")
+		err := errors.New("decoding PEM Failed")
 		return nil, err
 	}
 	//Parse the cert to create a new cert object
@@ -42,19 +45,26 @@ func LoadCertificate(certContents string) (*x509.Certificate, error) {
 
 // LoadPrivateKey takes a pem encoded private key (ie the contents of a private key file),
 // parses it and outputs an x509 private key object
-func LoadPrivateKey(privContents string) (interface{}, error) {
-	//Decode the pem encoded privatekey
-	privKeyDecoded, _ := pem.Decode([]byte(privContents))
-	if privKeyDecoded == nil {
-		err := errors.New("Decoding PEM Failed")
+func LoadPrivateKey(privContents string) (crypto.PrivateKey, error) {
+	//Decode the pem encoded cert
+	keyDecoded, _ := pem.Decode([]byte(privContents))
+	if keyDecoded == nil {
+		err := errors.New("decoding PEM Failed")
 		return nil, err
 	}
-
-	//Openssl creates pkcs8 keys by default as of openSSL 1.0.0
-	privateKey, err := x509.ParsePKCS8PrivateKey(privKeyDecoded.Bytes)
-
-	if err != nil {
-		return nil, err
+	if key, err := x509.ParsePKCS1PrivateKey(keyDecoded.Bytes); err == nil {
+		return key, nil
 	}
-	return privateKey, nil
+	if key, err := x509.ParsePKCS8PrivateKey(keyDecoded.Bytes); err == nil {
+		switch key := key.(type) {
+		case *rsa.PrivateKey, *ecdsa.PrivateKey:
+			return key, nil
+		default:
+			return nil, errors.New("found unknown private key type in PKCS#8 wrapping")
+		}
+	}
+	if key, err := x509.ParseECPrivateKey(keyDecoded.Bytes); err == nil {
+		return key, nil
+	}
+	return nil, errors.New("failed to parse private key")
 }
