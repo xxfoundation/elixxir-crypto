@@ -16,7 +16,11 @@ import (
 	"time"
 )
 
-// Mock struct and memebers for a mockRead test
+// Line will error if the stream does not comply with the csprng.Source
+// interface.
+var _ csprng.Source = &Stream{}
+
+// Mock struct and members for a mockRead test
 type mockRNG struct {
 }
 

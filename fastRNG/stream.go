@@ -99,11 +99,11 @@ func (sg *StreamGenerator) Close(stream *Stream) {
 	sg.waitingStreams <- stream
 }
 
-// Read reads up to len(b) bytes from the csprng.Source object. This function panics if the stream is locked.
+// Read reads up to len(b) bytes from the csprng.Source object. This function returns and error if the stream is locked.
 // Users of stream objects should close them when they are finished using them. We read the AES
 // blocksize into AES then run it until blockSize*scalingFactor bytes are read. Every time
 // blocksize*scalingFactor bytes are read this functions blocks until it rereads csprng.Source.
-func (s *Stream) Read(b []byte) int {
+func (s *Stream) Read(b []byte) (int, error) {
 	s.mut.Lock()
 	if len(b)%aes.BlockSize != 0 {
 		jww.FATAL.Panicf("Requested read length is not byte aligned!")
@@ -127,7 +127,7 @@ func (s *Stream) Read(b []byte) int {
 			extension = make([]byte, aes.BlockSize)
 			_, err := s.rng.Read(extension)
 			if err != nil {
-				jww.FATAL.Panicf(err.Error())
+				return 0, err
 			}
 			s.entropyCnt = s.streamGen.scalingFactor
 			s.AESCtr = Fortuna(dst, extension, s.fortunaHash)
@@ -140,7 +140,7 @@ func (s *Stream) Read(b []byte) int {
 	copy(s.source, dst)
 
 	s.mut.Unlock()
-	return len(b)
+	return len(b), nil
 }
 
 // The Fortuna construction is used to generate randomness
@@ -158,4 +158,12 @@ func Fortuna(src, ext []byte, fortunaHash hash.Hash) cipher.Stream {
 	//Encrypt the counter and place into destination
 	//TODO Go over iv with mario
 	return cipher.NewCTR(block, key[aes.BlockSize:2*aes.BlockSize])
+}
+
+// SetSeed does not do anything. Function exists to comply with the
+// csprng.Source interface.
+func (s *Stream) SetSeed(seed []byte) error {
+	jww.INFO.Printf("Stream does not utilise SetSeed().")
+
+	return nil
 }
