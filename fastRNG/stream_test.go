@@ -151,28 +151,21 @@ func TestClose_WaitingChannelLength(t *testing.T) {
 
 // Tests that the read length is not byte aligned
 func TestRead_NotByteAligned(t *testing.T) {
-	defer func() {
-		if r := recover(); r != nil {
-
-		}
-	}()
 	sg := NewStreamGenerator(12, 3)
 	stream0 := sg.GetStream()
 	requestedBytes := make([]byte, 95)
 	testSource := make([]byte, 128, 128)
 	stream0.source = testSource
 	stream0.rng = csprng.NewSystemRNG()
-	stream0.Read(requestedBytes)
-	t.Errorf("Test should have panicked here, read must be aligned by AES blocksize")
+	_, err := stream0.Read(requestedBytes)
+
+	if err == nil {
+		t.Errorf("Error returned by Read() nil when not expected.")
+	}
 }
 
 // Tests that the read length is byte aligned
 func TestRead_ByteAligned(t *testing.T) {
-	defer func() {
-		if r := recover(); r != nil {
-			t.Errorf("Test should not have panicked here, read must be aligned by AES blocksize")
-		}
-	}()
 	sg := NewStreamGenerator(12, 3)
 	stream0 := sg.GetStream()
 	//96 is a multiple of 16 (AES Blocksize)
@@ -180,7 +173,11 @@ func TestRead_ByteAligned(t *testing.T) {
 	testSource := make([]byte, 128, 128)
 	stream0.source = testSource
 	stream0.rng = csprng.NewSystemRNG()
-	stream0.Read(requestedBytes)
+	_, err := stream0.Read(requestedBytes)
+
+	if err != nil {
+		t.Errorf("Error returned by Read() nil when not expected. Read must be aligned by AES blocksize")
+	}
 }
 
 // Checking that the fortuna construct outputs random when reading more than source has
@@ -302,4 +299,19 @@ func TestRead_MockRNG(t *testing.T) {
 	if length != 0 || err != nil {
 		t.Errorf("Mock read failed")
 	}
+}
+
+func TestStream_SetSeed(t *testing.T) {
+	sg := NewStreamGenerator(20, 2)
+	stream := sg.GetStream()
+
+	err := stream.SetSeed([]byte{})
+
+	if err != nil {
+		t.Errorf("Error returned by SetSeed() not nil when expected.")
+	}
+}
+
+func TestFortuna(t *testing.T) {
+	Fortuna([]byte{}, []byte{}, nil)
 }

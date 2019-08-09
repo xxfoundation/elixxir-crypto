@@ -14,6 +14,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/binary"
+	"errors"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
 	_ "golang.org/x/crypto/blake2b"
@@ -106,7 +107,7 @@ func (sg *StreamGenerator) Close(stream *Stream) {
 func (s *Stream) Read(b []byte) (int, error) {
 	s.mut.Lock()
 	if len(b)%aes.BlockSize != 0 {
-		jww.FATAL.Panicf("Requested read length is not byte aligned!")
+		return 0, errors.New("requested read length is not byte aligned")
 	}
 
 	dst := s.source
