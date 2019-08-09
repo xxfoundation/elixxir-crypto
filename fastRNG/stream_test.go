@@ -311,7 +311,3 @@ func TestStream_SetSeed(t *testing.T) {
 		t.Errorf("Error returned by SetSeed() not nil when expected.")
 	}
 }
-
-func TestFortuna(t *testing.T) {
-	Fortuna([]byte{}, []byte{}, nil)
-}
