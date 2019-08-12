@@ -28,6 +28,7 @@ type StreamGenerator struct {
 	maxStreams     uint
 	numStreams     uint
 	scalingFactor  uint
+	rngConstructor csprng.SourceConstructor
 }
 
 type Stream struct {
@@ -41,14 +42,18 @@ type Stream struct {
 	fortunaHash hash.Hash
 }
 
-// NewStreamGenerator creates a StreamGenerator object containing up to streamCount streams.
-func NewStreamGenerator(scalingFactor uint, streamCount uint) *StreamGenerator {
+// NewStreamGenerator creates a StreamGenerator object containing up to
+// streamCount streams. The passed in rngConstructor will be the source of
+// randomness for the streams.
+func NewStreamGenerator(scalingFactor uint, streamCount uint,
+	rng csprng.SourceConstructor) *StreamGenerator {
 	return &StreamGenerator{
 		scalingFactor:  scalingFactor,
 		waitingStreams: make(chan *Stream, streamCount),
 		maxStreams:     streamCount,
 		numStreams:     uint(0),
 		streams:        make([]*Stream, 0, streamCount),
+		rngConstructor: rng,
 	}
 }
 
@@ -65,6 +70,7 @@ func (sg *StreamGenerator) newStream() *Stream {
 		numStream:   sg.numStreams,
 		entropyCnt:  1,
 		fortunaHash: crypto.BLAKE2b_256.New(),
+		rng:         sg.rngConstructor(),
 	}
 	sg.streams = append(sg.streams, tmpStream)
 	sg.numStreams++
@@ -102,8 +108,8 @@ func (sg *StreamGenerator) Close(stream *Stream) {
 
 // Read reads up to len(b) bytes from the csprng.Source object. This function returns and error if the stream is locked.
 // Users of stream objects should close them when they are finished using them. We read the AES
-// blocksize into AES then run it until blockSize*scalingFactor bytes are read. Every time
-// blocksize*scalingFactor bytes are read this functions blocks until it rereads csprng.Source.
+// BlockSize into AES then run it until blockSize*scalingFactor bytes are read. Every time
+// BlockSize*scalingFactor bytes are read this functions blocks until it rereads csprng.Source.
 func (s *Stream) Read(b []byte) (int, error) {
 	s.mut.Lock()
 	if len(b)%aes.BlockSize != 0 {
@@ -112,11 +118,11 @@ func (s *Stream) Read(b []byte) (int, error) {
 
 	dst := s.source
 
-	//Initialze a counter to be used in Fortuna
+	//Initialize a counter to be used in Fortuna
 	counter := make([]byte, aes.BlockSize)
 	count := uint64(0)
 	for block := 0; block < len(b)/aes.BlockSize; block++ {
-		//Little endian used as a straighforward way to increment a byte array
+		//Little endian used as a straightforward way to increment a byte array
 		count++
 		binary.LittleEndian.PutUint64(counter, count)
 		var extension []byte
