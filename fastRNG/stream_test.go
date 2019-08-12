@@ -67,14 +67,14 @@ func TestNewStream_DoesPanic(t *testing.T) {
 	sg.newStream()
 	sg.newStream()
 	sg.newStream()
-	//It should panic after the 3rd newStream and get deffered. If it doesn't it has failed
+	//It should panic after the 3rd newStream and get deferred. If it doesn't it has failed
 	t.Errorf("FastRNG should panic when too many streams are made!")
 
 }
 
 //Test that it does not panic when it reaches capacity
 func TestNewStream_NotPanic(t *testing.T) {
-	//The defer function should not be encountered here, as we are not exceeding capactity, we are at it
+	//The defer function should not be encountered here, as we are not exceeding capacity, we are at it
 	defer func() {
 		if r := recover(); r != nil {
 			t.Errorf("FastRNG should not panic when there are exactly maxStream Streams")
