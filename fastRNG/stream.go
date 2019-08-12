@@ -28,6 +28,7 @@ type StreamGenerator struct {
 	maxStreams     uint
 	numStreams     uint
 	scalingFactor  uint
+	rng            csprng.SourceConstructor
 }
 
 type Stream struct {
@@ -42,13 +43,15 @@ type Stream struct {
 }
 
 // NewStreamGenerator creates a StreamGenerator object containing up to streamCount streams.
-func NewStreamGenerator(scalingFactor uint, streamCount uint) *StreamGenerator {
+func NewStreamGenerator(scalingFactor uint, streamCount uint,
+	rng csprng.SourceConstructor) *StreamGenerator {
 	return &StreamGenerator{
 		scalingFactor:  scalingFactor,
 		waitingStreams: make(chan *Stream, streamCount),
 		maxStreams:     streamCount,
 		numStreams:     uint(0),
 		streams:        make([]*Stream, 0, streamCount),
+		rng:            rng,
 	}
 }
 
@@ -65,6 +68,7 @@ func (sg *StreamGenerator) newStream() *Stream {
 		numStream:   sg.numStreams,
 		entropyCnt:  1,
 		fortunaHash: crypto.BLAKE2b_256.New(),
+		rng:         sg.rng(),
 	}
 	sg.streams = append(sg.streams, tmpStream)
 	sg.numStreams++
