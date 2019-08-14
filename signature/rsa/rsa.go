@@ -149,6 +149,10 @@ func Sign(rand io.Reader, priv *PrivateKey, hash crypto.Hash, hashed []byte,
 		opts = NewDefaultOptions()
 	}
 
+	if opts.Hash == 0 {
+		opts.Hash = hash
+	}
+
 	return gorsa.SignPSS(rand, &priv.PrivateKey, hash, hashed,
 		&opts.PSSOptions)
 }
@@ -162,6 +166,10 @@ func Verify(pub *PublicKey, hash crypto.Hash, hashed []byte, sig []byte,
 	opts *Options) error {
 	if opts == nil {
 		opts = NewDefaultOptions()
+	}
+
+	if opts.Hash == 0 {
+		opts.Hash = hash
 	}
 
 	return gorsa.VerifyPSS(&pub.PublicKey, hash, hashed, sig,
