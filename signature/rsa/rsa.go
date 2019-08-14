@@ -147,9 +147,6 @@ func Sign(rand io.Reader, priv *PrivateKey, hash crypto.Hash, hashed []byte,
 	opts *Options) ([]byte, error) {
 	if opts == nil {
 		opts = NewDefaultOptions()
-	}
-
-	if opts.Hash == 0 {
 		opts.Hash = hash
 	}
 
@@ -166,9 +163,6 @@ func Verify(pub *PublicKey, hash crypto.Hash, hashed []byte, sig []byte,
 	opts *Options) error {
 	if opts == nil {
 		opts = NewDefaultOptions()
-	}
-
-	if opts.Hash == 0 {
 		opts.Hash = hash
 	}
 
