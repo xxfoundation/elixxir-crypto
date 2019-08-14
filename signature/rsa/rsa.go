@@ -24,6 +24,9 @@ import (
 	"io"
 )
 
+//Key length used in the system in bits
+var DefaultRSABitLen = 4096
+
 // Options is a direct wrapper for PSSOptions
 type Options struct {
 	gorsa.PSSOptions
