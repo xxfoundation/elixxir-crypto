@@ -16,7 +16,11 @@ import (
 	"time"
 )
 
-// Mock struct and memebers for a mockRead test
+// Line will error if the stream does not comply with the csprng.Source
+// interface.
+var _ csprng.Source = &Stream{}
+
+// Mock struct and members for a mockRead test
 type mockRNG struct {
 }
 
@@ -32,7 +36,7 @@ func (m *mockRNG) SetSeed(seed []byte) error {
 
 //Test the creation of a new stream generator and that it is configured correctly
 func TestNewStreamGenerator(t *testing.T) {
-	sg := NewStreamGenerator(12, 20)
+	sg := NewStreamGenerator(12, 20, csprng.NewSystemRNG)
 	if sg.maxStreams != 20 || sg.scalingFactor != 12 {
 		t.Errorf("Failure to initialize a stream generator correctly")
 	}
@@ -40,7 +44,7 @@ func TestNewStreamGenerator(t *testing.T) {
 
 //Test the creation of new streams and that the counters are in fact working
 func TestNewStream(t *testing.T) {
-	sg := NewStreamGenerator(12, 3)
+	sg := NewStreamGenerator(12, 3, csprng.NewSystemRNG)
 	sg.GetStream()
 	sg.GetStream()
 	sg.GetStream()
@@ -59,32 +63,32 @@ func TestNewStream_DoesPanic(t *testing.T) {
 		}
 	}()
 	//Stream count is 2, but 3 streams are being created, thus it should panic
-	sg := NewStreamGenerator(12, 2)
+	sg := NewStreamGenerator(12, 2, csprng.NewSystemRNG)
 	sg.newStream()
 	sg.newStream()
 	sg.newStream()
-	//It should panic after the 3rd newStream and get deffered. If it doesn't it has failed
+	//It should panic after the 3rd newStream and get deferred. If it doesn't it has failed
 	t.Errorf("FastRNG should panic when too many streams are made!")
 
 }
 
 //Test that it does not panic when it reaches capacity
 func TestNewStream_NotPanic(t *testing.T) {
-	//The defer function should not be encountered here, as we are not exceeding capactity, we are at it
+	//The defer function should not be encountered here, as we are not exceeding capacity, we are at it
 	defer func() {
 		if r := recover(); r != nil {
 			t.Errorf("FastRNG should not panic when there are exactly maxStream Streams")
 		}
 	}()
 	//Stream count is 2, and 2 streams are being created, thus it should not panic
-	sg := NewStreamGenerator(12, 2)
+	sg := NewStreamGenerator(12, 2, csprng.NewSystemRNG)
 	sg.newStream()
 	sg.newStream()
 }
 
 //Test that the getStream calls newStream correctly/appropriately
 func TestGetStream_NewStream(t *testing.T) {
-	sg := NewStreamGenerator(12, 3)
+	sg := NewStreamGenerator(12, 3, csprng.NewSystemRNG)
 	sg.GetStream()
 	sg.GetStream()
 	sg.GetStream()
@@ -96,7 +100,7 @@ func TestGetStream_NewStream(t *testing.T) {
 
 //Test that a blocked channel will grab a stream what it becomes available
 func TestGetStream_GrabsWaitingStream(t *testing.T) {
-	sg := NewStreamGenerator(12, 3)
+	sg := NewStreamGenerator(12, 3, csprng.NewSystemRNG)
 	stream0 := sg.GetStream()
 	sg.GetStream()
 	sg.GetStream()
@@ -113,7 +117,7 @@ func TestGetStream_GrabsWaitingStream(t *testing.T) {
 
 //Test that a blocked channel will grab a stream that is available
 func TestGetStream_GrabsAlreadyWaitingStream(t *testing.T) {
-	sg := NewStreamGenerator(12, 3)
+	sg := NewStreamGenerator(12, 3, csprng.NewSystemRNG)
 	stream0 := sg.GetStream()
 
 	steam1 := sg.GetStream()
@@ -129,7 +133,7 @@ func TestGetStream_GrabsAlreadyWaitingStream(t *testing.T) {
 }
 
 func TestClose_WaitingChannelLength(t *testing.T) {
-	sg := NewStreamGenerator(12, 3)
+	sg := NewStreamGenerator(12, 3, csprng.NewSystemRNG)
 	stream0 := sg.GetStream()
 	stream1 := sg.GetStream()
 	stream2 := sg.GetStream()
@@ -147,36 +151,33 @@ func TestClose_WaitingChannelLength(t *testing.T) {
 
 // Tests that the read length is not byte aligned
 func TestRead_NotByteAligned(t *testing.T) {
-	defer func() {
-		if r := recover(); r != nil {
-
-		}
-	}()
-	sg := NewStreamGenerator(12, 3)
+	sg := NewStreamGenerator(12, 3, csprng.NewSystemRNG)
 	stream0 := sg.GetStream()
 	requestedBytes := make([]byte, 95)
 	testSource := make([]byte, 128, 128)
 	stream0.source = testSource
 	stream0.rng = csprng.NewSystemRNG()
-	stream0.Read(requestedBytes)
-	t.Errorf("Test should have panicked here, read must be aligned by AES blocksize")
+	_, err := stream0.Read(requestedBytes)
+
+	if err == nil {
+		t.Errorf("Error returned by Read() nil when not expected.")
+	}
 }
 
 // Tests that the read length is byte aligned
 func TestRead_ByteAligned(t *testing.T) {
-	defer func() {
-		if r := recover(); r != nil {
-			t.Errorf("Test should not have panicked here, read must be aligned by AES blocksize")
-		}
-	}()
-	sg := NewStreamGenerator(12, 3)
+	sg := NewStreamGenerator(12, 3, csprng.NewSystemRNG)
 	stream0 := sg.GetStream()
 	//96 is a multiple of 16 (AES Blocksize)
 	requestedBytes := make([]byte, 96)
 	testSource := make([]byte, 128, 128)
 	stream0.source = testSource
 	stream0.rng = csprng.NewSystemRNG()
-	stream0.Read(requestedBytes)
+	_, err := stream0.Read(requestedBytes)
+
+	if err != nil {
+		t.Errorf("Error returned by Read() nil when not expected. Read must be aligned by AES blocksize")
+	}
 }
 
 // Checking that the fortuna construct outputs random when reading more than source has
@@ -190,7 +191,7 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 	}
 
 	//Initialize streamGenerator & streams
-	sg := NewStreamGenerator(20, 2)
+	sg := NewStreamGenerator(20, 2, csprng.NewSystemRNG)
 	stream := sg.GetStream()
 	stream.source = append(stream.source, testSource...)
 	stream.rng = csprng.NewSystemRNG()
@@ -219,7 +220,7 @@ func TestRead_MultipleStreams_DifferentOutputs(t *testing.T) {
 		jww.WARN.Printf(err.Error())
 	}
 
-	sg := NewStreamGenerator(20, 2)
+	sg := NewStreamGenerator(20, 2, csprng.NewSystemRNG)
 	stream0 := sg.GetStream()
 	stream1 := sg.GetStream()
 
@@ -248,7 +249,7 @@ func TestRead_DelinkedSource(t *testing.T) {
 	}
 
 	//Initialize streamGenerator & streams
-	sg := NewStreamGenerator(20, 2)
+	sg := NewStreamGenerator(20, 2, csprng.NewSystemRNG)
 	stream := sg.GetStream()
 	stream.source = append(stream.source, testSource...)
 	stream.rng = csprng.NewSystemRNG()
@@ -269,7 +270,7 @@ func TestRead_DelinkedSource(t *testing.T) {
 
 // Read read a length smaller than the currently existing source
 func TestRead_ReadLessThanSource(t *testing.T) {
-	sg := NewStreamGenerator(20, 2)
+	sg := NewStreamGenerator(20, 2, csprng.NewSystemRNG)
 	stream := sg.GetStream()
 	requestedBytes := make([]byte, 32)
 	origSrcLen := 234
@@ -290,12 +291,23 @@ func TestRead_ReadLessThanSource(t *testing.T) {
 
 //Test with a mock read that returns predictably every time
 func TestRead_MockRNG(t *testing.T) {
-	sg := NewStreamGenerator(20, 2)
+	sg := NewStreamGenerator(20, 2, csprng.NewSystemRNG)
 	read := make([]byte, 24)
 	stream := sg.GetStream()
 	stream.rng = newMockRNG()
 	length, err := stream.rng.Read(read)
 	if length != 0 || err != nil {
 		t.Errorf("Mock read failed")
+	}
+}
+
+func TestStream_SetSeed(t *testing.T) {
+	sg := NewStreamGenerator(20, 2, csprng.NewSystemRNG)
+	stream := sg.GetStream()
+
+	err := stream.SetSeed([]byte{})
+
+	if err != nil {
+		t.Errorf("Error returned by SetSeed() not nil when expected.")
 	}
 }
