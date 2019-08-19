@@ -24,6 +24,9 @@ import (
 	"io"
 )
 
+//Key length used in the system in bits
+var DefaultRSABitLen = 4096
+
 // Options is a direct wrapper for PSSOptions
 type Options struct {
 	gorsa.PSSOptions
@@ -37,33 +40,38 @@ type PrivateKey struct {
 
 // GetD returns the private exponent of the RSA Private Key as
 // a large.Int
-func (priv *PrivateKey) GetD() *large.Int {
-	return large.NewIntFromBigInt(priv.D)
+func (p *PrivateKey) GetD() *large.Int {
+	return large.NewIntFromBigInt(p.D)
 }
 
 // GetPrimes returns the prime factors of N, which has >= 2 elements
-func (priv *PrivateKey) GetPrimes() []*large.Int {
-	primes := make([]*large.Int, len(priv.Primes))
-	for i := 0; i < len(priv.Primes); i++ {
-		primes[i] = large.NewIntFromBigInt(priv.Primes[i])
+func (p *PrivateKey) GetPrimes() []*large.Int {
+	primes := make([]*large.Int, len(p.Primes))
+	for i := 0; i < len(p.Primes); i++ {
+		primes[i] = large.NewIntFromBigInt(p.Primes[i])
 	}
 	return primes
 }
 
 // GetDp returns D mod (P - 1), or nil if unavailable
-func (priv *PrivateKey) GetDp() *large.Int {
-	if priv.Precomputed.Dp == nil {
+func (p *PrivateKey) GetDp() *large.Int {
+	if p.Precomputed.Dp == nil {
 		return nil
 	}
-	return large.NewIntFromBigInt(priv.Precomputed.Dp)
+	return large.NewIntFromBigInt(p.Precomputed.Dp)
 }
 
 // GetDq returns D mod (Q - 1), or nil if unavailable
-func (priv *PrivateKey) GetDq() *large.Int {
-	if priv.Precomputed.Dq == nil {
+func (p *PrivateKey) GetDq() *large.Int {
+	if p.Precomputed.Dq == nil {
 		return nil
 	}
-	return large.NewIntFromBigInt(priv.Precomputed.Dq)
+	return large.NewIntFromBigInt(p.Precomputed.Dq)
+}
+
+// GetPublicKey returns the public key in *rsa.PublicKey format
+func (p *PrivateKey) GetPublic() *PublicKey {
+	return &PublicKey{p.PublicKey}
 }
 
 /* NOTE: This is included for completeness, but since we don't use
@@ -104,13 +112,13 @@ type PublicKey struct {
 }
 
 // Public returns the public key corresponding to priv.
-func (priv *PrivateKey) Public() crypto.PublicKey {
-	return &PublicKey{priv.PublicKey}
+func (p *PrivateKey) Public() crypto.PublicKey {
+	return &PublicKey{p.PublicKey}
 }
 
 // GetN returns the RSA Public Key modulus
-func (pub *PublicKey) GetN() *large.Int {
-	return large.NewIntFromBigInt(pub.N)
+func (p *PublicKey) GetN() *large.Int {
+	return large.NewIntFromBigInt(p.N)
 }
 
 // GenerateKey generates an RSA keypair of the given bit size using the
@@ -139,6 +147,7 @@ func Sign(rand io.Reader, priv *PrivateKey, hash crypto.Hash, hashed []byte,
 	opts *Options) ([]byte, error) {
 	if opts == nil {
 		opts = NewDefaultOptions()
+		opts.Hash = hash
 	}
 
 	return gorsa.SignPSS(rand, &priv.PrivateKey, hash, hashed,
@@ -154,6 +163,7 @@ func Verify(pub *PublicKey, hash crypto.Hash, hashed []byte, sig []byte,
 	opts *Options) error {
 	if opts == nil {
 		opts = NewDefaultOptions()
+		opts.Hash = hash
 	}
 
 	return gorsa.VerifyPSS(&pub.PublicKey, hash, hashed, sig,

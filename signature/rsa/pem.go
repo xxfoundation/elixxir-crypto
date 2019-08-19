@@ -8,9 +8,11 @@
 package rsa
 
 import (
+	gorsa "crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
+	"fmt"
 )
 
 // LoadPrivateKeyFromPem decodes and produces an RSA PrivateKey in PKCS#1 PEM
@@ -20,18 +22,38 @@ import (
 //    privateKey, err := LoadPrivateKeyFromPem(pem)
 func LoadPrivateKeyFromPem(pemBytes []byte) (*PrivateKey, error) {
 	block, rest := pem.Decode(pemBytes)
-	for block != nil && block.Type != "RSA PRIVATE KEY" {
-		block, rest = pem.Decode(rest)
-	}
+
+	//handles if structged as a PEM in a PEM
 	if block == nil {
-		return nil, errors.New("No RSA PRIVATE KEY block in PEM file")
+		block, _ = pem.Decode(rest)
+		if block == nil {
+			return nil, errors.New("could not decode PEM")
+		}
 	}
 
-	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-	if err != nil {
-		return nil, err
+	var key interface{}
+	var err error
+
+	//decodes the pem depending on type
+	switch block.Type {
+	case "RSA PRIVATE KEY":
+		key, err = x509.ParsePKCS1PrivateKey(block.Bytes)
+	case "PRIVATE KEY":
+		key, err = x509.ParsePKCS8PrivateKey(block.Bytes)
 	}
-	return &PrivateKey{*key}, nil
+
+	if err != nil {
+		return nil, errors.New(
+			fmt.Sprintf("could not decode key from PEM: %+v", err))
+	}
+
+	keyRSA, success := key.(*gorsa.PrivateKey)
+
+	if !success {
+		return nil, errors.New("decoded key is not an RSA key")
+	}
+
+	return &PrivateKey{*keyRSA}, nil
 }
 
 // LoadPublicKeyFromPem decodes and produces an RSA PublicKey in PKCS#1 PEM

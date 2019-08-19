@@ -9,7 +9,6 @@ package registration
 import (
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/diffieHellman"
-	"gitlab.com/elixxir/crypto/signature"
 	"hash"
 )
 
@@ -19,12 +18,10 @@ import (
 // ownPrivKey is the DSA PrivateKey of the caller
 // h is the hash to be used on the DHKX sessionKey
 // returns base key to be used in CMIX
-func GenerateBaseKey(g *cyclic.Group, peerPubKey *signature.DSAPublicKey,
-	ownPrivKey *signature.DSAPrivateKey, h hash.Hash) *cyclic.Int {
+func GenerateBaseKey(g *cyclic.Group, peerPubKey *cyclic.Int,
+	ownPrivKey *cyclic.Int, h hash.Hash) *cyclic.Int {
 
-	pubKey := g.NewIntFromLargeInt(peerPubKey.GetKey())
-	privKey := g.NewIntFromLargeInt(ownPrivKey.GetKey())
-	sessionKey, _ := diffieHellman.CreateDHSessionKey(pubKey, privKey, g)
+	sessionKey, _ := diffieHellman.CreateDHSessionKey(peerPubKey, ownPrivKey, g)
 
 	h.Write(sessionKey.Bytes())
 	return g.NewIntFromBytes(h.Sum(nil))
