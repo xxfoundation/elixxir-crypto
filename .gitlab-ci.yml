@@ -10,7 +10,7 @@ variables:
   REPO_DIR: gitlab.com/elixxir
   REPO_NAME: crypto
   DOCKER_IMAGE: bmastc/golang-glide:latest
-  MIN_CODE_COVERAGE: "96.5"
+  MIN_CODE_COVERAGE: "96.0"
 
 before_script:
   - go version || echo "Go executable not found."
