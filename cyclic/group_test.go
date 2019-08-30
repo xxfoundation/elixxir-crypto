@@ -872,7 +872,7 @@ func TestRandom(t *testing.T) {
 	g := large.NewInt(4)
 	q := large.NewInt(3)
 	group := NewGroup(p, g, q)
-	for i := 0; i < 100000; i++ {
+	for i := 0; i < 50; i++ {
 		if !group.Inside(group.Random(group.NewInt(1)).GetLargeInt()) {
 			t.Errorf("Generated number is not inside the group!")
 		}

@@ -112,7 +112,9 @@ func (sg *StreamGenerator) Close(stream *Stream) {
 // BlockSize*scalingFactor bytes are read this functions blocks until it rereads csprng.Source.
 func (s *Stream) Read(b []byte) (int, error) {
 	s.mut.Lock()
+
 	if len(b)%aes.BlockSize != 0 {
+		s.mut.Unlock()
 		return 0, errors.New("requested read length is not byte aligned")
 	}
 
@@ -121,7 +123,7 @@ func (s *Stream) Read(b []byte) (int, error) {
 	//Initialize a counter to be used in Fortuna
 	counter := make([]byte, aes.BlockSize)
 	count := uint64(0)
-	for block := 0; block < len(b)/aes.BlockSize; block++ {
+	for block := 0; block < len(b)/aes.BlockSize; {
 		//Little endian used as a straightforward way to increment a byte array
 		count++
 		binary.LittleEndian.PutUint64(counter, count)
@@ -134,6 +136,7 @@ func (s *Stream) Read(b []byte) (int, error) {
 			extension = make([]byte, aes.BlockSize)
 			_, err := s.rng.Read(extension)
 			if err != nil {
+				s.mut.Unlock()
 				return 0, err
 			}
 			s.entropyCnt = s.streamGen.scalingFactor

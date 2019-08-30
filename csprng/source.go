@@ -7,6 +7,7 @@
 package csprng
 
 import (
+	"crypto/aes"
 	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
 	"io"
@@ -58,6 +59,7 @@ func InGroup(sample, prime []byte) bool {
 func Generate(size int, rng io.Reader) ([]byte, error) {
 	key := make([]byte, size)
 	byteCount, err := rng.Read(key)
+	//TODO: split into aes blocksize chunks here?? Probs works better.. or just rm this helper entirely
 	if err == nil && byteCount != size {
 		err = fmt.Errorf("Generated %d bytes, not %d as requested!",
 			byteCount, size)
@@ -74,13 +76,36 @@ func GenerateInGroup(prime []byte, size int, rng io.Reader) ([]byte,
 			"(%d -> %d)", size, len(prime))
 		size = len(prime)
 	}
-	for {
+	//If we are generating a random byte slice that is shorter than prime, then it will always be in group
+	if size < len(prime) {
 		key, err := Generate(size, rng)
+		fmt.Printf("in size<len prime: rngval: %d", key)
+
 		// return if we get an error OR if we are in the group
 		if err != nil || InGroup(key, prime) {
 			return key, err
 		}
-		jww.INFO.Printf("Failed to generate key in group. If this" +
-			" message repeats, check for RNG issues...")
+
 	}
+	//Otherwise, we need to generate blockSize chunks and compare to the prime
+	key := make([]byte, size)
+	for block := 0; block < size/aes.BlockSize; {
+		//Generate an rand value of AES Block size
+		rngVal := make([]byte, aes.BlockSize)
+		rngVal, err := Generate(aes.BlockSize, rng)
+		fmt.Printf("in size == len prime: rngval: %d", rngVal)
+		if err != nil {
+			return nil, err
+		}
+
+		//Move on to next block only if the rngVal is within the group of the prime's aes chunk
+		if InGroup(rngVal, prime[block*aes.BlockSize:(block+1)*aes.BlockSize]) {
+			block++
+			//Append to the final return value
+			key = append(key, rngVal...)
+		}
+
+	}
+	fmt.Printf("primt is: %d vs rng value: %d", prime, key)
+	return key, nil
 }
