@@ -79,7 +79,7 @@ func GenerateInGroup(prime []byte, size int, rng io.Reader) ([]byte,
 	//If we are generating a random byte slice that is shorter than prime, then it will always be in group
 	if size < len(prime) {
 		key, err := Generate(size, rng)
-		fmt.Printf("in size<len prime: rngval: %d", key)
+		fmt.Printf("in size<len prime: rngval: %d\n", key)
 
 		// return if we get an error OR if we are in the group
 		if err != nil || InGroup(key, prime) {
@@ -89,15 +89,18 @@ func GenerateInGroup(prime []byte, size int, rng io.Reader) ([]byte,
 	}
 	//Otherwise, we need to generate blockSize chunks and compare to the prime
 	key := make([]byte, size)
+	fmt.Printf("size/block is %+v\n", size/aes.BlockSize)
+	numLoops := 0
 	for block := 0; block < size/aes.BlockSize; {
 		//Generate an rand value of AES Block size
+		numLoops++
 		rngVal := make([]byte, aes.BlockSize)
 		rngVal, err := Generate(aes.BlockSize, rng)
-		fmt.Printf("in size == len prime: rngval: %d", rngVal)
+		//fmt.Printf("in size == len prime: rngval: %d\n", rngVal)
 		if err != nil {
 			return nil, err
 		}
-
+		//fmt.Printf("prime is %d vs rng value: %d\n", prime[block*aes.BlockSize:(block+1)*aes.BlockSize], rngVal)
 		//Move on to next block only if the rngVal is within the group of the prime's aes chunk
 		if InGroup(rngVal, prime[block*aes.BlockSize:(block+1)*aes.BlockSize]) {
 			block++
@@ -106,6 +109,7 @@ func GenerateInGroup(prime []byte, size int, rng io.Reader) ([]byte,
 		}
 
 	}
-	fmt.Printf("primt is: %d vs rng value: %d", prime, key)
+	fmt.Printf("prime is: %d vs rng value: %d\n", prime, key)
+	fmt.Printf("numTries :%d\n", numLoops)
 	return key, nil
 }
