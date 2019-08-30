@@ -15,6 +15,7 @@ import (
 	"crypto/cipher"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
 	_ "golang.org/x/crypto/blake2b"
@@ -112,7 +113,7 @@ func (sg *StreamGenerator) Close(stream *Stream) {
 // BlockSize*scalingFactor bytes are read this functions blocks until it rereads csprng.Source.
 func (s *Stream) Read(b []byte) (int, error) {
 	s.mut.Lock()
-
+	fmt.Println("In stream read...")
 	if len(b)%aes.BlockSize != 0 {
 		s.mut.Unlock()
 		return 0, errors.New("requested read length is not byte aligned")
