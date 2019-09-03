@@ -86,7 +86,7 @@ const MODP4096 = "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
 	"93B4EA988D8FDDC186FFB7DC90A6C08F4DF435C934063199" +
 	"FFFFFFFFFFFFFFFF"
 
-// RNG type that alwyas returns bytes of value 2
+// RNG type that alwyas returns bytes of value 42
 type Rng42 struct{}
 
 func NewRng42() csprng.Source { return &Rng42{} }

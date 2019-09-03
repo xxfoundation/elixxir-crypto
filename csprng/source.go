@@ -59,7 +59,6 @@ func InGroup(sample, prime []byte) bool {
 func Generate(size int, rng io.Reader) ([]byte, error) {
 	key := make([]byte, size)
 	byteCount, err := rng.Read(key)
-	//TODO: split into aes blocksize chunks here?? Probs works better.. or just rm this helper entirely
 	if err == nil && byteCount != size {
 		err = fmt.Errorf("Generated %d bytes, not %d as requested!",
 			byteCount, size)
