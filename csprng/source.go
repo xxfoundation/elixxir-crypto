@@ -71,7 +71,7 @@ func Generate(size int, rng io.Reader) ([]byte, error) {
 func GenerateInGroup(prime []byte, size int, rng io.Reader) ([]byte,
 	error) {
 
-	//Reduce the size to prime length if overflowing
+	//Reduce the size to prime length
 	if size > len(prime) {
 		jww.WARN.Printf("Reducing size to match length of prime "+
 			"(%d -> %d)", size, len(prime))
