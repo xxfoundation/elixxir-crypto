@@ -115,6 +115,7 @@ func GenerateInGroup(prime []byte, size int, rng io.Reader) ([]byte,
 
 	}
 	//If prime is not AES block aligned, generate the remaining bytes of randomness as needed
+	//If prime is not AES block aligned, generate the remaining bytes of randomness as needed
 	if len(key) < len(prime) {
 		rngPad := make([]byte, len(prime)-len(key))
 		rngPad, err := Generate(len(rngPad), rng)
