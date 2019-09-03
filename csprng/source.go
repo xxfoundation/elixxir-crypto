@@ -71,7 +71,7 @@ func Generate(size int, rng io.Reader) ([]byte, error) {
 // group and returns the result
 func GenerateInGroup(prime []byte, size int, rng io.Reader) ([]byte,
 	error) {
-		fmt.Printf("prime is : %+v\n", prime)
+	fmt.Printf("prime is : %+v\n", prime)
 	if size > len(prime) {
 		jww.WARN.Printf("Reducing size to match length of prime "+
 			"(%d -> %d)", size, len(prime))
@@ -93,7 +93,8 @@ func GenerateInGroup(prime []byte, size int, rng io.Reader) ([]byte,
 	//Otherwise, we need to generate blockSize chunks and compare to the prime
 	key := make([]byte, 0, size)
 	numLoops := 0
-	for block := 0; block < size/aes.BlockSize ; {
+	fmt.Println(size / aes.BlockSize)
+	for block := 0; block < size/aes.BlockSize; {
 		//Generate an rand value of AES Block size
 		numLoops++
 		rngVal := make([]byte, aes.BlockSize)
@@ -103,15 +104,30 @@ func GenerateInGroup(prime []byte, size int, rng io.Reader) ([]byte,
 		}
 		//TODO: Deal with not byte aligned values
 		//Move on to next block only if the rngVal is within the group of the prime's aes chunk
-		if InGroup(rngVal, prime[block*aes.BlockSize:(block+1)*aes.BlockSize]) {
+		//TODO: not all blocks have to be in group necesarily, just need a block to be strictly less than
+		if block == 0 {
+			if InGroup(rngVal, prime[block*aes.BlockSize:(block+1)*aes.BlockSize]) {
+				block++
+				key = append(key, rngVal...)
+
+			}
+		} else {
 			block++
-			fmt.Println("appending key")
 			key = append(key, rngVal...)
-			fmt.Printf("key is now: %+v\n", key)
+
 		}
 
 	}
+	//If prime is not AES block aligned, generate the remaining bytes of randomness as needed
+	if len(key) < len(prime) {
+		rngPad := make([]byte, len(prime)-len(key))
+		rngPad, err := Generate(len(rngPad), rng)
+		if err != nil {
+			return nil, err
+		}
+
+		key = append(key, rngPad...)
+	}
 	fmt.Printf("prime is: %d \nvs rng value: %d\n", prime, key)
-	fmt.Printf("numTries :%d\n", numLoops)
 	return key, nil
 }

@@ -86,17 +86,17 @@ const MODP4096 = "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
 	"93B4EA988D8FDDC186FFB7DC90A6C08F4DF435C934063199" +
 	"FFFFFFFFFFFFFFFF"
 
-// RNG type that alwyas returns bytes of value 42
-type Rng42 struct{}
+// RNG type that alwyas returns bytes of value 2
+type Rng2 struct{}
 
-func NewRng42() csprng.Source { return &Rng42{} }
-func (s *Rng42) Read(b []byte) (int, error) {
+func NewRng42() csprng.Source { return &Rng2{} }
+func (s *Rng2) Read(b []byte) (int, error) {
 	for i := 0; i < len(b); i++ {
-		b[i] = 42
+		b[i] = 2
 	}
 	return len(b), nil
 }
-func (s *Rng42) SetSeed(seed []byte) error { return nil }
+func (s *Rng2) SetSeed(seed []byte) error { return nil }
 
 // TestGenerate_Basic tests that the basic generation works
 func TestGenerate_Basic(t *testing.T) {
@@ -195,6 +195,7 @@ func (s *RngErr32) Read(b []byte) (int, error) {
 	for i := 0; i < len(b); i++ {
 		b[i] = 42
 	}
+	fmt.Println("length genrated: ", len(b))
 	return len(b), nil
 }
 func (s *RngErr32) SetSeed(seed []byte) error { return nil }
