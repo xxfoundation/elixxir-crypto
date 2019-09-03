@@ -3,7 +3,6 @@ package e2e
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/primitives/id"
 	"testing"
@@ -45,11 +44,7 @@ func TestDeriveSingleKey(t *testing.T) {
 	data := append([]byte{}, key.Bytes()...)
 	data = append(data, userID.Bytes()...)
 	result := deriveSingleKey(sha256.New(), grp, data, 0)
-	fmt.Println(result.Bytes())
-	fmt.Println("Expected")
 	expected := grp.NewIntFromString(EXPECTED_KEY, 16)
-	fmt.Println(expected.Bytes())
-
 	if result.Cmp(expected) != 0 {
 		t.Errorf("Generated Key \n %v \n doesn't match expected \n %v",
 			result.TextVerbose(16, 0), EXPECTED_KEY)

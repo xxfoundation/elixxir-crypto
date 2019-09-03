@@ -7,7 +7,6 @@
 package e2e
 
 import (
-	"fmt"
 	"gitlab.com/elixxir/primitives/id"
 	"testing"
 )
@@ -19,7 +18,6 @@ func TestDummyKeyGen_ValidNumKeys(t *testing.T) {
 
 	userIds := []uint64{1, 2, 3, 4, 5, 6}
 	users := generateUsers(userIds, t)
-	fmt.Printf("group bytes %+v\n", len(grp.GetP().Bytes()))
 	keys := KeyGen(currUser, users, grp)
 	if len(keys) != len(users) {
 		t.Errorf("Wrong number of keys generated")

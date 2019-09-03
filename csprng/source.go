@@ -71,49 +71,46 @@ func Generate(size int, rng io.Reader) ([]byte, error) {
 // group and returns the result
 func GenerateInGroup(prime []byte, size int, rng io.Reader) ([]byte,
 	error) {
-	fmt.Printf("prime is : %+v\n", prime)
+
+	//Reduce the size to prime length if overflowing
 	if size > len(prime) {
 		jww.WARN.Printf("Reducing size to match length of prime "+
 			"(%d -> %d)", size, len(prime))
 		size = len(prime)
 	}
+
 	//If we are generating a random byte slice that is shorter than prime, then it will always be in group
 	if size < len(prime) || len(prime) < aes.BlockSize {
 		for {
-
 			key, err := Generate(size, rng)
-			fmt.Printf("in size<len prime: rngval: %d\n", key)
-			fmt.Printf("")
 			// return if we get an error OR if we are in the group
 			if err != nil || InGroup(key, prime) {
 				return key, err
 			}
 		}
 	}
+
 	//Otherwise, we need to generate blockSize chunks and compare to the prime
 	key := make([]byte, 0, size)
-	numLoops := 0
-	fmt.Println(size / aes.BlockSize)
 	for block := 0; block < size/aes.BlockSize; {
 		//Generate an rand value of AES Block size
-		numLoops++
-		rngVal := make([]byte, aes.BlockSize)
-		rngVal, err := Generate(aes.BlockSize, rng)
+		rngValue := make([]byte, aes.BlockSize)
+		rngValue, err := Generate(aes.BlockSize, rng)
 		if err != nil {
 			return nil, err
 		}
-		//TODO: Deal with not byte aligned values
-		//Move on to next block only if the rngVal is within the group of the prime's aes chunk
-		//TODO: not all blocks have to be in group necesarily, just need a block to be strictly less than
+
+		//We only need the first block's value to be in the group of the corresponding prime block
 		if block == 0 {
-			if InGroup(rngVal, prime[block*aes.BlockSize:(block+1)*aes.BlockSize]) {
+			if InGroup(rngValue, prime[block*aes.BlockSize:(block+1)*aes.BlockSize]) {
 				block++
-				key = append(key, rngVal...)
+				key = append(key, rngValue...)
 
 			}
+			//After the first block just append the rngVal to the key, as it will be in group
 		} else {
 			block++
-			key = append(key, rngVal...)
+			key = append(key, rngValue...)
 
 		}
 
@@ -125,10 +122,8 @@ func GenerateInGroup(prime []byte, size int, rng io.Reader) ([]byte,
 		if err != nil {
 			return nil, err
 		}
-
 		key = append(key, rngPad...)
 	}
-	fmt.Println("in genInGroup", len(key))
-	fmt.Printf("prime is: %d \nvs rng value: %d\n", prime, key)
+
 	return key, nil
 }

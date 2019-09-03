@@ -15,7 +15,6 @@ import (
 	"crypto/cipher"
 	"encoding/binary"
 	"errors"
-	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
 	_ "golang.org/x/crypto/blake2b"
@@ -113,7 +112,6 @@ func (sg *StreamGenerator) Close(stream *Stream) {
 // BlockSize*scalingFactor bytes are read this functions blocks until it rereads csprng.Source.
 func (s *Stream) Read(b []byte) (int, error) {
 	s.mut.Lock()
-	fmt.Println("In stream read...")
 	if len(b)%aes.BlockSize != 0 {
 		s.mut.Unlock()
 		return 0, errors.New("requested read length is not byte aligned")
@@ -125,7 +123,6 @@ func (s *Stream) Read(b []byte) (int, error) {
 	counter := make([]byte, aes.BlockSize)
 	count := uint64(0)
 	for block := 0; block < len(b)/aes.BlockSize; block++ {
-		fmt.Println(block)
 		//Little endian used as a straightforward way to increment a byte array
 		count++
 		binary.LittleEndian.PutUint64(counter, count)

@@ -87,16 +87,16 @@ const MODP4096 = "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
 	"FFFFFFFFFFFFFFFF"
 
 // RNG type that alwyas returns bytes of value 2
-type Rng2 struct{}
+type Rng42 struct{}
 
-func NewRng42() csprng.Source { return &Rng2{} }
-func (s *Rng2) Read(b []byte) (int, error) {
+func NewRng42() csprng.Source { return &Rng42{} }
+func (s *Rng42) Read(b []byte) (int, error) {
 	for i := 0; i < len(b); i++ {
-		b[i] = 2
+		b[i] = 42
 	}
 	return len(b), nil
 }
-func (s *Rng2) SetSeed(seed []byte) error { return nil }
+func (s *Rng42) SetSeed(seed []byte) error { return nil }
 
 // TestGenerate_Basic tests that the basic generation works
 func TestGenerate_Basic(t *testing.T) {
@@ -201,13 +201,10 @@ func (s *RngErr32) Read(b []byte) (int, error) {
 	for i := 0; i < len(b); i++ {
 		b[i] = 42
 	}
-	fmt.Println("length genrated: ", len(b))
 	return len(b), nil
 }
 func (s *RngErr32) SetSeed(seed []byte) error { return nil }
 
-//Reviewer: This test assumes that the rng val is generated all at once, which is no longer the case, it gen's
-// by AES Blocksize. This test should throw an error, as
 // TestGenerate_Err tests that the generation fails on error generating 2nd key
 func TestGenerate_Err2(t *testing.T) {
 	rng := NewRngErr32()

@@ -164,6 +164,22 @@ func TestRead_NotByteAligned(t *testing.T) {
 	}
 }
 
+// Tests that the read length is byte aligned
+func TestRead_ByteAligned(t *testing.T) {
+	sg := NewStreamGenerator(12, 3, csprng.NewSystemRNG)
+	stream0 := sg.GetStream()
+	//96 is a multiple of 16 (AES Blocksize)
+	requestedBytes := make([]byte, 96)
+	testSource := make([]byte, 128, 128)
+	stream0.source = testSource
+	stream0.rng = csprng.NewSystemRNG()
+	_, err := stream0.Read(requestedBytes)
+
+	if err != nil {
+		t.Errorf("Error returned by Read() nil when not expected. Read must be aligned by AES blocksize")
+	}
+}
+
 // Checking that the fortuna construct outputs random when reading more than source has
 func TestRead_ReadMoreThanSource(t *testing.T) {
 	requestedBytes := make([]byte, 512)
