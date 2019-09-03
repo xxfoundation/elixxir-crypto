@@ -124,7 +124,8 @@ func (s *Stream) Read(b []byte) (int, error) {
 	//Initialize a counter to be used in Fortuna
 	counter := make([]byte, aes.BlockSize)
 	count := uint64(0)
-	for block := 0; block < len(b)/aes.BlockSize; {
+	for block := 0; block < len(b)/aes.BlockSize; block++ {
+		fmt.Println(block)
 		//Little endian used as a straightforward way to increment a byte array
 		count++
 		binary.LittleEndian.PutUint64(counter, count)

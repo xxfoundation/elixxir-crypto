@@ -128,6 +128,7 @@ func GenerateInGroup(prime []byte, size int, rng io.Reader) ([]byte,
 
 		key = append(key, rngPad...)
 	}
+	fmt.Println("in genInGroup", len(key))
 	fmt.Printf("prime is: %d \nvs rng value: %d\n", prime, key)
 	return key, nil
 }
