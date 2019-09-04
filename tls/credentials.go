@@ -8,8 +8,8 @@ import (
 	"github.com/mitchellh/go-homedir"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/signature/rsa"
+	"gitlab.com/elixxir/primitives/utils"
 	"google.golang.org/grpc/credentials"
-	"io/ioutil"
 	"strings"
 )
 
@@ -63,7 +63,7 @@ func NewCredentialsFromFile(filePath string, nameOverride string) (credentials.T
 // NewPublicKeyFromFile reads the contents of a file and uses it to create a PublicKey object
 func NewPublicKeyFromFile(filePath string) (*rsa.PublicKey, error) {
 	filePath = getFullPath(filePath)
-	keyBytes, err := ioutil.ReadFile(filePath)
+	keyBytes, err := utils.ReadFile(filePath)
 	if err != nil {
 		jww.ERROR.Printf("Failed to read public key file at %s: %+v", filePath, err)
 		return nil, err
