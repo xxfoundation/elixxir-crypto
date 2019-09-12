@@ -4,8 +4,8 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"gitlab.com/elixxir/crypto/signature/rsa"
 	"gitlab.com/elixxir/crypto/testkeys"
+	"gitlab.com/elixxir/primitives/utils"
 	"google.golang.org/grpc/credentials"
-	"io/ioutil"
 	"testing"
 )
 
@@ -85,7 +85,7 @@ func TestNewPublicKeyFromFileError(t *testing.T) {
 func TestNewPublicKeyFromPEM(t *testing.T) {
 	path := testkeys.GetTestCertPath()
 	filePath := getFullPath(path)
-	keyBytes, err := ioutil.ReadFile(filePath)
+	keyBytes, err := utils.ReadFile(filePath)
 	if err != nil {
 		t.Errorf("Failed to read public key file at %s: %+v", filePath, err)
 	}
