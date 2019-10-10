@@ -30,7 +30,7 @@ func TestExpPrototype_CryptopsInterface(t *testing.T) {
 // Tests the correctness and consistency of exponentiation under the group. This
 // shows the results do not change.
 func TestExpPrototype_Consistency(t *testing.T) {
-	grp := cyclic.NewGroup(large.NewInt(117), large.NewInt(5), large.NewInt(53))
+	grp := cyclic.NewGroup(large.NewInt(117), large.NewInt(5))
 
 	testVals := [][]*cyclic.Int{
 		{grp.NewInt(42), grp.NewInt(41), grp.NewInt(9)},
@@ -75,7 +75,7 @@ func TestExpPrototype_MathProp(t *testing.T) {
 		"93B4EA988D8FDDC186FFB7DC90A6C08F4DF435C934063199" +
 		"FFFFFFFFFFFFFFFF"
 	var prime = large.NewIntFromString(primeString, 16)
-	grp := cyclic.NewGroup(prime, large.NewInt(5), large.NewInt(53))
+	grp := cyclic.NewGroup(prime, large.NewInt(5))
 
 	prng := rand.New(rand.NewSource(64))
 

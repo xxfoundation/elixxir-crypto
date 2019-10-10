@@ -28,7 +28,6 @@ type Group struct {
 	one         *large.Int
 	two         *large.Int
 	gen         *large.Int
-	primeQ      *large.Int
 	rng         csprng.Source
 	random      []byte
 	fingerprint uint64
@@ -37,12 +36,11 @@ type Group struct {
 
 const GroupFingerprintSize = 8
 
-// NewGroup returns a group with the given prime, generator and Q prime (for DSA)
-func NewGroup(p, g, q *large.Int) *Group {
+// NewGroup returns a group with the given prime and generator (for DSA)
+func NewGroup(p, g *large.Int) *Group {
 	h := sha256.New()
 	h.Write(p.Bytes())
 	h.Write(g.Bytes())
-	h.Write(q.Bytes())
 	hashVal := h.Sum(nil)[:GroupFingerprintSize]
 	value := large.NewIntFromBytes(hashVal)
 	return &Group{
@@ -56,7 +54,6 @@ func NewGroup(p, g, q *large.Int) *Group {
 		one:         large.NewInt(1),
 		two:         large.NewInt(2),
 		gen:         g,
-		primeQ:      q,
 		rng:         csprng.NewSystemRNG(),
 		random:      make([]byte, (p.BitLen()+7)/8),
 		fingerprint: value.Uint64(),
@@ -291,18 +288,6 @@ func (g *Group) GetGCyclic() *Int {
 	return g.NewIntFromLargeInt(g.gen)
 }
 
-// GetQ returns a copy of the group's Q prime
-func (g *Group) GetQ() *large.Int {
-	n := large.NewInt(1)
-	n.Set(g.primeQ)
-	return n
-}
-
-// GetQCyclic returns a new cyclicInt with the group's Q prime
-func (g *Group) GetQCyclic() *Int {
-	return g.NewIntFromLargeInt(g.primeQ)
-}
-
 //GetPBytes returns a copy of the group's prime bytes
 func (g *Group) GetPBytes() []byte {
 	pCopy := make([]byte, len(g.primeBytes))
@@ -480,11 +465,9 @@ func (g *Group) GobEncode() ([]byte, error) {
 	s := struct {
 		P []byte
 		G []byte
-		Q []byte
 	}{
 		g.prime.Bytes(),
 		g.gen.Bytes(),
-		g.primeQ.Bytes(),
 	}
 
 	var buf bytes.Buffer
@@ -509,9 +492,7 @@ func (g *Group) GobDecode(b []byte) error {
 	s := struct {
 		P []byte
 		G []byte
-		Q []byte
 	}{
-		[]byte{},
 		[]byte{},
 		[]byte{},
 	}
@@ -534,9 +515,8 @@ func (g *Group) GobDecode(b []byte) error {
 	// Convert decoded bytes and put into empty structure
 	prime := large.NewIntFromBytes(s.P)
 	gen := large.NewIntFromBytes(s.G)
-	primeQ := large.NewIntFromBytes(s.Q)
 
-	*g = *NewGroup(prime, gen, primeQ)
+	*g = *NewGroup(prime, gen)
 
 	return nil
 }
@@ -548,14 +528,12 @@ func (g *Group) MarshalJSON() ([]byte, error) {
 	// Get group parameters
 	prime := g.GetP()
 	gen := g.GetG()
-	primeQ := g.GetQ()
 
 	// Create json object
 	base := 16
 	jsonObj := map[string]string{
 		"prime":  prime.TextVerbose(base, 0),
 		"gen":    gen.TextVerbose(base, 0),
-		"primeQ": primeQ.TextVerbose(base, 0),
 	}
 
 	// Marshal json object into byte slice
@@ -577,7 +555,6 @@ func (g *Group) UnmarshalJSON(b []byte) error {
 	jsonObj := map[string]string{
 		"prime":  max,
 		"gen":    max,
-		"primeQ": max,
 	}
 
 	// Unmarshal byte slice into json object
@@ -590,8 +567,7 @@ func (g *Group) UnmarshalJSON(b []byte) error {
 	// Get group params from json object and put into receiver
 	prime := large.NewIntFromString(jsonObj["prime"], base)
 	gen := large.NewIntFromString(jsonObj["gen"], base)
-	primeQ := large.NewIntFromString(jsonObj["primeQ"], base)
-	*g = *NewGroup(prime, gen, primeQ)
+	*g = *NewGroup(prime, gen)
 
 	return nil
 }

@@ -287,6 +287,5 @@ func grpTest() *cyclic.Group {
 
 	p := large.NewIntFromString(primeString, 16)
 	g := large.NewInt(2)
-	q := large.NewInt(3)
-	return cyclic.NewGroup(p, g, q)
+	return cyclic.NewGroup(p, g)
 }
