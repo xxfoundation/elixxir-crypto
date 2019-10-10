@@ -55,7 +55,7 @@ func TestRootCoprimePrototype_GetName(t *testing.T) {
 // Tests the correctness and consistency of root coprime under the group. This
 // shows the results do not change.
 func TestRootCoprimePrototype_Consistency(t *testing.T) {
-	grp := cyclic.NewGroup(large.NewInt(117), large.NewInt(5), large.NewInt(53))
+	grp := cyclic.NewGroup(large.NewInt(117), large.NewInt(5))
 
 	testVals := [][]*cyclic.Int{
 		{grp.NewInt(3), grp.NewInt(17), grp.NewInt(9)},
@@ -101,7 +101,7 @@ func TestRootCoprimePrototype_MathProp(t *testing.T) {
 		"FFFFFFFFFFFFFFFF"
 
 	var prime = large.NewIntFromString(primeString, 16)
-	grp := cyclic.NewGroup(prime, large.NewInt(5), large.NewInt(53))
+	grp := cyclic.NewGroup(prime, large.NewInt(5))
 
 	prng := rand.New(rand.NewSource(64))
 

@@ -33,8 +33,7 @@ func TestMain(m *testing.M) {
 		"847AEF49F66E43873"
 	p := large.NewIntFromString(primeString, 16)
 	g := large.NewInt(2)
-	q := large.NewInt(2)
-	grp = cyclic.NewGroup(p, g, q)
+	grp = cyclic.NewGroup(p, g)
 
 	os.Exit(m.Run())
 }

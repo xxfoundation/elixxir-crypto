@@ -34,8 +34,7 @@ func TestDHKX(t *testing.T) {
 	p := large.NewInt(1)
 	p.SetString(primeString, 16)
 	g := large.NewInt(2)
-	q := large.NewInt(3)
-	grp := cyclic.NewGroup(p, g, q)
+	grp := cyclic.NewGroup(p, g)
 
 	// Creation of two different DH Key Pairs with valid parameters
 	privKey, pubKey := CreateDHKeyPair(grp)
@@ -69,8 +68,7 @@ func TestCreateDHKeyPair(t *testing.T) {
 
 	p := large.NewInt(4)
 	g := large.NewInt(2)
-	q := large.NewInt(3)
-	grp := cyclic.NewGroup(p, g, q)
+	grp := cyclic.NewGroup(p, g)
 
 	defer Catch("TestCreateDHKeyPair():", t)
 	CreateDHKeyPair(grp)
@@ -95,8 +93,7 @@ func TestCheckPublicKey(t *testing.T) {
 	p := large.NewInt(1)
 	p.SetString(primeString, 16)
 	g := large.NewInt(2)
-	q := large.NewInt(3)
-	grp := cyclic.NewGroup(p, g, q)
+	grp := cyclic.NewGroup(p, g)
 
 	// Creation of a DH Key Pair with valid parameters
 	_, pubKey := CreateDHKeyPair(grp)

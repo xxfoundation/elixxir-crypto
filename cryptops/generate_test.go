@@ -20,7 +20,7 @@ var grp *cyclic.Group
 
 func TestMain(m *testing.M) {
 	prime = large.NewIntFromString(MODP4096, 16)
-	grp = cyclic.NewGroup(prime, large.NewInt(5), large.NewInt(53))
+	grp = cyclic.NewGroup(prime, large.NewInt(5))
 	os.Exit(m.Run())
 }
 
