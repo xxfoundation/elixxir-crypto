@@ -113,6 +113,7 @@ func (sg *StreamGenerator) Close(stream *Stream) {
 func (s *Stream) Read(b []byte) (int, error) {
 	s.mut.Lock()
 	if len(b)%aes.BlockSize != 0 {
+		s.mut.Unlock()
 		return 0, errors.New("requested read length is not byte aligned")
 	}
 
@@ -134,6 +135,7 @@ func (s *Stream) Read(b []byte) (int, error) {
 			extension = make([]byte, aes.BlockSize)
 			_, err := s.rng.Read(extension)
 			if err != nil {
+				s.mut.Unlock()
 				return 0, err
 			}
 			s.entropyCnt = s.streamGen.scalingFactor

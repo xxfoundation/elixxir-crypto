@@ -184,6 +184,12 @@ func TestGenerate_Err(t *testing.T) {
 	}
 }
 
+//This test is deprecated. We are no longer generating a random value all at once, but by AES blocksize.
+//Therefore this test is no longer valid, as it assumes that you are generating it all at once, and throws the error if
+//it had generated a length greater than 32 bytes
+
+/*
+
 // RNG type that returns an error when more than 32 bytes are read
 type RngErr32 struct{}
 
@@ -208,12 +214,11 @@ func TestGenerate_Err2(t *testing.T) {
 	shareKey = grp.NewInt(1)
 
 	err := Generate(grp, phaseKey, shareKey, rng)
-
 	if err == nil {
 		t.Errorf("Unexpected non-error testing generate on Err2 return!")
 	}
 }
-
+*/
 // RNG type that always returns bytecount - 3
 type RngBadCount struct{}
 
