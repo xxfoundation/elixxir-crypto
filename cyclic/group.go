@@ -174,7 +174,7 @@ func (g *Group) SetLargeInt(x *Int, y *large.Int) *Int {
 		return nil
 	}
 
-	x.value = y
+	x.value.Set(y)
 
 	return x
 }
