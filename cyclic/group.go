@@ -181,8 +181,8 @@ func (g *Group) SetLargeInt(x *Int, y *large.Int) *Int {
 
 // Sets x in the group to bytes and returns x
 func (g *Group) SetBytes(x *Int, buf []byte) *Int {
-	g.checkInts(x)
 	x.value.SetBytes(buf)
+	g.checkInts(x)
 	return x
 }
 
