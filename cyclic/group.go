@@ -171,15 +171,15 @@ func (g *Group) SetLargeInt(x *Int, y *large.Int) *Int {
 		return nil
 	}
 
-	x.value = y
+	x.value.Set(y)
 
 	return x
 }
 
 // Sets x in the group to bytes and returns x
 func (g *Group) SetBytes(x *Int, buf []byte) *Int {
-	g.checkInts(x)
 	x.value.SetBytes(buf)
+	g.checkInts(x)
 	return x
 }
 

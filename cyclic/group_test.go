@@ -349,30 +349,26 @@ func TestSet_Panic(t *testing.T) {
 	grp.Set(actual, expected)
 }
 
-// Test Inside that checks if a number is inside the group
+// TestSetLargeInt tests if the value is properly copied
 func TestSetLargeInt(t *testing.T) {
 	p := large.NewInt(17)
 	g := large.NewInt(7)
 	group := NewGroup(p, g)
-	expected := []bool{
-		true,
-		true,
-		false,
-		false,
-		true,
-	}
 
-	inputs := []int64{2, 1, 17, 18, 12}
-
-	actual := make([]bool, len(inputs))
+	inputs := []int64{2, 1, 12, 17, 18}
 
 	for i := 0; i < len(inputs); i++ {
 		tmp := group.NewInt(5)
+		v := tmp.value
+		exp := group.NewInt(inputs[i%3])
 		li := large.NewInt(inputs[i])
 		if group.SetLargeInt(tmp, li) != nil {
-			actual[i] = true
+			if i >= 3 {
+				t.Errorf("TestLargeInt set value outside "+
+					"of group: %d", inputs[i])
+			}
 		}
-		if (tmp.GetLargeInt().Cmp(li) == 0) != expected[i] {
+		if i < 3 && (tmp.Cmp(exp) != 0 || v.Cmp(li) != 0) {
 			t.Errorf("TestSetFromLargeInt failed at index %v", i)
 		}
 	}
