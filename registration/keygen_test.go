@@ -35,8 +35,7 @@ func TestGenerateBaseKey(t *testing.T) {
 		"15728E5A8AACAA68FFFFFFFFFFFFFFFF"
 	p := large.NewIntFromString(primeString, 16)
 	g := large.NewInt(2)
-	q := large.NewInt(1283)
-	grp := cyclic.NewGroup(p, g, q)
+	grp := cyclic.NewGroup(p, g)
 
 	ownPrivKey := grp.RandomCoprime(grp.NewInt(1))
 	ownPubKey := grp.ExpG(ownPrivKey, grp.NewInt(1))

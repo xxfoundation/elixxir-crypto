@@ -14,8 +14,7 @@ var _ Cryptop = Mul3
 func TestMul3_Consistency(t *testing.T) {
 	// Tests for consistency with the old cryptop, Realtime Encrypt,
 	// message tests
-	grp := cyclic.NewGroup(large.NewInt(107), large.NewInt(23),
-		large.NewInt(27))
+	grp := cyclic.NewGroup(large.NewInt(107), large.NewInt(23))
 
 	tests := [][]*cyclic.Int{
 		{grp.NewInt(39), grp.NewInt(65), grp.NewInt(52)},
@@ -62,7 +61,7 @@ func TestMul3_Commutativity(t *testing.T) {
 		"93B4EA988D8FDDC186FFB7DC90A6C08F4DF435C934063199" +
 		"FFFFFFFFFFFFFFFF"
 	var prime = large.NewIntFromString(primeString, 16)
-	grp := cyclic.NewGroup(prime, large.NewInt(5), large.NewInt(53))
+	grp := cyclic.NewGroup(prime, large.NewInt(5))
 
 	prng := rand.New(rand.NewSource(82))
 
@@ -148,7 +147,7 @@ func TestMul3_Correctness(t *testing.T) {
 		"93B4EA988D8FDDC186FFB7DC90A6C08F4DF435C934063199" +
 		"FFFFFFFFFFFFFFFF"
 	var prime = large.NewIntFromString(primeString, 16)
-	grp := cyclic.NewGroup(prime, large.NewInt(5), large.NewInt(53))
+	grp := cyclic.NewGroup(prime, large.NewInt(5))
 
 	prng := rand.New(rand.NewSource(82))
 
@@ -188,8 +187,7 @@ func TestMul3_Correctness(t *testing.T) {
 
 // Shows that the value of out is included in the operation
 func TestMul3Inclusion(t *testing.T) {
-	grp := cyclic.NewGroup(large.NewInt(107), large.NewInt(23),
-		large.NewInt(27))
+	grp := cyclic.NewGroup(large.NewInt(107), large.NewInt(23))
 	timesOne := grp.NewInt(1)
 	x := grp.NewInt(80)
 	y := grp.NewInt(40)

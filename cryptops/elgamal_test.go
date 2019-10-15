@@ -43,8 +43,7 @@ func TestElgamal_Single(t *testing.T) {
 		"15728E5A8AACAA68FFFFFFFFFFFFFFFF"
 	p := large.NewIntFromString(primeString, 16)
 	g := large.NewInt(2)
-	q := large.NewInt(1283)
-	grp := cyclic.NewGroup(p, g, q)
+	grp := cyclic.NewGroup(p, g)
 
 	tests := 10
 
@@ -97,8 +96,7 @@ func TestElgamal_Double(t *testing.T) {
 		"15728E5A8AACAA68FFFFFFFFFFFFFFFF"
 	p := large.NewIntFromString(primeString, 16)
 	g := large.NewInt(2)
-	q := large.NewInt(1283)
-	grp := cyclic.NewGroup(p, g, q)
+	grp := cyclic.NewGroup(p, g)
 
 	tests := 10
 
@@ -159,8 +157,7 @@ func TestElgamal_Consistency(t *testing.T) {
 		"15728E5A8AACAA68FFFFFFFFFFFFFFFF"
 	p := large.NewIntFromString(primeString, 16)
 	g := large.NewInt(2)
-	q := large.NewInt(1283)
-	grp := cyclic.NewGroup(p, g, q)
+	grp := cyclic.NewGroup(p, g)
 
 	cypherPrivateKeyStr := "ed4cbf3b315fea62a09b4c03bcee3d502ea4556c880bba88a44260b51203e8dc4562724" +
 		"d8c8eef980eb9a072ee1fe9563f68ee674f68fc0b8c0be3f37d690dcd2e9e481220e726" +

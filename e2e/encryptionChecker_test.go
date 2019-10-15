@@ -22,14 +22,16 @@ func TestIsUnencrypted_EncryptedMessage(t *testing.T) {
 	m.SetPayloadA(randSlice)
 	m.SetPayloadB(randSlice)
 
-	// Set the key fingerprint
-	m.SetKeyFP(*format.NewFingerprint(fpSlice))
+	// Set the MAC
+	m.SetMAC(fpSlice)
 
 	// Check the message
 	unencrypted := IsUnencrypted(m)
 
 	if unencrypted == true {
-		t.Errorf("IsUnencrypted() determined the message is unencrypted when it is actually encrypted\n\treceived: %v\n\texpected: %v", unencrypted, false)
+		t.Errorf("IsUnencrypted() determined the message is unencrypted when it is actually encrypted"+
+			"\n\treceived: %v\n\texpected: %v",
+			unencrypted, false)
 	}
 }
 
@@ -49,16 +51,18 @@ func TestIsUnencrypted_UnencryptedMessage(t *testing.T) {
 
 	// Create new hash
 	h, _ := hash.NewCMixHash()
-
-	// Set the key fingerprint
 	h.Write(m.Contents.Get())
 
-	m.SetKeyFP(*format.NewFingerprint(h.Sum(nil)))
+	// Set the MAC
+	m.SetMAC(h.Sum(nil))
+
 	// Check the message
 	unencrypted := IsUnencrypted(m)
 
 	if unencrypted == false {
-		t.Errorf("IsUnencrypted() determined the message is encrypted when it is actually unencrypted\n\treceived: %v\n\texpected: %v", unencrypted, true)
+		t.Errorf("IsUnencrypted() determined the message is encrypted when it is actually unencrypted"+
+			"\n\treceived: %v\n\texpected: %v",
+			unencrypted, true)
 	}
 }
 
@@ -70,14 +74,16 @@ func TestSetUnencrypted(t *testing.T) {
 	rand.Read(randSlice)
 	fpSlice := make([]byte, 32)
 	rand.Read(fpSlice)
+
 	// Create message
 	m := format.NewMessage()
 
 	// Set message payload
 	m.SetPayloadA(randSlice)
 	m.SetPayloadB(randSlice)
-	// Set the key fingerprint
-	m.SetKeyFP(*format.NewFingerprint(fpSlice))
+
+	// Set the MAC
+	m.SetMAC(fpSlice)
 
 	SetUnencrypted(m)
 

@@ -39,9 +39,8 @@ var qString = "2"
 
 var p = large.NewIntFromString(pString, base)
 var g = large.NewIntFromString(gString, base)
-var q = large.NewIntFromString(qString, base)
 
-var grp = cyclic.NewGroup(p, g, q)
+var grp = cyclic.NewGroup(p, g)
 
 var baseKey = grp.NewIntFromString("a906df88f30d6afbfa6165a50cc9e208d16b34e70b367068dc5d6bd6e155b2c3", 16)
 var salt = []byte("fdecfa52a8ad1688dbfa7d16df74ebf27e535903c469cefc007ebbe1ee895064")
