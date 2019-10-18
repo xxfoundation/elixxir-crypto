@@ -38,11 +38,9 @@ func TestGenerateBaseKey(t *testing.T) {
 	grp := cyclic.NewGroup(p, g)
 
 	ownPrivKey := grp.RandomCoprime(grp.NewInt(1))
-	t.Log("generated coprime 1")
 	ownPubKey := grp.ExpG(ownPrivKey, grp.NewInt(1))
 
 	peerPrivKey := grp.RandomCoprime(grp.NewInt(1))
-
 	peerPubKey := grp.ExpG(peerPrivKey, grp.NewInt(1))
 
 	// Generate transmission base keys using blake2b as the hash
