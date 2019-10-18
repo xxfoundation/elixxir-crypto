@@ -358,7 +358,7 @@ func (g *Group) RandomCoprime(r *Int) *Int {
 	g.checkInts(r)
 	var err error
 	for r.value.Set(g.psub1); !r.value.IsCoprime(g.psub1); {
-		g.random, err = csprng.GenerateInGroup(g.prime.Bytes(), len(g.random), g.rng)
+		g.random, err = csprng.GenerateInGroup(g.prime.Bytes(), len(g.psub1.Bytes()), g.rng)
 		if err != nil {
 			jww.FATAL.Panicf("Could not generate random "+
 				"Coprime number in group: %v", err.Error())
