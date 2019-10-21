@@ -28,8 +28,7 @@ var primeString = "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
 
 var p = large.NewIntFromString(primeString, 16)
 var g = large.NewInt(2)
-var q = large.NewInt(3)
-var grp = cyclic.NewGroup(p, g, q)
+var grp = cyclic.NewGroup(p, g)
 
 //TestExpandKey verifies ExpandKey with two different hashes
 func TestExpandKey(t *testing.T) {

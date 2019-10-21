@@ -7,6 +7,7 @@
 package csprng
 
 import (
+	"crypto/aes"
 	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
 	"io"
@@ -69,18 +70,59 @@ func Generate(size int, rng io.Reader) ([]byte, error) {
 // group and returns the result
 func GenerateInGroup(prime []byte, size int, rng io.Reader) ([]byte,
 	error) {
+
+	//Reduce the size to prime length
 	if size > len(prime) {
 		jww.WARN.Printf("Reducing size to match length of prime "+
 			"(%d -> %d)", size, len(prime))
 		size = len(prime)
 	}
-	for {
-		key, err := Generate(size, rng)
-		// return if we get an error OR if we are in the group
-		if err != nil || InGroup(key, prime) {
-			return key, err
+
+	//If we are generating a random byte slice that is shorter than prime, then it will always be in group
+	if size < len(prime) || len(prime) < aes.BlockSize {
+		for {
+			key, err := Generate(size, rng)
+			// return if we get an error OR if we are in the group
+			if err != nil || InGroup(key, prime) {
+				return key, err
+			}
 		}
-		jww.INFO.Printf("Failed to generate key in group. If this" +
-			" message repeats, check for RNG issues...")
 	}
+
+	//Otherwise, we need to generate blockSize chunks and compare to the prime
+	key := make([]byte, 0, size)
+	for block := 0; block < size/aes.BlockSize; {
+		//Generate an rand value of AES Block size
+		rngValue := make([]byte, aes.BlockSize)
+		rngValue, err := Generate(aes.BlockSize, rng)
+		if err != nil {
+			return nil, err
+		}
+
+		//We only need the first block's value to be in the group of the corresponding prime block
+		if block == 0 {
+			if InGroup(rngValue, prime[block*aes.BlockSize:(block+1)*aes.BlockSize]) {
+				block++
+				key = append(key, rngValue...)
+
+			}
+			//After the first block just append the rngVal to the key, as it will be in group
+		} else {
+			block++
+			key = append(key, rngValue...)
+
+		}
+
+	}
+	//If prime is not AES block aligned, generate the remaining bytes of randomness as needed
+	if len(key) < len(prime) {
+		rngPad := make([]byte, len(prime)-len(key))
+		rngPad, err := Generate(len(rngPad), rng)
+		if err != nil {
+			return nil, err
+		}
+		key = append(key, rngPad...)
+	}
+
+	return key, nil
 }

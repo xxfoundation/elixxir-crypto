@@ -56,11 +56,10 @@ func TestInversePrototype_GetName(t *testing.T) {
 func TestInversePrototype_MathProp(t *testing.T) {
 	prime := large.NewInt(11)
 	gen := large.NewInt(4)
-	primeQ := large.NewInt(5)
 
 	// This cyclic group contains the following pattern:
 	// { 4, 5, 9, 3, 1, ... }
-	grp := cyclic.NewGroup(prime, gen, primeQ)
+	grp := cyclic.NewGroup(prime, gen)
 
 	// Variable to be inverted, Storage variable, Expected result
 	// Note: Another way to derive the inverse is to
@@ -111,7 +110,7 @@ func TestInversePrototype_Consistency(t *testing.T) {
 		"FFFFFFFFFFFFFFFF"
 
 	var prime = large.NewIntFromString(primeString, 16)
-	grp := cyclic.NewGroup(prime, large.NewInt(5), large.NewInt(53))
+	grp := cyclic.NewGroup(prime, large.NewInt(5))
 
 	prng := rand.New(rand.NewSource(64))
 

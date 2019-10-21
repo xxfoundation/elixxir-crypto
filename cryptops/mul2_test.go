@@ -20,10 +20,9 @@ func TestMul2_Consistency(t *testing.T) {
 	// Tests for consistency with the old cryptop, Realtime Encrypt,
 	// message tests
 	prime := large.NewInt(11)
-	primeQ := large.NewInt(5)
 	gen := large.NewInt(4)
 	// { 4, 5, 9, 3, 1, ... }
-	grp := cyclic.NewGroup(prime, gen, primeQ)
+	grp := cyclic.NewGroup(prime, gen)
 
 	tests := [][]*cyclic.Int{
 		{grp.NewInt(1), grp.NewInt(1)},
@@ -76,7 +75,7 @@ func TestMul2_Commutativity(t *testing.T) {
 		"93B4EA988D8FDDC186FFB7DC90A6C08F4DF435C934063199" +
 		"FFFFFFFFFFFFFFFF"
 	var prime = large.NewIntFromString(primeString, 16)
-	grp := cyclic.NewGroup(prime, large.NewInt(5), large.NewInt(53))
+	grp := cyclic.NewGroup(prime, large.NewInt(5))
 
 	prng := rand.New(rand.NewSource(82))
 
@@ -134,7 +133,7 @@ func TestMul2_Correctness(t *testing.T) {
 		"FFFFFFFFFFFFFFFF"
 
 	var prime = large.NewIntFromString(primeString, 16)
-	grp := cyclic.NewGroup(prime, large.NewInt(5), large.NewInt(53))
+	grp := cyclic.NewGroup(prime, large.NewInt(5))
 
 	prng := rand.New(rand.NewSource(82))
 
