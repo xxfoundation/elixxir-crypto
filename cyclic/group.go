@@ -356,9 +356,10 @@ func (g Group) ExpG(y, z *Int) *Int {
 // against g.prime-1)
 func (g *Group) RandomCoprime(r *Int) *Int {
 	g.checkInts(r)
+	var err error
 	for r.value.Set(g.psub1); !r.value.IsCoprime(g.psub1); {
-		n, err := g.rng.Read(g.random)
-		if err != nil || n != len(g.random) {
+		g.random, err = csprng.GenerateInGroup(g.prime.Bytes(), len(g.psub1.Bytes()), g.rng)
+		if err != nil {
 			jww.FATAL.Panicf("Could not generate random "+
 				"Coprime number in group: %v", err.Error())
 		}
@@ -532,8 +533,8 @@ func (g *Group) MarshalJSON() ([]byte, error) {
 	// Create json object
 	base := 16
 	jsonObj := map[string]string{
-		"prime":  prime.TextVerbose(base, 0),
-		"gen":    gen.TextVerbose(base, 0),
+		"prime": prime.TextVerbose(base, 0),
+		"gen":   gen.TextVerbose(base, 0),
 	}
 
 	// Marshal json object into byte slice
@@ -553,8 +554,8 @@ func (g *Group) UnmarshalJSON(b []byte) error {
 	base := 16
 	max := large.NewMaxInt().TextVerbose(base, 0)
 	jsonObj := map[string]string{
-		"prime":  max,
-		"gen":    max,
+		"prime": max,
+		"gen":   max,
 	}
 
 	// Unmarshal byte slice into json object

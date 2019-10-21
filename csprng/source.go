@@ -98,7 +98,6 @@ func GenerateInGroup(prime []byte, size int, rng io.Reader) ([]byte,
 		if err != nil {
 			return nil, err
 		}
-
 		//We only need the first block's value to be in the group of the corresponding prime block
 		if block == 0 {
 			if InGroup(rngValue, prime[block*aes.BlockSize:(block+1)*aes.BlockSize]) {
