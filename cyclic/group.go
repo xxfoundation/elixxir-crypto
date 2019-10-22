@@ -28,7 +28,6 @@ type Group struct {
 	one         *large.Int
 	two         *large.Int
 	gen         *large.Int
-	primeQ      *large.Int
 	rng         csprng.Source
 	random      []byte
 	fingerprint uint64
@@ -37,12 +36,11 @@ type Group struct {
 
 const GroupFingerprintSize = 8
 
-// NewGroup returns a group with the given prime, generator and Q prime (for DSA)
-func NewGroup(p, g, q *large.Int) *Group {
+// NewGroup returns a group with the given prime and generator (for DSA)
+func NewGroup(p, g *large.Int) *Group {
 	h := sha256.New()
 	h.Write(p.Bytes())
 	h.Write(g.Bytes())
-	h.Write(q.Bytes())
 	hashVal := h.Sum(nil)[:GroupFingerprintSize]
 	value := large.NewIntFromBytes(hashVal)
 	return &Group{
@@ -56,7 +54,6 @@ func NewGroup(p, g, q *large.Int) *Group {
 		one:         large.NewInt(1),
 		two:         large.NewInt(2),
 		gen:         g,
-		primeQ:      q,
 		rng:         csprng.NewSystemRNG(),
 		random:      make([]byte, (p.BitLen()+7)/8),
 		fingerprint: value.Uint64(),
@@ -174,15 +171,15 @@ func (g *Group) SetLargeInt(x *Int, y *large.Int) *Int {
 		return nil
 	}
 
-	x.value = y
+	x.value.Set(y)
 
 	return x
 }
 
 // Sets x in the group to bytes and returns x
 func (g *Group) SetBytes(x *Int, buf []byte) *Int {
-	g.checkInts(x)
 	x.value.SetBytes(buf)
+	g.checkInts(x)
 	return x
 }
 
@@ -291,16 +288,11 @@ func (g *Group) GetGCyclic() *Int {
 	return g.NewIntFromLargeInt(g.gen)
 }
 
-// GetQ returns a copy of the group's Q prime
-func (g *Group) GetQ() *large.Int {
-	n := large.NewInt(1)
-	n.Set(g.primeQ)
-	return n
-}
-
-// GetQCyclic returns a new cyclicInt with the group's Q prime
-func (g *Group) GetQCyclic() *Int {
-	return g.NewIntFromLargeInt(g.primeQ)
+//GetPBytes returns a copy of the group's prime bytes
+func (g *Group) GetPBytes() []byte {
+	pCopy := make([]byte, len(g.primeBytes))
+	copy(pCopy, g.primeBytes)
+	return pCopy
 }
 
 // GetPSub1 returns a copy of the group's p-1
@@ -364,9 +356,10 @@ func (g Group) ExpG(y, z *Int) *Int {
 // against g.prime-1)
 func (g *Group) RandomCoprime(r *Int) *Int {
 	g.checkInts(r)
+	var err error
 	for r.value.Set(g.psub1); !r.value.IsCoprime(g.psub1); {
-		n, err := g.rng.Read(g.random)
-		if err != nil || n != len(g.random) {
+		g.random, err = csprng.GenerateInGroup(g.prime.Bytes(), len(g.psub1.Bytes()), g.rng)
+		if err != nil {
 			jww.FATAL.Panicf("Could not generate random "+
 				"Coprime number in group: %v", err.Error())
 		}
@@ -377,12 +370,13 @@ func (g *Group) RandomCoprime(r *Int) *Int {
 	return r
 }
 
-// RootCoprime sets z = y√x mod p, and returns z. Only works with y's
+// RootCoprime sets tmp = y√x mod p, and returns tmp. Only works with y's
 // coprime with g.prime-1 (g.psub1)
 func (g Group) RootCoprime(x, y, z *Int) *Int {
 	g.checkInts(x, y, z)
-	z.value.ModInverse(y.value, g.psub1)
-	g.Exp(x, z, z)
+	tmp := g.NewInt(1)
+	tmp.value.ModInverse(y.value, g.psub1)
+	g.Exp(x, tmp, z)
 	return z
 }
 
@@ -472,11 +466,9 @@ func (g *Group) GobEncode() ([]byte, error) {
 	s := struct {
 		P []byte
 		G []byte
-		Q []byte
 	}{
 		g.prime.Bytes(),
 		g.gen.Bytes(),
-		g.primeQ.Bytes(),
 	}
 
 	var buf bytes.Buffer
@@ -501,9 +493,7 @@ func (g *Group) GobDecode(b []byte) error {
 	s := struct {
 		P []byte
 		G []byte
-		Q []byte
 	}{
-		[]byte{},
 		[]byte{},
 		[]byte{},
 	}
@@ -526,9 +516,8 @@ func (g *Group) GobDecode(b []byte) error {
 	// Convert decoded bytes and put into empty structure
 	prime := large.NewIntFromBytes(s.P)
 	gen := large.NewIntFromBytes(s.G)
-	primeQ := large.NewIntFromBytes(s.Q)
 
-	*g = *NewGroup(prime, gen, primeQ)
+	*g = *NewGroup(prime, gen)
 
 	return nil
 }
@@ -540,14 +529,12 @@ func (g *Group) MarshalJSON() ([]byte, error) {
 	// Get group parameters
 	prime := g.GetP()
 	gen := g.GetG()
-	primeQ := g.GetQ()
 
 	// Create json object
 	base := 16
 	jsonObj := map[string]string{
-		"prime":  prime.TextVerbose(base, 0),
-		"gen":    gen.TextVerbose(base, 0),
-		"primeQ": primeQ.TextVerbose(base, 0),
+		"prime": prime.TextVerbose(base, 0),
+		"gen":   gen.TextVerbose(base, 0),
 	}
 
 	// Marshal json object into byte slice
@@ -567,9 +554,8 @@ func (g *Group) UnmarshalJSON(b []byte) error {
 	base := 16
 	max := large.NewMaxInt().TextVerbose(base, 0)
 	jsonObj := map[string]string{
-		"prime":  max,
-		"gen":    max,
-		"primeQ": max,
+		"prime": max,
+		"gen":   max,
 	}
 
 	// Unmarshal byte slice into json object
@@ -582,8 +568,7 @@ func (g *Group) UnmarshalJSON(b []byte) error {
 	// Get group params from json object and put into receiver
 	prime := large.NewIntFromString(jsonObj["prime"], base)
 	gen := large.NewIntFromString(jsonObj["gen"], base)
-	primeQ := large.NewIntFromString(jsonObj["primeQ"], base)
-	*g = *NewGroup(prime, gen, primeQ)
+	*g = *NewGroup(prime, gen)
 
 	return nil
 }

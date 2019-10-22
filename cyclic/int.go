@@ -21,6 +21,12 @@ type Int struct {
 	fingerprint uint64
 }
 
+//gets the byte length of cyclic int
+func (z *Int) ByteLen() int {
+	byteLen := z.value.ByteLen()
+	return byteLen
+}
+
 // Gets a deepcopy of the largeInt from cyclicInt
 // This is necessary because otherwise the internal
 // value of the into could be edited and made to be

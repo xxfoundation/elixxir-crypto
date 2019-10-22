@@ -17,8 +17,7 @@ import (
 
 var p = large.NewInt(1000000010101111111)
 var g = large.NewInt(5)
-var q = large.NewInt(1283)
-var grp = NewGroup(p, g, q)
+var grp = NewGroup(p, g)
 
 // Test largeInt getter and show it returns a copy
 func TestGetLargeInt(t *testing.T) {
@@ -179,10 +178,10 @@ func TestText(t *testing.T) {
 		grp.NewIntFromString("8675309182", 10),
 		grp.NewInt(43)}
 	expectedstrs := []string{
-		"42 in GRP: 4XgotyuZEW...",
-		"6553522 in GRP: 4XgotyuZEW...",
-		"8675309182 in GRP: 4XgotyuZEW...",
-		"43 in GRP: 4XgotyuZEW..."} // TODO: Should be <nil>, not -42
+		"42 in GRP: ln9lzlk21/...",
+		"6553522 in GRP: ln9lzlk21/...",
+		"8675309182 in GRP: ln9lzlk21/...",
+		"43 in GRP: ln9lzlk21/..."} // TODO: Should be <nil>, not -42
 
 	for i, tsti := range testints {
 		actual := tsti.Text(10)
@@ -198,23 +197,47 @@ func TestText(t *testing.T) {
 func TestTextVerbose(t *testing.T) {
 	p_t := large.NewIntFromString("867530918239450598372829049587118723612836", 10)
 	g_t := large.NewInt(5)
-	q_t := large.NewInt(1283)
-	group := NewGroup(p_t, g_t, q_t)
+	group := NewGroup(p_t, g_t)
 
 	testInt := group.NewIntFromString("867530918239450598372829049587", 10)
 	lens := []int{3, 12, 16, 18, 0}
 	expected := []string{
-		"867... in GRP: t9A...",
-		"867530918239... in GRP: t9Aiywu7oD8=",
-		"8675309182394505... in GRP: t9Aiywu7oD8=",
-		"867530918239450598... in GRP: t9Aiywu7oD8=",
-		"867530918239450598372829049587 in GRP: t9Aiywu7oD8="}
+		"867... in GRP: XND...",
+		"867530918239... in GRP: XNDDRA8PF/4=",
+		"8675309182394505... in GRP: XNDDRA8PF/4=",
+		"867530918239450598... in GRP: XNDDRA8PF/4=",
+		"867530918239450598372829049587 in GRP: XNDDRA8PF/4="}
 
 	for i, testLen := range lens {
 		actual := testInt.TextVerbose(10, testLen)
 		if actual != expected[i] {
 			t.Errorf("Test of TextVerbose failed, got: %v,"+
 				"expected: %v", actual, expected[i])
+		}
+	}
+}
+
+//TestByteLen checks if the ByteLen placeholder exists
+func TestByteLen(t *testing.T) {
+	testints := []*Int{
+		grp.NewInt(1),       //1 bits -->  1 byte   (where +7 works)
+		grp.NewInt(8388608), //24 bits --> 3 bytes  (exactly)
+		grp.NewInt(7777),    //13 bits --> 2 bytes  (where +3 works)
+		grp.NewInt(1002),    //10 bits --> 2 bytes  (where +6 works)
+	}
+
+	expectedlens := []int{
+		1,
+		3,
+		2,
+		2,
+	}
+
+	for i, tsti := range testints {
+		actual := tsti.ByteLen()
+		if actual != expectedlens[i] {
+			t.Errorf("Case %v of ByteLen failed, got: '%v', expected: '%v'", i, actual,
+				expectedlens[i])
 		}
 	}
 }

@@ -235,6 +235,12 @@ func (z *Int) BitLen() int {
 	return (*big.Int)(z).BitLen()
 }
 
+//gets the byte length of large int
+func (z *Int) ByteLen() int {
+	byteLen := ((*big.Int)(z).BitLen() + 7) / 8
+	return byteLen
+}
+
 // Cmp compares x and y and returns:
 //	-1 if x < y
 //	 0 if x == y
@@ -299,11 +305,11 @@ func (z *Int) LeftpadBytes(length uint64) []byte {
 			"): Byte array too long! Expected: %v, Received: %v", length, len(b))
 	}
 
-	rtnslc := make([]byte, length-uint64(len(b)))
+	leftpaddedBytes := make([]byte, length-uint64(len(b)))
 
-	rtnslc = append(rtnslc, b...)
+	leftpaddedBytes = append(leftpaddedBytes, b...)
 
-	return rtnslc
+	return leftpaddedBytes
 }
 
 // -------------- String representation getters -------------- //

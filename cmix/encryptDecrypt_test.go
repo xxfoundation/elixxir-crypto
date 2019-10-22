@@ -2,25 +2,27 @@ package cmix
 
 import (
 	"gitlab.com/elixxir/primitives/format"
+	"golang.org/x/crypto/blake2b"
 	"math/rand"
 	"reflect"
 	"testing"
 )
 
-// Fill message with random payload and associated data
+// Fill part of message with random payload and associated data
 func makeMsg() *format.Message {
-	rng := rand.New(rand.NewSource(42))
-	payloadArr := grp.NewInt(rng.Int63()).Bytes()
-	associatedDataArr := grp.NewInt(rng.Int63()).Bytes()
-	msg := &format.Message{
-		Payload:        format.DeserializePayload(payloadArr),
-		AssociatedData: format.DeserializeAssociatedData(associatedDataArr),
-	}
+	rng := rand.New(rand.NewSource(21))
+	payloadA := make([]byte, format.PayloadLen)
+	payloadB := make([]byte, format.PayloadLen)
+	rng.Read(payloadA)
+	rng.Read(payloadB)
+	msg := format.NewMessage()
+	msg.SetPayloadA(payloadA)
+	msg.SetDecryptedPayloadB(payloadB)
 
 	return msg
 }
 
-// Shows that ClientEncryptDecrypt() correctly encrypts the message. This proves
+// Shows that ClientEncrypt() correctly encrypts the message. This proves
 // the multiplicative properties used for encryption.
 func TestEncrypt(t *testing.T) {
 	msg := makeMsg()
@@ -29,166 +31,121 @@ func TestEncrypt(t *testing.T) {
 	size := 10
 	baseKeys := makeBaseKeys(size)
 
-	encMsg := ClientEncryptDecrypt(true, grp, msg, salt, baseKeys)
+	encMsg := ClientEncrypt(grp, msg, salt, baseKeys)
 
 	// Get encryption key
-	keyEnc := ClientKeyGen(grp, salt, baseKeys)
-
-	multPayload := grp.NewInt(1)
-	multAssociatedData := grp.NewInt(1)
-	grp.Mul(keyEnc, grp.NewIntFromBytes(msg.SerializePayload()), multPayload)
-	grp.Mul(keyEnc, grp.NewIntFromBytes(msg.SerializeAssociatedData()), multAssociatedData)
-
-	testMsg := format.Message{
-		Payload:        format.DeserializePayload(multPayload.Bytes()),
-		AssociatedData: format.DeserializeAssociatedData(multAssociatedData.Bytes()),
+	//general local keys
+	hash, err := blake2b.New256(nil)
+	if err != nil {
+		t.Error("E2E Client Encrypt could not get blake2b Hash")
 	}
 
-	if !reflect.DeepEqual(encMsg.SerializePayload(), testMsg.SerializePayload()) {
-		t.Errorf("EncryptDecrypt() did not produce the correct payload\n\treceived: %d\n\texpected: %d", encMsg.SerializePayload(), testMsg.SerializePayload())
+	hash.Reset()
+	hash.Write(salt)
+
+	keyEcrA := ClientKeyGen(grp, salt, baseKeys)
+	keyEcrB := ClientKeyGen(grp, hash.Sum(nil), baseKeys)
+	multPayloadA := grp.NewInt(1)
+	multPayloadB := grp.NewInt(1)
+	grp.Mul(keyEcrA, grp.NewIntFromBytes(msg.GetPayloadA()), multPayloadA)
+	grp.Mul(keyEcrB, grp.NewIntFromBytes(msg.GetPayloadBForEncryption()), multPayloadB)
+
+	testMsg := format.NewMessage()
+	testMsg.SetPayloadA(multPayloadA.Bytes())
+	testMsg.SetPayloadB(multPayloadB.Bytes())
+
+	if !reflect.DeepEqual(encMsg.GetPayloadA(), testMsg.GetPayloadA()) {
+		t.Errorf("EncryptDecrypt("+
+			") did not produce the correct payload\n\treceived: %d\n"+
+			"\texpected: %d", encMsg.GetPayloadA(), testMsg.GetPayloadA())
 	}
 
-	if !reflect.DeepEqual(encMsg.SerializeAssociatedData(), testMsg.SerializeAssociatedData()) {
-		t.Errorf("EncryptDecrypt() did not produce the correct associated data\n\treceived: %d\n\texpected: %d", encMsg.SerializeAssociatedData(), testMsg.SerializeAssociatedData())
+	if !reflect.DeepEqual(encMsg.GetPayloadB(), testMsg.GetPayloadB()) {
+		t.Errorf("EncryptDecrypt("+
+			") did not produce the correct associated data\n\treceived: %d\n"+
+			"\texpected: %d", encMsg.GetPayloadB(), testMsg.GetPayloadB())
 	}
 }
 
-// Shows that ClientEncryptDecrypt() correctly decrypts the message,
-// and doesn't change associated data
-func TestDecrypt(t *testing.T) {
-	msg := makeMsg()
-
-	// Get encrypted message
-	size := 10
-	baseKeys := makeBaseKeys(size)
-
-	decMsg := ClientEncryptDecrypt(false, grp, msg, salt, baseKeys)
-
-	// Get encryption key
-	keyEnc := ClientKeyGen(grp, salt, baseKeys)
-
-	multPayload := grp.NewInt(1)
-	grp.Mul(keyEnc, grp.NewIntFromBytes(msg.SerializePayload()), multPayload)
-
-	testMsg := format.Message{
-		Payload:        format.DeserializePayload(multPayload.Bytes()),
-		AssociatedData: format.DeserializeAssociatedData(msg.SerializeAssociatedData()),
-	}
-
-	if !reflect.DeepEqual(decMsg.SerializePayload(), testMsg.SerializePayload()) {
-		t.Errorf("EncryptDecrypt() did not produce the correct payload\n\treceived: %d\n\texpected: %d", decMsg.SerializePayload(), testMsg.SerializePayload())
-	}
-
-	if !reflect.DeepEqual(decMsg.SerializeAssociatedData(), testMsg.SerializeAssociatedData()) {
-		t.Errorf("EncryptDecrypt() did not produce the correct associated data\n\treceived: %d\n\texpected: %d", decMsg.SerializeAssociatedData(), testMsg.SerializeAssociatedData())
-	}
-}
-
-// Tests the consistency of ClientEncryptDecrypt() to correctly encrypt the
+// Tests the consistency of ClientEncrypt() to correctly encrypt the
 // message.
 func TestEncrypt_Consistency(t *testing.T) {
-	// Create expected values
-	expectPL := []byte{27, 13, 80, 192, 130, 143, 140, 156, 106, 146, 89, 140, 3, 66, 215, 249, 22, 59, 188, 75, 244,
-		185, 44, 218, 25, 227, 47, 113, 28, 139, 195, 241, 137, 237, 85, 236, 55, 60, 222, 200, 32, 176, 150, 49, 213,
-		20, 117, 156, 54, 138, 124, 204, 227, 178, 218, 230, 6, 196, 11, 128, 182, 24, 49, 226, 123, 202, 52, 251, 107,
-		195, 166, 87, 14, 100, 227, 229, 63, 136, 34, 229, 239, 35, 213, 222, 11, 49, 230, 228, 12, 124, 54, 96, 58,
-		103, 52, 61, 226, 23, 119, 213, 4, 52, 69, 83, 14, 215, 69, 24, 208, 191, 32, 7, 114, 253, 217, 243, 56, 117,
-		252, 254, 239, 96, 251, 168, 202, 83, 116, 20, 39, 114, 101, 6, 16, 240, 51, 82, 25, 15, 55, 147, 190, 241, 232,
-		242, 138, 197, 170, 21, 78, 68, 5, 49, 64, 243, 100, 208, 166, 206, 140, 177, 176, 187, 247, 173, 208, 59, 229,
-		60, 47, 64, 243, 199, 169, 155, 209, 250, 117, 224, 37, 108, 26, 187, 105, 29, 151, 91, 207, 43, 202, 193, 211,
-		184, 198, 251, 159, 215, 53, 95, 221, 193, 21, 61, 50, 18, 37, 137, 102, 178, 178, 169, 198, 82, 183, 184, 138,
-		203, 235, 107, 234, 211, 1, 87, 33, 114, 45, 97, 38, 224, 181, 167, 133, 179, 193, 188, 97, 251, 216, 251, 115,
-		110, 203, 219, 199, 225, 195, 194, 136, 27, 169, 146, 183, 109, 130, 232, 241, 99}
-	expectAD := []byte{107, 71, 75, 145, 192, 76, 9, 52, 247, 76, 228, 4, 133, 157, 36, 173, 94, 188, 7, 138, 71, 199,
-		52, 254, 29, 183, 253, 13, 68, 170, 40, 201, 166, 43, 28, 91, 85, 28, 3, 153, 5, 16, 127, 197, 220, 173, 141,
-		136, 3, 24, 77, 0, 23, 205, 104, 129, 47, 109, 210, 57, 188, 40, 18, 97, 247, 15, 236, 186, 225, 47, 218, 239,
-		0, 4, 47, 71, 210, 154, 244, 229, 65, 2, 243, 201, 195, 176, 163, 234, 55, 18, 121, 223, 189, 65, 165, 217, 191,
-		75, 113, 24, 115, 78, 65, 178, 233, 76, 83, 228, 68, 170, 158, 42, 200, 243, 32, 60, 120, 125, 57, 63, 38, 121,
-		251, 44, 237, 39, 181, 165, 74, 101, 247, 84, 205, 134, 212, 158, 235, 73, 202, 20, 91, 38, 18, 207, 154, 109,
-		102, 108, 248, 43, 235, 118, 178, 193, 68, 13, 43, 50, 125, 44, 185, 22, 124, 2, 224, 50, 96, 34, 232, 190, 249,
-		128, 57, 50, 190, 135, 155, 37, 83, 213, 132, 10, 34, 221, 5, 126, 42, 50, 174, 184, 25, 101, 163, 72, 118, 163,
-		43, 172, 224, 1, 56, 151, 171, 126, 151, 120, 240, 152, 25, 90, 148, 159, 97, 134, 176, 118, 115, 82, 140, 149,
-		90, 231, 26, 154, 109, 115, 201, 17, 3, 12, 194, 91, 112, 39, 35, 187, 61, 108, 50, 253, 64, 50, 7, 46, 47, 208,
-		184, 174, 76, 57, 13, 24, 58, 118, 139, 31}
+	expectPayloadA := []byte{226, 222, 67, 222, 255, 124, 97, 243, 80, 71, 244, 142, 251, 152, 192, 195, 85, 39, 39,
+		177, 88, 2, 2, 23, 75, 65, 208, 108, 57, 228, 122, 229, 93, 193, 187, 225, 40, 48, 32, 163, 233, 79, 115, 244,
+		179, 231, 3, 7, 38, 60, 249, 204, 159, 35, 143, 180, 61, 79, 153, 109, 245, 221, 192, 119, 130, 87, 56, 34, 228,
+		192, 4, 220, 90, 82, 166, 97, 55, 101, 107, 214, 207, 95, 119, 246, 154, 80, 127, 51, 160, 49, 101, 197, 165,
+		54, 51, 247, 92, 88, 118, 145, 119, 240, 227, 20, 126, 109, 158, 15, 32, 192, 160, 69, 191, 66, 106, 24, 174,
+		170, 198, 203, 39, 11, 178, 232, 193, 184, 195, 93, 64, 178, 195, 189, 23, 108, 197, 131, 111, 71, 200, 198,
+		152, 10, 70, 150, 161, 180, 239, 215, 156, 148, 145, 192, 157, 132, 217, 52, 82, 121, 29, 24, 247, 20, 190, 105,
+		4, 222, 50, 84, 77, 233, 70, 39, 100, 142, 79, 251, 42, 8, 113, 38, 204, 18, 51, 232, 93, 102, 249, 113, 8, 225,
+		104, 102, 236, 196, 226, 136, 113, 217, 86, 33, 105, 159, 25, 93, 205, 224, 156, 6, 145, 236, 233, 161, 187,
+		169, 188, 62, 20, 194, 139, 15, 144, 112, 104, 254, 53, 112, 139, 96, 39, 225, 113, 227, 208, 247, 184, 234,
+		164, 29, 202, 47, 126, 140, 90, 112, 94, 100, 118, 77, 87, 193, 65, 6, 103, 119, 73, 242}
+
+	expectPLB := []byte{87, 205, 233, 225, 75, 64, 227, 223, 90, 106, 173, 83, 26, 62, 80, 147, 74, 95, 110, 244, 187,
+		29, 54, 32, 222, 89, 149, 131, 245, 156, 17, 241, 9, 95, 70, 131, 151, 204, 63, 191, 220, 158, 144, 25, 180,
+		145, 235, 202, 134, 181, 79, 179, 163, 96, 179, 54, 162, 67, 200, 254, 6, 165, 75, 23, 246, 204, 80, 155, 22,
+		48, 174, 252, 166, 34, 113, 125, 201, 35, 30, 82, 143, 148, 183, 0, 249, 76, 0, 94, 111, 0, 218, 63, 109, 185,
+		63, 72, 139, 1, 39, 174, 68, 117, 136, 122, 78, 231, 1, 126, 3, 72, 140, 234, 226, 91, 13, 157, 146, 59, 82, 14,
+		210, 215, 37, 149, 233, 115, 165, 2, 117, 225, 17, 111, 65, 8, 15, 99, 67, 188, 158, 193, 40, 181, 73, 45, 124,
+		224, 48, 72, 201, 229, 123, 124, 182, 212, 249, 13, 99, 58, 233, 61, 102, 219, 194, 105, 112, 223, 81, 9, 56,
+		186, 214, 143, 117, 25, 144, 221, 24, 115, 196, 253, 32, 83, 143, 129, 163, 254, 230, 173, 88, 149, 215, 209,
+		253, 44, 198, 126, 193, 184, 194, 181, 70, 53, 148, 246, 114, 121, 213, 105, 17, 233, 217, 48, 113, 110, 7, 246,
+		91, 231, 200, 202, 195, 15, 72, 25, 148, 180, 110, 235, 198, 58, 248, 223, 179, 73, 94, 250, 220, 91, 198, 8,
+		198, 26, 63, 234, 40, 107, 83, 61, 198, 31, 175, 131, 67, 210, 79, 3}
 
 	// Encrypt message
-	encMsg := ClientEncryptDecrypt(true, grp, makeMsg(), salt, makeBaseKeys(10))
+	encMsg := ClientEncrypt(grp, makeMsg(), salt, makeBaseKeys(10))
 
-	if !reflect.DeepEqual(encMsg.SerializePayload(), expectPL) {
+	if !reflect.DeepEqual(encMsg.GetPayloadA(), expectPayloadA) {
 		t.Errorf("EncryptDecrypt() did not produce the correct payload in consistency test"+
 			"\n\treceived: %d\n\texpected: %d",
-			encMsg.SerializePayload(), expectPL)
+			encMsg.GetPayloadA(), expectPayloadA)
 	}
 
-	if !reflect.DeepEqual(encMsg.SerializeAssociatedData(), expectAD) {
+	if !reflect.DeepEqual(encMsg.GetPayloadB(), expectPLB) {
 		t.Errorf("EncryptDecrypt() did not produce the correct associated data in consistency test"+
 			"\n\treceived: %d\n\texpected: %d",
-			encMsg.SerializeAssociatedData(), expectAD)
-	}
-}
-
-// Tests the consistency of ClientEncryptDecrypt() to correctly decrypt the
-// message and not changing associated data
-func TestDecrypt_Consistency(t *testing.T) {
-	// Create expected values
-	expectPL := []byte{27, 13, 80, 192, 130, 143, 140, 156, 106, 146, 89, 140, 3, 66, 215, 249, 22, 59, 188, 75, 244,
-		185, 44, 218, 25, 227, 47, 113, 28, 139, 195, 241, 137, 237, 85, 236, 55, 60, 222, 200, 32, 176, 150, 49, 213,
-		20, 117, 156, 54, 138, 124, 204, 227, 178, 218, 230, 6, 196, 11, 128, 182, 24, 49, 226, 123, 202, 52, 251, 107,
-		195, 166, 87, 14, 100, 227, 229, 63, 136, 34, 229, 239, 35, 213, 222, 11, 49, 230, 228, 12, 124, 54, 96, 58,
-		103, 52, 61, 226, 23, 119, 213, 4, 52, 69, 83, 14, 215, 69, 24, 208, 191, 32, 7, 114, 253, 217, 243, 56, 117,
-		252, 254, 239, 96, 251, 168, 202, 83, 116, 20, 39, 114, 101, 6, 16, 240, 51, 82, 25, 15, 55, 147, 190, 241, 232,
-		242, 138, 197, 170, 21, 78, 68, 5, 49, 64, 243, 100, 208, 166, 206, 140, 177, 176, 187, 247, 173, 208, 59, 229,
-		60, 47, 64, 243, 199, 169, 155, 209, 250, 117, 224, 37, 108, 26, 187, 105, 29, 151, 91, 207, 43, 202, 193, 211,
-		184, 198, 251, 159, 215, 53, 95, 221, 193, 21, 61, 50, 18, 37, 137, 102, 178, 178, 169, 198, 82, 183, 184, 138,
-		203, 235, 107, 234, 211, 1, 87, 33, 114, 45, 97, 38, 224, 181, 167, 133, 179, 193, 188, 97, 251, 216, 251, 115,
-		110, 203, 219, 199, 225, 195, 194, 136, 27, 169, 146, 183, 109, 130, 232, 241, 99}
-
-	msg := makeMsg()
-	// Encrypt message
-	encMsg := ClientEncryptDecrypt(false, grp, msg, salt, makeBaseKeys(10))
-
-	if !reflect.DeepEqual(encMsg.SerializePayload(), expectPL) {
-		t.Errorf("EncryptDecrypt() did not produce the correct payload in consistency test"+
-			"\n\treceived: %d\n\texpected: %d",
-			encMsg.SerializePayload(), expectPL)
-	}
-
-	if !reflect.DeepEqual(encMsg.SerializeAssociatedData(), msg.SerializeAssociatedData()) {
-		t.Errorf("EncryptDecrypt() did not produce the correct associated data in consistency test"+
-			"\n\treceived: %d\n\texpected: %d",
-			encMsg.SerializeAssociatedData(), msg.SerializeAssociatedData())
+			encMsg.GetPayloadB(), expectPLB)
 	}
 }
 
 // Shows that multiplying the encrypted message by the inverse key decrypts it.
-func TestEncrypt_Invert(t *testing.T) {
+func TestDecrypt(t *testing.T) {
+	//make and encrypt the message
 	msg := makeMsg()
-
-	// Get encrypted message
 	size := 10
 	baseKeys := makeBaseKeys(size)
 
-	encMsg := ClientEncryptDecrypt(true, grp, msg, salt, baseKeys)
+	encMsg := ClientEncrypt(grp, msg, salt, baseKeys)
 
-	// Get encryption key
-	keyEncInv := ClientKeyGen(grp, salt, baseKeys)
-	grp.Inverse(keyEncInv, keyEncInv)
-
-	multPayload := grp.NewInt(1)
-	multAssociatedData := grp.NewInt(1)
-	grp.Mul(keyEncInv, grp.NewIntFromBytes(encMsg.SerializePayload()), multPayload)
-	grp.Mul(keyEncInv, grp.NewIntFromBytes(encMsg.SerializeAssociatedData()), multAssociatedData)
-
-	testMsg := format.Message{
-		Payload:        format.DeserializePayload(multPayload.Bytes()),
-		AssociatedData: format.DeserializeAssociatedData(multAssociatedData.Bytes()),
+	//general local keys
+	hash, err := blake2b.New256(nil)
+	if err != nil {
+		t.Error("E2E Client Encrypt could not get blake2b Hash")
 	}
 
-	if !reflect.DeepEqual(testMsg.SerializePayload(), msg.SerializePayload()) {
-		t.Errorf("EncryptDecrypt() did not produce the correct payload\n\treceived: %d\n\texpected: %d", testMsg.SerializePayload(), msg.SerializePayload())
+	hash.Reset()
+	hash.Write(salt)
+
+	keyEcrA := ClientKeyGen(grp, salt, baseKeys)
+	keyEcrB := ClientKeyGen(grp, hash.Sum(nil), baseKeys)
+
+	keyEcrA_Inv := grp.Inverse(keyEcrA, grp.NewInt(1))
+	keyEcrB_Inv := grp.Inverse(keyEcrB, grp.NewInt(1))
+
+	DecPayloadA := grp.Mul(keyEcrA_Inv, grp.NewIntFromBytes(encMsg.GetPayloadA()), grp.NewInt(1))
+	DecPayloadB := grp.Mul(keyEcrB_Inv, grp.NewIntFromBytes(encMsg.GetPayloadB()), grp.NewInt(1))
+
+	decMsg := format.NewMessage()
+	decMsg.SetPayloadA(DecPayloadA.Bytes())
+	decMsg.SetDecryptedPayloadB(DecPayloadB.LeftpadBytes(format.PayloadLen))
+
+	if !reflect.DeepEqual(decMsg.GetPayloadA(), msg.GetPayloadA()) {
+		t.Errorf("EncryptDecrypt() did not produce the correct payload\n\treceived: %d\n\texpected: %d", decMsg.GetPayloadA(), msg.GetPayloadA())
 	}
 
-	if !reflect.DeepEqual(testMsg.SerializeAssociatedData(), msg.SerializeAssociatedData()) {
-		t.Errorf("EncryptDecrypt() did not produce the correct associated data\n\treceived: %d\n\texpected: %d", testMsg.SerializeAssociatedData(), msg.SerializeAssociatedData())
+	if !reflect.DeepEqual(decMsg.GetPayloadB(), msg.GetPayloadB()) {
+		t.Errorf("EncryptDecrypt() did not produce the correct associated data\n\treceived: %d\n\texpected: %d", decMsg.GetPayloadB(), msg.GetPayloadB())
 	}
 }

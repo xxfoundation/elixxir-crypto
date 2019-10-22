@@ -12,8 +12,6 @@ import (
 // Commutative property - order of numbers put in should not effect the out output
 // Inverse - if I get the inverse it should return the inputs
 
-
-
 // Ensure that Mul2 satisfies the interface
 // Will cause a compile error if it doesn't
 var _ Cryptop = Mul2
@@ -22,10 +20,9 @@ func TestMul2_Consistency(t *testing.T) {
 	// Tests for consistency with the old cryptop, Realtime Encrypt,
 	// message tests
 	prime := large.NewInt(11)
-	primeQ := large.NewInt(5)
 	gen := large.NewInt(4)
 	// { 4, 5, 9, 3, 1, ... }
-	grp := cyclic.NewGroup(prime, gen, primeQ)
+	grp := cyclic.NewGroup(prime, gen)
 
 	tests := [][]*cyclic.Int{
 		{grp.NewInt(1), grp.NewInt(1)},
@@ -78,7 +75,7 @@ func TestMul2_Commutativity(t *testing.T) {
 		"93B4EA988D8FDDC186FFB7DC90A6C08F4DF435C934063199" +
 		"FFFFFFFFFFFFFFFF"
 	var prime = large.NewIntFromString(primeString, 16)
-	grp := cyclic.NewGroup(prime, large.NewInt(5), large.NewInt(53))
+	grp := cyclic.NewGroup(prime, large.NewInt(5))
 
 	prng := rand.New(rand.NewSource(82))
 
@@ -95,7 +92,6 @@ func TestMul2_Commutativity(t *testing.T) {
 			t.Error(err)
 		}
 		y := grp.NewIntFromBytes(buf)
-
 
 		//ensure that Mul2 is completely commutative
 		var in1, in2, out1, out2 *cyclic.Int
@@ -137,7 +133,7 @@ func TestMul2_Correctness(t *testing.T) {
 		"FFFFFFFFFFFFFFFF"
 
 	var prime = large.NewIntFromString(primeString, 16)
-	grp := cyclic.NewGroup(prime, large.NewInt(5), large.NewInt(53))
+	grp := cyclic.NewGroup(prime, large.NewInt(5))
 
 	prng := rand.New(rand.NewSource(82))
 
@@ -170,8 +166,6 @@ func TestMul2_Correctness(t *testing.T) {
 	}
 }
 
-
-
 //Tests that Mul2 conforms to the cryptops interface
 func TestMul2_CryptopsInterface(t *testing.T) {
 
@@ -186,7 +180,6 @@ func TestMul2_CryptopsInterface(t *testing.T) {
 		t.Errorf("Mul2: Does not conform to the cryptops interface")
 	}
 }
-
 
 //testMul2Signature_GetMinSize shows that Mul2.MinSize returns the correct min size
 func TestMul2Signature_GetInputSize(t *testing.T) {

@@ -11,23 +11,27 @@ import (
 // encrypted.
 func TestIsUnencrypted_EncryptedMessage(t *testing.T) {
 	// Generate random byte slice
-	randSlice := make([]byte, rand.Intn(100))
+	randSlice := make([]byte, 256)
 	rand.Read(randSlice)
+	fpSlice := make([]byte, 32)
+	rand.Read(fpSlice)
 
 	// Create message
 	m := format.NewMessage()
-
 	// Set message payload
-	m.SetPayload(randSlice)
+	m.SetPayloadA(randSlice)
+	m.SetPayloadB(randSlice)
 
-	// Set the key fingerprint
-	m.SetKeyFingerprint(*format.NewFingerprint(randSlice))
+	// Set the MAC
+	m.SetMAC(fpSlice)
 
 	// Check the message
 	unencrypted := IsUnencrypted(m)
 
 	if unencrypted == true {
-		t.Errorf("IsUnencrypted() determined the message is unencrypted when it is actually encrypted\n\treceived: %v\n\texpected: %v", unencrypted, false)
+		t.Errorf("IsUnencrypted() determined the message is unencrypted when it is actually encrypted"+
+			"\n\treceived: %v\n\texpected: %v",
+			unencrypted, false)
 	}
 }
 
@@ -35,27 +39,30 @@ func TestIsUnencrypted_EncryptedMessage(t *testing.T) {
 // unencrypted.
 func TestIsUnencrypted_UnencryptedMessage(t *testing.T) {
 	// Generate random byte slice
-	randSlice := make([]byte, rand.Intn(100))
+	randSlice := make([]byte, 256)
 	rand.Read(randSlice)
 
 	// Create message
 	m := format.NewMessage()
 
 	// Set message payload
-	m.SetPayload(randSlice)
+	m.SetPayloadA(randSlice)
+	m.SetPayloadB(randSlice)
 
 	// Create new hash
 	h, _ := hash.NewCMixHash()
+	h.Write(m.Contents.Get())
 
-	// Set the key fingerprint
-	h.Write(m.SerializePayload())
-	m.SetKeyFingerprint(*format.NewFingerprint(h.Sum(nil)))
+	// Set the MAC
+	m.SetMAC(h.Sum(nil))
 
 	// Check the message
 	unencrypted := IsUnencrypted(m)
 
 	if unencrypted == false {
-		t.Errorf("IsUnencrypted() determined the message is encrypted when it is actually unencrypted\n\treceived: %v\n\texpected: %v", unencrypted, true)
+		t.Errorf("IsUnencrypted() determined the message is encrypted when it is actually unencrypted"+
+			"\n\treceived: %v\n\texpected: %v",
+			unencrypted, true)
 	}
 }
 
@@ -63,17 +70,20 @@ func TestIsUnencrypted_UnencryptedMessage(t *testing.T) {
 // IsUnencrypted().
 func TestSetUnencrypted(t *testing.T) {
 	// Generate random byte slice
-	randSlice := make([]byte, rand.Intn(100))
+	randSlice := make([]byte, 256)
 	rand.Read(randSlice)
+	fpSlice := make([]byte, 32)
+	rand.Read(fpSlice)
 
 	// Create message
 	m := format.NewMessage()
 
 	// Set message payload
-	m.SetPayload(randSlice)
+	m.SetPayloadA(randSlice)
+	m.SetPayloadB(randSlice)
 
-	// Set the key fingerprint
-	m.SetKeyFingerprint(*format.NewFingerprint(randSlice))
+	// Set the MAC
+	m.SetMAC(fpSlice)
 
 	SetUnencrypted(m)
 

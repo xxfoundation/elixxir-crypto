@@ -18,7 +18,6 @@ func TestDummyKeyGen_ValidNumKeys(t *testing.T) {
 
 	userIds := []uint64{1, 2, 3, 4, 5, 6}
 	users := generateUsers(userIds, t)
-
 	keys := KeyGen(currUser, users, grp)
 	if len(keys) != len(users) {
 		t.Errorf("Wrong number of keys generated")

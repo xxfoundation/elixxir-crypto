@@ -3,35 +3,40 @@ package cmix
 import (
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/primitives/format"
+	"golang.org/x/crypto/blake2b"
 )
 
-// Encrypts the message for the client by multiplying the inverted encryption
-// key by the message payload and associated data if encrypt = true
-// Decrypt the message for the client by multiplying the inverted decryption key
-// by the message payload if encrypt = false
-func ClientEncryptDecrypt(encrypt bool,
-	grp *cyclic.Group, msg *format.Message,
+// ClientEncrypt encrypts the message for the client by multiplying the
+// inverted encryption key by the message payload
+func ClientEncrypt(grp *cyclic.Group, msg *format.Message,
 	salt []byte, baseKeys []*cyclic.Int) *format.Message {
-	// Get inverted encrypted key
-	keyEncInv := ClientKeyGen(grp, salt, baseKeys)
 
-	// Get message payload and associated data as cyclic integers
-	payload := grp.NewIntFromBytes(msg.SerializePayload())
-	associatedData := grp.NewIntFromBytes(msg.SerializeAssociatedData())
+	//get the salt for associated data
+	hash, err := blake2b.New256(nil)
+	if err != nil {
+		panic("E2E Client Encrypt could not get blake2b Hash")
+	}
+	hash.Reset()
+	hash.Write(salt)
 
-	// Multiply message payload with the key
-	grp.Mul(keyEncInv, payload, payload)
-	// Only multiply associated data if encrypting
-	if encrypt {
-		grp.Mul(keyEncInv, associatedData, associatedData)
-	}
-	// Create new message with multiplied parts
-	encryptedMsg := &format.Message{
-		Payload:        format.DeserializePayload(payload.
-			LeftpadBytes(uint64(format.TOTAL_LEN))),
-		AssociatedData: format.DeserializeAssociatedData(associatedData.
-			LeftpadBytes(uint64(format.TOTAL_LEN))),
-	}
+	// Get encryption keys
+	keyEcrA := ClientKeyGen(grp, salt, baseKeys)
+	keyEcrB := ClientKeyGen(grp, hash.Sum(nil), baseKeys)
+
+	// Get message payloads as cyclic integers
+	payloadA := grp.NewIntFromBytes(msg.GetPayloadA())
+	payloadB := grp.NewIntFromBytes(msg.GetPayloadBForEncryption())
+
+	// Encrypt payload A with the key
+	EcrPayloadA := grp.Mul(keyEcrA, payloadA, grp.NewInt(1))
+	EcrPayloadB := grp.Mul(keyEcrB, payloadB, grp.NewInt(1))
+
+	//Create the encrypted message
+	encryptedMsg := format.NewMessage()
+
+	encryptedMsg.SetPayloadA(EcrPayloadA.LeftpadBytes(format.PayloadLen))
+	encryptedMsg.SetPayloadB(EcrPayloadB.LeftpadBytes(format.PayloadLen))
 
 	return encryptedMsg
+
 }

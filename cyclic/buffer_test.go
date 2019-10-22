@@ -15,8 +15,7 @@ import (
 func TestIntBuffer_Get(t *testing.T) {
 	p := large.NewInt(1000000010101111111)
 	g := large.NewInt(5)
-	q := large.NewInt(1283)
-	grp := NewGroup(p, g, q)
+	grp := NewGroup(p, g)
 
 	buf := grp.NewIntBuffer(5, nil)
 
@@ -47,8 +46,7 @@ func TestIntBuffer_Get(t *testing.T) {
 func TestIntBuffer_Len(t *testing.T) {
 	p := large.NewInt(1000000010101111111)
 	g := large.NewInt(5)
-	q := large.NewInt(1283)
-	grp := NewGroup(p, g, q)
+	grp := NewGroup(p, g)
 
 	for i := 0; i < 1000; i++ {
 		ib := grp.NewIntBuffer(uint32(i), nil)
@@ -62,8 +60,7 @@ func TestIntBuffer_Len(t *testing.T) {
 func TestIntBuffer_GetFingerprint(t *testing.T) {
 	p1 := large.NewInt(1000000010101111111)
 	g := large.NewInt(5)
-	q := large.NewInt(1283)
-	grp1 := NewGroup(p1, g, q)
+	grp1 := NewGroup(p1, g)
 
 	ib1 := grp1.NewIntBuffer(5, nil)
 
@@ -73,7 +70,7 @@ func TestIntBuffer_GetFingerprint(t *testing.T) {
 	}
 
 	p2 := large.NewInt(1000000010101111011)
-	grp2 := NewGroup(p2, g, q)
+	grp2 := NewGroup(p2, g)
 
 	ib2 := grp2.NewIntBuffer(5, nil)
 
@@ -88,8 +85,7 @@ func TestIntBuffer_GetFingerprint(t *testing.T) {
 func TestIntBuffer_GetRegion(t *testing.T) {
 	p := large.NewInt(1000000010101111111)
 	g := large.NewInt(5)
-	q := large.NewInt(1283)
-	grp := NewGroup(p, g, q)
+	grp := NewGroup(p, g)
 
 	intBuffLen := uint32(20)
 
@@ -132,8 +128,7 @@ func TestIntBuffer_GetRegion(t *testing.T) {
 func TestIntBuffer_DeepCopy(t *testing.T) {
 	p := large.NewInt(1000000010101111111)
 	g := large.NewInt(5)
-	q := large.NewInt(1283)
-	grp := NewGroup(p, g, q)
+	grp := NewGroup(p, g)
 
 	intBuffLen := uint32(20)
 
@@ -171,8 +166,7 @@ func TestIntBuffer_DeepCopy(t *testing.T) {
 func TestIntBuffer_Contains(t *testing.T) {
 	p := large.NewInt(1000000010101111111)
 	g := large.NewInt(5)
-	q := large.NewInt(1283)
-	grp := NewGroup(p, g, q)
+	grp := NewGroup(p, g)
 
 	b := grp.NewIntBuffer(15, nil)
 

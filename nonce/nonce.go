@@ -31,7 +31,7 @@ type Nonce struct {
 }
 
 // Generate a fresh nonce with the given TTL in seconds
-func NewNonce(ttl uint) Nonce {
+func NewNonce(ttl uint) (Nonce, error) {
 	if ttl == 0 {
 		jww.FATAL.Panicf("TTL cannot be 0")
 	}
@@ -45,7 +45,7 @@ func NewNonce(ttl uint) Nonce {
 		TTL: time.Duration(ttl) * time.Second}
 	copy(newNonce.Value[:], newValue)
 	newNonce.ExpiryTime = newNonce.GenTime.Add(newNonce.TTL)
-	return newNonce
+	return newNonce, err
 }
 
 func (n Nonce) Bytes() []byte {
@@ -54,16 +54,4 @@ func (n Nonce) Bytes() []byte {
 
 func (n Nonce) IsValid() bool {
 	return time.Now().Before(n.ExpiryTime)
-}
-
-func (n Nonce) GenTimeStr() string {
-	return n.GenTime.Format(time.RFC3339)
-}
-
-func (n Nonce) ExpiryTimeStr() string {
-	return n.ExpiryTime.Format(time.RFC3339)
-}
-
-func (n Nonce) TTLStr() string {
-	return n.TTL.String()
 }
