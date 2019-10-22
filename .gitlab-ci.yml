@@ -30,7 +30,6 @@ stages:
   - setup
   - test
   - build
-  - deploy
   - trigger_integration
 
 setup:
