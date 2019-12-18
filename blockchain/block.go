@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2018 Privategrity Corporation                                   /
+// Copyright © 2020 Privategrity Corporation                                   /
 //                                                                             /
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
@@ -61,8 +61,9 @@ func GenerateOriginBlock() *Block {
 // Creates the next block from the previous one
 func (b *Block) NextBlock() (*Block, error) {
 	b.mutex.Lock()
+	defer b.mutex.Unlock()
+
 	if b.lifecycle != Baked {
-		b.mutex.Unlock()
 		return &Block{}, ErrBaked
 	}
 
@@ -71,8 +72,6 @@ func (b *Block) NextBlock() (*Block, error) {
 	copy(newBlock.previousHash[:], b.hash[:])
 
 	newBlock.id = b.id + 1
-
-	b.mutex.Unlock()
 
 	return &newBlock, nil
 }
@@ -90,14 +89,12 @@ func (b *Block) GetCreated() []coin.Coin {
 // Only works while the block is "Raw"
 func (b *Block) AddCreated(c []coin.Coin) error {
 	b.mutex.Lock()
+	defer b.mutex.Unlock()
 	if b.lifecycle != Raw {
-		b.mutex.Unlock()
 		return ErrRaw
 	}
 
 	b.created = append(b.created, c...)
-
-	b.mutex.Unlock()
 
 	return nil
 }
@@ -115,14 +112,12 @@ func (b *Block) GetDestroyed() []coin.Coin {
 // Only works while the block is "Raw"
 func (b *Block) AddDestroyed(c []coin.Coin) error {
 	b.mutex.Lock()
+	defer b.mutex.Unlock()
 	if b.lifecycle != Raw {
-		b.mutex.Unlock()
 		return ErrRaw
 	}
 
 	b.destroyed = append(b.destroyed, c...)
-
-	b.mutex.Unlock()
 
 	return nil
 }
@@ -130,14 +125,13 @@ func (b *Block) AddDestroyed(c []coin.Coin) error {
 // Returns a copy of the block's hash
 func (b *Block) GetHash() (BlockHash, error) {
 	b.mutex.Lock()
+	defer b.mutex.Unlock()
 	if b.lifecycle != Baked {
-		b.mutex.Unlock()
 		return BlockHash{}, ErrBaked
 	}
 
 	var rtnBH BlockHash
 	copy(rtnBH[:], b.hash[:])
-	b.mutex.Unlock()
 	return rtnBH, nil
 }
 
@@ -166,14 +160,13 @@ func (b *Block) GetID() uint64 {
 // Returns the treeRoot of the block
 func (b *Block) GetTreeRoot() (BlockHash, error) {
 	b.mutex.Lock()
+	defer b.mutex.Unlock()
 	if b.lifecycle != Baked {
-		b.mutex.Unlock()
 		return BlockHash{}, ErrBaked
 	}
 
 	var rtnTR BlockHash
 	copy(rtnTR[:], b.treeRoot[:])
-	b.mutex.Unlock()
 	return rtnTR, nil
 }
 
@@ -181,9 +174,9 @@ func (b *Block) GetTreeRoot() (BlockHash, error) {
 // Only runs if the lifecycle state is "Raw" and sets the state to "Baked"
 func (b *Block) Bake(seedList []coin.Seed, treeRoot BlockHash) error {
 	b.mutex.Lock()
+	defer b.mutex.Unlock()
 
 	if b.lifecycle != Raw {
-		b.mutex.Unlock()
 		return ErrRaw
 	}
 
@@ -199,8 +192,8 @@ func (b *Block) Bake(seedList []coin.Seed, treeRoot BlockHash) error {
 	shuffle.ShuffleSwap(rawSeed, len(b.created), func(i, j int) {
 		b.created[i], b.created[j] = b.created[j], b.created[i]
 	})
-	//Hash the seed used for the destroy elements so the two lists aren't shuffled the same way
 
+	//Hash the seed used for the destroy elements so the two lists aren't shuffled the same way
 	hb.Write(rawSeed)
 	destroySeed := hb.Sum(nil)
 	shuffle.ShuffleSwap(destroySeed, len(b.destroyed), func(i, j int) {
@@ -220,7 +213,6 @@ func (b *Block) Bake(seedList []coin.Seed, treeRoot BlockHash) error {
 	//Set the lifecycle to baked
 	b.lifecycle = Baked
 
-	b.mutex.Unlock()
 	return nil
 }
 

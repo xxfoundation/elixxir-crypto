@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2018 Privategrity Corporation                                   /
+// Copyright © 2020 Privategrity Corporation                                   /
 //                                                                             /
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
@@ -11,8 +11,8 @@ import "errors"
 type BlockLifecycle uint32
 
 const (
-	Raw BlockLifecycle = iota
-	Baked
+	Raw   BlockLifecycle = iota //Initial state of a newly created block
+	Baked                       //State of a block ready for the block chain. Signal that internal data may be accessed
 )
 
 var ErrRaw = errors.New("block is not raw, data or function cannot be accessed")
