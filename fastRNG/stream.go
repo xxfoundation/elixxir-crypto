@@ -165,7 +165,6 @@ func Fortuna(src, ext []byte, fortunaHash hash.Hash) cipher.Stream {
 		jww.FATAL.Panicf(err.Error())
 	}
 	//Encrypt the counter and place into destination
-	//TODO Go over iv with mario
 	return cipher.NewCTR(block, key[aes.BlockSize:2*aes.BlockSize])
 }
 

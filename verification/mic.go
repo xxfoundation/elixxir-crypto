@@ -3,7 +3,6 @@
 //                                                                             /
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
-
 package verification
 
 import (
@@ -11,6 +10,7 @@ import (
 	"gitlab.com/elixxir/crypto/hash"
 )
 
+//TODO: Remove package? These 2 funcs aren't used anywhere in the project
 func GenerateMIC(hashee [][]byte, length uint64) []byte {
 
 	h, _ := hash.NewCMixHash()

@@ -12,6 +12,8 @@ import (
 	"hash"
 )
 
+//TODO: Fix this comment, no longer use DSA
+
 // Generate a Base Key from DHKX using DSA Keys
 // g is the group used in DSA
 // peerPubKey is the DSA PublicKey of the peer

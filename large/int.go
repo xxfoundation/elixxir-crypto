@@ -11,6 +11,8 @@ import (
 	"math/big"
 )
 
+//FIXME: What above interface?
+
 // Type Int will implement the above interface by extending big.Int
 type Int big.Int
 

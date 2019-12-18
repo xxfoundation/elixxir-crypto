@@ -37,7 +37,7 @@ better random number generator, we can easily switch to it.
 constant-time implementations of big integer operations to avoid leaking 
 information, it's possible to incrementally replace the golang big int 
 implementation with our own. It also implements modular operations within a 
-cyclic group.
+cyclic group. //TODO split this with `large`
 
 `diffieHellman` implements a Diffie-Hellman key exchange. At the time of 
 writing, this is dead code.
@@ -45,20 +45,18 @@ writing, this is dead code.
 `e2e` contains functions used in the end-to-end encryption algorithm, including
 the end-to-end key rotation.
 
-`forward` derives new keys within the cyclic group from salts and a base key.
+`forward` derives new keys within the cyclic group from salts and a base key. 
+//TODO: Remove? now called cmix along with messaging?
 
 `hash` includes a general-purpose hashing algorithm, blake2b, that should be 
 suitable for most of our needs. It also includes functions to calculate an HMAC.
 
-`id` includes a type for user IDs. Right now, user IDs are 256 bits long. 
-This is a candidate for inclusion in the new `primitives` repo.
-
 `messaging` is currently for managing keys and salts for communication between
-clients.
+clients. //TODO: call `cmix`? merge w/ `forward`?
 
 `shuffle` has a Fisher-Yates shuffle algorithm that we use for mixing 
 the slots in our Permute phases.
 
 `verification` contains a MIC algorithm that we currently use to prevent 
 men in the middle from tampering with the message while it's in the middle of 
-being sent through the network.
+being sent through the network. //TODO remove?

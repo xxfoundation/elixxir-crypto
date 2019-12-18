@@ -25,7 +25,6 @@ func ExpandKey(h hash.Hash, g *cyclic.Group, key []byte,
 		return h
 	}
 	keyGen := hkdf.Expand(foo, key, nil)
-	// FIXME: This causes a copy, use the new Group .GetPBytes() when ready
 	pBytes := g.GetPBytes()
 	expandedKey, err := csprng.GenerateInGroup(pBytes, len(pBytes), keyGen)
 

@@ -13,23 +13,6 @@ import (
 	"errors"
 )
 
-// LoadCSR takes a pem encoded certificate request (ie the contents of a csr file),
-// parses it and outputs an x509 cert request object
-func LoadCSR(csrContents string) (*x509.CertificateRequest, error) {
-	//Decode the pem encoded CSR
-	requestDecoded, _ := pem.Decode([]byte(csrContents))
-	if requestDecoded == nil {
-		err := errors.New("decoding PEM Failed")
-		return nil, err
-	}
-	//parse it to create a certificate request object
-	csr, err := x509.ParseCertificateRequest(requestDecoded.Bytes)
-	if err != nil {
-		return nil, err
-	}
-	return csr, nil
-}
-
 // LoadCertificate takes a pem encoded certificate (ie the contents of a crt file),
 // parses it and outputs an x509 certificate object
 func LoadCertificate(certContents string) (*x509.Certificate, error) {

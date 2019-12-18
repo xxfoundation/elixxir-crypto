@@ -33,7 +33,7 @@ type Block struct {
 	mutex        sync.Mutex
 }
 
-// a structure that holds a blockchain's data for easy serialization and deserialization
+// A structure that holds a block's data, allows for easy serialization and deserialization
 type serialBlock struct {
 	ID           uint64
 	Hash         []byte
@@ -90,6 +90,7 @@ func (b *Block) GetCreated() []coin.Coin {
 func (b *Block) AddCreated(c []coin.Coin) error {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
+
 	if b.lifecycle != Raw {
 		return ErrRaw
 	}
