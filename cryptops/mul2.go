@@ -3,6 +3,9 @@
 //                                                                             /
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
+
+// Package cryptops wraps various cryptographic operations around a generic interface.
+// Operations include but are not limited to: key generation, ElGamal, multiplication, etc.
 package cryptops
 
 import "gitlab.com/elixxir/crypto/cyclic"

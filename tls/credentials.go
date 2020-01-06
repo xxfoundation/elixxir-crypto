@@ -3,6 +3,9 @@
 //                                                                             /
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
+
+// Package tls contains wrapper functions for creating GRPC credentials.
+// It also implements RSA key parsing
 package tls
 
 import (

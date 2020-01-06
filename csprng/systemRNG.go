@@ -4,6 +4,8 @@
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
 
+// Package csprng wraps the golang crypto/rand package so that we can use different
+// random number generators interchangeably when the need arises.
 package csprng
 
 import (

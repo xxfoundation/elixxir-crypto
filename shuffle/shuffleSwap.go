@@ -3,6 +3,9 @@
 //                                                                             /
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
+
+// Package shuffle has a Fisher-Yates shuffle algorithm that we use for mixing
+// the slots in our Permute phases.
 package shuffle
 
 import (

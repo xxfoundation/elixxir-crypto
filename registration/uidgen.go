@@ -3,6 +3,9 @@
 //                                                                             /
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
+
+// Package registration contains functions for generating data for registration.
+// This includes base key and user ID generation
 package registration
 
 import (

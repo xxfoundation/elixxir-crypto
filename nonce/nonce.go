@@ -4,6 +4,8 @@
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
 
+// Package nonce contains our implementation of a nonce, including an expiration time,
+// generation time and TTL.
 package nonce
 
 import (
