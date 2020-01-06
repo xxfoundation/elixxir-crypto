@@ -13,7 +13,7 @@ import (
 	"gitlab.com/elixxir/crypto/hash"
 )
 
-// Generate encryption key for clients.
+// ClientKeyGen generate encryption key for clients.
 func ClientKeyGen(grp *cyclic.Group, salt []byte, baseKeys []*cyclic.Int) *cyclic.Int {
 	output := grp.NewInt(1)
 	tmpKey := grp.NewInt(1)
@@ -29,12 +29,12 @@ func ClientKeyGen(grp *cyclic.Group, salt []byte, baseKeys []*cyclic.Int) *cycli
 	return output
 }
 
-// Generate encryption key for nodes.
+// NodeKeyGen generates encryption key for nodes.
 func NodeKeyGen(grp *cyclic.Group, salt []byte, baseKey, output *cyclic.Int) {
 	keyGen(grp, salt, baseKey, output)
 }
 
-// Combines the salt with the baseKey to generate a new key inside the group.
+// keyGen combines the salt with the baseKey to generate a new key inside the group.
 func keyGen(grp *cyclic.Group, salt []byte, baseKey, output *cyclic.Int) *cyclic.Int {
 	h1, _ := hash.NewCMixHash()
 	h2 := sha256.New()

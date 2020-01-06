@@ -16,7 +16,7 @@ import (
 func ClientEncrypt(grp *cyclic.Group, msg *format.Message,
 	salt []byte, baseKeys []*cyclic.Int) *format.Message {
 
-	//get the salt for associated data
+	// Get the salt for associated data
 	hash, err := blake2b.New256(nil)
 	if err != nil {
 		panic("E2E Client Encrypt could not get blake2b Hash")
@@ -36,7 +36,7 @@ func ClientEncrypt(grp *cyclic.Group, msg *format.Message,
 	EcrPayloadA := grp.Mul(keyEcrA, payloadA, grp.NewInt(1))
 	EcrPayloadB := grp.Mul(keyEcrB, payloadB, grp.NewInt(1))
 
-	//Create the encrypted message
+	// Create the encrypted message
 	encryptedMsg := format.NewMessage()
 
 	encryptedMsg.SetPayloadA(EcrPayloadA.LeftpadBytes(format.PayloadLen))

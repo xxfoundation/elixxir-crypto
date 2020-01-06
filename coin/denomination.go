@@ -12,7 +12,6 @@ import (
 
 //Defines the properties of Denominations
 const NumDenominations = uint64(24)
-
 const MaxValueDenominationRegister = uint64(1<<NumDenominations - 1)
 const DenominationRegisterLen = NumDenominations / 8
 
@@ -30,10 +29,10 @@ func (d Denomination) Value() uint64 {
 	return uint64(1 << d)
 }
 
-//List of denominations appended to a compound or seed
+// List of denominations appended to a compound or seed
 type DenominationRegister []byte
 
-//Creates a new denomination register
+// NewDenominationRegistry creates a new denomination register
 func NewDenominationRegistry(protoregister []byte, value uint64) (DenominationRegister, error) {
 	// Checked that the passed slice is the correct length
 	if uint64(len(protoregister)) != DenominationRegisterLen {
@@ -58,9 +57,9 @@ func NewDenominationRegistry(protoregister []byte, value uint64) (DenominationRe
 	return DenominationRegister(protoregister), nil
 }
 
-// Creates a DenominationRegistry from a slice of the appropriate length
+// DeserializeDenominationRegistry creates a DenominationRegistry from a slice of the appropriate length
 func DeserializeDenominationRegistry(protoregister []byte) (DenominationRegister, error) {
-	// check that the slice is the correct length
+	// Return error if slice isn't appropriate length
 	if uint64(len(protoregister)) != DenominationRegisterLen {
 		return DenominationRegister{}, ErrIncorrectLen
 	}
@@ -68,25 +67,25 @@ func DeserializeDenominationRegistry(protoregister []byte) (DenominationRegister
 	return DenominationRegister(protoregister), nil
 }
 
-// Returns the value of a specific bit in the DenominationRegistry
+// BitState returns the value of a specific bit in the DenominationRegistry
 func (dl DenominationRegister) BitState(bit uint8) bool {
 	return ((dl[bit/8] >> (bit % 8)) & 0x01) == 1
 }
 
-// Returns a list of all denominations represented by the DenominationRegistry
+// List returns a list of all denominations represented by the DenominationRegistry
 func (dl DenominationRegister) List() []Denomination {
-	var denomoinationList []Denomination
+	var denominationList []Denomination
 
 	for i := uint64(0); i < NumDenominations; i++ {
 		if dl.BitState(uint8(i)) {
-			denomoinationList = append(denomoinationList, Denomination(i))
+			denominationList = append(denominationList, Denomination(i))
 		}
 	}
 
-	return denomoinationList
+	return denominationList
 }
 
-// Returns the overall value of the coins represented by the DenominationRegistry
+// Value returns the overall value of the coins represented by the DenominationRegistry
 func (dl DenominationRegister) Value() uint64 {
 	value := uint64(0)
 

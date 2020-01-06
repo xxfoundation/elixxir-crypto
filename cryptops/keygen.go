@@ -15,12 +15,15 @@ import (
 type KeygenPrototype func(group *cyclic.Group,
 	salt []byte, baseKey, generatedKey *cyclic.Int)
 
+// KeyGen implements the cmix.NodeKeyGen(() within the cryptops interface
 var Keygen KeygenPrototype = cmix.NodeKeyGen
 
+// GetName returns the function name for debugging.
 func (KeygenPrototype) GetName() string {
 	return "Keygen"
 }
 
+// GetInputSize returns the input size; used in safety checks.
 func (KeygenPrototype) GetInputSize() uint32 {
 	return 1
 }

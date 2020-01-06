@@ -75,7 +75,7 @@ func (z *Int) Set(x *Int) *Int {
 	return z
 }
 
-// Sets z to bigInt x and returns z.
+// SetBigInt sets z to bigInt x and returns z.
 func (z *Int) SetBigInt(x *big.Int) *Int {
 	(*big.Int)(z).Set(x)
 	return z
@@ -93,20 +93,20 @@ func (z *Int) SetString(s string, base int) (*Int, bool) {
 	return z, b
 }
 
-//SetBytes interprets buf as the bytes of a big-endian unsigned
-//integer, sets z to that value, and returns z.
+// SetBytes interprets buf as the bytes of a big-endian unsigned
+// integer, sets z to that value, and returns z.
 func (z *Int) SetBytes(buf []byte) *Int {
 	(*big.Int)(z).SetBytes(buf)
 	return z
 }
 
-//SetInt64 sets z to the value of the passed int64
+// SetInt64 sets z to the value of the passed int64
 func (z *Int) SetInt64(x int64) *Int {
 	(*big.Int)(z).SetInt64(x)
 	return z
 }
 
-//SetUint64 sets z to the value of the passed uint64
+// SetUint64 sets z to the value of the passed uint64
 func (z *Int) SetUint64(x uint64) *Int {
 	(*big.Int)(z).SetUint64(x)
 	return z
@@ -237,7 +237,7 @@ func (z *Int) BitLen() int {
 	return (*big.Int)(z).BitLen()
 }
 
-//gets the byte length of large int
+// ByteLen gets the byte length of large int
 func (z *Int) ByteLen() int {
 	byteLen := ((*big.Int)(z).BitLen() + 7) / 8
 	return byteLen
@@ -253,19 +253,19 @@ func (z *Int) Cmp(y *Int) int {
 
 // -------------- Bitwise Operators -------------- //
 
-//RightShift shifts the value right by n bits
+// RightShift shifts the value right by n bits
 func (z *Int) RightShift(x *Int, n uint) *Int {
 	(*big.Int)(z).Rsh((*big.Int)(x), n)
 	return z
 }
 
-//LeftShift shifts the value left by n bits
+// LeftShift shifts the value left by n bits
 func (z *Int) LeftShift(x *Int, n uint) *Int {
 	(*big.Int)(z).Lsh((*big.Int)(x), n)
 	return z
 }
 
-//Or computes the bitwise or operation between the Cyclic Ints
+// Or computes the bitwise or operation between the Cyclic Ints
 func (z *Int) Or(x, y *Int) *Int {
 	(*big.Int)(z).Or(
 		(*big.Int)(x),
@@ -273,7 +273,7 @@ func (z *Int) Or(x, y *Int) *Int {
 	return z
 }
 
-//Xor computes the bitwise xor operation between the Cyclic Ints
+// Xor computes the bitwise xor operation between the Cyclic Ints
 func (z *Int) Xor(x, y *Int) *Int {
 	(*big.Int)(z).Xor(
 		(*big.Int)(x),
@@ -281,7 +281,7 @@ func (z *Int) Xor(x, y *Int) *Int {
 	return z
 }
 
-//And computes the bitwise and operation between the Cyclic Ints
+// And computes the bitwise and operation between the Cyclic Ints
 func (z *Int) And(x, y *Int) *Int {
 	(*big.Int)(z).And(
 		(*big.Int)(x),
@@ -296,7 +296,7 @@ func (z *Int) Bytes() []byte {
 	return (*big.Int)(z).Bytes()
 }
 
-// LeftpadBytes returns the absolute value of x leftpadded with zeroes
+// LeftpadBytes returns the absolute value of x left-padded with zeroes
 // up the the passed number of bytes.  Panics if the byte slice from the Int
 // is longer than the passed length
 func (z *Int) LeftpadBytes(length uint64) []byte {
@@ -345,7 +345,6 @@ func (z *Int) TextVerbose(base int, length int) string {
 }
 
 // -------------- GOB Operators -------------- //
-// GOB operators
 func (z *Int) GobDecode(in []byte) error {
 	z.SetBytes(in)
 	return nil

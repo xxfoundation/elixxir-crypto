@@ -41,7 +41,7 @@ func CreateDHKeyPair(group *cyclic.Group) (*cyclic.Int, *cyclic.Int) {
 	return privateKey, publicKey
 }
 
-// NewDHSessionKey takes the prime, the other party's public key and private key
+// CreateDHSessionKey takes the prime, the other party's public key and private key
 // Function returns a valid session Key within the group
 // v1.0 still does not include the CheckPublicKeyFeature
 func CreateDHSessionKey(publicKey *cyclic.Int, privateKey *cyclic.Int,

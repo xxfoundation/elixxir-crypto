@@ -13,7 +13,7 @@ import (
 // SystemRNG uses the golang CSPRNG
 type SystemRNG struct{}
 
-//Gets the systemRNG as the interface
+// NewSystemRNG gets the systemRNG as the interface
 func NewSystemRNG() Source {
 	return &SystemRNG{}
 }

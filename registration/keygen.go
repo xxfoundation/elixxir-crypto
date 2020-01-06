@@ -12,14 +12,12 @@ import (
 	"hash"
 )
 
-//TODO: Fix this comment, no longer use DSA
-
-// Generate a Base Key from DHKX using DSA Keys
-// g is the group used in DSA
-// peerPubKey is the DSA PublicKey of the peer
-// ownPrivKey is the DSA PrivateKey of the caller
+// GenerateBaseKey generates a Base Key from DHKX using RSA Keys
+// g is the group used in RSA
+// peerPubKey is the RSA PublicKey of the peer
+// ownPrivKey is the RSA PrivateKey of the caller
 // h is the hash to be used on the DHKX sessionKey
-// returns base key to be used in CMIX
+// Returns base key to be used in CMIX
 func GenerateBaseKey(g *cyclic.Group, peerPubKey *cyclic.Int,
 	ownPrivKey *cyclic.Int, h hash.Hash) *cyclic.Int {
 

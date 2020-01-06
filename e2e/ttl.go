@@ -18,7 +18,7 @@ type TTLParams struct {
 	MinNumKeys uint16  // The min. threshold number keys that can be used
 }
 
-// Generates Key TTL and num keys given a key and a range.
+// GenerateKeyTTL generates Key TTL and num keys given a key and a range.
 // Returns fair key TTL (num keys before retrigger happens) and num keys (usage capacity)
 func GenerateKeyTTL(key *large.Int, min uint16, max uint16, params TTLParams) (uint16, uint32) {
 
@@ -41,7 +41,7 @@ func GenerateKeyTTL(key *large.Int, min uint16, max uint16, params TTLParams) (u
 	return fairTTL, numKeys
 }
 
-// Compute fair TTL from key hash within range defined by min and max (inclusively).
+// computeTTL compute fair TTL from key hash within range defined by min and max (inclusively).
 // Return a 16 bit fair TTL number (num keys before retrigger happens) between min and max
 func computeTTL(hashed []byte, min uint16, max uint16) uint16 {
 
@@ -58,7 +58,8 @@ func computeTTL(hashed []byte, min uint16, max uint16) uint16 {
 	return ttl
 }
 
-// Compute number of keys (number of key uses before triggering re-key) given a fairly generated TTL and TTL Params.
+// computeNumKeys compute number of keys (number of key uses before triggering re-key)
+// given a fairly generated TTL and TTL Params.
 // TTL params contains the keys per use conversion factor and minimum use threshold
 // Returns the total capacity of the number of keys that can be used
 func computeNumKeys(ttl uint16, params TTLParams) uint32 {

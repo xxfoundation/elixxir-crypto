@@ -11,7 +11,8 @@ import (
 	"math/rand"
 )
 
-// Shuffles anything passed using a Fisher-Yates shuffle backed by a PRNG seeded by a passed slice
+// ShuffleSwap shuffles anything passed using a Fisher-Yates shuffle
+// backed by a PRNG seeded by a passed slice
 // Swap functions must be of the form `A[i], A[j] = A[j], A[i]`
 // Switching i and j may not work
 func ShuffleSwap(seedSrc []byte, n int, swap func(i, j int)) {

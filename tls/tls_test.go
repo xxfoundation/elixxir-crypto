@@ -6,8 +6,6 @@
 package tls
 
 import (
-	"fmt"
-	"reflect"
 	"testing"
 )
 
@@ -47,36 +45,6 @@ RmTp+waSP/rSylsM1F2zplurmS8JBv2bQwDzVFA8GIjbRS8Qcay98kJz2Q==
 -----END CERTIFICATE-----
 `
 
-const CertReq = `-----BEGIN CERTIFICATE REQUEST-----
-MIIErjCCApYCAQAwaTELMAkGA1UEBhMCVVMxCzAJBgNVBAgMAkNBMRIwEAYDVQQH
-DAlDbGFyZW1vbnQxEDAOBgNVBAoMB0VsaXh4aXIxFDASBgNVBAsMC0RldmVsb3Bt
-ZW50MREwDwYDVQQDDAhjbWl4LnJpcDCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCC
-AgoCggIBAMXOJ4lDDe2USdfy8uPTiIXbQ/e4k5nXwRuktTAsbqzjiFfqs8Z8WczJ
-NTy9vHYlFJhxCTldPT9GDk5dHh8ZalYBnjoMtetW5jTcKH1KHY61LgWp3tFAMQRP
-nnvHStpp+glNLHKDQZz+63UwdajbjlLWVE65yclqNj+P2h3ItIkpMIoVVgkqP69W
-A5SbEXWm8OEYUx5UuYIsQUmxW+ftkSq6Enzz9uv+Z1bcGjUmnAhQ2rR8/hCV+41c
-hGzIIZ6DvQClzvINK+dlaNObx55OzzCXy3n9RBtSmUEQTtTeKu+H1QeMKJh+s0/9
-AnNU5QT8yqzxV03oItntS14WyjXfc0aWBanMkgD/D7MzbOaNoi34BTMNnusZ9PCt
-Jd05ohYQptHwgcMqpVeWvG2dF4wCPb+C9apvKgGYism7LVJFghhtpCVGmcWf1QZN
-WorSX/teHG+CFwEcLLkuUK+EvFQDt0IPqp+cGf/hc/YQdj6vMWB85ZAwodoviCYH
-2zllkr56LWabv14IIDwhVxY3zIyEF0GtNe/R88zhB0aMPsGgwHU5qYVgDzUmk35+
-O2Cn6y8w3rIRsW5tloNFhAelIEexK8JE5p0Kzv3scT2e4+GcKY4cqNIC6py0vkun
-9P9VSKIHavRVgIJ7GoMX8BwfppoGfI/kqWbl5im+9jjbz3sMXzTdAgMBAAGgADAN
-BgkqhkiG9w0BAQsFAAOCAgEAK2zn0T82VhNYVP/JBckDl+jqFBTvhC2CSr0CGH5r
-g2fh7NEc/i0/dQfHEuiYkG0GwAAT2oCDSuZ5aeXCzY7Sw3TO69Xjj63+DqLVu9bg
-ICBhkDb3JiyMvwyBl2AFRuaXmwm4vx/cQtOdLxzAVbBjbyDkOPrivQ4R3MKQzY95
-5njYQQC7CBpMNZir/H5aBLNtZZ0Av5PkJyoTg8OS9MRY9fEPHvJPXEJeO/6/aTwf
-XQKZhKRD7PdV9f18K9CrjuOZvEXCNvigNggBvAIDyx6XIhjDwXXoidFvcOKboNBH
-h648jwZt0pIrqnL95wpe58H/cSXARZFz4zIMSHL5KrHBL1QmhDMMBUWf+Vl8HsDE
-fu8IUVE6RQCjswQdW+Q3HwMJDBjQ/VQpKwCvtjsJCXTggHDQB1Z7BkeaPF8sKFo9
-6f9V4n84YV95VW0E5ux+KxJ/1APWQkT4ZqUFmC+GAqppwYUuaqfQqt5S174jx6ED
-WpHsBklXRm7IjJNzBzkeSY4nZb/J4ROeEakDIZiNpqihrKB8JECJXQrC7ELnLwBH
-PdcfYpASaa8SvVIR/3RB/m9FN3lhLnjCcBL2UB03zo+dtJjsPEScpm/xLOinNpLG
-SINvSR+0C4xWmx2n0zTAusDKm7YuRwf/3i52Q0U2H8AVlJB2DXj9c4FxbCe7g9U5
-A8Q=
------END CERTIFICATE REQUEST-----
-`
-
 const PrivateKey = `-----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEA5Aq+qN2Hfmj4wQIGELCiknM+VA2araI9t7BE20jTZtQ0reQt
 BRsWVh3M0ZlLgZhcZzk76N2LxKXHzavWR2PPk88I0UEBEiw4/8vyvcMZ5b7J4l2A
@@ -109,14 +77,8 @@ jYe9f2NtMJWhPUps3+5Y+iFSn/FV0iy2bxw5BKN6Ovx9ztuCurY8Dg==
 //pass an empty file into the loaders
 func TestEmptyFile(t *testing.T) {
 	empty := ""
-	//Pass an empty string into loading the request
-	_, err := LoadCSR(empty)
-	//It should not have generated a CSR object
-	if err == nil {
-		t.Error("Generated a certificate request from an empty file!")
-	}
 	//Pass the empty string into loading the certificate
-	_, err = LoadCertificate(empty)
+	_, err := LoadCertificate(empty)
 	if err == nil {
 		t.Error("Generated a certificate from an empty file!")
 	}
@@ -135,13 +97,8 @@ func TestLoadIncorrectly(t *testing.T) {
 	if err == nil {
 		t.Error("Failed to detect passing in a non-certificate into LoadCertificate")
 	}
-	//Pass the cert into the CSR loader
-	_, err = LoadCSR(Cert)
-	if err == nil {
-		t.Error("Failed to detect passing a non-CSR into LoadCSR")
-	}
 	//Pass the request into the private key loader
-	_, err = LoadRSAPrivateKey(CertReq)
+	_, err = LoadRSAPrivateKey(Cert)
 	if err == nil {
 		t.Error("Failed to detect passing a non-private key into LoadRSAPrivateKey")
 	}
@@ -153,20 +110,10 @@ func TestTLS_SmokeTest(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
-	csr, err := LoadCSR(CertReq)
-	if err != nil {
-		t.Errorf("Unable to load cert: %+v", err.Error())
-	}
 
 	privKey, err := LoadRSAPrivateKey(PrivateKey)
 	if err != nil {
 		t.Errorf("Unable to load private key: %+v", err.Error())
-	}
-
-	fmt.Println(reflect.TypeOf(privKey))
-
-	if csr == nil {
-		t.Error("Failed to load a correctly formatted CSR")
 	}
 
 	if cert == nil {

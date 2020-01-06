@@ -13,7 +13,7 @@ import (
 	"math/rand"
 )
 
-// This function creates a deterministic set of coins for a particular PRNG
+// mint creates a deterministic set of coins for a particular PRNG
 // seed. The payments demo uses this to create coins for the users to move
 // around. If more than one compound coin is allowed, the function will
 // probably return compounds with steadily decreasing values. The payment bot

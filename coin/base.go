@@ -32,16 +32,15 @@ const SeedRNGEnd = SeedRNGStart + SeedRNGLen
 const DenominationRegStart = HashEnd
 const DenominationRegEnd = DenominationRegStart + DenominationRegisterLen
 
-//Base Frame
+// Base Frame
 const BaseFrameLen = HeaderLen + HashLen + DenominationRegisterLen
 
+// Coin Definitions
 const CoinHashStart = uint64(0)
 const CoinHashEnd = CoinHashStart + HashLen
 const CoinDenominationLoc = CoinHashEnd
 const CoinDenominationlen = uint64(1)
 const CoinLen = HashLen + CoinDenominationlen
-
-const PrefixSourceLoc = HashStart
 
 // Type for invalid frames
 const NilType byte = 0xff
@@ -52,7 +51,7 @@ var NilBaseFrame [BaseFrameLen]byte
 // Returnable errors
 var ErrInvalidType = errors.New("incorrect type passed for coin serialization")
 
-//Registers the gob
+// init registers the gob
 func init() {
 	gob.Register(Sleeve{})
 	gob.Register([]Sleeve{})
@@ -60,12 +59,12 @@ func init() {
 	NilBaseFrame[HeaderLoc] = NilType
 }
 
-// Checks if an array is a seed
+// IsSeed checks if an array is a seed
 func IsSeed(s []byte) bool {
 	return s[HeaderLoc] == SeedType
 }
 
-// Checks if an array is a compound
+// IsCompound checks if an array is a compound
 func IsCompound(c []byte) bool {
 	return c[HeaderLoc] == CompoundType
 }

@@ -17,7 +17,7 @@ type Seed [BaseFrameLen]byte
 // Seed Header
 const SeedType byte = 0x55
 
-// Creates a new randomized seed defining coins of the passed denominations
+// NewSeed creates a new randomized seed defining coins of the passed denominations
 func NewSeed(value uint64) (Seed, error) {
 
 	dr, err := NewDenominationRegistry([]byte{0, 0, 0}, value)
@@ -53,7 +53,7 @@ func NewSeed(value uint64) (Seed, error) {
 	return seed, nil
 }
 
-// Produces a seed deserialized from an array.  Does not verify the prefix.
+// DeserializeSeed produces a seed deserialized from an array.  Does not verify the prefix.
 func DeserializeSeed(protoSeed [BaseFrameLen]byte) (Seed, error) {
 
 	//Check that the header is correct
@@ -64,7 +64,7 @@ func DeserializeSeed(protoSeed [BaseFrameLen]byte) (Seed, error) {
 	return Seed(protoSeed), nil
 }
 
-// Hashes the rng of the seed to generate the hash for a compound
+// hashToCompound hashes the rng of the seed to generate the hash for a compound
 func (seed Seed) hashToCompound() []byte {
 	h := sha256.New()
 
@@ -75,20 +75,20 @@ func (seed Seed) hashToCompound() []byte {
 	return hashed[:HashLen]
 }
 
-// Returns the sum of the value of all coins defined by a seed
+// Value returns the sum of the value of all coins defined by a seed
 func (seed Seed) Value() uint64 {
 	dr, _ := DeserializeDenominationRegistry(seed[DenominationRegStart:DenominationRegEnd])
 	return dr.Value()
 }
 
-// Returns a copy of the seed
+// Copy returns a copy of the seed
 func (seed Seed) Copy() Seed {
 	var cpy Seed
 	copy(cpy[:], seed[:])
 	return cpy
 }
 
-//Computes and returns a compound for a given seed
+// ComputeCompound computes and returns a compound for a given seed
 func (seed Seed) ComputeCompound() Compound {
 	//Hash the seed
 	seedHash := seed.hashToCompound()

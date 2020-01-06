@@ -19,6 +19,7 @@ import (
 const AES256KeyLen = 32
 const AESBlockSize = aes.BlockSize
 
+// Error case messages
 var ErrBadPlaintext = errors.New("Plaintext is nil, empty or is not padded to blocksize")
 var ErrBadCiphertext = errors.New("Ciphertext is nil, empty or is not multiple of blocksize")
 var ErrBadArgs = errors.New("Key and/or plaintext/ciphertext are nil")
@@ -27,7 +28,7 @@ var ErrCantPad = errors.New("Error while padding plaintext")
 var ErrCantUnpad = errors.New("Error while unpadding plaintext")
 var ErrBadPadding = errors.New("Bad padding in plaintext")
 
-// Helper function to apply PKCS #7 padding to plaintext
+// pkcs7PadAES is a helper function to apply PKCS #7 padding to plaintext
 func pkcs7PadAES(ptext []byte) ([]byte, error) {
 	size := len(ptext)
 	if ptext == nil || size == 0 {
@@ -42,7 +43,7 @@ func pkcs7PadAES(ptext []byte) ([]byte, error) {
 	return paddedText, nil
 }
 
-// Helper function to remove PKCS #7 padding from decrypted text
+// pkcs7UnpadAES is a helper function to remove PKCS #7 padding from decrypted text
 func pkcs7UnpadAES(padtext []byte) ([]byte, error) {
 	size := len(padtext)
 	if padtext == nil || size == 0 {
@@ -64,7 +65,7 @@ func pkcs7UnpadAES(padtext []byte) ([]byte, error) {
 	return padtext[:size-nPads], nil
 }
 
-// Internal function with AES Encryption core
+// encryptCore server as an internal function with AES Encryption core
 // Key must be 32 bytes
 // IV must be 16 bytes
 // plaintext must be padded correctly
@@ -87,7 +88,7 @@ func encryptCore(key [AES256KeyLen]byte, iv [AESBlockSize]byte, plaintext []byte
 	return ciphertext, nil
 }
 
-// Internal function with AES Decryption core
+// decryptCore servers as an internal function with AES Decryption core
 // Key must be 32 bytes
 // IV must be 16 bytes
 // Padding is not removed from plaintext, caller should be in charge of that
@@ -108,7 +109,7 @@ func decryptCore(key [AES256KeyLen]byte, iv [AESBlockSize]byte, ciphertext []byt
 	return ciphertext, nil
 }
 
-// Encrypt the plaintext using AES256 with the passed key and IV
+// EncryptAES256WithIV encrypts the plaintext using AES256 with the passed key and IV
 // Plaintext is assumed to be unpadded, as padding is added internally
 // Key can have any size, as internally it is hashed to generate the actual key
 // IV must be 16 bytes, and it is recommended to be the MSBs of the key fingerprint
@@ -131,7 +132,7 @@ func EncryptAES256WithIV(key []byte, iv [AESBlockSize]byte, plaintext []byte) ([
 	return encryptCore(key_arr, iv, plaintext)
 }
 
-// Decrypt a ciphertext using AES256 with the passed key and IV
+// DecryptAES256WithIV decrypts a ciphertext using AES256 with the passed key and IV
 // Ciphertext is assumed to not have the IV, and to be padded
 // Key can have any size, as internally it is hashed to generate the actual key
 // IV must be 16 bytes, and it is recommended to be the MSBs of the key fingerprint
@@ -155,7 +156,7 @@ func DecryptAES256WithIV(key []byte, iv [AESBlockSize]byte, ciphertext []byte) (
 	return pkcs7UnpadAES(plaintext)
 }
 
-// Encrypt the plaintext using AES256 with the passed key
+// EncryptAES256 encrypts the plaintext using AES256 with the passed key
 // Plaintext is assumed to be unpadded, as padding is added internally
 // Key can have any size, as internally it is hashed to generate the actual key
 // Key and plaintext can't be nil nor empty
@@ -184,7 +185,7 @@ func EncryptAES256(key, plaintext []byte) ([]byte, error) {
 	return ciphertext, nil
 }
 
-// Decrypt a ciphertext using AES256 with the passed key
+// DecryptAES256 decrypts a ciphertext using AES256 with the passed key
 // Ciphertext is assumed to start with the IV
 // Key can have any size, as internally it is hashed to generate the actual key
 // Key and ciphertext can't be nil nor empty

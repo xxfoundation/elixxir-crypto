@@ -57,9 +57,9 @@ func NewStreamGenerator(scalingFactor uint, streamCount uint,
 	}
 }
 
-//Create a new stream, having it point to the corresponding stream generator
-//Also increment the amount of streams created in the stream generator
-//Bookkeeping slice for streams made
+// newStream creates a new stream, having it point to the corresponding stream generator
+// Also increment the amount of streams created in the stream generator
+// Bookkeeping slice for streams made
 func (sg *StreamGenerator) newStream() *Stream {
 	if sg.numStreams == sg.maxStreams {
 		jww.FATAL.Panicf("Attempting to create too many streams")
@@ -77,7 +77,8 @@ func (sg *StreamGenerator) newStream() *Stream {
 	return tmpStream
 }
 
-// GetStream gets an existing stream or creates a new Stream object. If the # of open streams exceeds streamCount,
+// GetStream gets an existing stream or creates a new Stream object.
+// If the # of open streams exceeds streamCount,
 // this function blocks (and prints a log warning) until a stream is available
 func (sg *StreamGenerator) GetStream() *Stream {
 	//Initialize a stream
@@ -154,7 +155,8 @@ func (s *Stream) Read(b []byte) (int, error) {
 
 // The Fortuna construction is used to generate randomness
 func Fortuna(src, ext []byte, fortunaHash hash.Hash) cipher.Stream {
-	//Create a key based on the hash of the src and an extension (extension used if entropyCnt had reached 0)
+	//Create a key based on the hash of the src and an extension
+	// extension used if entropyCnt had reached 0
 	fortunaHash.Reset()
 	fortunaHash.Write(src)
 	fortunaHash.Write(ext)

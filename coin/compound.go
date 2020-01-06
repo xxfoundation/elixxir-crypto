@@ -13,10 +13,10 @@ import (
 // A Compound contains the intermediate hash describing a series of coins
 type Compound [BaseFrameLen]byte
 
-//Compound Header
+// Compound Header
 const CompoundType byte = 0xAA
 
-// Produces a compound serialized from an array.
+// DeserializeCompound produces a compound serialized from an array.
 func DeserializeCompound(protoCompound [BaseFrameLen]byte) (Compound, error) {
 	//Check that the header is correct
 	if protoCompound[HeaderLoc] != CompoundType {
@@ -26,25 +26,25 @@ func DeserializeCompound(protoCompound [BaseFrameLen]byte) (Compound, error) {
 	return Compound(protoCompound), nil
 }
 
-// Returns the value of all coins in the compound
+// Value returns the value of all coins in the compound
 func (c Compound) Value() uint64 {
 	dr, _ := DeserializeDenominationRegistry(c[DenominationRegStart:DenominationRegEnd])
 	return dr.Value()
 }
 
-// Returns a copy of the Compound
+// Copy() returns a copy of the Compound
 func (c Compound) Copy() Compound {
 	var cpy Compound
 	copy(cpy[:], c[:])
 	return cpy
 }
 
-//Verify that a compound matches a seed
-func (cimg Compound) Verify(seed Seed) bool {
+// Verify() verifies that a compound matches a seed
+func (c Compound) Verify(seed Seed) bool {
 	computedImage := seed.ComputeCompound()
 
 	for i := uint64(0); i < BaseFrameLen; i++ {
-		if computedImage[i] != cimg[i] {
+		if computedImage[i] != c[i] {
 			return false
 		}
 	}
@@ -52,18 +52,18 @@ func (cimg Compound) Verify(seed Seed) bool {
 	return true
 }
 
-// Returns all coins defined by a compound
-func (ci Compound) ComputeCoins() []Coin {
+// ComputeCoins returns all coins defined by a compound
+func (c Compound) ComputeCoins() []Coin {
 	imgPostfix := byte(0)
 	var imgLst []Coin
 
 	h := sha256.New()
 
-	cibytes := ci[HashStart:HashEnd]
+	cibytes := c[HashStart:HashEnd]
 
 	h.Write(cibytes)
 
-	dr, _ := DeserializeDenominationRegistry(ci[DenominationRegStart:DenominationRegEnd])
+	dr, _ := DeserializeDenominationRegistry(c[DenominationRegStart:DenominationRegEnd])
 
 	coins := dr.List()
 

@@ -10,6 +10,7 @@ import (
 	"encoding/binary"
 )
 
+//Gob definitions
 const GobSeedStart = uint64(0)
 const GobSeedEnd = GobSeedStart + BaseFrameLen
 
@@ -29,7 +30,7 @@ type Sleeve struct {
 	value    uint64
 }
 
-// Builds a new coin inside of a coinsleeve
+// NewSleeve builds a new coin inside of a coinsleeve
 func NewSleeve(value uint64) (Sleeve, error) {
 
 	seed, err := NewSeed(value)
@@ -43,7 +44,7 @@ func NewSleeve(value uint64) (Sleeve, error) {
 	return Sleeve{&seed, &compound, value}, nil
 }
 
-// Constructs a Sleeve from a seed pointer and a compound pointer.
+// ConstructSleeve constructs a Sleeve from a seed pointer and a compound pointer.
 func ConstructSleeve(s *Seed, c *Compound) Sleeve {
 	var value uint64
 
@@ -62,12 +63,12 @@ func ConstructSleeve(s *Seed, c *Compound) Sleeve {
 	return Sleeve{s, c, value}
 }
 
-// Tells the user if they own the coin
+// IsMine tells the user if they own the coin
 func (cs Sleeve) IsMine() bool {
 	return cs.seed != nil
 }
 
-// Returns a pointer to a copy of the seed
+// Seed returns a pointer to a copy of the seed
 // Returns nil if there is no seed
 func (cs Sleeve) Seed() *Seed {
 	if cs.seed == nil {
@@ -79,7 +80,7 @@ func (cs Sleeve) Seed() *Seed {
 	return &seedCopy
 }
 
-// Returns a pointer to a copy of the compound
+// Compound returns a pointer to a copy of the compound
 // Returns nil if there is no compound
 func (cs Sleeve) Compound() *Compound {
 	if cs.compound == nil {
@@ -90,71 +91,74 @@ func (cs Sleeve) Compound() *Compound {
 	return &compoundCopy
 }
 
-//Returns a copy of the value
+// Value returns a copy of the value
 func (cs Sleeve) Value() uint64 {
 	return cs.value
 }
 
-//Returns if the sleeve is nill
+// IsNil returns if the sleeve is nil
 func (cs Sleeve) IsNil() bool {
 	return cs.compound == nil && cs.seed == nil
 }
 
-//Turns the coin sleeve into a GOB
+// GobEncode turns the coin sleeve into a GOB
 func (cs *Sleeve) GobEncode() ([]byte, error) {
 	var output []byte
 
+	//Serialize the seed into bytes
 	if cs.seed == nil {
 		output = append(output, NilBaseFrame[:]...)
 	} else {
 		output = append(output, cs.seed[:]...)
 	}
 
+	//Serialize the compound into bytes
 	if cs.compound == nil {
 		output = append(output, NilBaseFrame[:]...)
 	} else {
 		output = append(output, cs.compound[:]...)
 	}
 
-	valuelist := make([]byte, 8)
-	binary.BigEndian.PutUint64(valuelist, cs.value)
+	valueList := make([]byte, 8)
+	binary.BigEndian.PutUint64(valueList, cs.value)
 
-	output = append(output, valuelist...)
+	output = append(output, valueList...)
 
 	return output, nil
 }
 
-//Turns a gob into a coin sleeve
+// GobDecode turns a gob into a coin sleeve
 func (cs *Sleeve) GobDecode(input []byte) error {
-
+	//If input is not expected length, return error
 	if uint64(len(input)) != (GobLen) {
 		return ErrIncorrectLen
 	}
 
+	//Deserialize the seed from the gob
 	var seedArr [BaseFrameLen]byte
-
 	copy(seedArr[:], input[GobSeedStart:GobSeedEnd])
-
 	seed, err := DeserializeSeed(seedArr)
 
+	//Check for errors
 	if err != nil {
 		cs.seed = nil
 	} else {
 		cs.seed = &seed
 	}
 
+	//Deserialize the compound from the gob
 	var compoundArr [BaseFrameLen]byte
-
 	copy(compoundArr[:], input[GobCompoundStart:GobCompoundEnd])
-
 	compound, err := DeserializeCompound(compoundArr)
 
+	//Check for errors
 	if err != nil {
 		cs.compound = nil
 	} else {
 		cs.compound = &compound
 	}
 
+	//Set the value of the sleeve
 	cs.value = binary.BigEndian.Uint64(input[GobValueStart:GobValueEnd])
 
 	return nil

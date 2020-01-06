@@ -43,8 +43,7 @@ type serialBlock struct {
 	Destroyed    [][]byte
 }
 
-// Generates the origin block for the blockchain
-// TODO: get all the members to the team to add something to the origin block
+// GenerateOriginBlock generates the origin block for the blockchain
 func GenerateOriginBlock() *Block {
 	b := Block{lifecycle: Raw}
 
@@ -58,7 +57,7 @@ func GenerateOriginBlock() *Block {
 	return &b
 }
 
-// Creates the next block from the previous one
+// NextBlock creates the next block from the previous one
 func (b *Block) NextBlock() (*Block, error) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
@@ -76,7 +75,7 @@ func (b *Block) NextBlock() (*Block, error) {
 	return &newBlock, nil
 }
 
-// Returns a copy of the created coins list
+// GetCreated returns a copy of the created coins list
 func (b *Block) GetCreated() []coin.Coin {
 	b.mutex.Lock()
 	cCopy := make([]coin.Coin, len(b.created))
@@ -85,7 +84,7 @@ func (b *Block) GetCreated() []coin.Coin {
 	return cCopy
 }
 
-// Adds an element to the created coins list
+// AddCreated adds an element to the created coins list
 // Only works while the block is "Raw"
 func (b *Block) AddCreated(c []coin.Coin) error {
 	b.mutex.Lock()
@@ -100,7 +99,7 @@ func (b *Block) AddCreated(c []coin.Coin) error {
 	return nil
 }
 
-// Returns a copy of the destroyed coins list
+// GetDestroyed returns a copy of the destroyed coins list
 func (b *Block) GetDestroyed() []coin.Coin {
 	b.mutex.Lock()
 	cCopy := make([]coin.Coin, len(b.destroyed))
@@ -109,7 +108,7 @@ func (b *Block) GetDestroyed() []coin.Coin {
 	return cCopy
 }
 
-// Adds a coin to the destroyed coins list
+// AddDestroyed adds a coin to the destroyed coins list
 // Only works while the block is "Raw"
 func (b *Block) AddDestroyed(c []coin.Coin) error {
 	b.mutex.Lock()
@@ -123,7 +122,7 @@ func (b *Block) AddDestroyed(c []coin.Coin) error {
 	return nil
 }
 
-// Returns a copy of the block's hash
+// GetHash returns a copy of the block's hash
 func (b *Block) GetHash() (BlockHash, error) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
@@ -136,7 +135,7 @@ func (b *Block) GetHash() (BlockHash, error) {
 	return rtnBH, nil
 }
 
-// Returns a copy of the previous Block's hash
+// GetPreviousHash returns a copy of the previous Block's hash
 func (b *Block) GetPreviousHash() BlockHash {
 	var rtnBH BlockHash
 	b.mutex.Lock()
@@ -145,7 +144,7 @@ func (b *Block) GetPreviousHash() BlockHash {
 	return rtnBH
 }
 
-// Returns the lifecycle state of the block
+// GetLifecycle returns the lifecycle state of the block
 func (b *Block) GetLifecycle() BlockLifecycle {
 	b.mutex.Lock()
 	blc := b.lifecycle
@@ -153,12 +152,12 @@ func (b *Block) GetLifecycle() BlockLifecycle {
 	return blc
 }
 
-// Returns the ID of the block
+// GetID returns the ID of the block
 func (b *Block) GetID() uint64 {
 	return b.id
 }
 
-// Returns the treeRoot of the block
+// GetTreeRoot returns the treeRoot of the block
 func (b *Block) GetTreeRoot() (BlockHash, error) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
@@ -171,7 +170,7 @@ func (b *Block) GetTreeRoot() (BlockHash, error) {
 	return rtnTR, nil
 }
 
-// Permutes the coins and hashes the block
+// Bake permutes the coins and hashes the block
 // Only runs if the lifecycle state is "Raw" and sets the state to "Baked"
 func (b *Block) Bake(seedList []coin.Seed, treeRoot BlockHash) error {
 	b.mutex.Lock()
@@ -217,7 +216,7 @@ func (b *Block) Bake(seedList []coin.Seed, treeRoot BlockHash) error {
 	return nil
 }
 
-// Serializes the block and outputs a JSON string
+// Serialize serializes the block and outputs a JSON string
 // Only runs when the block is "Baked"
 func (b *Block) Serialize() ([]byte, error) {
 	if b.lifecycle != Baked {
@@ -242,7 +241,7 @@ func (b *Block) Serialize() ([]byte, error) {
 	return json.Marshal(pb)
 }
 
-// Converts a serialized block to a block data structure
+// Deserialize converts a serialized block to a block data structure
 func Deserialize(sBlock []byte) (*Block, error) {
 	sb := &serialBlock{}
 
@@ -282,7 +281,9 @@ func Deserialize(sBlock []byte) (*Block, error) {
 	return &b, nil
 }
 
-//Private Helper Functions
+// Private Helper Functions
+
+// seedsToBytes serializes seeds into byte slices
 func seedsToBytes(seedList []coin.Seed) []byte {
 	var outBytes []byte
 
@@ -293,6 +294,7 @@ func seedsToBytes(seedList []coin.Seed) []byte {
 	return outBytes
 }
 
+// coindsToBytes serializes coins into byte slices
 func coinsToBytes(coinList []coin.Coin) []byte {
 	var outBytes []byte
 

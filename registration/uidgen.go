@@ -13,7 +13,7 @@ import (
 	"gitlab.com/elixxir/primitives/id"
 )
 
-// Generate the UserID based on his public key and a salt
+// GenUserID generates the UserID based on his public key and a salt
 // userID = CMixHash(pubkey||salt)
 // Function panics if pubkey or salt are nil or contain empty byte slices
 func GenUserID(pubKey *rsa.PublicKey, salt []byte) *id.User {
