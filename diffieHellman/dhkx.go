@@ -4,6 +4,7 @@
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
 
+// Package diffieHellman implements a Diffie-Hellman key exchange
 package diffieHellman
 
 import (

@@ -3,6 +3,9 @@
 //                                                                             /
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
+
+// Packagee 2e contains functions used in the end-to-end encryption algorithm, including
+// the end-to-end key rotation.
 package e2e
 
 import (

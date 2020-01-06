@@ -3,6 +3,9 @@
 //                                                                             /
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
+
+// Package cmix derives new keys within the cyclic group from salts and a base key.
+// It also is used for managing keys and salts for communication between clients
 package cmix
 
 import (

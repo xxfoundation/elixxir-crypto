@@ -4,6 +4,8 @@
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
 
+// Package coin contains the coin and compound data structures,
+// and supporting functionality including minting for tests.
 package coin
 
 import (

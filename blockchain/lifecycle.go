@@ -4,6 +4,7 @@
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
 
+// Package blockchain contains the implementation of our simple blockchain.
 package blockchain
 
 import "errors"
