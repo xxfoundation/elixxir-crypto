@@ -63,7 +63,7 @@ func CheckPublicKey(group *cyclic.Group, publicKey *cyclic.Int) bool {
 	// Definition of the upper bound to p-1
 	upperBound := group.GetPSub1Cyclic()
 
-	//Cmp returns -1 if number is smaller, 0 if the same and 1 if bigger than.
+	// Cmp returns -1 if number is smaller, 0 if the same and 1 if bigger than.
 	x := publicKey.Cmp(lowerBound)
 	y := publicKey.Cmp(upperBound)
 

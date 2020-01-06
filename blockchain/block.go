@@ -78,9 +78,9 @@ func (b *Block) NextBlock() (*Block, error) {
 // GetCreated returns a copy of the created coins list
 func (b *Block) GetCreated() []coin.Coin {
 	b.mutex.Lock()
+	defer b.mutex.Unlock()
 	cCopy := make([]coin.Coin, len(b.created))
 	copy(cCopy, b.created)
-	b.mutex.Unlock()
 	return cCopy
 }
 
@@ -102,9 +102,9 @@ func (b *Block) AddCreated(c []coin.Coin) error {
 // GetDestroyed returns a copy of the destroyed coins list
 func (b *Block) GetDestroyed() []coin.Coin {
 	b.mutex.Lock()
+	defer b.mutex.Unlock()
 	cCopy := make([]coin.Coin, len(b.destroyed))
 	copy(cCopy, b.destroyed)
-	b.mutex.Unlock()
 	return cCopy
 }
 
@@ -139,8 +139,8 @@ func (b *Block) GetHash() (BlockHash, error) {
 func (b *Block) GetPreviousHash() BlockHash {
 	var rtnBH BlockHash
 	b.mutex.Lock()
+	defer b.mutex.Unlock()
 	copy(rtnBH[:], b.previousHash[:])
-	b.mutex.Unlock()
 	return rtnBH
 }
 
@@ -148,7 +148,7 @@ func (b *Block) GetPreviousHash() BlockHash {
 func (b *Block) GetLifecycle() BlockLifecycle {
 	b.mutex.Lock()
 	blc := b.lifecycle
-	b.mutex.Unlock()
+	defer b.mutex.Unlock()
 	return blc
 }
 
@@ -276,7 +276,7 @@ func Deserialize(sBlock []byte) (*Block, error) {
 	b.id = sb.ID
 
 	b.lifecycle = Baked
-	b.mutex.Unlock()
+	defer b.mutex.Unlock()
 
 	return &b, nil
 }
