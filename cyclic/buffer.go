@@ -4,6 +4,10 @@
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
 
+// Package cyclic wraps our large.Int structure.  It is designed to be used in
+// conjunction with the cyclic.Group object. The cyclic.Group object
+// will provide implementations of various modular operations within the group.
+// A cyclic.IntBuffer type will be created to store large batches of groups.
 package cyclic
 
 import (

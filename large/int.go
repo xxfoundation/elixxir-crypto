@@ -11,7 +11,7 @@ import (
 	"math/big"
 )
 
-// Type Int will extend Go's big.Int structure
+// Type large.Int will extend Go's big.Int structure
 type Int big.Int
 
 // -------------- Constructors -------------- //

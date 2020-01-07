@@ -31,10 +31,9 @@ It also is used for managing keys and salts for communication between clients
 `csprng` wraps the golang crypto/rand package so that we can use different 
 random number generators interchangeably when the need arises.
 
-`cyclic` wraps our Large Int struct so that if we need to come up with 
-constant-time implementations of big integer operations to avoid leaking 
-information It also implements modular operations within a 
-cyclic group. 
+`cyclic` wraps our large.Int structure.  It is designed to be used in conjunction with the cyclic.Group 
+object. The cyclic.Group object will provide implementations of various modular operations within the group. 
+A cyclic.IntBuffer type will be created to store large batches of groups.
 
 `diffieHellman` implements a Diffie-Hellman key exchange. Includes creation of DH keypairs,
  DH session keys, and checking the validity of DH public keys.
@@ -48,7 +47,7 @@ which highlights performance. Based off of the Fortuna construction.
 `hash` includes a general-purpose hashing algorithm, blake2b, that should be 
 suitable for most of our needs. It also includes functions to calculate an HMAC.
 
-`large` is the basis of our cyclic.Int. It wraps the golang/Int struct such that if we 
+`large` wraps the golang big.Int struct such that if we 
 need to come up with constant-time implementations of big integer operations to avoid leaking information, 
 it's possible to incrementally replace the golang big int implementation with our own 
 
