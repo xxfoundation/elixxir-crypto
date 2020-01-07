@@ -37,11 +37,14 @@ func GenerateKMACs(salt []byte, baseKeys []*cyclic.Int, h hash.Hash) [][]byte {
 
 // VerifyKMAC verifies that the generated GenerateKMAC is the same as the passed in GenerateKMAC
 func VerifyKMAC(expectedKmac, salt []byte, baseKey *cyclic.Int, h hash.Hash) bool {
+	//Generate KMAC based on the passed salt, key and hashing algorithm
 	generated := GenerateKMAC(salt, baseKey, h)
 
+	//Check that the kmacs are the same length
 	if len(generated) != len(expectedKmac) {
 		return false
 	}
 
+	//Check that the generated kmac matches the kmac passed in
 	return bytes.Compare(expectedKmac, generated) == 0
 }
