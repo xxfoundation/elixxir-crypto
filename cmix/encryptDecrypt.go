@@ -4,8 +4,14 @@
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
 
-// Package cmix derives new keys within the cyclic group from salts and a base key.
-// It also is used for managing keys and salts for communication between clients
+// Package cmix contains utility functions for preparing, encrypting, and decrypting
+// messages sent and received by cMix. In cMix, messages are encrypted by the sending clients,
+// partially decrypted by the nodes, then re-encrypted for the receiving clients by the nodes,
+// and finally decrypted by the receiving clients. The operational encrypt/decrypt for each of
+// these operations is the same. There is also a key selection system driven by a ratcheting protocol.
+
+// Any extensions or modifications to the core messaging functionality should be done here,
+// except for conversion of the encrypted message types to the comms messages used for transmitting data.
 package cmix
 
 import (
