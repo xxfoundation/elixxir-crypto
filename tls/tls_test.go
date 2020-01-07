@@ -45,7 +45,7 @@ RmTp+waSP/rSylsM1F2zplurmS8JBv2bQwDzVFA8GIjbRS8Qcay98kJz2Q==
 -----END CERTIFICATE-----
 `
 
-const PrivateKey = `-----BEGIN RSA PRIVATE KEY-----
+const PrivateKeyPKCS1 = `-----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEA5Aq+qN2Hfmj4wQIGELCiknM+VA2araI9t7BE20jTZtQ0reQt
 BRsWVh3M0ZlLgZhcZzk76N2LxKXHzavWR2PPk88I0UEBEiw4/8vyvcMZ5b7J4l2A
 FmObWzfKWRqa3gCOKr9s2PKxLov9ZI6n6xW6YPG0ETM79RNTU7pBGfNSmEtqJYQ2
@@ -74,7 +74,49 @@ jYe9f2NtMJWhPUps3+5Y+iFSn/FV0iy2bxw5BKN6Ovx9ztuCurY8Dg==
 -----END RSA PRIVATE KEY-----
 `
 
-//pass an empty file into the loaders
+//An ECDSA PKCS8 private key
+const ECDSA_PRIVATEKEY = `-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgVTfeWQAwaQ2fX1RM
+rzhicau6dkfnTZmRXMhSgHn1O/2hRANCAAQaG9n2s+E/HxSbEx4xn9lKQkOL7MzS
+XSlHvlSAyk3CY3kfptxz2n6ybXO0tKgmQ7D3JqZ7fhRxCmqOSSqHftWc
+-----END PRIVATE KEY-----
+`
+
+const RSAPrivateKeyPKCS8 = `-----BEGIN PRIVATE KEY-----
+MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC0evor0jCNWanE
+GfkvyLno7GxsmY7fTN50BY12fIpJkaPbO+e3xheJkj4/aS4zyznDjqjp7z5X0W9u
+S9l/fvfi4F87E1GYAhUQFeI8XkETYz8fyAUb9xhghWiC6h4dJoctX9G+2PYW7zTW
+GL6E0PLQdQX/7yIfq5qQMMoWogg+UhosmbaRaHY9jpYwRnz24VYfzqtKQDqIhAQi
+hHtU3lLVVeo+YUwGTektsMz5ZytfGqFIxuwAEf6DXSFHYKleFcfE3Qh25dDSzlIB
+HZzBYweTQ1/LuwPciQ0uJiiRhsy0vZXd7cYoumrQ4uxNqBK2Lz4i1/E4hFs31hWT
+x5PDcaovAgMBAAECggEBAKq8uFSiaNof29GvvKQu4Wlv2Ha4ooevIbdi1VwlH3HP
+vNKXDnQ1i2jTF95HM7U96ayOFlAQy8qqUB9o1B6gUAOqvYyWjxcdyS1Jdpgjlq6v
+sjTvtZ2qGb6eFqvarZhoLXOIdVV1zQEPVM3B5OKjBUKdoopngMGzRupnrZbRvLiu
+vbMrXwjvWGSA+CX8LsXfM21WgDqtxlZkix2L86ZhW3H80WFp2isgjq3T0FNKV4Ng
+TX6InUccZ78X+tqfumfYqsFYnbarEegJb9PMnLCeKEHt5Xo42G0nLgMCvYGFUGnC
+pUo7OSi56y18UP6vXeeHBP2S0/EUqrUvOliVFxAnvBkCgYEA5EsttJQz1t8MZT8e
+oE6bcfWRpQseMt7UfPhUBkGVabBNbcVwk+3G9QKUjkJfaojt9rI4M/7Ed8ezc3Od
+FWT1oyIdTGH6VwJZ15eI3PCBC9uVlnphywEOqeqZhZFdxGlAaohlYVncS4tDBQZa
+RVmGVLp7cHr0tAhz9Y7S8uv5N3MCgYEAymJLf5+4n9UOwFM9t+AFJEI+yQHYPiys
+bdc17GaaC0p3asUgFwHiYp23L0WORqdTlFuTti1SAchDBpRmioHC4oqL+efRjhu9
+S57ZRyVuSVPi2ySBU0q1mS09qVRXSW5c8hFyKkyIR1GEvYAT2Q1HOCFvwkYWWFtp
+goURPHQ6e1UCgYAxm4h+AepV2bgW1CVyjkJG/Ca+53CTe0pPMaMIjP3LrozUup+g
+9X1TRlFDrHaRbtnOzqFZ4xWMNa/v+YJ74Klj3ojhTTUZ7R/askoCQJy6F+gkf8l6
+VGt8Tsc3eAQZJwnhXGwzQFSXcdaJY/z/rtl61d727TD5YhDYnkWGlfJcswKBgAEU
+sU6HLdc8rg185FF9Esn0yJ0OM3dxiaI0igcvLRduWGDrmJZG3kykhvvrpSzfa+TY
+8FsCtvNnfGQmmr2Wn9HR55l4EXhu0X375TEqFAK0Pfvpn/8v4PRmd3PWDXlI65on
+WbK8IeYvm0Pf0TtRhNXZ59zjvu7N3ixiRYtLG5zZAoGAfRs2nTzAT9xl8jgrG8o+
+Ht2ZSDbcmqcD+7GWCoR/aro23EYMV6DZv1HvC73Gr6ofmDZ/H+i1kuRhHawOQRJt
+P/MjtbfUUWKnjVfxrrpI+IsaaHHiSvjeYi2/ATtCYF4GL6lfR2DpBXTF8cV78DYf
+T3UnhGjI6VSYfYYJIhqwaqk=
+-----END PRIVATE KEY-----
+`
+
+const ed25519Key = `-----BEGIN PRIVATE KEY-----
+MC4CAQAwBQYDK2VwBCIEIOCWuyHuYHEEUa334Qriq9PK9fwwtda1YJrjzqWwY9o6
+-----END PRIVATE KEY-----`
+
+//Error path: pass an empty file into the loaders
 func TestEmptyFile(t *testing.T) {
 	empty := ""
 	//Pass the empty string into loading the certificate
@@ -90,10 +132,10 @@ func TestEmptyFile(t *testing.T) {
 	}
 }
 
-//Pass incorrectly formated contents into the loaders
+//Error path: Pass incorrectly formated contents into the loaders
 func TestLoadIncorrectly(t *testing.T) {
 	//Pass the private key into the certificate loader
-	_, err := LoadCertificate(PrivateKey)
+	_, err := LoadCertificate(PrivateKeyPKCS1)
 	if err == nil {
 		t.Error("Failed to detect passing in a non-certificate into LoadCertificate")
 	}
@@ -104,25 +146,50 @@ func TestLoadIncorrectly(t *testing.T) {
 	}
 }
 
-//pass everything as intended. No errors should occur in this test
+//Happy Path: pass everything as intended. No errors should occur in this test
 func TestTLS_SmokeTest(t *testing.T) {
+
+	// Load the PKCS#1 Key
+	privKey, err := LoadRSAPrivateKey(PrivateKeyPKCS1)
+	if err != nil {
+		t.Errorf("Unable to load private key: %+v", err.Error())
+	}
+	if privKey == nil || err != nil {
+		t.Error("Failed to load a correctly formatted private key")
+
+	}
+
 	cert, err := LoadCertificate(Cert)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	privKey, err := LoadRSAPrivateKey(PrivateKey)
-	if err != nil {
-		t.Errorf("Unable to load private key: %+v", err.Error())
-	}
-
-	if cert == nil {
+	if cert == nil || err != nil {
 		t.Error("Failed to load a correctly formatted Certificate")
 	}
 
+	//Load the PKCS#8 private key
+	privKey, err = LoadRSAPrivateKey(RSAPrivateKeyPKCS8)
+	if err != nil {
+		t.Errorf("%+v", err)
+	}
+
 	if privKey == nil {
-		t.Error("Failed to load a correctly formatted private key")
+		t.Errorf("Failed to pull private key from PEM-encoded string")
+	}
+
+}
+
+//Error path: Passes in an ecdsa pkcs#8 private key.
+func TestTLS_IncorrectPrivateKey(t *testing.T) {
+	_, err := LoadRSAPrivateKey(ECDSA_PRIVATEKEY)
+	if err == nil {
+		t.Errorf("Expected Error case: Should not load key of type ECDSA")
 
 	}
 
+	_, err = LoadRSAPrivateKey(ed25519Key)
+	if err == nil {
+		t.Errorf("Expected Error case: Should not load key of type ed25519")
+	}
 }

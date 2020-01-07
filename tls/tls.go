@@ -55,5 +55,6 @@ func LoadRSAPrivateKey(privContents string) (*rsa.PrivateKey, error) {
 			return nil, errors.New("found unknown or invalid private key type in PKCS#8 wrapping")
 		}
 	}
+
 	return nil, errors.New("failed to parse private key")
 }
