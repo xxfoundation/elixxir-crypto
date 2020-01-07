@@ -14,6 +14,7 @@ import (
 	"testing"
 )
 
+//Happy path
 func TestGetFullPath(t *testing.T) {
 	h, _ := homedir.Dir()
 	p := "~/test/test"
@@ -23,6 +24,7 @@ func TestGetFullPath(t *testing.T) {
 	}
 }
 
+//Happy path
 func TestNewCredentialsFromFile(t *testing.T) {
 	path := testkeys.GetTestCertPath()
 	var tlsCreds credentials.TransportCredentials
@@ -35,6 +37,7 @@ func TestNewCredentialsFromFile(t *testing.T) {
 	}
 }
 
+//Error path
 func TestNewCredentialsFromFileError(t *testing.T) {
 	path := testkeys.GetTestCertPath() + "sfdk"
 	_, err := NewCredentialsFromFile(path, "")
@@ -43,6 +46,7 @@ func TestNewCredentialsFromFileError(t *testing.T) {
 	}
 }
 
+//Happy path
 func TestNewCredentialsFromPEM(t *testing.T) {
 	var tlsCreds credentials.TransportCredentials
 	tlsCreds, err := NewCredentialsFromPEM(Cert, "")
@@ -54,6 +58,7 @@ func TestNewCredentialsFromPEM(t *testing.T) {
 	}
 }
 
+//Error path
 func TestNewCredentialsFromPEMError(t *testing.T) {
 	_, err := NewCredentialsFromPEM("this is a cert yes", "")
 	if err == nil {
@@ -61,6 +66,7 @@ func TestNewCredentialsFromPEMError(t *testing.T) {
 	}
 }
 
+//Happy path
 func TestNewPublicKeyFromFile(t *testing.T) {
 	path := testkeys.GetTestCertPath()
 	var p *rsa.PublicKey
@@ -73,6 +79,7 @@ func TestNewPublicKeyFromFile(t *testing.T) {
 	}
 }
 
+//Error path
 func TestNewPublicKeyFromFileError(t *testing.T) {
 	path := testkeys.GetTestCertPath() + "sdfsd"
 	badCertPath := testkeys.GetTestKeyPath()
@@ -81,14 +88,35 @@ func TestNewPublicKeyFromFileError(t *testing.T) {
 		t.Errorf("Expected to receive error, instead got: %+v", k)
 	}
 
-	k, err2 := NewPublicKeyFromFile(badCertPath)
-	if err2 == nil {
+	k, err = NewPublicKeyFromFile(badCertPath)
+	if err == nil {
 		t.Errorf("Expected to receive error, instead got: %+v", k)
 	}
 }
 
+//Happy path
 func TestNewPublicKeyFromPEM(t *testing.T) {
 	path := testkeys.GetTestCertPath()
+	filePath := getFullPath(path)
+	certBytes, err := utils.ReadFile(filePath)
+	if err != nil {
+		t.Errorf("Failed to read public key file at %s: %+v", filePath, err)
+	}
+
+	var p *rsa.PublicKey
+	p, err = NewPublicKeyFromPEM(certBytes)
+	if err != nil {
+		t.Errorf("Error setting tls credentials: %+v", err)
+	}
+	if p == nil {
+		t.Errorf("Failed to set tls credentials")
+	}
+}
+
+//Error path: Pass in a key rather than a cert
+func TestNewPublicKeyFromPEMError(t *testing.T) {
+
+	path := testkeys.GetTestKeyPath()
 	filePath := getFullPath(path)
 	keyBytes, err := utils.ReadFile(filePath)
 	if err != nil {
@@ -96,11 +124,9 @@ func TestNewPublicKeyFromPEM(t *testing.T) {
 	}
 
 	var p *rsa.PublicKey
+
 	p, err = NewPublicKeyFromPEM(keyBytes)
-	if err != nil {
-		t.Errorf("Error setting tls credentials: %+v", err)
-	}
-	if p == nil {
-		t.Errorf("Failed to set tls credentials")
+	if err == nil {
+		t.Errorf("Expected to receive error, instead got: %+v", p)
 	}
 }
