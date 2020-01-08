@@ -1,9 +1,11 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2018 Privategrity Corporation                                   /
+// Copyright © 2020 Privategrity Corporation                                   /
 //                                                                             /
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
 
+// Package diffieHellman implements a Diffie-Hellman key exchange. Includes creation of DH keypairs,
+// DH session keys, and checking the validity of DH public keys
 package diffieHellman
 
 import (
@@ -41,7 +43,7 @@ func CreateDHKeyPair(group *cyclic.Group) (*cyclic.Int, *cyclic.Int) {
 	return privateKey, publicKey
 }
 
-// NewDHSessionKey takes the prime, the other party's public key and private key
+// CreateDHSessionKey takes the prime, the other party's public key and private key
 // Function returns a valid session Key within the group
 // v1.0 still does not include the CheckPublicKeyFeature
 func CreateDHSessionKey(publicKey *cyclic.Int, privateKey *cyclic.Int,
@@ -63,7 +65,7 @@ func CheckPublicKey(group *cyclic.Group, publicKey *cyclic.Int) bool {
 	// Definition of the upper bound to p-1
 	upperBound := group.GetPSub1Cyclic()
 
-	//Cmp returns -1 if number is smaller, 0 if the same and 1 if bigger than.
+	// Cmp returns -1 if number is smaller, 0 if the same and 1 if bigger than.
 	x := publicKey.Cmp(lowerBound)
 	y := publicKey.Cmp(upperBound)
 

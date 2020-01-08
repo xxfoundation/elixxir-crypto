@@ -1,9 +1,11 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2019 Privategrity Corporation                                   /
+// Copyright © 2020 Privategrity Corporation                                   /
 //                                                                             /
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
 
+// Packagee 2e contains functions used in the end-to-end encryption algorithm, including
+// the end-to-end key rotation.
 package e2e
 
 import (
@@ -13,7 +15,7 @@ import (
 	"gitlab.com/elixxir/primitives/id"
 )
 
-// Generates a key from two user ids by appending hashes
+// combinedHash generates a key from two user ids by appending hashes
 // ordered by the larger user id
 func combinedHash(userA *id.User, userB *id.User, grp *cyclic.Group) *cyclic.Int {
 
@@ -35,7 +37,7 @@ func combinedHash(userA *id.User, userB *id.User, grp *cyclic.Group) *cyclic.Int
 
 }
 
-// Generates keys for all combinations of users for the current user
+// KeyGen generates keys for all combinations of users for the current user
 func KeyGen(currentUser *id.User, users []*id.User, grp *cyclic.Group) []*cyclic.Int {
 	keys := make([]*cyclic.Int, len(users))
 

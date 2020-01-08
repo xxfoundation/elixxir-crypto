@@ -1,9 +1,11 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2018 Privategrity Corporation                                   /
+// Copyright © 2020 Privategrity Corporation                                   /
 //                                                                             /
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
 
+// Packagee 2e contains functions used in the end-to-end encryption algorithm, including
+// the end-to-end key rotation.
 package e2e
 
 import (
@@ -19,6 +21,7 @@ const MinPaddingStringLen = 8
 const NumFixedPaddingLen = 3
 const MinPaddingLen = MinPaddingStringLen + NumFixedPaddingLen
 
+// Error case messages
 var ErrMessageTooLong = errors.New("message too long")
 var ErrEncMessageLength = errors.New("encoded message less than min. padding length")
 var ErrPaddingPrefix = errors.New("padding prefix invalid")
@@ -107,7 +110,7 @@ func Unpad(encMsg []byte) (msg []byte, err error) {
 	return msg, nil
 }
 
-// Fills the given slice with non-zero random octets.
+// nonZeroRandomBytes fills the given slice with non-zero random octets.
 // Taken from x/crypto/openpgp/elgamal/elgamal.go and crypto/rsa/pkcs1v15.go
 // and modified to explicitly panic on external Reader failure instead of returning an error
 func nonZeroRandomBytes(s []byte, rand io.Reader) {

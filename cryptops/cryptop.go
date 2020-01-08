@@ -1,9 +1,11 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2018 Privategrity Corporation                                   /
+// Copyright © 2020 Privategrity Corporation                                   /
 //                                                                             /
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
 
+// Package cryptops wraps various cryptographic operations around a generic interface.
+// Operations include but are not limited to: key generation, ElGamal, multiplication, etc.
 package cryptops
 
 type Cryptop interface {

@@ -1,3 +1,9 @@
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2020 Privategrity Corporation                                   /
+//                                                                             /
+// All rights reserved.                                                        /
+////////////////////////////////////////////////////////////////////////////////
+
 package cmix
 
 import (
@@ -128,19 +134,24 @@ func TestDecrypt(t *testing.T) {
 	hash.Reset()
 	hash.Write(salt)
 
+	//Generate encryption keys
 	keyEcrA := ClientKeyGen(grp, salt, baseKeys)
 	keyEcrB := ClientKeyGen(grp, hash.Sum(nil), baseKeys)
 
+	//Generate the inverse of the keys
 	keyEcrA_Inv := grp.Inverse(keyEcrA, grp.NewInt(1))
 	keyEcrB_Inv := grp.Inverse(keyEcrB, grp.NewInt(1))
 
+	//Simulate decryption by multiplying the encrypted message with the inverse of the encryption keys
 	DecPayloadA := grp.Mul(keyEcrA_Inv, grp.NewIntFromBytes(encMsg.GetPayloadA()), grp.NewInt(1))
 	DecPayloadB := grp.Mul(keyEcrB_Inv, grp.NewIntFromBytes(encMsg.GetPayloadB()), grp.NewInt(1))
 
+	//Set decrypted messages to the above payloads
 	decMsg := format.NewMessage()
 	decMsg.SetPayloadA(DecPayloadA.Bytes())
 	decMsg.SetDecryptedPayloadB(DecPayloadB.LeftpadBytes(format.PayloadLen))
 
+	//Compare decrypted message with the original message
 	if !reflect.DeepEqual(decMsg.GetPayloadA(), msg.GetPayloadA()) {
 		t.Errorf("EncryptDecrypt() did not produce the correct payload\n\treceived: %d\n\texpected: %d", decMsg.GetPayloadA(), msg.GetPayloadA())
 	}

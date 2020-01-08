@@ -1,9 +1,11 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2018 Privategrity Corporation                                   /
+// Copyright © 2020 Privategrity Corporation                                   /
 //                                                                             /
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
 
+// Package csprng wraps the golang crypto/rand package so that we can use different
+// random number generators interchangeably when the need arises.
 package csprng
 
 import (
@@ -13,7 +15,7 @@ import (
 // SystemRNG uses the golang CSPRNG
 type SystemRNG struct{}
 
-//Gets the systemRNG as the interface
+// NewSystemRNG gets the systemRNG as the interface
 func NewSystemRNG() Source {
 	return &SystemRNG{}
 }

@@ -1,15 +1,19 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2018 Privategrity Corporation                                   /
+// Copyright © 2020 Privategrity Corporation                                   /
 //                                                                             /
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
 
+// Package cryptops wraps various cryptographic operations around a generic interface.
+// Operations include but are not limited to: key generation, ElGamal, multiplication, etc.
 package cryptops
 
 import (
 	"gitlab.com/elixxir/crypto/csprng"
 	"gitlab.com/elixxir/crypto/cyclic"
 )
+
+const ShareKeyBytesLen = 256 / 8
 
 // GeneratePrototype is the function type for generating phase and sharing keys.
 // phase keys are those used to encrypt/decrypt/permute during realtime, and
@@ -26,7 +30,7 @@ var Generate GeneratePrototype = func(g *cyclic.Group, phaseKey,
 	var shareKeyBytes, phaseKeyBytes []byte
 	var err error
 
-	shareKeyBytes, err = csprng.GenerateInGroup(p, 32, rng)
+	shareKeyBytes, err = csprng.GenerateInGroup(p, ShareKeyBytesLen, rng)
 	if err != nil {
 		return err
 	}

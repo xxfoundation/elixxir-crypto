@@ -1,9 +1,12 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2018 Privategrity Corporation                                   /
+// Copyright © 2020 Privategrity Corporation                                   /
 //                                                                             /
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
 
+// Package hash includes a general-purpose hashing algorithm, blake2b,
+// that should be suitable for most of our needs.
+// It also includes functions to calculate an HMAC.
 package hash
 
 import (
@@ -25,7 +28,6 @@ func ExpandKey(h hash.Hash, g *cyclic.Group, key []byte,
 		return h
 	}
 	keyGen := hkdf.Expand(foo, key, nil)
-	// FIXME: This causes a copy, use the new Group .GetPBytes() when ready
 	pBytes := g.GetPBytes()
 	expandedKey, err := csprng.GenerateInGroup(pBytes, len(pBytes), keyGen)
 

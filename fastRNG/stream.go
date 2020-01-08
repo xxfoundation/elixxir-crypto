@@ -1,11 +1,11 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2019 Privategrity Corporation                                   /
+// Copyright © 2020 Privategrity Corporation                                   /
 //                                                                             /
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
 
-// Implementation of the Fortuna construction as specified by Ferguson, Schneier and Kohno
-// in 'Cryptography Engineering: Design Principles and Practical Applications'
+// Package fastRNG is an implementation of the Fortuna construction as specified
+// by Ferguson, Schneier and Kohno in 'Cryptography Engineering: Design Principles and Practical Applications'
 // Link: https://www.schneier.com/academic/paperfiles/fortuna.pdf
 package fastRNG
 
@@ -38,7 +38,7 @@ type Stream struct {
 	rng         csprng.Source
 	source      []byte
 	numStream   uint
-	mut         sync.Mutex
+	mutex       sync.Mutex
 	fortunaHash hash.Hash
 }
 
@@ -57,9 +57,9 @@ func NewStreamGenerator(scalingFactor uint, streamCount uint,
 	}
 }
 
-//Create a new stream, having it point to the corresponding stream generator
-//Also increment the amount of streams created in the stream generator
-//Bookkeeping slice for streams made
+// newStream creates a new stream, having it point to the corresponding stream generator
+// Also increment the amount of streams created in the stream generator
+// Bookkeeping slice for streams made
 func (sg *StreamGenerator) newStream() *Stream {
 	if sg.numStreams == sg.maxStreams {
 		jww.FATAL.Panicf("Attempting to create too many streams")
@@ -77,24 +77,25 @@ func (sg *StreamGenerator) newStream() *Stream {
 	return tmpStream
 }
 
-// GetStream gets an existing stream or creates a new Stream object. If the # of open streams exceeds streamCount,
+// GetStream gets an existing stream or creates a new Stream object.
+// If the # of open streams exceeds streamCount,
 // this function blocks (and prints a log warning) until a stream is available
 func (sg *StreamGenerator) GetStream() *Stream {
-	//Initialize a stream
 	var retStream *Stream
-	//If there is a stream waiting to be used, take that from the channel and return in
+
+	// If there is a stream waiting to be used, take that from the channel and return in
 	select {
 	case retStream = <-sg.waitingStreams:
 	default:
 	}
 
-	//If there was no waiting channels, ie we exited the select statement
+	// If there was no waiting channels, ie we exited the select statement
 	if retStream == nil {
-		//If we have not reached the maximum amount of streams (specified by streamCount), then create a new one
+		// If we have not reached the maximum amount of streams (specified by streamCount), then create a new one
 		if sg.numStreams < sg.maxStreams {
 			retStream = sg.newStream()
 		} else {
-			//Else block until a stream is put in the waiting channel
+			// Else block until a stream is put in the waiting channel
 			retStream = <-sg.waitingStreams
 		}
 	}
@@ -111,9 +112,10 @@ func (sg *StreamGenerator) Close(stream *Stream) {
 // BlockSize into AES then run it until blockSize*scalingFactor bytes are read. Every time
 // BlockSize*scalingFactor bytes are read this functions blocks until it rereads csprng.Source.
 func (s *Stream) Read(b []byte) (int, error) {
-	s.mut.Lock()
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
 	if len(b)%aes.BlockSize != 0 {
-		s.mut.Unlock()
 		return 0, errors.New("requested read length is not byte aligned")
 	}
 
@@ -123,19 +125,18 @@ func (s *Stream) Read(b []byte) (int, error) {
 	counter := make([]byte, aes.BlockSize)
 	count := uint64(0)
 	for block := 0; block < len(b)/aes.BlockSize; block++ {
-		//Little endian used as a straightforward way to increment a byte array
+		// Little endian used as a straightforward way to increment a byte array
 		count++
 		binary.LittleEndian.PutUint64(counter, count)
 		var extension []byte
-		//Decrease the entropy count
+		// Decrease the entropy count
 		s.entropyCnt--
 
-		//If entropyCnt is decreased too far, add an extension and set the entropyCnt
+		// If entropyCnt is decreased too far, add an extension and set the entropyCnt
 		if s.entropyCnt == 0 {
 			extension = make([]byte, aes.BlockSize)
 			_, err := s.rng.Read(extension)
 			if err != nil {
-				s.mut.Unlock()
 				return 0, err
 			}
 			s.entropyCnt = s.streamGen.scalingFactor
@@ -148,24 +149,25 @@ func (s *Stream) Read(b []byte) (int, error) {
 
 	copy(s.source, dst)
 
-	s.mut.Unlock()
 	return len(b), nil
 }
 
 // The Fortuna construction is used to generate randomness
 func Fortuna(src, ext []byte, fortunaHash hash.Hash) cipher.Stream {
-	//Create a key based on the hash of the src and an extension (extension used if entropyCnt had reached 0)
+	// Create a key based on the hash of the src and an extension
+	// extension used if entropyCnt had reached 0
 	fortunaHash.Reset()
 	fortunaHash.Write(src)
 	fortunaHash.Write(ext)
 	key := fortunaHash.Sum(nil)
-	//Initialize a block cipher on that key
+
+	// Initialize a block cipher on that key
 	block, err := aes.NewCipher(key[:aes.BlockSize])
 	if err != nil {
 		jww.FATAL.Panicf(err.Error())
 	}
-	//Encrypt the counter and place into destination
-	//TODO Go over iv with mario
+
+	// Encrypt the counter and place into destination
 	return cipher.NewCTR(block, key[aes.BlockSize:2*aes.BlockSize])
 }
 
@@ -173,6 +175,5 @@ func Fortuna(src, ext []byte, fortunaHash hash.Hash) cipher.Stream {
 // csprng.Source interface.
 func (s *Stream) SetSeed(seed []byte) error {
 	jww.INFO.Printf("Stream does not utilise SetSeed().")
-
 	return nil
 }
