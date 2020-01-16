@@ -1,9 +1,12 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2018 Privategrity Corporation                                   /
+// Copyright © 2020 Privategrity Corporation                                   /
 //                                                                             /
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
 
+// Package hash includes a general-purpose hashing algorithm, blake2b,
+// that should be suitable for most of our needs.
+// It also includes functions to calculate an HMAC.
 package hash
 
 import (

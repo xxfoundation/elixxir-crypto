@@ -1,10 +1,18 @@
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2020 Privategrity Corporation                                   /
+//                                                                             /
+// All rights reserved.                                                        /
+////////////////////////////////////////////////////////////////////////////////
+
+// Packagee 2e contains functions used in the end-to-end encryption algorithm, including
+// the end-to-end key rotation.
 package e2e
 
 import (
 	"gitlab.com/elixxir/crypto/cyclic"
 )
 
-// Modular multiplies the key and message under the passed group.
+// EncryptUnsafe modular multiplies the key and message under the passed group.
 // DOES NOT PAD message, so this could be unsafe if message is too small
 func EncryptUnsafe(g *cyclic.Group, key *cyclic.Int, msg []byte) []byte {
 	// Modular multiply the key with the message
@@ -13,7 +21,7 @@ func EncryptUnsafe(g *cyclic.Group, key *cyclic.Int, msg []byte) []byte {
 	return product.LeftpadBytes(uint64(g.GetP().ByteLen()))
 }
 
-// Encrypt a message by first padding it, using rand.Reader
+// Encrypt encrypts a message by first padding it, using rand.Reader
 // Modular multiplies the key and padded message under the passed group.
 func Encrypt(g *cyclic.Group, key *cyclic.Int, msg []byte) ([]byte, error) {
 	// Get the padded message
@@ -26,8 +34,8 @@ func Encrypt(g *cyclic.Group, key *cyclic.Int, msg []byte) ([]byte, error) {
 	return EncryptUnsafe(g, key, encMsg), nil
 }
 
-// Modular inverts the key under the passed group and modular multiplies it with
-// the encrypted message under the passed group.
+// DecryptUnsafe modular inverts the key under the passed group and
+// modular multiplies it with the encrypted message under the passed group.
 func DecryptUnsafe(g *cyclic.Group, key *cyclic.Int, encMsg []byte) []byte {
 	// Modular invert the key under the group
 	keyInv := g.Inverse(key, g.NewInt(1))
@@ -36,8 +44,8 @@ func DecryptUnsafe(g *cyclic.Group, key *cyclic.Int, encMsg []byte) []byte {
 	return product.LeftpadBytes(uint64(g.GetP().ByteLen()))
 }
 
-// Modular inverts the key under the passed group and modular multiplies it with
-// the encrypted message under the passed group.
+// Decrypt modular inverts the key under the passed group and
+// modular multiplies it with the encrypted message under the passed group.
 // Then removes padding from the message
 func Decrypt(g *cyclic.Group, key *cyclic.Int, encMsg []byte) ([]byte, error) {
 	decMsg := DecryptUnsafe(g, key, encMsg)

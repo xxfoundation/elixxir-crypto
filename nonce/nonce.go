@@ -1,9 +1,11 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2019 Privategrity Corporation                                   /
+// Copyright © 2020 Privategrity Corporation                                   /
 //                                                                             /
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
 
+// Package nonce contains our implementation of a nonce, including an expiration time,
+// generation time and TTL.
 package nonce
 
 import (
@@ -30,7 +32,7 @@ type Nonce struct {
 	TTL        time.Duration
 }
 
-// Generate a fresh nonce with the given TTL in seconds
+// NewNonce generate a fresh nonce with the given TTL in seconds
 func NewNonce(ttl uint) (Nonce, error) {
 	if ttl == 0 {
 		jww.FATAL.Panicf("TTL cannot be 0")
@@ -48,10 +50,12 @@ func NewNonce(ttl uint) (Nonce, error) {
 	return newNonce, err
 }
 
+// Bytes returns the nonce's value in a byte slice
 func (n Nonce) Bytes() []byte {
 	return n.Value[:]
 }
 
+// IsValid checks that the nonce has not expired
 func (n Nonce) IsValid() bool {
 	return time.Now().Before(n.ExpiryTime)
 }

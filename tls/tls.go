@@ -1,3 +1,11 @@
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2020 Privategrity Corporation                                   /
+//                                                                             /
+// All rights reserved.                                                        /
+////////////////////////////////////////////////////////////////////////////////
+
+// Package tls contains wrapper functions for creating GRPC credentials.
+// It also implements RSA key parsing
 package tls
 
 import (
@@ -7,23 +15,6 @@ import (
 	"encoding/pem"
 	"errors"
 )
-
-// LoadCSR takes a pem encoded certificate request (ie the contents of a csr file),
-// parses it and outputs an x509 cert request object
-func LoadCSR(csrContents string) (*x509.CertificateRequest, error) {
-	//Decode the pem encoded CSR
-	requestDecoded, _ := pem.Decode([]byte(csrContents))
-	if requestDecoded == nil {
-		err := errors.New("decoding PEM Failed")
-		return nil, err
-	}
-	//parse it to create a certificate request object
-	csr, err := x509.ParseCertificateRequest(requestDecoded.Bytes)
-	if err != nil {
-		return nil, err
-	}
-	return csr, nil
-}
 
 // LoadCertificate takes a pem encoded certificate (ie the contents of a crt file),
 // parses it and outputs an x509 certificate object
@@ -64,5 +55,6 @@ func LoadRSAPrivateKey(privContents string) (*rsa.PrivateKey, error) {
 			return nil, errors.New("found unknown or invalid private key type in PKCS#8 wrapping")
 		}
 	}
+
 	return nil, errors.New("failed to parse private key")
 }

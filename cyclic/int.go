@@ -1,9 +1,13 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2018 Privategrity Corporation                                   /
+// Copyright © 2020 Privategrity Corporation                                   /
 //                                                                             /
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
 
+// Package cyclic wraps our large.Int structure.  It is designed to be used in
+// conjunction with the cyclic.Group object. The cyclic.Group object
+// will provide implementations of various modular operations within the group.
+// A cyclic.IntBuffer type will be created to store large batches of groups.
 package cyclic
 
 import (
@@ -21,13 +25,13 @@ type Int struct {
 	fingerprint uint64
 }
 
-//gets the byte length of cyclic int
+// ByteLen gets the byte length of cyclic int
 func (z *Int) ByteLen() int {
 	byteLen := z.value.ByteLen()
 	return byteLen
 }
 
-// Gets a deepcopy of the largeInt from cyclicInt
+// GetLargeInt gets a deepcopy of the largeInt from cyclicInt
 // This is necessary because otherwise the internal
 // value of the into could be edited and made to be
 // outside the group.
@@ -37,27 +41,27 @@ func (z *Int) GetLargeInt() *large.Int {
 	return r
 }
 
-// Get the group fingerprint from cyclicInt
+// GetGroupFingerprint gets the group fingerprint from cyclicInt
 func (z *Int) GetGroupFingerprint() uint64 {
 	return z.fingerprint
 }
 
-// Get bytes of cyclicInt value
+// Bytes gets the bytes of cyclicInt value
 func (z *Int) Bytes() []byte {
 	return z.value.Bytes()
 }
 
-// Get left padded bytes of cyclicInt value
+// LeftpadBytes gets left padded bytes of cyclicInt value
 func (z *Int) LeftpadBytes(length uint64) []byte {
 	return z.value.LeftpadBytes(length)
 }
 
-// gets the length of the cyclic int
+// BitLen gets the length of the cyclic int
 func (z *Int) BitLen() int {
 	return z.value.BitLen()
 }
 
-// Returns a complete copy of the cyclic int such that no
+// DeepCopy returns a complete copy of the cyclic int such that no
 // underlying data is linked
 func (z *Int) DeepCopy() *Int {
 	return &Int{

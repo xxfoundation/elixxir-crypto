@@ -1,9 +1,13 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2018 Privategrity Corporation                                   /
+// Copyright © 2020 Privategrity Corporation                                   /
 //                                                                             /
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
 
+// Package cyclic wraps our large.Int structure.  It is designed to be used in
+// conjunction with the cyclic.Group object. The cyclic.Group object
+// will provide implementations of various modular operations within the group.
+// A cyclic.IntBuffer type will be created to store large batches of groups.
 package cyclic
 
 import (
@@ -36,7 +40,7 @@ type Group struct {
 
 const GroupFingerprintSize = 8
 
-// NewGroup returns a group with the given prime and generator (for DSA)
+// NewGroup returns a group with the given prime and generator
 func NewGroup(p, g *large.Int) *Group {
 	h := sha256.New()
 	h.Write(p.Bytes())
@@ -61,7 +65,9 @@ func NewGroup(p, g *large.Int) *Group {
 	}
 }
 
-// Constructors for int buffer
+// -------------- Constructors -------------- //
+
+// NewIntBuffer is a constructor for IntBuffer
 // if defaultValue is nil, it is set to the max value possible in the group, p-1
 func (g *Group) NewIntBuffer(length uint32, defaultValue *Int) *IntBuffer {
 	var defaultValueLarge *large.Int
@@ -80,7 +86,7 @@ func (g *Group) NewIntBuffer(length uint32, defaultValue *Int) *IntBuffer {
 	return &newBuffer
 }
 
-// Create a new cyclicInt in the group from an int64 value
+// NewInt creates a new cyclicInt in the group from an int64 value
 func (g *Group) NewInt(x int64) *Int {
 	val := large.NewInt(x)
 	n := &Int{value: val, fingerprint: g.fingerprint}
@@ -90,7 +96,7 @@ func (g *Group) NewInt(x int64) *Int {
 	return n
 }
 
-// Create a new cyclicInt in the group from a large.Int value
+// NewIntFromLargeInt creates a new cyclicInt in the group from a large.Int value
 func (g *Group) NewIntFromLargeInt(x *large.Int) *Int {
 	n := &Int{value: x, fingerprint: g.fingerprint}
 	if !g.Inside(n.value) {
@@ -99,7 +105,7 @@ func (g *Group) NewIntFromLargeInt(x *large.Int) *Int {
 	return n
 }
 
-// Create a new cyclicInt in the group from a byte buffer
+// NewIntFromBytes creates a new cyclicInt in the group from a byte buffer
 func (g *Group) NewIntFromBytes(buf []byte) *Int {
 	val := large.NewIntFromBytes(buf)
 	n := &Int{value: val, fingerprint: g.fingerprint}
@@ -109,7 +115,7 @@ func (g *Group) NewIntFromBytes(buf []byte) *Int {
 	return n
 }
 
-// Create a new cyclicInt in the group from a string using the passed base
+// NewIntFromString creates a new cyclicInt in the group from a string using the passed base
 // returns nil if string cannot be parsed
 func (g *Group) NewIntFromString(str string, base int) *Int {
 	val := large.NewIntFromString(str, base)
@@ -123,13 +129,13 @@ func (g *Group) NewIntFromString(str string, base int) *Int {
 	return n
 }
 
-// Create a new cyclicInt in the group at the max group value
+// NewMaxInt creates a new cyclicInt in the group at the max group value
 func (g *Group) NewMaxInt() *Int {
 	n := &Int{value: g.psub1, fingerprint: g.fingerprint}
 	return n.DeepCopy()
 }
 
-// Create a new cyclicInt in the group from an uint64 value
+// NewIntFromUInt creates a new cyclicInt in the group from an uint64 value
 func (g *Group) NewIntFromUInt(i uint64) *Int {
 	val := large.NewIntFromUInt(i)
 	n := &Int{value: val, fingerprint: g.fingerprint}
@@ -150,20 +156,21 @@ func (g *Group) checkInts(ints ...*Int) {
 	}
 }
 
-// Get group fingerprint
+// GetFingerprint gets the group's fingerprint
 func (g *Group) GetFingerprint() uint64 {
 	return g.fingerprint
 }
 
-// Setters for cyclicInts
+// -------------- Setters -------------- //
 
-// Sets x to y in the group and returns x
+// Set sets x to y in the group and returns x
 func (g *Group) Set(x, y *Int) *Int {
 	g.checkInts(x, y)
 	x.value.Set(y.value)
 	return x
 }
 
+// SetLargeInt sets x's value to y s.t. y is inside the group
 func (g *Group) SetLargeInt(x *Int, y *large.Int) *Int {
 	success := g.Inside(y)
 
@@ -176,14 +183,14 @@ func (g *Group) SetLargeInt(x *Int, y *large.Int) *Int {
 	return x
 }
 
-// Sets x in the group to bytes and returns x
+// SetBytes sets x in the group to bytes and returns x
 func (g *Group) SetBytes(x *Int, buf []byte) *Int {
 	x.value.SetBytes(buf)
 	g.checkInts(x)
 	return x
 }
 
-// Sets x in the group to string and returns x
+// SetString sets x in the group to string and returns x
 // or nil if error parsing the string
 func (g *Group) SetString(x *Int, s string, base int) *Int {
 	g.checkInts(x)
@@ -194,14 +201,14 @@ func (g *Group) SetString(x *Int, s string, base int) *Int {
 	return x
 }
 
-// Sets x in the group to Max4KInt value and returns x
+// SetMaxInt sets x in the group to Max4KInt value and returns x
 func (g *Group) SetMaxInt(x *Int) *Int {
 	g.checkInts(x)
 	x.value.Set(g.psub1)
 	return x
 }
 
-// Sets x in the group to uint64 value and returns x
+// SetUint64 sets x in the group to uint64 value and returns x
 func (g *Group) SetUint64(x *Int, u uint64) *Int {
 	g.checkInts(x)
 	x.value.SetUint64(u)
@@ -223,10 +230,10 @@ func (g *Group) Inside(a *large.Int) bool {
 
 // bytesInside returns true of the all the Ints represented by the byte slices
 // are within the group, false if it isn't
-func (g *Group) BytesInside(bufs ...[]byte) bool {
+func (g *Group) BytesInside(buffers ...[]byte) bool {
 	inside := true
 
-	for _, buf := range bufs {
+	for _, buf := range buffers {
 		inside = inside && g.singleBytesInside(buf)
 	}
 
@@ -288,7 +295,7 @@ func (g *Group) GetGCyclic() *Int {
 	return g.NewIntFromLargeInt(g.gen)
 }
 
-//GetPBytes returns a copy of the group's prime bytes
+// GetPBytes returns a copy of the group's prime bytes
 func (g *Group) GetPBytes() []byte {
 	pCopy := make([]byte, len(g.primeBytes))
 	copy(pCopy, g.primeBytes)
@@ -319,7 +326,7 @@ func (g *Group) GetPSub1FactorCyclic() *Int {
 	return g.NewIntFromLargeInt(g.psub1factor)
 }
 
-// Get cyclicInt leftpadded to the size of the prime
+// FullBytes gets cyclicInt left-padded to the size of the prime
 func (g *Group) FullBytes(x *Int) []byte {
 	return x.value.LeftpadBytes(uint64(g.prime.BitLen() >> 3))
 }
@@ -345,7 +352,7 @@ func (g Group) Exp(x, y, z *Int) *Int {
 	return z
 }
 
-// Exp sets z = g**y mod p, and returns z.
+// ExpG sets z = g**y mod p, and returns z.
 func (g Group) ExpG(y, z *Int) *Int {
 	g.checkInts(y, z)
 	z.value.Exp(g.gen, y.value, g.prime)
@@ -459,7 +466,7 @@ func (g Group) FindSmallCoprimeInverse(z *Int, bits uint32) *Int {
 	return z
 }
 
-// Returns a byte slice representing the encoding of Group for the
+// GobEncode returns a byte slice representing the encoding of Group for the
 // transmission to a GobDecode().
 func (g *Group) GobEncode() ([]byte, error) {
 	// Anonymous structure that flattens nested structures
@@ -486,7 +493,7 @@ func (g *Group) GobEncode() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// Overwrites the receiver, which must be a pointer, with Group
+// GobDecode overwrites the receiver, which must be a pointer, with Group
 // represented by the byte slice, which was written by GobEncode().
 func (g *Group) GobDecode(b []byte) error {
 	// Anonymous, empty, flat structure
@@ -522,7 +529,7 @@ func (g *Group) GobDecode(b []byte) error {
 	return nil
 }
 
-// Extracts prime, gen and primeQ to a json object.
+// MarshalJSON extracts prime, gen and primeQ to a json object.
 // Returns the json object as a byte slice.
 func (g *Group) MarshalJSON() ([]byte, error) {
 

@@ -1,3 +1,11 @@
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2020 Privategrity Corporation                                   /
+//                                                                             /
+// All rights reserved.                                                        /
+////////////////////////////////////////////////////////////////////////////////
+
+// Package tls contains wrapper functions for creating GRPC credentials.
+// It also implements RSA key parsing
 package tls
 
 import (
@@ -62,15 +70,18 @@ func NewCredentialsFromFile(filePath string, nameOverride string) (credentials.T
 
 // NewPublicKeyFromFile reads the contents of a file and uses it to create a PublicKey object
 func NewPublicKeyFromFile(filePath string) (*rsa.PublicKey, error) {
+	//Pull the cert from the file
 	filePath = getFullPath(filePath)
-	keyBytes, err := utils.ReadFile(filePath)
+	certBytes, err := utils.ReadFile(filePath)
 	if err != nil {
 		jww.ERROR.Printf("Failed to read public key file at %s: %+v", filePath, err)
 		return nil, err
 	}
 
-	block, _ := pem.Decode(keyBytes)
+	//Decode the certificate
+	block, _ := pem.Decode(certBytes)
 
+	//Create the cert object
 	var cert *x509.Certificate
 	cert, err = x509.ParseCertificate(block.Bytes)
 	if err != nil {
@@ -78,6 +89,7 @@ func NewPublicKeyFromFile(filePath string) (*rsa.PublicKey, error) {
 		return nil, err
 	}
 
+	//Pull the public key from the cert object
 	rsaPublicKey := cert.PublicKey.(*gorsa.PublicKey)
 	return &rsa.PublicKey{
 		PublicKey: *rsaPublicKey,
@@ -89,6 +101,7 @@ func NewPublicKeyFromFile(filePath string) (*rsa.PublicKey, error) {
 func NewPublicKeyFromPEM(certPEMblock []byte) (*rsa.PublicKey, error) {
 	block, _ := pem.Decode(certPEMblock)
 
+	//Parse the certificate
 	var cert *x509.Certificate
 	cert, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
@@ -96,6 +109,7 @@ func NewPublicKeyFromPEM(certPEMblock []byte) (*rsa.PublicKey, error) {
 		return nil, err
 	}
 
+	//From the cert, get it's public key
 	rsaPublicKey := cert.PublicKey.(*gorsa.PublicKey)
 	return &rsa.PublicKey{
 		PublicKey: *rsaPublicKey,

@@ -1,3 +1,11 @@
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2020 Privategrity Corporation                                   /
+//                                                                             /
+// All rights reserved.                                                        /
+////////////////////////////////////////////////////////////////////////////////
+
+// Packagee 2e contains functions used in the end-to-end encryption algorithm, including
+// the end-to-end key rotation.
 package e2e
 
 import (
@@ -11,7 +19,7 @@ import (
 
 const EMERGENCY_KEY_STR = "EMERGENCY"
 
-// This function derives a single key by calling ExpandKey using the passed hash
+// deriveSingleKey derives a single key by calling ExpandKey using the passed hash
 // The basekey data is the blake2b hash of passed data and id
 func deriveSingleKey(h hash.Hash, g *cyclic.Group, data []byte, id uint) *cyclic.Int {
 	idBytes := make([]byte, binary.MaxVarintLen32)
@@ -22,7 +30,7 @@ func deriveSingleKey(h hash.Hash, g *cyclic.Group, data []byte, id uint) *cyclic
 	return hash2.ExpandKey(h, g, b.Sum(nil), g.NewInt(1))
 }
 
-// This function derives multiple keys using the specified hash function
+// deriveKeysCore derives multiple keys using the specified hash function
 // It creates the data bytes by concatenating dhkey, userID and
 // additionally emergency string for emergency keys
 // Then loops calls to deriveSingleKey to generate nkeys
@@ -40,7 +48,7 @@ func deriveKeysCore(h hash.Hash, g *cyclic.Group, dhkey *cyclic.Int,
 	return keys
 }
 
-// This function derives nkeys keys using blake2b as the hash function for key expansion
+// DeriveKeys derives nkeys keys using blake2b as the hash function for key expansion
 // UserID should be your own for generating encryption keys
 // or the receiving userID for generating decryption keys
 func DeriveKeys(g *cyclic.Group, dhkey *cyclic.Int, userID *id.User, nkeys uint) []*cyclic.Int {
@@ -48,7 +56,7 @@ func DeriveKeys(g *cyclic.Group, dhkey *cyclic.Int, userID *id.User, nkeys uint)
 	return deriveKeysCore(h, g, dhkey, userID, false, nkeys)
 }
 
-// This function derives nkeys keys using sha256 as the hash function for key expansion
+// DeriveEmergencyKeys derives nkeys keys using sha256 as the hash function for key expansion
 // UserID should be your own for generating encryption keys
 // or the receiving userID for generating decryption keys
 // Use this to generate emergency keys

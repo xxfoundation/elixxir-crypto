@@ -1,9 +1,11 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2018 Privategrity Corporation                                   /
+// Copyright © 2020 Privategrity Corporation                                   /
 //                                                                             /
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
 
+// Package shuffle has a Fisher-Yates shuffle algorithm that we use for mixing
+// the slots in our Permute phases.
 package shuffle
 
 import (
@@ -16,7 +18,7 @@ import (
 
 // Legacy 64-bit shuffle implementation
 
-// Used in test to guarantee 100% coverage
+// shuffleCore used in test to guarantee 100% coverage
 func shuffleCore(shufflee *[]uint64, rng csprng.Source) {
 	size := uint64(len(*shufflee))
 	bufLen := uint64((bits.Len(uint(size-1)) + 7) >> 3)
@@ -53,7 +55,7 @@ func Shuffle(shufflee *[]uint64) {
 
 // New, shiny 32-bit shuffle implementation
 
-// Used in test to guarantee 100% coverage
+// shuffleCore32 used in test to guarantee 100% coverage
 func shuffleCore32(shufflee *[]uint32, rng csprng.Source) {
 	if uint64(len(*shufflee)) > math.MaxUint32 {
 		jww.ERROR.Panic("Too many items in the shuffled batch")
@@ -87,7 +89,7 @@ func shuffleCore32(shufflee *[]uint32, rng csprng.Source) {
 	}
 }
 
-// Shuffles a uint32 array using a Fisher-Yates shuffle
+// Shuffle32 shuffles a uint32 array using a Fisher-Yates shuffle
 func Shuffle32(shufflee *[]uint32) {
 	// Skip empty lists or lists of only 1 element, they cannot be shuffled
 	if len(*shufflee) <= 1 {
