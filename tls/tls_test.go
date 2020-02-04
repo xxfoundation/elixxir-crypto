@@ -6,7 +6,6 @@
 package tls
 
 import (
-	"fmt"
 	"testing"
 )
 
