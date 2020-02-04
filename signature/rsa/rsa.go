@@ -169,3 +169,9 @@ func Verify(pub *PublicKey, hash crypto.Hash, hashed []byte, sig []byte,
 	return gorsa.VerifyPSS(&pub.PublicKey, hash, hashed, sig,
 		&opts.PSSOptions)
 }
+
+// IsValidSignature approximates whether the signature looks valid
+// by comparing the length of the signature to the length of the
+func IsValidSignature(pubKey *PublicKey, signature []byte) bool {
+	return len(signature) == pubKey.Size()
+}

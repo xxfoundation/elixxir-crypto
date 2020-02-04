@@ -8,6 +8,9 @@ package rsa
 
 import (
 	"bytes"
+	"crypto"
+	"crypto/rand"
+	"crypto/sha256"
 	"testing"
 )
 
@@ -144,5 +147,73 @@ func TestRSASmoke(t *testing.T) {
 
 	if verification != nil {
 		t.Errorf("Could not verify signature: %v", verification)
+	}
+}
+
+// TestIsValidSignature creates a signature off of a signer's key and
+// checks its validity using IsValidSignature.
+// It also creates an arbitrary, invalid byte slice and checks its validity
+// against the signer's keys
+// It finally creates an arbitrary byte slice of a valid size and checks its validity
+func TestIsValidSignature(t *testing.T) {
+	// Generate signer's private key and public key
+	serverPrivKey, err := GenerateKey(rand.Reader, 1024)
+	if err != nil {
+		t.Errorf("Failed to generate private key: %+v", err)
+	}
+	serverPubKey := serverPrivKey.GetPublic()
+
+	// Generate client's private and public key
+	clientPrivKey, err := GenerateKey(rand.Reader, 1024)
+	if err != nil {
+		t.Errorf("Failed to generate private key: %+v", err)
+	}
+	clientPubKey := clientPrivKey.GetPublic()
+
+	// Stringer client's public key so it can be signed by the signer
+	clientPubKeyStr := string(CreatePublicKeyPem(clientPubKey))
+
+	// Sign the clients  key with the server's key
+	h := sha256.New()
+	h.Write([]byte(clientPubKeyStr))
+	data := h.Sum(nil)
+	validSignature, err := Sign(rand.Reader, serverPrivKey, crypto.SHA256, data, nil)
+	if err != nil {
+		t.Errorf("Failed to sign public key: %+v", err)
+	}
+
+	// Check if the signature is valid
+	if !IsValidSignature(serverPubKey, validSignature) {
+		t.Errorf("Failed smoke test! Signature is not at least as long as the signer's public key."+
+			"\n\tSignature: %+v"+
+			"\n\tSigner's public key: %+v", len(validSignature), serverPubKey.Size())
+	}
+
+	// Create arbitrary byte slice of invalid size
+	incorrectSignature := make([]byte, 512)
+	_, err = rand.Read(incorrectSignature)
+	if err != nil {
+		t.Errorf("Failed to create random number")
+	}
+
+	// Test arbitrary slice with server's public key
+	if IsValidSignature(serverPubKey, incorrectSignature) {
+		t.Errorf("Invalid signature returned valid! "+
+			"\n\t Signature: %+v "+
+			"\n\t Signer's public key: %+v", len(incorrectSignature), serverPubKey.Size())
+	}
+
+	// Create arbitrary byte slice of valid size
+	matchingSig := make([]byte, serverPubKey.Size())
+	_, err = rand.Read(incorrectSignature)
+	if err != nil {
+		t.Errorf("Failed to create random number")
+	}
+
+	// Check it against the server's public key
+	if !IsValidSignature(serverPubKey, matchingSig) {
+		t.Errorf("Expected valid signature!"+
+			"\n\t Signature: %+v"+
+			"\n\t Signer's public key: %+v", len(matchingSig), serverPubKey.Size())
 	}
 }
