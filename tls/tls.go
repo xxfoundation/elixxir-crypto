@@ -58,3 +58,14 @@ func LoadRSAPrivateKey(privContents string) (*rsa.PrivateKey, error) {
 
 	return nil, errors.New("failed to parse private key")
 }
+
+// ExtractPublicKey pulls the certificate's public key from the certificate object
+// If the public key is not an rsa key, it returns an error
+func ExtractPublicKey(cert *x509.Certificate) (*rsa.PublicKey, error) {
+	switch rsaKey := cert.PublicKey.(type) {
+	case *rsa.PublicKey:
+		return rsaKey, nil
+	default:
+		return nil, errors.New("found unknown or invalid public key type in certificate")
+	}
+}
