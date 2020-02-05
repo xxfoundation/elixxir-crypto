@@ -171,7 +171,7 @@ func Verify(pub *PublicKey, hash crypto.Hash, hashed []byte, sig []byte,
 }
 
 // IsValidSignature approximates whether the signature looks valid
-// by comparing the length of the signature to the length of the
+// by comparing the length of the signature to the length of the public key
 func IsValidSignature(pubKey *PublicKey, signature []byte) bool {
 	if pubKey == nil {
 		return false
