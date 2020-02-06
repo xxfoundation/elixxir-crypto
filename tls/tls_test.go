@@ -9,6 +9,42 @@ import (
 	"testing"
 )
 
+const DsaCert = `-----BEGIN CERTIFICATE-----
+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
+-----END CERTIFICATE-----
+`
+
 const Cert = `-----BEGIN CERTIFICATE-----
 MIIF9zCCA9+gAwIBAgIUYB+0GVtMD3SyDP5tVTgCbpoZjJEwDQYJKoZIhvcNAQEL
 BQAwgYoxCzAJBgNVBAYTAlVTMQswCQYDVQQIDAJDQTESMBAGA1UEBwwJQ2xhcmVt
@@ -192,4 +228,28 @@ func TestTLS_IncorrectPrivateKey(t *testing.T) {
 	if err == nil {
 		t.Errorf("Expected Error case: Should not load key of type ed25519")
 	}
+}
+
+func TestExtractPublicKeyFromCert(t *testing.T) {
+	x509Cert, err := LoadCertificate(Cert)
+	if err != nil {
+		t.Errorf("Failed to load certificate: %+v", err)
+	}
+
+	_, err = ExtractPublicKey(x509Cert)
+	if err != nil {
+		t.Errorf("Failed to extract public key from certificate: %+v", err)
+	}
+
+	dsaCert, err := LoadCertificate(DsaCert)
+	if err != nil {
+		t.Errorf("Failed to load certificate: %+v", err)
+	}
+	_, err = ExtractPublicKey(dsaCert)
+	if err != nil {
+		return
+	}
+
+	t.Errorf("Expected error case, should not return a DSA key!")
+
 }
