@@ -10,10 +10,11 @@ package tls
 
 import (
 	"crypto/ecdsa"
-	"crypto/rsa"
+	gorsa "crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
+	"gitlab.com/elixxir/crypto/signature/rsa"
 )
 
 // LoadCertificate takes a pem encoded certificate (ie the contents of a crt file),
@@ -35,7 +36,7 @@ func LoadCertificate(certContents string) (*x509.Certificate, error) {
 
 // LoadRSAPrivateKey takes a pem encoded private key (ie the contents of a private key file),
 // parses it and outputs an x509 private key object
-func LoadRSAPrivateKey(privContents string) (*rsa.PrivateKey, error) {
+func LoadRSAPrivateKey(privContents string) (*gorsa.PrivateKey, error) {
 	//Decode the pem encoded cert
 	keyDecoded, _ := pem.Decode([]byte(privContents))
 	if keyDecoded == nil {
@@ -47,7 +48,7 @@ func LoadRSAPrivateKey(privContents string) (*rsa.PrivateKey, error) {
 	}
 	if key, err := x509.ParsePKCS8PrivateKey(keyDecoded.Bytes); err == nil {
 		switch key := key.(type) {
-		case *rsa.PrivateKey:
+		case *gorsa.PrivateKey:
 			return key, nil
 		case *ecdsa.PrivateKey:
 			return nil, errors.New("found unknown or invalid private key type in PKCS#8 wrapping")
@@ -57,4 +58,15 @@ func LoadRSAPrivateKey(privContents string) (*rsa.PrivateKey, error) {
 	}
 
 	return nil, errors.New("failed to parse private key")
+}
+
+// ExtractPublicKey pulls the certificate's public key from the certificate object
+// If the public key is not an rsa key, it returns an error
+func ExtractPublicKey(cert *x509.Certificate) (*rsa.PublicKey, error) {
+	switch rsaKey := cert.PublicKey.(type) {
+	case *gorsa.PublicKey:
+		return &rsa.PublicKey{PublicKey: *rsaKey}, nil
+	default:
+		return nil, errors.New("found unknown or invalid public key type in certificate")
+	}
 }
