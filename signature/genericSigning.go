@@ -4,6 +4,9 @@
 // All rights reserved.                                                        /
 ////////////////////////////////////////////////////////////////////////////////
 
+// Contains a generic signing interface and implementations to sign the data
+// as well as verify the signature
+
 package signature
 
 import (
