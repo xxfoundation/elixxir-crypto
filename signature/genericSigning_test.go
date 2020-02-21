@@ -40,7 +40,7 @@ func TestSign(t *testing.T) {
 	Sign(testSig)
 
 	// Serialize the data as testSig would
-	testSigData := testSig.Marshal()
+	testSigData := testSig.String()
 	// Hash the data
 	h := sha256.New()
 	h.Write([]byte(testSigData))
@@ -108,9 +108,10 @@ type TestSignable struct {
 	topology  []string
 	size      uint64
 	signature []byte
+	nonce     []byte
 }
 
-func (ts *TestSignable) Marshal() []byte {
+func (ts *TestSignable) String() string {
 	b := make([]byte, 0)
 
 	// Append the id
@@ -129,7 +130,7 @@ func (ts *TestSignable) Marshal() []byte {
 	// Append the size
 	binary.PutUvarint(b, ts.size)
 
-	return b
+	return string(b)
 }
 
 func (ts *TestSignable) GetSignature() []byte {
@@ -145,5 +146,17 @@ func (ts *TestSignable) SetSignature(newSignature []byte) error {
 		return errors.New("Cannot set signature to nil value")
 	}
 	ts.signature = newSignature
+	return nil
+}
+
+func (ts *TestSignable) GetNonce() []byte {
+	return ts.nonce
+}
+
+func (ts *TestSignable) SetNonce(newNonce []byte) error {
+	if newNonce == nil {
+		return errors.New("Cannot set signature to nil value")
+	}
+	ts.nonce = newNonce
 	return nil
 }

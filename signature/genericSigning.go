@@ -16,9 +16,11 @@ import (
 
 // Interface for signing generically
 type GenericSignable interface {
-	Marshal() []byte // Match usage in signing
+	String() string // Designed to be identical to String() in grpc
 	GetSignature() []byte
 	SetSignature(newSignature []byte) error
+	GetNonce() []byte
+	SetNonce(newNonce []byte) error
 	ClearSignature()
 }
 
@@ -29,7 +31,7 @@ func Sign(signable GenericSignable) {
 	signable.ClearSignature()
 
 	// Get the data that is to be signed
-	data := signable.Marshal()
+	data := signable.String()
 
 	// Hash the data
 	h := sha256.New()
@@ -51,7 +53,7 @@ func Verify(verifiable GenericSignable) bool {
 	verifiable.ClearSignature()
 
 	// Get the data to replicate the signature
-	data := verifiable.Marshal()
+	data := verifiable.String()
 
 	// Hash that data
 	h := sha256.New()
