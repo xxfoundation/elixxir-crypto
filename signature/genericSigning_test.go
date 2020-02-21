@@ -54,15 +54,17 @@ func TestSign(t *testing.T) {
 
 }
 
-func TestSign_ErrorPath(t *testing.T) {
-
+// Error path
+func TestSign_Error(t *testing.T) {
+	// Sign object and fetch signature
 	Sign(testSig)
-
 	ourSign := testSig.GetSignature()
 
+	// Input a random set of bytes
 	randByte := make([]byte, len(ourSign))
 	rand.Read(randByte)
 
+	// Compare signature to random set of bytes (expected to not match)
 	if bytes.Compare(ourSign, randByte) != 0 {
 		return
 	}
@@ -70,22 +72,34 @@ func TestSign_ErrorPath(t *testing.T) {
 	t.Errorf("Expected error path: Should not have a matching random byte slice and signature")
 }
 
-func TestVerify(t *testing.T) {
+// Happy path
+func TestSignVerify(t *testing.T) {
+	// Sign object and verify
 	Sign(testSig)
-
 	if !Verify(testSig) {
 		t.Errorf("Expected happy path: Verification should not fail here!")
 	}
 
+}
+
+// Error path
+func TestSignVerify_Error(t *testing.T) {
+
+	// Sign object
 	Sign(testSig)
 
+	// Modify object post-signing
 	testSig.topology = []string{"fail", "fa", "il", "failfail"}
 
-	if Verify(testSig) {
-		t.Errorf("Expected error path: Verify should not return true")
+	// Attempt to verify modified object
+	if !Verify(testSig) {
+		return
 	}
+	t.Errorf("Expected error path: Verify should not return true")
 
 }
+
+// --------- Create mock Signable object ------------------
 
 // Test struct with arbitrary fields to be signed and verified
 type TestSignable struct {
