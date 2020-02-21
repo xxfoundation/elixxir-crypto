@@ -18,7 +18,7 @@ import (
 type GenericSignable interface {
 	Marshal() []byte // Match usage in signing
 	GetSignature() []byte
-	SetSignature([]byte)
+	SetSignature(newSignature []byte) error
 	ClearSignature()
 }
 
