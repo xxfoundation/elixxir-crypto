@@ -57,7 +57,10 @@ func Sign(signable GenericSignable, privKey *rsa.PrivateKey) error {
 	}
 
 	// Set nonce
-	signable.SetNonce(ourNonce)
+	err = signable.SetNonce(ourNonce)
+	if err != nil {
+		return errors.Errorf("Unable to set nonce: %+v", err)
+	}
 
 	// And set the signature
 	err = signable.SetSignature(signature)
