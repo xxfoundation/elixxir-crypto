@@ -35,16 +35,29 @@ func Sign(signable GenericSignable, privKey *rsa.PrivateKey) error {
 	// Get the data that is to be signed
 	data := signable.String()
 
-	// Hash the data
+	// Prepare to hash the data
 	sha := crypto.SHA256
 	h := sha.New()
 	h.Write([]byte(data))
 
+	// Create rand for signing and nonce generation
+	rand := csprng.NewSystemRNG()
+
 	// Sign the message
-	signature, err := rsa.Sign(csprng.NewSystemRNG(), privKey, sha, h.Sum(nil), nil)
+	signature, err := rsa.Sign(rand, privKey, sha, h.Sum(nil), nil)
 	if err != nil {
 		return errors.Errorf("Unable to sign message: %+v", err)
 	}
+
+	// Generate nonce
+	ourNonce := make([]byte, 32)
+	_, err = rand.Read(ourNonce)
+	if err != nil {
+		return errors.Errorf("Failed to generate nonce: %+v", err)
+	}
+
+	// Set nonce
+	signable.SetNonce(ourNonce)
 
 	// And set the signature
 	err = signable.SetSignature(signature)
