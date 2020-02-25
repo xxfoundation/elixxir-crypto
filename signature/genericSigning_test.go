@@ -7,11 +7,10 @@
 package signature
 
 import (
-	"bytes"
-	"crypto/sha256"
+	"crypto/rand"
 	"encoding/binary"
 	"errors"
-	"math/rand"
+	"gitlab.com/elixxir/crypto/signature/rsa"
 	"testing"
 )
 
@@ -34,65 +33,96 @@ func TestMain(m *testing.M) {
 	m.Run()
 }
 
-// Happy path
+// Happy path / smoke test
 func TestSign(t *testing.T) {
+	// Generate keys
+	privKey, err := rsa.GenerateKey(rand.Reader, 1024)
+	if err != nil {
+		t.Errorf("Failed to generate private key: %+v", err)
+	}
+	pubKey := privKey.GetPublic()
 
-	Sign(testSig)
+	// Sign message
+	err = Sign(testSig, privKey)
+	if err != nil {
+		t.Errorf("Failed to sign message: %+v", err)
+	}
 
-	// Serialize the data as testSig would
-	testSigData := testSig.String()
-	// Hash the data
-	h := sha256.New()
-	h.Write([]byte(testSigData))
-	hashedData := h.Sum(nil)
-
-	// Compare to the value of the signature
-	if bytes.Compare(hashedData, testSig.signature) != 0 {
-		t.Errorf("Test signature did not match: Expected: %+v \n\t"+
-			"Receieved: %+v", testSig.signature, hashedData)
+	// Check if the signature is valid
+	if !rsa.IsValidSignature(pubKey, testSig.GetSignature()) {
+		t.Errorf("Failed smoke test! Signature is not at least as long as the signer's public key."+
+			"\n\tSignature: %+v"+
+			"\n\tSigner's public key: %+v", len(testSig.GetSignature()), pubKey.Size())
 	}
 
 }
 
 // Error path
 func TestSign_Error(t *testing.T) {
+	// Generate keys
+	privKey, err := rsa.GenerateKey(rand.Reader, 1024)
+	if err != nil {
+		t.Errorf("Failed to generate private key: %+v", err)
+	}
+	pubKey := privKey.GetPublic()
+
 	// Sign object and fetch signature
-	Sign(testSig)
+	Sign(testSig, privKey)
 	ourSign := testSig.GetSignature()
 
-	// Input a random set of bytes
-	randByte := make([]byte, len(ourSign))
+	// Input a random set of bytes less than the signature
+	randByte := make([]byte, len(ourSign)/2)
 	rand.Read(randByte)
 
 	// Compare signature to random set of bytes (expected to not match)
-	if bytes.Compare(ourSign, randByte) != 0 {
-		return
+	// Test arbitrary slice with server's public key
+	if rsa.IsValidSignature(pubKey, randByte) {
+		t.Errorf("Invalid signature returned valid! "+
+			"\n\t Signature: %+v "+
+			"\n\t Signer's public key: %+v", len(randByte), pubKey.Size())
 	}
-
-	t.Errorf("Expected error path: Should not have a matching random byte slice and signature")
 }
 
 // Happy path
 func TestSignVerify(t *testing.T) {
-	// Sign object and verify
-	Sign(testSig)
-	if !Verify(testSig) {
-		t.Errorf("Expected happy path: Verification should not fail here!")
+	// Generate keys
+	privKey, err := rsa.GenerateKey(rand.Reader, 1024)
+	if err != nil {
+		t.Errorf("Failed to generate private key: %+v", err)
+	}
+	pubKey := privKey.GetPublic()
+
+	// Sign object
+	err = Sign(testSig, privKey)
+	if err != nil {
+		t.Errorf("Failed to sign: +%v", err)
+	}
+	// Verify the signature
+	err = Verify(testSig, pubKey)
+	if err != nil {
+		t.Errorf("Expected happy path! Verification resulted in: %+v", err)
 	}
 
 }
 
 // Error path
 func TestSignVerify_Error(t *testing.T) {
+	// Generate keys
+	privKey, err := rsa.GenerateKey(rand.Reader, 1024)
+	if err != nil {
+		t.Errorf("Failed to generate private key: %+v", err)
+	}
+	pubKey := privKey.GetPublic()
 
 	// Sign object
-	Sign(testSig)
+	Sign(testSig, privKey)
 
 	// Modify object post-signing
 	testSig.topology = []string{"fail", "fa", "il", "failfail"}
 
 	// Attempt to verify modified object
-	if !Verify(testSig) {
+	err = Verify(testSig, pubKey)
+	if err != nil {
 		return
 	}
 	t.Errorf("Expected error path: Verify should not return true")
