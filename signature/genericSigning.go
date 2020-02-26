@@ -19,7 +19,7 @@ import (
 // Interface for signing generically
 type GenericSignable interface {
 	String() string // Designed to be identical to String() in grpc
-	GetSignature() []byte
+	GetSig() []byte
 	SetSignature(newSignature []byte) error
 	GetNonce() []byte
 	SetNonce(newNonce []byte) error
@@ -77,7 +77,7 @@ func Sign(signable GenericSignable, privKey *rsa.PrivateKey) error {
 // else it returns false
 func Verify(verifiable GenericSignable, pubKey *rsa.PublicKey) error {
 	// Take the signature from the object
-	sig := verifiable.GetSignature()
+	sig := verifiable.GetSig()
 
 	// Clear the signature
 	verifiable.ClearSignature()

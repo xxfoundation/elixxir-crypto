@@ -49,10 +49,10 @@ func TestSign(t *testing.T) {
 	}
 
 	// Check if the signature is valid
-	if !rsa.IsValidSignature(pubKey, testSig.GetSignature()) {
+	if !rsa.IsValidSignature(pubKey, testSig.GetSig()) {
 		t.Errorf("Failed smoke test! Signature is not at least as long as the signer's public key."+
 			"\n\tSignature: %+v"+
-			"\n\tSigner's public key: %+v", len(testSig.GetSignature()), pubKey.Size())
+			"\n\tSigner's public key: %+v", len(testSig.GetSig()), pubKey.Size())
 	}
 
 }
@@ -68,7 +68,7 @@ func TestSign_Error(t *testing.T) {
 
 	// Sign object and fetch signature
 	Sign(testSig, privKey)
-	ourSign := testSig.GetSignature()
+	ourSign := testSig.GetSig()
 
 	// Input a random set of bytes less than the signature
 	randByte := make([]byte, len(ourSign)/2)
@@ -163,7 +163,7 @@ func (ts *TestSignable) String() string {
 	return string(b)
 }
 
-func (ts *TestSignable) GetSignature() []byte {
+func (ts *TestSignable) GetSig() []byte {
 	return ts.signature
 }
 
