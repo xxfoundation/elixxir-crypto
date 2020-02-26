@@ -20,17 +20,17 @@ import (
 type GenericSignable interface {
 	String() string // Designed to be identical to String() in grpc
 	GetSig() []byte
-	SetSignature(newSignature []byte) error
+	SetSig(newSignature []byte) error
 	GetNonce() []byte
 	SetNonce(newNonce []byte) error
-	ClearSignature()
+	ClearSig()
 }
 
 // Sign takes a genericSignable object, marshals the data intended to be signed.
 // It hashes that data and sets it as the signature of that object
 func Sign(signable GenericSignable, privKey *rsa.PrivateKey) error {
 	// Clear any value in the signature field
-	signable.ClearSignature()
+	signable.ClearSig()
 
 	// Get the data that is to be signed
 	data := signable.String()
@@ -63,7 +63,7 @@ func Sign(signable GenericSignable, privKey *rsa.PrivateKey) error {
 	}
 
 	// And set the signature
-	err = signable.SetSignature(signature)
+	err = signable.SetSig(signature)
 	if err != nil {
 		return errors.Errorf("Unable to set signature: %+v", err)
 	}
@@ -80,7 +80,7 @@ func Verify(verifiable GenericSignable, pubKey *rsa.PublicKey) error {
 	sig := verifiable.GetSig()
 
 	// Clear the signature
-	verifiable.ClearSignature()
+	verifiable.ClearSig()
 
 	// Get the data to replicate the signature
 	data := verifiable.String()
@@ -91,8 +91,14 @@ func Verify(verifiable GenericSignable, pubKey *rsa.PublicKey) error {
 	h.Write([]byte(data))
 	ourHash := h.Sum(nil)
 
+	// Reset signature so verify is not destructive
+	err := verifiable.SetSig(sig)
+	if err != nil {
+		return errors.Errorf("Unable to reset signature: %+v", err)
+	}
+
 	// Verify the signature using our implementation
-	err := rsa.Verify(pubKey, sha, ourHash, sig, nil)
+	err = rsa.Verify(pubKey, sha, ourHash, sig, nil)
 
 	// And check for an error
 	if err != nil {

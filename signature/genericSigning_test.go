@@ -167,11 +167,11 @@ func (ts *TestSignable) GetSig() []byte {
 	return ts.signature
 }
 
-func (ts *TestSignable) ClearSignature() {
+func (ts *TestSignable) ClearSig() {
 	ts.signature = nil
 }
 
-func (ts *TestSignable) SetSignature(newSignature []byte) error {
+func (ts *TestSignable) SetSig(newSignature []byte) error {
 	if newSignature == nil {
 		return errors.New("Cannot set signature to nil value")
 	}
