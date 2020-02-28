@@ -121,7 +121,7 @@ func TestSignVerify_Error(t *testing.T) {
 
 	// Modify object post-signing
 	testSig.topology = []string{"fail", "fa", "il", "failfail"}
-
+	testSig.nonce = []byte("i will fail")
 	// Attempt to verify modified object
 	err = Verify(testSig, pubKey)
 	if err != nil {
