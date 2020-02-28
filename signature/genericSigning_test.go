@@ -8,8 +8,8 @@ package signature
 
 import (
 	"crypto/rand"
-	"encoding/binary"
 	"errors"
+	"fmt"
 	"gitlab.com/elixxir/crypto/signature/rsa"
 	"testing"
 )
@@ -54,7 +54,6 @@ func TestSign(t *testing.T) {
 			"\n\tSignature: %+v"+
 			"\n\tSigner's public key: %+v", len(testSig.GetSig()), pubKey.Size())
 	}
-
 }
 
 // Error path
@@ -67,7 +66,10 @@ func TestSign_Error(t *testing.T) {
 	pubKey := privKey.GetPublic()
 
 	// Sign object and fetch signature
-	Sign(testSig, privKey)
+	err = Sign(testSig, privKey)
+	if err != nil {
+		t.Errorf("Failed to sign: %+v", err)
+	}
 	ourSign := testSig.GetSig()
 
 	// Input a random set of bytes less than the signature
@@ -142,25 +144,10 @@ type TestSignable struct {
 }
 
 func (ts *TestSignable) String() string {
-	b := make([]byte, 0)
+	return fmt.Sprintf(
+		"ID: %v\tTime: %v\tTopology: %v\tSize: %v\tNonce: %v\n",
+		ts.id, ts.time, ts.topology, ts.size, ts.nonce)
 
-	// Append the id
-	b = append(b, ts.id...)
-
-	// Serialize the time
-	a := make([]byte, 4)
-	binary.LittleEndian.PutUint32(a, ts.time)
-	b = append(b, a...)
-
-	// Append the topology
-	for _, val := range ts.topology {
-		b = append(b, []byte(val)...)
-	}
-
-	// Append the size
-	binary.PutUvarint(b, ts.size)
-
-	return string(b)
 }
 
 func (ts *TestSignable) GetSig() []byte {
