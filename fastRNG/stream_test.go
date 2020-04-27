@@ -37,7 +37,7 @@ func (m *mockRNG) SetSeed(seed []byte) error {
 //Test the creation of a new stream generator and that it is configured correctly
 func TestNewStreamGenerator(t *testing.T) {
 	sg := NewStreamGenerator(12, 20, csprng.NewSystemRNG)
-	if sg.maxStreams != 20 || sg.scalingFactor != 12 {
+	if sg.numStreams != 20 || sg.scalingFactor != 12 {
 		t.Errorf("Failure to initialize a stream generator correctly")
 	}
 }
@@ -49,50 +49,6 @@ func TestNewStream(t *testing.T) {
 	sg.GetStream()
 	sg.GetStream()
 	//See if there are the appropriate amount of streams in the streams slice and the stream count
-	if sg.numStreams != uint(len(sg.streams)) && sg.numStreams != 3 {
-		t.Errorf("New streams bookkeeping is not working.")
-	}
-}
-
-//Test that the stream generator panics when there are too many streams being made
-func TestNewStream_DoesPanic(t *testing.T) {
-	//The defer function will catch the panic
-	defer func() {
-		if r := recover(); r != nil {
-
-		}
-	}()
-	//Stream count is 2, but 3 streams are being created, thus it should panic
-	sg := NewStreamGenerator(12, 2, csprng.NewSystemRNG)
-	sg.newStream()
-	sg.newStream()
-	sg.newStream()
-	//It should panic after the 3rd newStream and get deferred. If it doesn't it has failed
-	t.Errorf("FastRNG should panic when too many streams are made!")
-
-}
-
-//Test that it does not panic when it reaches capacity
-func TestNewStream_NotPanic(t *testing.T) {
-	//The defer function should not be encountered here, as we are not exceeding capacity, we are at it
-	defer func() {
-		if r := recover(); r != nil {
-			t.Errorf("FastRNG should not panic when there are exactly maxStream Streams")
-		}
-	}()
-	//Stream count is 2, and 2 streams are being created, thus it should not panic
-	sg := NewStreamGenerator(12, 2, csprng.NewSystemRNG)
-	sg.newStream()
-	sg.newStream()
-}
-
-//Test that the getStream calls newStream correctly/appropriately
-func TestGetStream_NewStream(t *testing.T) {
-	sg := NewStreamGenerator(12, 3, csprng.NewSystemRNG)
-	sg.GetStream()
-	sg.GetStream()
-	sg.GetStream()
-
 	if sg.numStreams != uint(len(sg.streams)) && sg.numStreams != 3 {
 		t.Errorf("New streams bookkeeping is not working.")
 	}
@@ -197,7 +153,10 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 	stream.rng = csprng.NewSystemRNG()
 
 	//Initialize the stream with the generator
-	stream.Read(requestedBytes)
+	_, err = stream.Read(requestedBytes)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	//Make sure that the original source and the original entropyCnt are not same after read
 	if bytes.Compare(stream.source, testSource) == 0 {
@@ -217,7 +176,7 @@ func TestRead_MultipleStreams_DifferentOutputs(t *testing.T) {
 	}
 	_, err1 := io.ReadFull(rand.Reader, testSource1)
 	if err1 != nil {
-		jww.WARN.Printf(err.Error())
+		jww.WARN.Printf(err1.Error())
 	}
 
 	sg := NewStreamGenerator(20, 2, csprng.NewSystemRNG)
@@ -229,8 +188,16 @@ func TestRead_MultipleStreams_DifferentOutputs(t *testing.T) {
 	stream0.rng = csprng.NewSystemRNG()
 	stream1.rng = csprng.NewSystemRNG()
 
-	stream0.Read(requestedBytes)
-	stream1.Read(requestedBytes)
+	_, err = stream0.Read(requestedBytes)
+	if err != nil {
+		// should never happen
+		t.Fatal(err)
+	}
+	_, err = stream1.Read(requestedBytes)
+	if err != nil {
+		// should never happen
+		t.Fatal(err)
+	}
 
 	if bytes.Compare(stream0.source, stream1.source) == 0 {
 		t.Errorf("Streams should not produce the same output with different sources upon reading")
@@ -254,7 +221,11 @@ func TestRead_DelinkedSource(t *testing.T) {
 	stream.source = append(stream.source, testSource...)
 	stream.rng = csprng.NewSystemRNG()
 	//Initialize the stream with the generator
-	stream.Read(requestedBytes)
+	_, err = stream.Read(requestedBytes)
+	if err != nil {
+		// should never happen
+		t.Fatal(err)
+	}
 	sourceAfterRead := make([]byte, len(stream.source))
 	copy(sourceAfterRead, stream.source)
 	//Overwrite the entirety of requestedBytes
@@ -283,7 +254,11 @@ func TestRead_ReadLessThanSource(t *testing.T) {
 	}
 	stream.source = testSource
 	stream.rng = csprng.NewSystemRNG()
-	stream.Read(requestedBytes)
+	_, err = stream.Read(requestedBytes)
+	if err != nil {
+		// should never happen
+		t.Fatal(err)
+	}
 	if len(stream.source) != origSrcLen {
 		t.Errorf("Unexpected lengthening of the stream's source")
 	}

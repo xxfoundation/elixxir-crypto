@@ -25,7 +25,6 @@ import (
 type StreamGenerator struct {
 	streams        []*Stream
 	waitingStreams chan *Stream
-	maxStreams     uint
 	numStreams     uint
 	scalingFactor  uint
 	rngConstructor csprng.SourceConstructor
@@ -42,29 +41,31 @@ type Stream struct {
 	fortunaHash hash.Hash
 }
 
-// NewStreamGenerator creates a StreamGenerator object containing up to
+// NewStreamGenerator creates a StreamGenerator object containing
 // streamCount streams. The passed in rngConstructor will be the source of
 // randomness for the streams.
 func NewStreamGenerator(scalingFactor uint, streamCount uint,
 	rng csprng.SourceConstructor) *StreamGenerator {
-	return &StreamGenerator{
+	newStreamGenerator := StreamGenerator{
 		scalingFactor:  scalingFactor,
 		waitingStreams: make(chan *Stream, streamCount),
-		maxStreams:     streamCount,
-		numStreams:     uint(0),
+		numStreams:     streamCount,
 		streams:        make([]*Stream, 0, streamCount),
 		rngConstructor: rng,
 	}
+
+	// Add streamCount streams to the new stream generator
+	for i := uint(0); i < streamCount; i++ {
+		newStreamGenerator.waitingStreams <- newStreamGenerator.newStream()
+	}
+
+	return &newStreamGenerator
 }
 
 // newStream creates a new stream, having it point to the corresponding stream generator
 // Also increment the amount of streams created in the stream generator
 // Bookkeeping slice for streams made
 func (sg *StreamGenerator) newStream() *Stream {
-	if sg.numStreams == sg.maxStreams {
-		jww.FATAL.Panicf("Attempting to create too many streams")
-		return &Stream{}
-	}
 	tmpStream := &Stream{
 		streamGen:   sg,
 		numStream:   sg.numStreams,
@@ -73,7 +74,6 @@ func (sg *StreamGenerator) newStream() *Stream {
 		rng:         sg.rngConstructor(),
 	}
 	sg.streams = append(sg.streams, tmpStream)
-	sg.numStreams++
 	return tmpStream
 }
 
@@ -81,25 +81,7 @@ func (sg *StreamGenerator) newStream() *Stream {
 // If the # of open streams exceeds streamCount,
 // this function blocks (and prints a log warning) until a stream is available
 func (sg *StreamGenerator) GetStream() *Stream {
-	var retStream *Stream
-
-	// If there is a stream waiting to be used, take that from the channel and return in
-	select {
-	case retStream = <-sg.waitingStreams:
-	default:
-	}
-
-	// If there was no waiting channels, ie we exited the select statement
-	if retStream == nil {
-		// If we have not reached the maximum amount of streams (specified by streamCount), then create a new one
-		if sg.numStreams < sg.maxStreams {
-			retStream = sg.newStream()
-		} else {
-			// Else block until a stream is put in the waiting channel
-			retStream = <-sg.waitingStreams
-		}
-	}
-	return retStream
+	return <-sg.waitingStreams
 }
 
 // Close closes the stream object, locking it from external users and marking it as available in the stream list
