@@ -48,9 +48,7 @@ func NewID(key rsa.PublicKey, salt []byte, idType id.Type) (*id.ID, error) {
 	h.Write(salt)
 	digest := h.Sum(nil)
 	var newID id.ID
-	for i := 0; i < id.ArrIDLen-1; i++ {
-		newID[i] = digest[i]
-	}
+	copy(newID[0:id.ArrIDLen-1], digest)
 	newID[id.ArrIDLen-1] = byte(idType)
 	return &newID, nil
 }
