@@ -35,7 +35,7 @@ func deriveSingleKey(h hash.Hash, g *cyclic.Group, data []byte, id uint) *cyclic
 // additionally emergency string for emergency keys
 // Then loops calls to deriveSingleKey to generate nkeys
 func deriveKeysCore(h hash.Hash, g *cyclic.Group, dhkey *cyclic.Int,
-	userID *id.User, emergency bool, nkeys uint) []*cyclic.Int {
+	userID *id.ID, emergency bool, nkeys uint) []*cyclic.Int {
 	data := append(dhkey.Bytes(), userID.Bytes()...)
 	if emergency {
 		data = append(data, []byte(EMERGENCY_KEY_STR)...)
@@ -51,7 +51,8 @@ func deriveKeysCore(h hash.Hash, g *cyclic.Group, dhkey *cyclic.Int,
 // DeriveKeys derives nkeys keys using blake2b as the hash function for key expansion
 // UserID should be your own for generating encryption keys
 // or the receiving userID for generating decryption keys
-func DeriveKeys(g *cyclic.Group, dhkey *cyclic.Int, userID *id.User, nkeys uint) []*cyclic.Int {
+func DeriveKeys(g *cyclic.Group, dhkey *cyclic.Int, userID *id.ID,
+	nkeys uint) []*cyclic.Int {
 	h, _ := hash2.NewCMixHash()
 	return deriveKeysCore(h, g, dhkey, userID, false, nkeys)
 }
@@ -60,6 +61,6 @@ func DeriveKeys(g *cyclic.Group, dhkey *cyclic.Int, userID *id.User, nkeys uint)
 // UserID should be your own for generating encryption keys
 // or the receiving userID for generating decryption keys
 // Use this to generate emergency keys
-func DeriveEmergencyKeys(g *cyclic.Group, dhkey *cyclic.Int, userID *id.User, nkeys uint) []*cyclic.Int {
+func DeriveEmergencyKeys(g *cyclic.Group, dhkey *cyclic.Int, userID *id.ID, nkeys uint) []*cyclic.Int {
 	return deriveKeysCore(sha256.New(), g, dhkey, userID, true, nkeys)
 }
