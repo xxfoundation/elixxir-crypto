@@ -80,12 +80,12 @@ func TestDummyKeyGen_CombinedHashCommutes(t *testing.T) {
 }
 
 // Helper function to generate users from slice of user ids
-func generateUsers(uids []uint64, t *testing.T) []*id.User {
+func generateUsers(uids []uint64, t *testing.T) []*id.ID {
 
-	users := make([]*id.User, len(uids))
+	users := make([]*id.ID, len(uids))
 
 	for i, uid := range uids {
-		users[i] = id.NewUserFromUint(uid, t)
+		users[i] = id.NewIdFromUInt(uid, id.User, t)
 	}
 
 	return users
