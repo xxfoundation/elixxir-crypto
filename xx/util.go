@@ -26,7 +26,7 @@ func IntToBytes(x int) []byte {
 // PublicKeyBytes converts an RSA public key to a byte representation
 // Specifically N's bytes concatenated with the public exponent concatenated
 // at the end
-func PublicKeyBytes(key rsa.PublicKey) []byte {
+func PublicKeyBytes(key *rsa.PublicKey) []byte {
 	pkBytes := IntToBytes(key.E)
 	pkBytes = append(pkBytes, key.N.Bytes()...)
 	return pkBytes

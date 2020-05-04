@@ -26,7 +26,7 @@ import (
 //   // check err
 //   id, err := xx.NewID(pubk, salt, IDTypeGateway)
 //   // check err
-func NewID(key rsa.PublicKey, salt []byte, idType id.Type) (*id.ID, error) {
+func NewID(key *rsa.PublicKey, salt []byte, idType id.Type) (*id.ID, error) {
 	// Salt's must be 256bit
 	if len(salt) != 32 {
 		return nil, errors.New("salt must be 32 bytes")

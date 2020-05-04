@@ -25,7 +25,7 @@ func TestNewID(t *testing.T) {
 	for i := 0; i < 32; i++ {
 		salt[i] = byte(i)
 	}
-	nid, err := NewID(pk.PublicKey, salt, 1)
+	nid, err := NewID(&pk.PublicKey, salt, 1)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -48,13 +48,13 @@ func TestNewID(t *testing.T) {
 	}
 
 	// Send bad type
-	_, err = NewID(pk.PublicKey, salt, 7)
+	_, err = NewID(&pk.PublicKey, salt, 7)
 	if err == nil {
 		t.Errorf("Should have failed with bad type!")
 	}
 
 	// Send back salt
-	_, err = NewID(pk.PublicKey, salt[0:4], 7)
+	_, err = NewID(&pk.PublicKey, salt[0:4], 7)
 	if err == nil {
 		t.Errorf("Should have failed with bad salt!")
 	}
@@ -69,7 +69,7 @@ func TestNewID(t *testing.T) {
 	if err != nil {
 		t.Errorf(err.Error())
 	}
-	nid, err = NewID(pk.PublicKey, salt, id.Gateway)
+	nid, err = NewID(&pk.PublicKey, salt, id.Gateway)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
