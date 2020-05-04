@@ -7,9 +7,9 @@
 package xx
 
 import (
-	"crypto/rsa"
 	"github.com/pkg/errors"
 	"gitlab.com/elixxir/crypto/hash"
+	"gitlab.com/elixxir/crypto/signature/rsa"
 	"gitlab.com/elixxir/primitives/id"
 )
 
@@ -42,7 +42,7 @@ func NewID(key *rsa.PublicKey, salt []byte, idType id.Type) (*id.ID, error) {
 		return nil, errors.Wrap(err, "Could not instantiate CMixHash")
 	}
 
-	pkBytes := PublicKeyBytes(key)
+	pkBytes := PublicKeyBytes(&(*key).PublicKey)
 
 	h.Write(pkBytes)
 	h.Write(salt)
