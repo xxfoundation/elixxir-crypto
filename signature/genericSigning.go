@@ -34,7 +34,7 @@ func Sign(signable GenericSignable, privKey *rsa.PrivateKey) error {
 	signable.ClearSig()
 
 	// Print key and nonce
-	jww.TRACE.Printf("signature.Sign privKey N: 0x%v;; E: 0x%x;; D: 0x%x", privKey.N.Text(16), privKey.E, privKey.D.Text(16))
+	jww.TRACE.Printf("signature.Sign privKey N: 0x%v;; E: 0x%x;; D: 0x%v", privKey.N.Text(16), privKey.E, privKey.D.Text(16))
 	jww.TRACE.Printf("signature.Sign pubKey E: 0x%x;; V: 0x%v", privKey.PublicKey.E, privKey.PublicKey.N.Text(16))
 
 	// Create rand for signing and nonce generation
