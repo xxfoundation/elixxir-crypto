@@ -12,6 +12,7 @@ package signature
 import (
 	"crypto"
 	"github.com/pkg/errors"
+	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
 	"gitlab.com/elixxir/crypto/signature/rsa"
 )
@@ -31,6 +32,11 @@ type GenericSignable interface {
 func Sign(signable GenericSignable, privKey *rsa.PrivateKey) error {
 	// Clear any value in the signature field
 	signable.ClearSig()
+
+	// Print key and nonce
+	jww.TRACE.Printf("signature.Sign privKey N: 0x%v;; E: 0x%x;; D: 0x%x", privKey.N.Text(16), privKey.E, privKey.D.Text(16))
+	jww.TRACE.Printf("signature.Sign pubKey E: 0x%x;; V: 0x%v", privKey.PublicKey.E, privKey.PublicKey.N.Text(16))
+	jww.TRACE.Printf("signature.Sign nonce: 0x%x", signable.GetNonce())
 
 	// Create rand for signing and nonce generation
 	rand := csprng.NewSystemRNG()
@@ -56,11 +62,15 @@ func Sign(signable GenericSignable, privKey *rsa.PrivateKey) error {
 	h := sha.New()
 	h.Write([]byte(data))
 
+	ourHash := h.Sum(nil)
+	jww.TRACE.Printf("signature.Sign ourHash %x", ourHash)
+
 	// Sign the message
-	signature, err := rsa.Sign(rand, privKey, sha, h.Sum(nil), nil)
+	signature, err := rsa.Sign(rand, privKey, sha, ourHash, nil)
 	if err != nil {
 		return errors.Errorf("Unable to sign message: %+v", err)
 	}
+	jww.TRACE.Printf("signature.Sign sig 0x%x", signature)
 
 	// And set the signature
 	err = signable.SetSig(signature)
@@ -78,6 +88,9 @@ func Sign(signable GenericSignable, privKey *rsa.PrivateKey) error {
 func Verify(verifiable GenericSignable, pubKey *rsa.PublicKey) error {
 	// Take the signature from the object
 	sig := verifiable.GetSig()
+	jww.TRACE.Printf("signature.Verify sig 0x%x", sig)
+	jww.TRACE.Printf("signature.Verify pubKey E: 0x%x;; V: 0x%v", pubKey.E, pubKey.N.Text(16))
+	jww.TRACE.Printf("signature.Verify nonce: 0x%x", verifiable.GetNonce())
 
 	// Clear the signature
 	verifiable.ClearSig()
@@ -90,6 +103,7 @@ func Verify(verifiable GenericSignable, pubKey *rsa.PublicKey) error {
 	h := sha.New()
 	h.Write([]byte(data))
 	ourHash := h.Sum(nil)
+	jww.TRACE.Printf("signature.Verify ourHash %x", ourHash)
 
 	// Reset signature so verify is not destructive
 	err := verifiable.SetSig(sig)
