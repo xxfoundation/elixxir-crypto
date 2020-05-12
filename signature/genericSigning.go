@@ -33,6 +33,8 @@ func Sign(signable GenericSignable, privKey *rsa.PrivateKey) error {
 	// Clear any value in the signature field
 	signable.ClearSig()
 
+	jww.TRACE.Printf("signature.Sign data: %q", signable.String())
+
 	// Print key and nonce
 	jww.TRACE.Printf("signature.Sign privKey N: 0x%v;; E: 0x%x;; D: 0x%v", privKey.N.Text(16), privKey.E, privKey.D.Text(16))
 	jww.TRACE.Printf("signature.Sign pubKey E: 0x%x;; V: 0x%v", privKey.PublicKey.E, privKey.PublicKey.N.Text(16))
@@ -88,6 +90,7 @@ func Sign(signable GenericSignable, privKey *rsa.PrivateKey) error {
 func Verify(verifiable GenericSignable, pubKey *rsa.PublicKey) error {
 	// Take the signature from the object
 	sig := verifiable.GetSig()
+	jww.TRACE.Printf("signature.Verify data: %q", verifiable.String())
 	jww.TRACE.Printf("signature.Verify sig 0x%x", sig)
 	jww.TRACE.Printf("signature.Verify pubKey E: 0x%x;; V: 0x%v", pubKey.E, pubKey.N.Text(16))
 	jww.TRACE.Printf("signature.Verify nonce: 0x%x", verifiable.GetNonce())
