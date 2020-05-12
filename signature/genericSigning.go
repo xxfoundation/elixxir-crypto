@@ -50,6 +50,7 @@ func Sign(signable GenericSignable, privKey *rsa.PrivateKey) error {
 
 	// Set nonce
 	err = signable.SetNonce(ourNonce)
+	jww.TRACE.Printf("signature.Sign nonce: 0x%x", ourNonce)
 	if err != nil {
 		return errors.Errorf("Unable to set nonce: %+v", err)
 	}
