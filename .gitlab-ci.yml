@@ -21,6 +21,10 @@ before_script:
   - export PATH=$HOME/go/bin:$PATH
   - export GOPRIVATE=gitlab.com/elixxir/*
 
+stages:
+  - build
+  - trigger_integration
+
 build:
   stage: build
   image: $DOCKER_IMAGE
