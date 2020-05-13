@@ -17,6 +17,7 @@ import (
 func TestNewID(t *testing.T) {
 	// use insecure seeded rng to reproduce key
 	rng := rand.New(rand.NewSource(42))
+	rng.Seed(42)
 	pk, err := rsa.GenerateKey(rng, 4096)
 	if err != nil {
 		t.Errorf(err.Error())
