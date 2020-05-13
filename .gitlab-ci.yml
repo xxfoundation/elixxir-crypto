@@ -1,15 +1,9 @@
 # From: https://about.gitlab.com/2017/09/21/how-to-create-ci-cd-pipeline-with-autodeploy-to-kubernetes-using-gitlab-and-helm/
 
-cache:
-  untracked: true
-  key: "$CI_BUILD_REF_NAME"
-  paths:
-    - vendor/
-
 variables:
   REPO_DIR: gitlab.com/elixxir
   REPO_NAME: crypto
-  DOCKER_IMAGE: golang:1.13.4-buster
+  DOCKER_IMAGE: elixxirlabs/cuda-go:latest
   MIN_CODE_COVERAGE: "96.0"
 
 before_script:
@@ -26,31 +20,19 @@ before_script:
   - git config --global url."git@gitlab.com:".insteadOf "https://gitlab.com/"
   - export PATH=$HOME/go/bin:$PATH
   - export GOPRIVATE=gitlab.com/elixxir/*
-  - go get -u github.com/ory/go-acc
 
 stages:
-  - setup
-  - test
   - build
   - trigger_integration
 
-setup:
-  stage: setup
+build:
+  stage: build
   image: $DOCKER_IMAGE
   script:
+    - git clean -ffdx
     - go mod vendor -v
     - go build ./...
     - go mod tidy
-  artifacts:
-    paths:
-     - vendor/
-
-test:
-  stage: test
-  image: $DOCKER_IMAGE
-  script:
-    - apt-get update
-    - apt-get install bc -y
 
     - mkdir -p testdata
     - go-acc --covermode atomic --output testdata/coverage.out ./... -- -v
@@ -61,21 +43,14 @@ test:
     - go tool cover -func=testdata/coverage.out | grep "total:" | awk '{print $3}' | sed 's/\%//g' > testdata/coverage-percentage.txt
     - export CODE_CHECK=$(echo "$(cat testdata/coverage-percentage.txt) >= $MIN_CODE_COVERAGE" | bc -l)
     - (if [ "$CODE_CHECK" == "1" ]; then echo "Minimum coverage of $MIN_CODE_COVERAGE succeeded"; else echo "Minimum coverage of $MIN_CODE_COVERAGE failed"; exit 1; fi);
-
-  artifacts:
-    paths:
-      - testdata/
-
-build:
-  stage: build
-  image: $DOCKER_IMAGE
-  script:
     - mkdir -p release
     - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags '-w -s' ./...
     - cd release
   artifacts:
     paths:
-     - release/
+      - vendor/
+      - testdata/
+      - release/
 
 trigger_integration:
   stage: trigger_integration
