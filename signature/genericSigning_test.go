@@ -143,10 +143,10 @@ type TestSignable struct {
 	nonce     []byte
 }
 
-func (ts *TestSignable) String() string {
-	return fmt.Sprintf(
+func (ts *TestSignable) Marshal() []byte {
+	return []byte(fmt.Sprintf(
 		"ID: %v\tTime: %v\tTopology: %v\tSize: %v\tNonce: %v\n",
-		ts.id, ts.time, ts.topology, ts.size, ts.nonce)
+		ts.id, ts.time, ts.topology, ts.size, ts.nonce))
 
 }
 
