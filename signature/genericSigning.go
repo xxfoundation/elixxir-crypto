@@ -15,6 +15,7 @@ import (
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
 	"gitlab.com/elixxir/crypto/signature/rsa"
+	"strings"
 )
 
 // Interface for signing generically
@@ -51,6 +52,8 @@ func Sign(signable GenericSignable, privKey *rsa.PrivateKey) error {
 
 	// Get the data that is to be signed (including nonce)
 	data := signable.String()
+	strings.TrimSpace(data)
+	strings.Replace(data, " ", "", -1)
 
 	// Prepare to hash the data
 	sha := crypto.SHA256
@@ -96,6 +99,8 @@ func Verify(verifiable GenericSignable, pubKey *rsa.PublicKey) error {
 
 	// Get the data to replicate the signature
 	data := verifiable.String()
+	strings.TrimSpace(data)
+	strings.Replace(data, " ", "", -1)
 
 	// Hash the data
 	sha := crypto.SHA256
