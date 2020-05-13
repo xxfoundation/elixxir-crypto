@@ -19,7 +19,7 @@ import (
 
 // Interface for signing generically
 type GenericSignable interface {
-	Marshal() []byte // Designed to be identical to String() in grpc
+	String() string // Designed to be identical to String() in grpc
 	GetSig() []byte
 	SetSig(newSignature []byte) error
 	GetNonce() []byte
@@ -50,12 +50,12 @@ func Sign(signable GenericSignable, privKey *rsa.PrivateKey) error {
 	}
 
 	// Get the data that is to be signed (including nonce)
-	data := signable.Marshal()
+	data := signable.String()
 
 	// Prepare to hash the data
 	sha := crypto.SHA256
 	h := sha.New()
-	h.Write(data)
+	h.Write([]byte(data))
 
 	ourHash := h.Sum(nil)
 
@@ -95,12 +95,12 @@ func Verify(verifiable GenericSignable, pubKey *rsa.PublicKey) error {
 	verifiable.ClearSig()
 
 	// Get the data to replicate the signature
-	data := verifiable.Marshal()
+	data := verifiable.String()
 
 	// Hash the data
 	sha := crypto.SHA256
 	h := sha.New()
-	h.Write(data)
+	h.Write([]byte(data))
 	ourHash := h.Sum(nil)
 
 	// Reset signature so verify is not destructive
