@@ -64,11 +64,11 @@ func Sign(signable GenericSignable, privKey *rsa.PrivateKey) error {
 
 	// Print results of signing
 	jww.TRACE.Printf("signature.Sign nonce: 0x%x", ourNonce)
-	jww.TRACE.Printf("signature.Sign sig for nonce %x 0x%x", ourNonce[:8], signature)
-	jww.TRACE.Printf("signature.Sign digest for nonce %x 0x%x", ourNonce[:8], ourHash)
-	jww.TRACE.Printf("signature.Sign data for nonce %x: [%x]", ourNonce[:8], data)
-	jww.TRACE.Printf("signature.Sign privKey for nonce %x: N: 0x%v;; E: 0x%x;; D: 0x%v", ourNonce[:8], privKey.N.Text(16), privKey.E, privKey.D.Text(16))
-	jww.TRACE.Printf("signature.Sign pubKey for nonce %x: E: 0x%x;; V: 0x%v", ourNonce[:8], privKey.PublicKey.E, privKey.PublicKey.N.Text(16))
+	jww.TRACE.Printf("signature.Sign sig for nonce 0x%x 0x%x", ourNonce[:8], signature)
+	jww.TRACE.Printf("signature.Sign digest for nonce 0x%x 0x%x", ourNonce[:8], ourHash)
+	jww.TRACE.Printf("signature.Sign data for nonce 0x%x: [%x]", ourNonce[:8], data)
+	jww.TRACE.Printf("signature.Sign privKey for nonce 0x%x: N: 0x%v;; E: 0x%x;; D: 0x%v", ourNonce[:8], privKey.N.Text(16), privKey.E, privKey.D.Text(16))
+	jww.TRACE.Printf("signature.Sign pubKey for nonce 0x%x: E: 0x%x;; V: 0x%v", ourNonce[:8], privKey.PublicKey.E, privKey.PublicKey.N.Text(16))
 
 	if err != nil {
 		return errors.Errorf("Unable to sign message: %+v", err)
@@ -115,7 +115,7 @@ func Verify(verifiable GenericSignable, pubKey *rsa.PublicKey) error {
 	nonce := verifiable.GetNonce()
 	jww.TRACE.Printf("signature.Verify nonce: 0x%x", nonce)
 	jww.TRACE.Printf("signature.Verify sig for nonce 0x%x: 0x%x", nonce[:8], sig)
-	jww.TRACE.Printf("signature.Verify digest for nonce 0x%x, %x", nonce[:8], ourHash)
+	jww.TRACE.Printf("signature.Verify digest for nonce 0x%x, 0x%x", nonce[:8], ourHash)
 	jww.TRACE.Printf("signature.Verify data for nonce 0x%x: [%x]", nonce[:8], data)
 	jww.TRACE.Printf("signature.Verify pubKey for nonce 0x%x: E: 0x%x;; V: 0x%v", nonce[:8], pubKey.E, pubKey.N.Text(16))
 
