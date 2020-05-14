@@ -52,8 +52,8 @@ func Sign(signable GenericSignable, privKey *rsa.PrivateKey) error {
 
 	// Get the data that is to be signed (including nonce)
 	data := signable.String()
-	strings.TrimSpace(data)
-	strings.Replace(data, " ", "", -1)
+	data = strings.TrimSpace(data)
+	data = strings.ReplaceAll(data, " ", "")
 
 	// Prepare to hash the data
 	sha := crypto.SHA256
@@ -99,8 +99,8 @@ func Verify(verifiable GenericSignable, pubKey *rsa.PublicKey) error {
 
 	// Get the data to replicate the signature
 	data := verifiable.String()
-	strings.TrimSpace(data)
-	strings.Replace(data, " ", "", -1)
+	data = strings.TrimSpace(data)
+	data = strings.ReplaceAll(data, " ", "")
 
 	// Hash the data
 	sha := crypto.SHA256
