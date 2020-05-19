@@ -56,8 +56,8 @@ trigger_integration:
   stage: trigger_integration
   script:
     # Server
-    - "curl -X POST -F token=719da505f58f77e042deaf6e2617f2 -F ref=master https://gitlab.com/api/v4/projects/5014439/trigger/pipeline"
+    - "curl -X POST -F token=$SERVER_TRIGGER_KEY -F ref=master https://gitlab.com/api/v4/projects/5014439/trigger/pipeline"
     # Client
-    - "curl -X POST -F token=49d8780aca37fe7dabd6faecee913c -F ref=master https://gitlab.com/api/v4/projects/5454785/trigger/pipeline"
+    - "curl -X POST -F token=$CLIENT_TRIGGER_KEY -F ref=master https://gitlab.com/api/v4/projects/5454785/trigger/pipeline"
   only:
     - master
