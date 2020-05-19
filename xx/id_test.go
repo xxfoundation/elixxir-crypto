@@ -41,7 +41,6 @@ func TestNewID(t *testing.T) {
 	// rsa key generation has two possible outputs to stop use of its
 	// deterministic nature so we check both possible outputs and use
 	// its deterministic nature
-	// TODO- dont use properties of libraries that the creators tried to stop you from using
 	expectedID1 := id.NewIdFromBytes([]byte{122, 15, 124, 177, 225, 209, 252, 65,
 		148, 66, 145, 157, 128, 160, 77, 82, 129, 2, 97, 227, 5, 2, 126, 78, 136,
 		122, 238, 179, 156, 28, 115, 198, 1}, t)
