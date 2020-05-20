@@ -31,27 +31,35 @@ type Source interface {
 // InGroup returns true if the sample is non-zero and less than
 // the prime. This is useful for testing if a generated number is
 // inside the modular cyclic group defined by the prime.
-// NOTE: This code assumes byte 0 is the MSB.
+// NOTE: This code assumes byte 0 is the Most significant byte (MSB)
 func InGroup(sample, prime []byte) bool {
-	// Check that sample's len is smaller than primes
+	// Absolute failure when it's empty or has more bits than prime
 	if len(sample) == 0 || len(sample) > len(prime) {
 		return false
 	}
 
-	// Check that sample is not simply 0
-	if len(sample) == 1 && sample[0] == 0 {
+	// Check for a non-Zero byte
+	isZero := true
+	for i := 0; i < len(sample); i++ {
+		if sample[i] != 0 {
+			isZero = false
+			break
+		}
+	}
+	if isZero {
 		return false
 	}
 
+	// If sample has less bits, then only needed to check for nonzero bytes
 	if len(sample) < len(prime) {
 		return true
 	}
 
-	// Check that the sample is strictly less than the prime
-	for i := 0; i < len(sample); i++ {
+	// Else check that sample is strictly less than prime
+	for i := 0; i < len(prime); i++ {
 		if prime[i] > sample[i] {
 			return true
-		} else if sample[i] > prime[i] {
+		} else if prime[i] < sample[i] {
 			return false
 		}
 	}
