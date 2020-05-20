@@ -112,13 +112,16 @@ func TestInGroup_Empty(t *testing.T) {
 func TestInGroup_0(t *testing.T) {
 	zero := []byte{0}
 
-	if InGroup(zero, p107) {
+	zeroLenP := make([]byte, len(p107))
+	if InGroup(zero, p107) || InGroup(zeroLenP, p107) {
 		t.Errorf("Zero is never in the group! Not even p107!")
 	}
-	if InGroup(zero, modp2048) {
+	zeroLenP = make([]byte, len(modp2048))
+	if InGroup(zero, modp2048) || InGroup(zeroLenP, modp2048) {
 		t.Errorf("Zero is never in the group! Not even modp2048!")
 	}
-	if InGroup(zero, modp4096) {
+	zeroLenP = make([]byte, len(modp4096))
+	if InGroup(zero, modp4096) || InGroup(zeroLenP, modp4096) {
 		t.Errorf("Zero is never in the group! Not even modp4096!")
 	}
 }
