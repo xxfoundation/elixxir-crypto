@@ -83,50 +83,50 @@ func GenerateInGroup(prime []byte, size int, rng io.Reader) ([]byte,
 		size = len(prime)
 	}
 
-	//If we are generating a random byte slice that is shorter than prime, then it will always be in group
-	if size < len(prime) || len(prime) < aes.BlockSize {
-		for {
-			key, err := Generate(size, rng)
-			// return if we get an error OR if we are in the group
-			if err != nil || InGroup(key, prime) {
-				return key, err
-			}
-		}
-	}
-
-	//Otherwise, we need to generate blockSize chunks and compare to the prime
+	// In the "slow" case for the InGroup call, generate aes BlockSize
+	// chunks until one of them is zero or inside the most significant bytes
+	// of the prime group.
 	key := make([]byte, 0, size)
-	for block := 0; block < size/aes.BlockSize; {
-		//Generate an rand value of AES Block size
-		rngValue := make([]byte, aes.BlockSize)
-		rngValue, err := Generate(aes.BlockSize, rng)
-		if err != nil {
-			return nil, err
-		}
-		//We only need the first block's value to be in the group of the corresponding prime block
-		if block == 0 {
-			if InGroup(rngValue, prime[block*aes.BlockSize:(block+1)*aes.BlockSize]) {
-				block++
-				key = append(key, rngValue...)
-
+	genSize := size
+	if size == len(prime) && len(prime) >= aes.BlockSize {
+		// Reduce the generate size in the second half of the code block
+		genSize -= aes.BlockSize
+		var firstBlock []byte
+		for firstBlock == nil {
+			rngValue, err := Generate(aes.BlockSize, rng)
+			if err != nil {
+				return nil, err
 			}
-			//After the first block just append the rngVal to the key, as it will be in group
-		} else {
-			block++
+
+			if InGroup(rngValue, prime[0:aes.BlockSize]) {
+				firstBlock = rngValue
+				continue
+			}
+
+			// Check if the block is 0
+			zero := true
+			for i := 0; i < aes.BlockSize; i++ {
+				if rngValue[i] != 0 {
+					zero = false
+					break
+				}
+			}
+			if zero {
+				firstBlock = rngValue
+			}
+		}
+		key = append(key, firstBlock...)
+	}
+
+	// Generate until we get something inside the prime group.
+	// Note that InGroup is really only testing for non-zero if the "slow"
+	// case above is triggered as len(rngValue) < len(prime)
+	for {
+		rngValue, err := Generate(genSize, rng)
+		// return if we get an error OR if we are in the group
+		if err != nil || InGroup(rngValue, prime) {
 			key = append(key, rngValue...)
-
+			return key, err
 		}
-
 	}
-	//If prime is not AES block aligned, generate the remaining bytes of randomness as needed
-	if len(key) < len(prime) {
-		rngPad := make([]byte, len(prime)-len(key))
-		rngPad, err := Generate(len(rngPad), rng)
-		if err != nil {
-			return nil, err
-		}
-		key = append(key, rngPad...)
-	}
-
-	return key, nil
 }
