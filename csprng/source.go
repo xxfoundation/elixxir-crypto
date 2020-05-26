@@ -96,7 +96,7 @@ func GenerateInGroup(prime []byte, size int, rng io.Reader) ([]byte,
 	// of the prime group.
 	key := make([]byte, 0, size)
 	genSize := size
-	if size == len(prime) && len(prime) >= aes.BlockSize {
+	if size == len(prime) && len(prime) > aes.BlockSize {
 		// Reduce the generate size in the second half of the code block
 		genSize -= aes.BlockSize
 		var firstBlock []byte
