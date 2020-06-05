@@ -157,6 +157,9 @@ func GenerateInGroup(prime []byte, size int, rng io.Reader) ([]byte,
 		// < primeLen)
 		if rngIdx < len(rngBuf) {
 			key = append(key, rngBuf[rngIdx:len(rngBuf)]...)
+			if len(key) > genSize {
+				key = key[0:genSize]
+			}
 		}
 		// Adjust the generate-able size for the rest of the bytes
 		genSize -= len(key)
