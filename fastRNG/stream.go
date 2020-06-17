@@ -103,6 +103,8 @@ func (s *Stream) Read(b []byte) (int, error) {
 	}
 
 	dst := s.source
+	// A tmp buffer that has size a multiple of aes.BlockSize
+	//TODO: This is due for a refactor, especially the tests.
 	d := make([]byte, numBlocks*aes.BlockSize)
 
 	//Initialize a counter to be used in Fortuna
