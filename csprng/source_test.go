@@ -7,6 +7,7 @@
 package csprng
 
 import (
+	"crypto/aes"
 	"gitlab.com/elixxir/crypto/large"
 	"os"
 	"testing"
@@ -111,13 +112,16 @@ func TestInGroup_Empty(t *testing.T) {
 func TestInGroup_0(t *testing.T) {
 	zero := []byte{0}
 
-	if InGroup(zero, p107) {
+	zeroLenP := make([]byte, len(p107))
+	if InGroup(zero, p107) || InGroup(zeroLenP, p107) {
 		t.Errorf("Zero is never in the group! Not even p107!")
 	}
-	if InGroup(zero, modp2048) {
+	zeroLenP = make([]byte, len(modp2048))
+	if InGroup(zero, modp2048) || InGroup(zeroLenP, modp2048) {
 		t.Errorf("Zero is never in the group! Not even modp2048!")
 	}
-	if InGroup(zero, modp4096) {
+	zeroLenP = make([]byte, len(modp4096))
+	if InGroup(zero, modp4096) || InGroup(zeroLenP, modp4096) {
 		t.Errorf("Zero is never in the group! Not even modp4096!")
 	}
 }
@@ -287,5 +291,50 @@ func TestGenerate_Padding(t *testing.T) {
 	if len(b) != len(nonByteAlignedPrime) {
 		t.Errorf("Failed to generate a value of same length of prime! "+
 			"Expected %v bytes, generated %v bytes", len(nonByteAlignedPrime), len(b))
+	}
+}
+
+// Generate aes.BlockSize 0's first
+type ZeroRNG struct {
+	Count int
+}
+
+func (z *ZeroRNG) Read(b []byte) (int, error) {
+	numBytes := len(b)
+	i := 0
+	for z.Count != 0 && numBytes != 0 {
+		numBytes--
+		z.Count--
+		b[i] = 0
+		i++
+	}
+	if numBytes > 0 {
+		rng := NewSystemRNG()
+		c, _ := rng.Read(b[i:numBytes])
+		i += c
+	}
+	return i, nil
+}
+func (z *ZeroRNG) SetSeed(seed []byte) {
+	z.Count = int(seed[0])
+}
+func TestGenerate_ZeroStart(t *testing.T) {
+	rng := &ZeroRNG{Count: aes.BlockSize}
+
+	b, err := GenerateInGroup(largePrime, len(largePrime), rng)
+	if err != nil {
+		t.Errorf("%v", err)
+	}
+	if !InGroup(b, largePrime) {
+		t.Errorf("b not in largePrime: %v", b)
+	}
+	if len(b) != len(largePrime) {
+		t.Errorf("Failed to generate a value of same length of prime! "+
+			"Expected %v bytes, generated %v bytes", len(largePrime), len(b))
+	}
+	for i := 0; i < aes.BlockSize; i++ {
+		if b[i] != 0 {
+			t.Errorf("All bytes should be 0, byte %d is %d", i, b[i])
+		}
 	}
 }

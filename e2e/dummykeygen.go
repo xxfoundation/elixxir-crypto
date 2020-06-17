@@ -17,7 +17,7 @@ import (
 
 // combinedHash generates a key from two user ids by appending hashes
 // ordered by the larger user id
-func combinedHash(userA *id.User, userB *id.User, grp *cyclic.Group) *cyclic.Int {
+func combinedHash(userA, userB *id.ID, grp *cyclic.Group) *cyclic.Int {
 
 	h, _ := hash.NewCMixHash()
 
@@ -38,7 +38,8 @@ func combinedHash(userA *id.User, userB *id.User, grp *cyclic.Group) *cyclic.Int
 }
 
 // KeyGen generates keys for all combinations of users for the current user
-func KeyGen(currentUser *id.User, users []*id.User, grp *cyclic.Group) []*cyclic.Int {
+func KeyGen(currentUser *id.ID, users []*id.ID,
+	grp *cyclic.Group) []*cyclic.Int {
 	keys := make([]*cyclic.Int, len(users))
 
 	for i, user := range users {

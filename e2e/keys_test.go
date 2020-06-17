@@ -26,26 +26,29 @@ const (
 		"cdc392fed7267caef8398e817512ee46aedf6019b6d82a1d9040204d09873d78"
 	TEST_USERID    = 42
 	TEST_PARTNERID = 11
-	EXPECTED_KEY   = "73612b3df0defe6fa5227dce1180f1b540d50d6647da2a33475" +
-		"3d4b316adc1acbc7b2dd89519e04d072eb8fa973e1567625a07e20d6fc4ed4c3" +
-		"146121f43f5a035660fa38995dbe77238dd92b981c4e8a1d351a793b57644afb" +
-		"a38272b6c87df2ad83c39fa8881ba066860e8fffa9dbb11dc991d8553045cf4c" +
-		"961145e57f4a66664860bdc72491492fb890685d30c7832dc8ac822b62c1b8a6" +
-		"9991d3b0e1412893d8ce8c18ff7c82332d1cd1a1a207fb3d100eadb0b8de8a8b" +
-		"c9d7d40cc066175eb5d1dea4cd6e93303922ac470a29f09eb841affa1f285282" +
-		"c9c224aa8790cc07fc8026ef843c25db983a5bb8944cfa8d8b93a8e04b8e9876" +
-		"b2998c2d8bea80443909ec9b15e1728b047edfcfb77a38f4cbe618c0294b938f" +
-		"d6a10409a2db2c60d5a7e827e9aeadf6dec32f54572b382e5f947e0d15ad7d70" +
-		"8aeed9d15bf71346c69942647766184b0798d464dd922ce839baa8fe772b6dc5" +
-		"009cba62feac814c340d98ffc2b7cad8acedab58fc0eb4bdf0872a0c697984ff" +
-		"6e29dccc9ee5cef01501e25b6b1c41ecc95d7117255"
+	EXPECTED_KEY   = "5d0bf414c2e1c15b4f3c47ed08f99ec69f67771bb1b1c41b8fa" +
+		"df02c869bc6d7f75c347ed98893402f95e4b6d07c59ff88f594" +
+		"2d0e1e639c1818a1cb5bc1e0fbfc8865f2aa4d11422ef16e65d" +
+		"8715b4fdad60af1280ebfa4e2a4a77dafe1a159b4883aff68de" +
+		"a7b66b476f49dc2947e3bed2c409c2bcb40443a6d7c5a058db3" +
+		"4281da9af9bd1a4eee3afd330bb3e50d3d9d0df555dcabbeb21" +
+		"18b4068240d8632f988a0edd8a5fa9e24887dd2f86ed47c7bc0" +
+		"02d13d38659de86f54fe3f8b6200c2c932962e1a4c562c421a8" +
+		"37908dc8a8378fd697cd896e6b3729a0cc9b5b3075e7d69a307" +
+		"94cadb3366447242db03148d9ff94d3fb30628cf89cd893ece8" +
+		"2a40a8e314e3ed4ff05337f64fd238484601fc1329feb2989a7" +
+		"4452431c75ff8b2d031d47e941accde1bafb95d4f2373399a12" +
+		"4dc59eca021465108c018bc73f5bc6e67c82088a02816069e65" +
+		"30043754e7afecb815345f93e933c24bb523bf935debb10bb19" +
+		"cecc53d7528c0382996544f737189737cbfa8ffd5848d0cac82" +
+		"eb8f569e970d732c3869e7d23cd2cf31e"
 )
 
-type testFun func(a *cyclic.Group, b *cyclic.Int, c *id.User, d uint) []*cyclic.Int
+type testFun func(a *cyclic.Group, b *cyclic.Int, c *id.ID, d uint) []*cyclic.Int
 
 // Test for consistency with hardcoded values
 func TestDeriveSingleKey(t *testing.T) {
-	userID := id.NewUserFromUint(TEST_USERID, t)
+	userID := id.NewIdFromUInt(TEST_USERID, id.User, t)
 	key := grp.NewIntFromString(TEST_DHKEY, 16)
 	data := append([]byte{}, key.Bytes()...)
 	data = append(data, userID.Bytes()...)
@@ -59,8 +62,8 @@ func TestDeriveSingleKey(t *testing.T) {
 
 // Test both functions with various arguments
 func TestDeriveKeys_DeriveEmergencyKeys(t *testing.T) {
-	userID := id.NewUserFromUint(TEST_USERID, t)
-	partnerID := id.NewUserFromUint(TEST_PARTNERID, t)
+	userID := id.NewIdFromUInt(TEST_USERID, id.User, t)
+	partnerID := id.NewIdFromUInt(TEST_PARTNERID, id.User, t)
 	key := grp.NewIntFromString(TEST_DHKEY, 16)
 
 	nkeys := []uint{10000, 0}
@@ -71,7 +74,7 @@ func TestDeriveKeys_DeriveEmergencyKeys(t *testing.T) {
 		return s
 	}(nkeys)
 
-	ids := []*id.User{userID, partnerID}
+	ids := []*id.ID{userID, partnerID}
 	fut := []testFun{DeriveKeys, DeriveEmergencyKeys}
 
 	pass := 0
@@ -116,7 +119,7 @@ func TestDeriveKeys_DeriveEmergencyKeys(t *testing.T) {
 
 // Test both functions with same arguments to explicitly show they produce different keys
 func TestDeriveKeys_DeriveEmergencyKeys_Differ(t *testing.T) {
-	userID := id.NewUserFromUint(TEST_USERID, t)
+	userID := id.NewIdFromUInt(TEST_USERID, id.User, t)
 	key := grp.NewIntFromString(TEST_DHKEY, 16)
 	nkeys := uint(100)
 	fut := []testFun{DeriveKeys, DeriveEmergencyKeys}
