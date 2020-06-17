@@ -132,7 +132,7 @@ func (s *Stream) Read(b []byte) (int, error) {
 	}
 
 	copy(s.source, dst)
-	copy(d[:len(b)], b)
+	copy(b, d[:len(b)])
 
 	return len(b), nil
 }
