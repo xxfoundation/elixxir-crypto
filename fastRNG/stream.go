@@ -14,7 +14,6 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/binary"
-	"errors"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
 	_ "golang.org/x/crypto/blake2b"
@@ -97,16 +96,21 @@ func (s *Stream) Read(b []byte) (int, error) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
+	numBlocks := len(b) / aes.BlockSize
+
 	if len(b)%aes.BlockSize != 0 {
-		return 0, errors.New("requested read length is not byte aligned")
+		numBlocks++
 	}
 
 	dst := s.source
+	// A tmp buffer that has size a multiple of aes.BlockSize
+	//TODO: This is due for a refactor, especially the tests.
+	d := make([]byte, numBlocks*aes.BlockSize)
 
 	//Initialize a counter to be used in Fortuna
 	counter := make([]byte, aes.BlockSize)
 	count := uint64(0)
-	for block := 0; block < len(b)/aes.BlockSize; block++ {
+	for block := 0; block < numBlocks; block++ {
 		// Little endian used as a straightforward way to increment a byte array
 		count++
 		binary.LittleEndian.PutUint64(counter, count)
@@ -125,11 +129,12 @@ func (s *Stream) Read(b []byte) (int, error) {
 			s.AESCtr = Fortuna(dst, extension, s.fortunaHash)
 		}
 
-		dst = b[block*aes.BlockSize : (block+1)*aes.BlockSize]
+		dst = d[block*aes.BlockSize : (block+1)*aes.BlockSize]
 		s.AESCtr.XORKeyStream(dst, counter)
 	}
 
 	copy(s.source, dst)
+	copy(b, d[:len(b)])
 
 	return len(b), nil
 }
