@@ -97,16 +97,19 @@ func (s *Stream) Read(b []byte) (int, error) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
+	numBlocks := len(b) / aes.BlockSize
+
 	if len(b)%aes.BlockSize != 0 {
-		return 0, errors.New("requested read length is not byte aligned")
+		numBlocks++
 	}
 
 	dst := s.source
+	d := make([]byte, numBlocks*aes.BlockSize)
 
 	//Initialize a counter to be used in Fortuna
 	counter := make([]byte, aes.BlockSize)
 	count := uint64(0)
-	for block := 0; block < len(b)/aes.BlockSize; block++ {
+	for block := 0; block < numBlocks; block++ {
 		// Little endian used as a straightforward way to increment a byte array
 		count++
 		binary.LittleEndian.PutUint64(counter, count)
@@ -125,11 +128,12 @@ func (s *Stream) Read(b []byte) (int, error) {
 			s.AESCtr = Fortuna(dst, extension, s.fortunaHash)
 		}
 
-		dst = b[block*aes.BlockSize : (block+1)*aes.BlockSize]
+		dst = d[block*aes.BlockSize : (block+1)*aes.BlockSize]
 		s.AESCtr.XORKeyStream(dst, counter)
 	}
 
 	copy(s.source, dst)
+	copy(d[:len(b)], b)
 
 	return len(b), nil
 }
