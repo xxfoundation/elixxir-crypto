@@ -34,7 +34,7 @@ func TestRootCoprimePrototype_GetInputSize(t *testing.T) {
 
 	if actual != expect {
 		t.Errorf("GetInputSize() for RootCoprimePrototype did not return the "+
-			"correct minimum input size\n\trecieved: %v\n\texpected: %v",
+			"correct minimum input size\n\treceived: %v\n\texpected: %v",
 			actual, expect)
 	}
 
@@ -47,7 +47,7 @@ func TestRootCoprimePrototype_GetName(t *testing.T) {
 
 	if actual != expect {
 		t.Errorf("GetName() for RootCoprimePrototype did not return the "+
-			"name\n\trecieved: %v\n\texpected: %v",
+			"name\n\treceived: %v\n\texpected: %v",
 			actual, expect)
 	}
 }
@@ -69,7 +69,7 @@ func TestRootCoprimePrototype_Consistency(t *testing.T) {
 
 		if result.Cmp(val[2]) != 0 {
 			t.Errorf("RootCoprime() did not produce the correct exponentiation "+
-				"under the group\n\trecieved: %v\n\texpected: %v",
+				"under the group\n\treceived: %v\n\texpected: %v",
 				result.Text(10), val[2].Text(10))
 		}
 	}
@@ -113,7 +113,7 @@ func TestRootCoprimePrototype_MathProp(t *testing.T) {
 
 		if exp.Cmp(x) != 0 {
 			t.Errorf("RootCoprime() did not produce the correct root "+
-				"under the group\n\trecieved: %v\n\texpected: %v",
+				"under the group\n\treceived: %v\n\texpected: %v",
 				exp.Text(10), x.Text(10))
 		}
 	}

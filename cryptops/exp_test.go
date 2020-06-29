@@ -44,7 +44,7 @@ func TestExpPrototype_Consistency(t *testing.T) {
 
 		if result.Cmp(val[2]) != 0 {
 			t.Errorf("Exp() did not produce the correct exponentiation "+
-				"under the group\n\trecieved: %v\n\texpected: %v",
+				"under the group\n\treceived: %v\n\texpected: %v",
 				result.Text(10), val[2].Text(10))
 		}
 	}
@@ -87,7 +87,7 @@ func TestExpPrototype_MathProp(t *testing.T) {
 
 		if coprimeRoot.Cmp(x) != 0 {
 			t.Errorf("Exp() did not produce the correct exponentiation "+
-				"under the group\n\trecieved: %v\n\texpected: %v",
+				"under the group\n\treceived: %v\n\texpected: %v",
 				coprimeRoot.Text(10), x.Text(10))
 		}
 	}
@@ -100,7 +100,7 @@ func TestExpPrototype_GetInputSize(t *testing.T) {
 
 	if actual != expect {
 		t.Errorf("GetInputSize() for ExpPrototype did not return the "+
-			"correct minimum input size\n\trecieved: %v\n\texpected: %v",
+			"correct minimum input size\n\treceived: %v\n\texpected: %v",
 			actual, expect)
 	}
 
@@ -113,7 +113,7 @@ func TestExpPrototype_GetName(t *testing.T) {
 
 	if actual != expect {
 		t.Errorf("GetName() for ExpPrototype did not return the "+
-			"name\n\trecieved: %v\n\texpected: %v",
+			"name\n\treceived: %v\n\texpected: %v",
 			actual, expect)
 	}
 }

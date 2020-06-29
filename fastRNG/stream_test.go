@@ -77,11 +77,11 @@ func TestGetStream_GrabsAlreadyWaitingStream(t *testing.T) {
 	sg := NewStreamGenerator(12, 3, csprng.NewSystemRNG)
 	stream0 := sg.GetStream()
 
-	steam1 := sg.GetStream()
+	stream1 := sg.GetStream()
 	sg.GetStream()
 	//Allow the main thread to block as streams aren't available, then close it
 	sg.Close(stream0)
-	sg.Close(steam1)
+	sg.Close(stream1)
 
 	newStream := sg.GetStream()
 	if !reflect.DeepEqual(newStream, sg.streams[0]) {

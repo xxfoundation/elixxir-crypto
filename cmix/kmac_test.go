@@ -47,7 +47,7 @@ func TestGenerateKMAC_Consistency(t *testing.T) {
 
 		if !reflect.DeepEqual(kmac, precannedKMAC[i]) {
 			t.Errorf("KMAC %v did not match expected:"+
-				"\n  Recieved: %v\n  Expected: %v", i, kmac, precannedKMAC[i])
+				"\n  Received: %v\n  Expected: %v", i, kmac, precannedKMAC[i])
 		}
 	}
 }
@@ -90,7 +90,7 @@ func TestGenerateKMACs_Consistency(t *testing.T) {
 
 		if !reflect.DeepEqual(kmacs, precannedKMACs[i]) {
 			t.Errorf("KMAC %v did not match expected:"+
-				"\n  Recieved: %v\n  Expected: %v", i, kmacs, precannedKMACs[i])
+				"\n  Received: %v\n  Expected: %v", i, kmacs, precannedKMACs[i])
 		}
 	}
 }

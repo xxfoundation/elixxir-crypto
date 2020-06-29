@@ -74,7 +74,7 @@ func TestGroup_NewIntBuffer(t *testing.T) {
 		//test that the length is correct
 		if len(buf.values) != int(size) {
 			t.Errorf("NewIntBuffer did not generate buffer of the correct size: "+
-				"Expected %v, Recieved: %v", size, len(buf.values))
+				"Expected %v, Received: %v", size, len(buf.values))
 		}
 
 		pass := true
@@ -1423,7 +1423,7 @@ func TestFindSmallCoprimeInverse(t *testing.T) {
 
 		if len(zinv.Bytes())*8 > int(bits) {
 			t.Errorf("FindSmallExponent Error: Inverse too large on "+
-				"attempt %v; Expected: <%v, Recieved: %v", i, bits,
+				"attempt %v; Expected: <%v, Received: %v", i, bits,
 				uint32(len(zinv.Bytes())*8))
 		}
 
@@ -1437,7 +1437,7 @@ func TestFindSmallCoprimeInverse(t *testing.T) {
 
 		if base.value.Cmp(basecalc.value) != 0 {
 			t.Errorf("FindSmallExponent Error: Result incorrect"+
-				" on attempt %v; Expected: %s, Recieved: %s", i, base.value.Text(10),
+				" on attempt %v; Expected: %s, Received: %s", i, base.value.Text(10),
 				basecalc.value.Text(10))
 		}
 	}
@@ -1446,7 +1446,7 @@ func TestFindSmallCoprimeInverse(t *testing.T) {
 
 	if float32(avgBitLen) < 0.98*float32(bits) {
 		t.Errorf("FindSmallExponent Error: Inverses are not the correct length on average "+
-			"; Expected: ~%v, Recieved: %v", 0.95*float32(bits), avgBitLen)
+			"; Expected: ~%v, Received: %v", 0.95*float32(bits), avgBitLen)
 	}
 
 }
@@ -1477,7 +1477,7 @@ func TestFindSmallCoprimeInverse_SmallGroup(t *testing.T) {
 
 		if zinv.BitLen() > int(bits) {
 			t.Errorf("FindSmallExponent Error: Inverse too large on "+
-				"attempt %v; Expected: <%v, Recieved: %v", i, bits,
+				"attempt %v; Expected: <%v, Received: %v", i, bits,
 				zinv.BitLen())
 		}
 
@@ -1491,7 +1491,7 @@ func TestFindSmallCoprimeInverse_SmallGroup(t *testing.T) {
 
 		if base.value.Cmp(basecalc.value) != 0 {
 			t.Errorf("FindSmallExponent Error: Result incorrect"+
-				" on attempt %v; Expected: %s, Recieved: %s", i, base.value.Text(10),
+				" on attempt %v; Expected: %s, Received: %s", i, base.value.Text(10),
 				basecalc.value.Text(10))
 		}
 	}
@@ -1523,7 +1523,7 @@ func TestFindSmallCoprimeInverse_UnsafeGroup(t *testing.T) {
 
 		if zinv.BitLen() > int(bits) {
 			t.Errorf("FindSmallExponent Error: Inverse too large on "+
-				"attempt %v; Expected: <%v, Recieved: %v", i, bits,
+				"attempt %v; Expected: <%v, Received: %v", i, bits,
 				zinv.BitLen())
 		}
 
@@ -1537,7 +1537,7 @@ func TestFindSmallCoprimeInverse_UnsafeGroup(t *testing.T) {
 
 		if base.value.Cmp(basecalc.value) != 0 {
 			t.Errorf("FindSmallExponent Error: Result incorrect"+
-				" on attempt %v; Expected: %s, Recieved: %s", i, base.value.Text(10),
+				" on attempt %v; Expected: %s, Received: %s", i, base.value.Text(10),
 				basecalc.value.Text(10))
 		}
 	}
