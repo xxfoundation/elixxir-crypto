@@ -15,12 +15,18 @@
 package cmix
 
 import (
+	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/cyclic"
-	"hash"
+	"gitlab.com/elixxir/crypto/hash"
 )
 
 // GenerateClientGatewayKey hashes the symmetric key between client and the node
-func GenerateClientGatewayKey(baseKey *cyclic.Int, h hash.Hash) []byte {
+func GenerateClientGatewayKey(baseKey *cyclic.Int) []byte {
+	h, err := hash.NewCMixHash()
+	if err != nil {
+		jww.ERROR.Panicf("Failed to create hash: %v", err)
+	}
+
 	h.Reset()
 
 	h.Write(baseKey.Bytes())
