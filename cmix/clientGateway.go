@@ -19,26 +19,6 @@ import (
 	"hash"
 )
 
-// GenerateSlotDigest serializes the gateway slot message for the
-// client to hash
-func GenerateSlotDigest(senderID, payloadA, payloadB,
-	roundId []byte, kmacs [][]byte) []byte {
-
-	var gatewaySlotDigest []byte
-	gatewaySlotDigest = append(gatewaySlotDigest, senderID...)
-	gatewaySlotDigest = append(gatewaySlotDigest, payloadA...)
-	gatewaySlotDigest = append(gatewaySlotDigest, payloadB...)
-
-	for _, kmac := range kmacs {
-		gatewaySlotDigest = append(gatewaySlotDigest, kmac...)
-	}
-
-	gatewaySlotDigest = append(gatewaySlotDigest, roundId...)
-
-	return gatewaySlotDigest
-
-}
-
 // GenerateClientGatewayKey hashes the symmetric key between client and the node
 func GenerateClientGatewayKey(baseKey *cyclic.Int, h hash.Hash) []byte {
 	h.Reset()

@@ -13,73 +13,6 @@ import (
 	"testing"
 )
 
-// Tests that GenerateSlotDigest outputs a byte slice the length of the sum
-// of its serialized components. Also checks if output matches precanned data
-func TestGenerateSlotDigest(t *testing.T) {
-	senderID := []byte("senderId")
-	payloadA := []byte("payloadB")
-	payloadB := []byte("payloadB")
-	roundId := []byte("roundId1")
-	kmacs := [][]byte{[]byte("kmac1"), []byte("kmac2")}
-
-	gwDigest := GenerateSlotDigest(senderID, payloadA, payloadB, roundId, kmacs)
-
-	expectedLen := len(senderID) + len(payloadA) + len(payloadB) + len(roundId)
-	for _, kmac := range kmacs {
-		expectedLen += len(kmac)
-	}
-
-	if len(gwDigest) != expectedLen {
-		t.Errorf("GenerateSlotDigest failed length test."+
-			"\n\tExpected length: %v"+
-			"\n\tReceived length: %v", expectedLen, len(gwDigest))
-	}
-
-	if !reflect.DeepEqual(gwDigest, precannedGatewayDigest) {
-		t.Errorf("GenerateSlotDigest did not match expected."+
-			"\n\tExpected: %v"+
-			"\n\tReceived: %v", precannedGatewayDigest, gwDigest)
-	}
-
-}
-
-// Test that GenerateSlotDigest generates the same output with the same input
-func TestGenerateSlotDigest_Consistency(t *testing.T) {
-	senderID := []byte("senderId")
-	payloadA := []byte("payloadB")
-	payloadB := []byte("payloadB")
-	roundId := []byte("roundId1")
-	kmacs := [][]byte{[]byte("kmac1"), []byte("kmac2")}
-
-	gwDigest1 := GenerateSlotDigest(senderID, payloadA, payloadB, roundId, kmacs)
-	gwDigest2 := GenerateSlotDigest(senderID, payloadA, payloadB, roundId, kmacs)
-
-	if !reflect.DeepEqual(gwDigest1, gwDigest2) {
-		t.Errorf("GenerateSlotDigest outputted different results with identical input."+
-			"\n\tPrimary output: %v"+
-			"\n\tSecondary output: %v", gwDigest1, gwDigest2)
-	}
-
-}
-
-// Tests that GenerateSlotDigest produces different output with different input
-func TestGenerateSlotDigest_Inconsistency(t *testing.T) {
-	senderID := []byte("senderId")
-	payloadA := []byte("payloadB")
-	payloadB := []byte("payloadB")
-	roundId := []byte("roundId1")
-	kmacs := [][]byte{[]byte("kmac1"), []byte("kmac2")}
-
-	gwDigest1 := GenerateSlotDigest(senderID, payloadA, payloadB, roundId, kmacs)
-	gwDigest2 := GenerateSlotDigest(roundId, payloadB, payloadA, senderID, kmacs)
-
-	if reflect.DeepEqual(gwDigest1, gwDigest2) {
-		t.Errorf("GenerateSlotDigest outputted identical results with different input."+
-			"\n\tPrimary output: %v"+
-			"\n\tSecondary output: %v", gwDigest1, gwDigest2)
-	}
-}
-
 //Tests that the ClientGateway key generates consistently and expected
 func TestGenerateClientGatewayKey(t *testing.T) {
 	grp := grpTest()
@@ -101,8 +34,6 @@ func TestGenerateClientGatewayKey(t *testing.T) {
 		}
 	}
 }
-
-var precannedGatewayDigest = []byte{115, 101, 110, 100, 101, 114, 73, 100, 112, 97, 121, 108, 111, 97, 100, 66, 112, 97, 121, 108, 111, 97, 100, 66, 107, 109, 97, 99, 49, 107, 109, 97, 99, 50, 114, 111, 117, 110, 100, 73, 100, 49}
 
 var precannedClientGatewayKey = [][]byte{
 	{126, 68, 172, 188, 215, 240, 228, 150, 51, 159, 198, 123, 195, 134, 229, 74, 16, 41, 220, 4, 244, 254, 177, 199, 172, 164, 214, 172, 41, 151, 154, 53},
