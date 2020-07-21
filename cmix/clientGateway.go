@@ -16,7 +16,7 @@ package cmix
 
 import (
 	"gitlab.com/elixxir/crypto/cyclic"
-	"gitlab.com/elixxir/crypto/hash"
+	"hash"
 )
 
 // GenerateSlotDigest serializes the gateway slot message for the
@@ -40,11 +40,7 @@ func GenerateSlotDigest(senderID, payloadA, payloadB,
 }
 
 // GenerateClientGatewayKey hashes the symmetric key between client and the node
-func GenerateClientGatewayKey(baseKey *cyclic.Int) []byte {
-	h, err := hash.NewCMixHash()
-	if err != nil {
-		panic("E2E Client Encrypt could not get blake2b Hash")
-	}
+func GenerateClientGatewayKey(baseKey *cyclic.Int, h hash.Hash) []byte {
 	h.Reset()
 
 	h.Write(baseKey.Bytes())

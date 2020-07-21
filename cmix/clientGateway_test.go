@@ -7,6 +7,7 @@ package cmix
 
 import (
 	"gitlab.com/elixxir/crypto/csprng"
+	"gitlab.com/elixxir/crypto/hash"
 	"math/rand"
 	"reflect"
 	"testing"
@@ -84,7 +85,7 @@ func TestGenerateClientGatewayKey(t *testing.T) {
 	grp := grpTest()
 
 	rng := rand.New(rand.NewSource(42))
-
+	h, _ := hash.NewCMixHash()
 	for i := 0; i < 100; i++ {
 
 		baseKeyBytes, err := csprng.GenerateInGroup(grp.GetPBytes(), grp.GetP().ByteLen(), rng)
@@ -93,7 +94,7 @@ func TestGenerateClientGatewayKey(t *testing.T) {
 		}
 		baseKey := grp.NewIntFromBytes(baseKeyBytes)
 
-		clientGatewayKey := GenerateClientGatewayKey(baseKey)
+		clientGatewayKey := GenerateClientGatewayKey(baseKey, h)
 		if !reflect.DeepEqual(clientGatewayKey, precannedClientGatewayKey[i]) {
 			t.Errorf("KMAC %v did not match expected:"+
 				"\n  Recieved: %v\n  Expected: %v", i, clientGatewayKey, precannedClientGatewayKey[i])
