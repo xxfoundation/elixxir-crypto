@@ -12,7 +12,7 @@ import (
 	"bytes"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/hash"
-	"gitlab.com/elixxir/primitives/id"
+	"gitlab.com/xx_network/primitives/id"
 )
 
 // combinedHash generates a key from two user ids by appending hashes
