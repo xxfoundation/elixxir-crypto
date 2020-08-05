@@ -10,7 +10,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"gitlab.com/elixxir/crypto/cyclic"
-	"gitlab.com/elixxir/primitives/id"
+	"gitlab.com/xx_network/primitives/id"
 	"testing"
 )
 
