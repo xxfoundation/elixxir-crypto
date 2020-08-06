@@ -9,7 +9,7 @@ package xx
 import (
 	"github.com/pkg/errors"
 	"gitlab.com/elixxir/crypto/hash"
-	"gitlab.com/elixxir/crypto/signature/rsa"
+	"gitlab.com/xx_network/crypto/signature/rsa"
 	"gitlab.com/xx_network/primitives/id"
 )
 
