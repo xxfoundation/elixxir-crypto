@@ -15,7 +15,7 @@ build:
 	go mod tidy
 
 update_release:
-	GOFLAGS="" go get -u gitlab.com/elixxir/primitives@release
+	GOFLAGS="" go get -u gitlab.com/elixxir/primitives@"XX-2471/XXPrimitives"
 	GOFLAGS="" go get -u gitlab.com/xx_network/primitives@release
 
 update_master:
