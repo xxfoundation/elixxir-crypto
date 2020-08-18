@@ -10,6 +10,7 @@ import (
 // derives a single key fingerprint at position keynum using blake2B on
 // the concatenation of the second half of the cyclic basekey, the passed
 // userID, and the keynum
+// Fingerprint = H(Second half of base key | userID | keyNum)
 func DeriveKeyFingerprint(dhkey *cyclic.Int, userID *id.ID, keyNum uint32) (format.Fingerprint, error) {
 	//use the first half of the bits to create the key
 	data := dhkey.Bytes()
@@ -34,6 +35,7 @@ func DeriveKeyFingerprint(dhkey *cyclic.Int, userID *id.ID, keyNum uint32) (form
 // derives a single key fingerprint for rekeying at position keynum using
 // blake2B on the concatenation of the first half of the cyclic basekey,
 // the passed userID, the designated rekey string, and the keynum
+// Fingerprint = H(Second half of base key | userID | ReKeyStr | keyNum)
 func DeriveReKeyFingerprint(dhkey *cyclic.Int, userID *id.ID, keyNum uint32) (format.Fingerprint, error) {
 	//use the first half of the bits to create the key
 	data := dhkey.Bytes()

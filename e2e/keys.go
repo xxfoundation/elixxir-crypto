@@ -21,6 +21,7 @@ type Key [KeyLen]byte
 
 // derives a single key at position keynum using blake2B on the concatenation
 // of the first half of the cyclic basekey, the passed userID, and the keynum
+// Key = H(First half of base key | userID | keyNum)
 func DeriveKey(basekey *cyclic.Int, userID *id.ID, keyNum uint32) (Key, error) {
 	//use the first half of the bits to create the key
 	data := basekey.Bytes()
@@ -46,6 +47,7 @@ func DeriveKey(basekey *cyclic.Int, userID *id.ID, keyNum uint32) (Key, error) {
 // derives a single key for rekeying at position keynum using blake2B on
 // the concatenation of the first half of the cyclic basekey, the passed userID,
 // the designated rekey string, and the keynum
+// ReKey = H(First half of base key | userID | ReKeyStr | keyNum)
 func DeriveReKey(dhkey *cyclic.Int, userID *id.ID, keyNum uint32) (Key, error) {
 	//use the first half of the bits to create the key
 	data := dhkey.Bytes()
