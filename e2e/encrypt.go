@@ -9,46 +9,37 @@
 package e2e
 
 import (
-	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/elixxir/primitives/format"
+	"golang.org/x/crypto/salsa20"
 )
 
-// EncryptUnsafe modular multiplies the key and message under the passed group.
+// CryptUnsafe Salsa20 encrypts or decrypts a message with the passed key using the
+// fingerprint as a nonce
 // DOES NOT PAD message, so this could be unsafe if message is too small
-func EncryptUnsafe(g *cyclic.Group, key *cyclic.Int, msg []byte) []byte {
-	// Modular multiply the key with the message
-	product := g.Mul(key, g.NewIntFromBytes(msg), g.NewInt(1))
+func CryptUnsafe(key Key, fingerprint format.Fingerprint, msg []byte) []byte {
+	out := make([]byte, len(msg))
+	keyArray := [32]byte(key)
+	salsa20.XORKeyStream(out, msg, fingerprint[:24], &keyArray)
 	// Return the result
-	return product.LeftpadBytes(uint64(g.GetP().ByteLen()))
+	return out
 }
 
-// Encrypt encrypts a message by first padding it, using rand.Reader
-// Modular multiplies the key and padded message under the passed group.
-func Encrypt(g *cyclic.Group, key *cyclic.Int, msg []byte) ([]byte, error) {
+// Encrypt encrypts a message by first padding it, using rand.Reader and then
+// encrypts the payload with salsa20.
+func Encrypt(key Key, fingerprint format.Fingerprint, msg []byte) ([]byte, error) {
 	// Get the padded message
-	encMsg, err := Pad(msg, int(g.GetP().ByteLen()))
+	encMsg, err := Pad(msg, len(msg)*8)
 
 	// Return if an error occurred
 	if err != nil {
 		return nil, err
 	}
-	return EncryptUnsafe(g, key, encMsg), nil
+	return CryptUnsafe(key, fingerprint, encMsg), nil
 }
 
-// DecryptUnsafe modular inverts the key under the passed group and
-// modular multiplies it with the encrypted message under the passed group.
-func DecryptUnsafe(g *cyclic.Group, key *cyclic.Int, encMsg []byte) []byte {
-	// Modular invert the key under the group
-	keyInv := g.Inverse(key, g.NewInt(1))
-	// Modular multiply the inverted key with the message
-	product := g.Mul(keyInv, g.NewIntFromBytes(encMsg), g.NewInt(1))
-	return product.LeftpadBytes(uint64(g.GetP().ByteLen()))
-}
-
-// Decrypt modular inverts the key under the passed group and
-// modular multiplies it with the encrypted message under the passed group.
-// Then removes padding from the message
-func Decrypt(g *cyclic.Group, key *cyclic.Int, encMsg []byte) ([]byte, error) {
-	decMsg := DecryptUnsafe(g, key, encMsg)
+// Encrypt decrypts the payload with salsa20 and then unpads it
+func Decrypt(key Key, fingerprint format.Fingerprint, encMsg []byte) ([]byte, error) {
+	decMsg := CryptUnsafe(key, fingerprint, encMsg)
 
 	// Remove the padding from the message
 	unPadMsg, err := Unpad(decMsg)

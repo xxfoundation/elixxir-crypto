@@ -41,7 +41,7 @@ func DeriveReKeyFingerprint(dhkey *cyclic.Int, userID *id.ID, keyNum uint32) (fo
 	//add the userID to ensure uniqueness
 	data = append(data, userID.Bytes()...)
 	//add the rekey bytes to it
-	data = append(data, []byte(REKEY_STR)...)
+	data = append(data, []byte(ReKeyStr)...)
 
 	//get the hash
 	h, err := blake2b.New256(nil)
@@ -57,6 +57,7 @@ func DeriveReKeyFingerprint(dhkey *cyclic.Int, userID *id.ID, keyNum uint32) (fo
 	return fp, nil
 }
 
+/*Unused for now
 // derives all key fingerprints up to position numKeys using blake2B on the
 // concatenation of the first half of the cyclic basekey, the passed userID,
 // and the keynum
@@ -98,7 +99,7 @@ func DeriveReKeyFingerprints(dhkey *cyclic.Int, userID *id.ID, numKeys uint32) (
 	//add the userID to ensure uniqueness
 	data = append(data, userID.Bytes()...)
 	//add the rekey bytes to it
-	data = append(data, []byte(REKEY_STR)...)
+	data = append(data, []byte(ReKeyStr)...)
 
 	//get the hash
 	h, err := blake2b.New256(nil)
@@ -119,4 +120,4 @@ func DeriveReKeyFingerprints(dhkey *cyclic.Int, userID *id.ID, numKeys uint32) (
 	}
 
 	return fpList, nil
-}
+}*/

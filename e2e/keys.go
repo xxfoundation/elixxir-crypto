@@ -14,9 +14,10 @@ import (
 	"golang.org/x/crypto/blake2b"
 )
 
-const REKEY_STR = "REKEY"
+const ReKeyStr = "REKEY"
+const KeyLen = 32
 
-type Key [32]byte
+type Key [KeyLen]byte
 
 // derives a single key at position keynum using blake2B on the concatenation
 // of the first half of the cyclic basekey, the passed userID, and the keynum
@@ -52,7 +53,7 @@ func DeriveReKey(dhkey *cyclic.Int, userID *id.ID, keyNum uint32) (Key, error) {
 	//add the userID to ensure uniqueness
 	data = append(data, userID.Bytes()...)
 	//add the rekey bytes to it
-	data = append(data, []byte(REKEY_STR)...)
+	data = append(data, []byte(ReKeyStr)...)
 
 	//get the hash
 	h, err := blake2b.New256(nil)

