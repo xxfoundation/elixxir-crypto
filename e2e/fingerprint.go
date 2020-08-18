@@ -76,6 +76,7 @@ func DeriveKeyFingerprints(dhkey *cyclic.Int, userID *id.ID, numKeys uint32) ([]
 	//generate all fingerprints
 	fpList := make([]format.Fingerprint, numKeys)
 	for keyNum := uint32(0); keyNum < numKeys; keyNum++ {
+		h.Reset()
 		//derive the fingerprint
 		fpBytes := derive(h, data, keyNum)
 		//add tje fingerprint to the list
@@ -108,6 +109,7 @@ func DeriveReKeyFingerprints(dhkey *cyclic.Int, userID *id.ID, numKeys uint32) (
 	//generate all fingerprints
 	fpList := make([]format.Fingerprint, numKeys)
 	for keyNum := uint32(0); keyNum < numKeys; keyNum++ {
+		h.Reset()
 		//derive the fingerprint
 		fpBytes := derive(h, data, keyNum)
 		//add tje fingerprint to the list
