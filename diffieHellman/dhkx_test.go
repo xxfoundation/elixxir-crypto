@@ -237,7 +237,8 @@ func TestDHNodeKeys(t *testing.T) {
 }*/
 
 func BenchmarkCreateDHSessionKey(b *testing.B) {
-	b.StopTimer()
+
+
 	primeString := "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
 		"29024E088A67CC74020BBEA63B139B22514A08798E3404DD" +
 		"EF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245" +
@@ -267,7 +268,7 @@ func BenchmarkCreateDHSessionKey(b *testing.B) {
 		privkeys[i] = privKey
 	}
 
-	b.StartTimer()
+	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 
 		CreateDHSessionKey(pubkeys[i], privkeys[i], grp)
