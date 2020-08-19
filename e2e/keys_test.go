@@ -10,9 +10,9 @@ import (
 	"bytes"
 	"encoding/base64"
 	"gitlab.com/elixxir/crypto/cyclic"
-	"gitlab.com/elixxir/primitives/id"
 	"math/rand"
 	"reflect"
+	"gitlab.com/xx_network/primitives/id"
 	"testing"
 )
 

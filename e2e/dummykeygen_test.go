@@ -7,9 +7,9 @@
 package e2e
 
 import (
+	"gitlab.com/xx_network/primitives/id"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/large"
-	"gitlab.com/elixxir/primitives/id"
 	"os"
 	"testing"
 )

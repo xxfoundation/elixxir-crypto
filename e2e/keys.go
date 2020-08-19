@@ -10,6 +10,7 @@ package e2e
 
 import (
 	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/xx_network/primitives/id"
 	"gitlab.com/elixxir/primitives/format"
 	"gitlab.com/elixxir/primitives/id"
 	"golang.org/x/crypto/blake2b"

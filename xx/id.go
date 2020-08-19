@@ -9,8 +9,8 @@ package xx
 import (
 	"github.com/pkg/errors"
 	"gitlab.com/elixxir/crypto/hash"
-	"gitlab.com/elixxir/crypto/signature/rsa"
-	"gitlab.com/elixxir/primitives/id"
+	"gitlab.com/xx_network/crypto/signature/rsa"
+	"gitlab.com/xx_network/primitives/id"
 )
 
 // NewID creates a new ID by hashing the public key with a random 256-bit number

@@ -116,8 +116,8 @@ func TestRead_NotByteAligned(t *testing.T) {
 	stream0.rng = csprng.NewSystemRNG()
 	_, err := stream0.Read(requestedBytes)
 
-	if err == nil {
-		t.Errorf("Error returned by Read() nil when not expected.")
+	if err != nil {
+		t.Errorf("Error returned by Read() when not expected: %v", err)
 	}
 }
 
