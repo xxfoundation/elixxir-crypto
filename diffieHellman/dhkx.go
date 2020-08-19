@@ -9,29 +9,30 @@
 package diffieHellman
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
 	"gitlab.com/elixxir/crypto/csprng"
 	"gitlab.com/elixxir/crypto/cyclic"
 )
 
-const DefaultPrivateKeyLength = 256
+const DefaultPrivateKeyLengthBits = 256
+const DefaultPrivateKeyLength = DefaultPrivateKeyLengthBits / 8
 
 // Creates a private key of the passed length in bits in the given group using
 // the passed csprng. The length of the key must be within the prime of the
 // group. It is recommended to use the "DefaultPrivateKeyLength"
 // for most use cases.
 // key size must be divisible by 8
-func GeneratePrivateKey(size uint, group *cyclic.Group, source csprng.Source) (*cyclic.Int, error) {
+func GeneratePrivateKey(size int, group *cyclic.Group, source csprng.Source) *cyclic.Int {
 
-	k1, err := csprng.GenerateInGroup(group.GetPBytes(), int(size/8), source)
+	k1, err := csprng.GenerateInGroup(group.GetPBytes(), size, source)
 
 	if err != nil {
-		return nil, errors.Errorf("Failed to generate key: %s", err.Error())
+		panic(fmt.Sprintf("Failed to generate key: %s", err.Error()))
 	}
 
 	privateKey := group.NewIntFromBytes(k1)
 
-	return privateKey, nil
+	return privateKey
 }
 
 // Computes a public key for the given private key. The private key must be

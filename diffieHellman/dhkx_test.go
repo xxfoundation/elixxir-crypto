@@ -43,13 +43,13 @@ func TestGeneratePrivateKey(t *testing.T) {
 	maxSize := 0
 
 	for i := 0; i < numGenerations; i++ {
-		privKey, _ := GeneratePrivateKey(DefaultPrivateKeyLength, grp, rng)
+		privKey := GeneratePrivateKey(DefaultPrivateKeyLength, grp, rng)
 		if privKey.BitLen() > maxSize {
 			maxSize = privKey.BitLen()
 		}
 	}
 
-	if maxSize != DefaultPrivateKeyLength {
+	if maxSize != DefaultPrivateKeyLengthBits {
 		t.Errorf("Generated Private Keys never met correct length: "+
 			"Expected :%v, Received: %v", DefaultPrivateKeyLength, maxSize)
 	}
@@ -79,7 +79,7 @@ func TestGeneratePublicKey(t *testing.T) {
 
 	for i := 0; i < numTests; i++ {
 		//create public key
-		privKey, _ := GeneratePrivateKey(DefaultPrivateKeyLength, grp, rng)
+		privKey := GeneratePrivateKey(DefaultPrivateKeyLength, grp, rng)
 		publicKey := GeneratePublicKey(privKey, grp)
 
 		//create public key manually
@@ -120,7 +120,7 @@ func TestGenerateSessionKey(t *testing.T) {
 
 	for i := 0; i < numTests; i++ {
 		//create session key
-		privKey, _ := GeneratePrivateKey(DefaultPrivateKeyLength, grp, rng)
+		privKey := GeneratePrivateKey(DefaultPrivateKeyLength, grp, rng)
 		publicKey := GeneratePublicKey(privKey, grp)
 		session := GenerateSessionKey(privKey, publicKey, grp)
 
@@ -161,7 +161,7 @@ func TestCheckPublicKey(t *testing.T) {
 	rng := csprng.NewSystemRNG()
 
 	// Creation of a DH Key Pair with valid parameters
-	privKey, _ := GeneratePrivateKey(DefaultPrivateKeyLength, grp, rng)
+	privKey := GeneratePrivateKey(DefaultPrivateKeyLength, grp, rng)
 	publicKey := GeneratePublicKey(privKey, grp)
 
 	// Random 2048 bit number that is not a quadratic residue
@@ -220,8 +220,8 @@ func BenchmarkCreateDHSessionKey(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		// Creation of two different DH Key Pairs with valid parameters
-		privkeys[i], _ = GeneratePrivateKey(DefaultPrivateKeyLength, grp, rng)
-		tmpPrivKey, _ := GeneratePrivateKey(DefaultPrivateKeyLength, grp, rng)
+		privkeys[i] = GeneratePrivateKey(DefaultPrivateKeyLength, grp, rng)
+		tmpPrivKey := GeneratePrivateKey(DefaultPrivateKeyLength, grp, rng)
 		pubkeys[i] = GeneratePublicKey(tmpPrivKey, grp)
 	}
 
