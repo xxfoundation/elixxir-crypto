@@ -237,9 +237,7 @@ func TestDHNodeKeys(t *testing.T) {
 }*/
 
 func BenchmarkCreateDHSessionKey(b *testing.B) {
-
-	const iterations = 1
-
+	b.StopTimer()
 	primeString := "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
 		"29024E088A67CC74020BBEA63B139B22514A08798E3404DD" +
 		"EF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245" +
@@ -256,12 +254,23 @@ func BenchmarkCreateDHSessionKey(b *testing.B) {
 	g := large.NewInt(2)
 	grp := cyclic.NewGroup(p, g)
 
-	// Creation of two different DH Key Pairs with valid parameters
-	_, pubKey := CreateDHKeyPair(grp)
-	privKey, _ := CreateDHKeyPair(grp)
+	pubkeys := make([]*cyclic.Int, b.N)
+	privkeys := make([]*cyclic.Int, b.N)
 
-	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
 
-	CreateDHSessionKey(pubKey, privKey, grp)
+		// Creation of two different DH Key Pairs with valid parameters
+		_, pubKey := CreateDHKeyPair(grp)
+		privKey, _ := CreateDHKeyPair(grp)
+
+		pubkeys[i] = pubKey
+		privkeys[i] = privKey
+	}
+
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+
+		CreateDHSessionKey(pubkeys[i], privkeys[i], grp)
+	}
 
 }
