@@ -23,7 +23,7 @@ import (
 func GenerateBaseKey(g *cyclic.Group, peerPubKey *cyclic.Int,
 	ownPrivKey *cyclic.Int, h hash.Hash) *cyclic.Int {
 
-	sessionKey, _ := diffieHellman.CreateDHSessionKey(peerPubKey, ownPrivKey, g)
+	sessionKey := diffieHellman.GenerateSessionKey(ownPrivKey, peerPubKey, g)
 
 	h.Write(sessionKey.Bytes())
 	return g.NewIntFromBytes(h.Sum(nil))
