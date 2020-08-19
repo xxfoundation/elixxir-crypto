@@ -301,7 +301,21 @@ func TestGetFingerprint(t *testing.T) {
 
 	if grp.GetFingerprint() != expected {
 		t.Errorf("GetFingerprint returned wrong value, expected: %v,"+
-			"got: %v", expected, grp.GetFingerprint())
+			" got: %v", expected, grp.GetFingerprint())
+	}
+}
+
+// Test group fingerprint getter
+func TestGetFingerprintText(t *testing.T) {
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	grp := NewGroup(p, g)
+
+	expected := "ln9lzlk2..."
+
+	if grp.GetFingerprintText() != expected {
+		t.Errorf("GetFingerprintText returned wrong value, expected: %v,"+
+			" got: %v", expected, grp.GetFingerprintText())
 	}
 }
 
