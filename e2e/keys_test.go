@@ -10,9 +10,9 @@ import (
 	"bytes"
 	"encoding/base64"
 	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/xx_network/primitives/id"
 	"math/rand"
 	"reflect"
-	"gitlab.com/xx_network/primitives/id"
 	"testing"
 )
 
@@ -26,7 +26,7 @@ func TestDeriveKey_Consistency(t *testing.T) {
 	}
 
 	d := func(dhkey *cyclic.Int, userID *id.ID, keyNum uint32) []byte {
-		k, _ := DeriveKey(dhkey, userID, keyNum)
+		k := DeriveKey(dhkey, userID, keyNum)
 		return k[:]
 	}
 
@@ -43,7 +43,7 @@ func TestDeriveReKey_Consistency(t *testing.T) {
 	}
 
 	d := func(dhkey *cyclic.Int, userID *id.ID, keyNum uint32) []byte {
-		k, _ := DeriveReKey(dhkey, userID, keyNum)
+		k := DeriveReKey(dhkey, userID, keyNum)
 		return k[:]
 	}
 
@@ -60,7 +60,7 @@ func TestDeriveKeyFingerprint_Consistency(t *testing.T) {
 	}
 
 	d := func(dhkey *cyclic.Int, userID *id.ID, keyNum uint32) []byte {
-		fp, _ := DeriveKeyFingerprint(dhkey, userID, keyNum)
+		fp := DeriveKeyFingerprint(dhkey, userID, keyNum)
 		return fp[:]
 	}
 
@@ -77,7 +77,7 @@ func TestDeriveReKeyFingerprint_Consistency(t *testing.T) {
 	}
 
 	d := func(dhkey *cyclic.Int, userID *id.ID, keyNum uint32) []byte {
-		fp, _ := DeriveReKeyFingerprint(dhkey, userID, keyNum)
+		fp := DeriveReKeyFingerprint(dhkey, userID, keyNum)
 		return fp[:]
 	}
 
@@ -143,10 +143,10 @@ func TestAllDifferent(t *testing.T) {
 
 		keyNum := keynumsPrng.Uint32()
 
-		key, _ := DeriveKey(basekey, &userID, keyNum)
-		rekey, _ := DeriveReKey(basekey, &userID, keyNum)
-		fp, _ := DeriveKeyFingerprint(basekey, &userID, keyNum)
-		refp, _ := DeriveReKeyFingerprint(basekey, &userID, keyNum)
+		key := DeriveKey(basekey, &userID, keyNum)
+		rekey := DeriveReKey(basekey, &userID, keyNum)
+		fp := DeriveKeyFingerprint(basekey, &userID, keyNum)
+		refp := DeriveReKeyFingerprint(basekey, &userID, keyNum)
 
 		list := make([][]byte, 4)
 		list[0] = key[:]

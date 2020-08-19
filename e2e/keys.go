@@ -9,6 +9,7 @@
 package e2e
 
 import (
+	"fmt"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/primitives/format"
 	"gitlab.com/xx_network/primitives/id"
@@ -23,7 +24,7 @@ type Key [KeyLen]byte
 // derives a single key at position keynum using blake2B on the concatenation
 // of the first half of the cyclic basekey, the passed userID, and the keynum
 // Key = H(First half of base key | userID | keyNum)
-func DeriveKey(basekey *cyclic.Int, userID *id.ID, keyNum uint32) (Key, error) {
+func DeriveKey(basekey *cyclic.Int, userID *id.ID, keyNum uint32) Key {
 	//use the first half of the bits to create the key
 	data := basekey.Bytes()
 	data = data[:len(data)/2]
@@ -33,7 +34,8 @@ func DeriveKey(basekey *cyclic.Int, userID *id.ID, keyNum uint32) (Key, error) {
 	//get the hash
 	h, err := blake2b.New256(nil)
 	if err != nil {
-		return Key{}, err
+		panic(fmt.Sprintf("Failed to create hash for "+
+			"DeriveKey: %s", err))
 	}
 
 	//derive the key
@@ -42,14 +44,14 @@ func DeriveKey(basekey *cyclic.Int, userID *id.ID, keyNum uint32) (Key, error) {
 	//put the keybytes in a key object and return
 	k := Key{}
 	copy(k[:], keyBytes)
-	return k, nil
+	return k
 }
 
 // derives a single key for rekeying at position keynum using blake2B on
 // the concatenation of the first half of the cyclic basekey, the passed userID,
 // the designated rekey string, and the keynum
 // ReKey = H(First half of base key | userID | ReKeyStr | keyNum)
-func DeriveReKey(dhkey *cyclic.Int, userID *id.ID, keyNum uint32) (Key, error) {
+func DeriveReKey(dhkey *cyclic.Int, userID *id.ID, keyNum uint32) Key {
 	//use the first half of the bits to create the key
 	data := dhkey.Bytes()
 	data = data[:len(data)/2]
@@ -61,7 +63,8 @@ func DeriveReKey(dhkey *cyclic.Int, userID *id.ID, keyNum uint32) (Key, error) {
 	//get the hash
 	h, err := blake2b.New256(nil)
 	if err != nil {
-		return Key{}, err
+		panic(fmt.Sprintf("Failed to create hash for "+
+			"DeriveReKey: %s", err))
 	}
 	//derive the key
 	keyBytes := derive(h, data, keyNum)
@@ -69,14 +72,14 @@ func DeriveReKey(dhkey *cyclic.Int, userID *id.ID, keyNum uint32) (Key, error) {
 	//put the keybytes in a key object and return
 	k := Key{}
 	copy(k[:], keyBytes)
-	return k, nil
+	return k
 }
 
 // derives a single key fingerprint at position keynum using blake2B on
 // the concatenation of the second half of the cyclic basekey, the passed
 // userID, and the keynum
 // Fingerprint = H(Second half of base key | userID | keyNum)
-func DeriveKeyFingerprint(dhkey *cyclic.Int, userID *id.ID, keyNum uint32) (format.Fingerprint, error) {
+func DeriveKeyFingerprint(dhkey *cyclic.Int, userID *id.ID, keyNum uint32) format.Fingerprint {
 	//use the first half of the bits to create the key
 	data := dhkey.Bytes()
 	data = data[len(data)/2:]
@@ -86,7 +89,8 @@ func DeriveKeyFingerprint(dhkey *cyclic.Int, userID *id.ID, keyNum uint32) (form
 	//get the hash
 	h, err := blake2b.New256(nil)
 	if err != nil {
-		return format.Fingerprint{}, err
+		panic(fmt.Sprintf("Failed to create hash for "+
+			"DeriveKeyFingerprint(): %s", err))
 	}
 	//derive the key
 	fpBytes := derive(h, data, keyNum)
@@ -94,14 +98,14 @@ func DeriveKeyFingerprint(dhkey *cyclic.Int, userID *id.ID, keyNum uint32) (form
 	//put the keybytes in a key object and return
 	fp := format.Fingerprint{}
 	copy(fp[:], fpBytes)
-	return fp, nil
+	return fp
 }
 
 // derives a single key fingerprint for rekeying at position keynum using
 // blake2B on the concatenation of the first half of the cyclic basekey,
 // the passed userID, the designated rekey string, and the keynum
 // Fingerprint = H(Second half of base key | userID | ReKeyStr | keyNum)
-func DeriveReKeyFingerprint(dhkey *cyclic.Int, userID *id.ID, keyNum uint32) (format.Fingerprint, error) {
+func DeriveReKeyFingerprint(dhkey *cyclic.Int, userID *id.ID, keyNum uint32) format.Fingerprint {
 	//use the first half of the bits to create the key
 	data := dhkey.Bytes()
 	data = data[len(data)/2:]
@@ -113,7 +117,8 @@ func DeriveReKeyFingerprint(dhkey *cyclic.Int, userID *id.ID, keyNum uint32) (fo
 	//get the hash
 	h, err := blake2b.New256(nil)
 	if err != nil {
-		return format.Fingerprint{}, err
+		panic(fmt.Sprintf("Failed to create hash for "+
+			"DeriveReKeyFingerprint(): %s", err))
 	}
 	//derive the key
 	fpBytes := derive(h, data, keyNum)
@@ -121,7 +126,7 @@ func DeriveReKeyFingerprint(dhkey *cyclic.Int, userID *id.ID, keyNum uint32) (fo
 	//put the keybytes in a key object and return
 	fp := format.Fingerprint{}
 	copy(fp[:], fpBytes)
-	return fp, nil
+	return fp
 }
 
 /*Unused for now
