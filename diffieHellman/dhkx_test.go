@@ -261,7 +261,8 @@ func BenchmarkCreateDHSessionKey(b *testing.B) {
 	privKey, _ := CreateDHKeyPair(grp)
 
 	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		CreateDHSessionKey(pubKey, privKey, grp)
 
-	CreateDHSessionKey(pubKey, privKey, grp)
-
+	}
 }
