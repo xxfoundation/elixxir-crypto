@@ -9,6 +9,7 @@ package e2e
 import (
 	"bytes"
 	"encoding/base64"
+	"fmt"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/xx_network/primitives/id"
 	"math/rand"
@@ -19,14 +20,14 @@ import (
 //test consistency for DeriveKey
 func TestDeriveKey_Consistency(t *testing.T) {
 	expectedKeys := []string{
-		"/vvFJWjt4LhlpOAq3fZn4lfdmMh9X4ZHyMjCFz0UwRo=",
-		"bdItjv5VMy4Xm40PH1iaBfLwx0Ni/9zIvbAJ/laUOSM=",
-		"UzMNfY9ZkGieKr25hoH5zV+9+bsYKpHmh7Wl5qy38Qs=",
-		"Aap7CrsET1cGf7YRdSe5xyL9ONuW3182a7VEiNZgjUA=",
+		"2gQs27wW7ckb6zGUBibdyYs6/aBqJxK2YFW6hToO2EI=",
+		"xJcc6R7CO8DYHMO1EPaoQosa6gGm+XUUT/h4zd3cAgA=",
+		"2GcWd46Z/QFyjVGecwoWY7AMTsXU9WhLsqEJPAuPH8c=",
+		"HfotB69pGLoD9prB4VYSayvWgxuKrXWAjEh8Upsx7c0=",
 	}
 
-	d := func(dhkey *cyclic.Int, userID *id.ID, keyNum uint32) []byte {
-		k := DeriveKey(dhkey, userID, keyNum)
+	d := func(dhkey *cyclic.Int, keyNum uint32) []byte {
+		k := DeriveKey(dhkey, keyNum)
 		return k[:]
 	}
 
@@ -36,14 +37,14 @@ func TestDeriveKey_Consistency(t *testing.T) {
 //test consistency for DeriveReKey
 func TestDeriveReKey_Consistency(t *testing.T) {
 	expectedKeys := []string{
-		"UOkk/aCiZCa6MGPce43a57Htsf1UCMB6PnWtb32J+4s=",
-		"4Mt2PhielEiF7r6zCKAZfhntEiclwiwmBRlaq0WaDRs=",
-		"Lvg6VBla3+xOJFm5Qr6utGdQOq0R4bPopyud1jx9yVs=",
-		"eqDT+PdbAIvQxWa+mBy5mE0/hK2Wb0WuIA8wvDw7jyA=",
+		"e/br4X5+UOH24+yINEKjhw/MEKzivNJJzvn3tPL2hVU=",
+		"e4aMisC9bnY5JUT36hTiUQFjjrf3DF92kKKWmfZDInI=",
+		"uufiizFsJwIa+/WDthUxCziSMZ9Afu24+8k2sOAz+2A=",
+		"jRwJaIX04ILQv1mR9l8eVQvQGM2kjKeXoXQz5gcox3Q=",
 	}
 
-	d := func(dhkey *cyclic.Int, userID *id.ID, keyNum uint32) []byte {
-		k := DeriveReKey(dhkey, userID, keyNum)
+	d := func(dhkey *cyclic.Int, keyNum uint32) []byte {
+		k := DeriveReKey(dhkey, keyNum)
 		return k[:]
 	}
 
@@ -53,14 +54,14 @@ func TestDeriveReKey_Consistency(t *testing.T) {
 //test consistency for DeriveKeyFingerprint
 func TestDeriveKeyFingerprint_Consistency(t *testing.T) {
 	expectedKeys := []string{
-		"32BOjB9FJ+gEUQYjDuyNHC5jxZYtmin8LuN6mfKOODE=",
-		"yKsnV4xAauNhqi5YCiESeBSKksLQY5iH3+dWGmnwSig=",
-		"ZOrWfR3KJGO2MsPAEAUe7Y0yWRtU9Mlpw8zlefmQrfY=",
-		"a8LoB1Z5BNETBmD+tM7appp+oSXh4QbT6ePeAKrvS1Q=",
+		"biUwFTuy+udrvH9iMCjBfen4seZAC9Q/5yZMwtVVTyk=",
+		"Nv+cWM+lTzxEmtpk0h7Cr4O+GK7F5QTYSguywmnL4jw=",
+		"pLLv4zWiydGW0ZU/8AxQYHZavBjm/Fw8KuE5dqgLPgo=",
+		"15CDZZA2O1ck7PgyarTdT4wGcykQNfTsJJePy5OAJh8=",
 	}
 
-	d := func(dhkey *cyclic.Int, userID *id.ID, keyNum uint32) []byte {
-		fp := DeriveKeyFingerprint(dhkey, userID, keyNum)
+	d := func(dhkey *cyclic.Int, keyNum uint32) []byte {
+		fp := DeriveKeyFingerprint(dhkey, keyNum)
 		return fp[:]
 	}
 
@@ -70,24 +71,23 @@ func TestDeriveKeyFingerprint_Consistency(t *testing.T) {
 //test consistency for DeriveReKeyFingerprint
 func TestDeriveReKeyFingerprint_Consistency(t *testing.T) {
 	expectedKeys := []string{
-		"0p1yuGGuQPkGpMnZpQfkKSbulV+U63u1LHEp+MIEJp0=",
-		"Elf7zHAPojPPOTBJcz0X9DJrjOtHsRe6cr1P9iqMAz8=",
-		"yaJBcqK5vV4Iptom1QYgEEc/buIHcwojhQJrtZOO3Tg=",
-		"Iu4UNlR5cwt778LN2WoUQEWUDjhqndlM/kflSCKZlTI=",
+		"IaXR6e7UXWMXWDPzCrOBkpjfu0vxHbg0bYf0OZg4K9E=",
+		"f5HYovwi5VBfuD1xgEMW9109FbgqKtpxIzRd9drOs/k=",
+		"bDcv10RwH6oanu+XS8dTy5fPFXfN84yMNj9LiOcYN2c=",
+		"/K/XG4NS1UUuDuxxPaf7cBRDmo11vHn3CGf8fYA6DEg=",
 	}
 
-	d := func(dhkey *cyclic.Int, userID *id.ID, keyNum uint32) []byte {
-		fp := DeriveReKeyFingerprint(dhkey, userID, keyNum)
+	d := func(dhkey *cyclic.Int, keyNum uint32) []byte {
+		fp := DeriveReKeyFingerprint(dhkey, keyNum)
 		return fp[:]
 	}
 
 	deriveConsistencyTester(t, expectedKeys, d, "DeriveReKeyFingerprint()")
 }
 
-func deriveConsistencyTester(t *testing.T, expectedKeys []string, d func(dhkey *cyclic.Int, userID *id.ID, keyNum uint32) []byte, name string) {
+func deriveConsistencyTester(t *testing.T, expectedKeys []string, d func(dhkey *cyclic.Int, keyNum uint32) []byte, name string) {
 	basekeyPrng := rand.New(rand.NewSource(42))
-	userIDPrng := rand.New(rand.NewSource(69))
-	keynumsPrng := rand.New(rand.NewSource(420))
+	keynumsPrng := rand.New(rand.NewSource(69))
 
 	baseKeyLen := grp.GetP().ByteLen()
 
@@ -98,13 +98,12 @@ func deriveConsistencyTester(t *testing.T, expectedKeys []string, d func(dhkey *
 		basekey := grp.NewIntFromBytes(baseKeyBytes)
 
 		userIDBytes := make([]byte, 33)
-		userIDPrng.Read(userIDBytes)
 		userID := id.ID{}
 		copy(userID[:], userIDBytes)
 
 		keyNum := keynumsPrng.Uint32()
 
-		key := d(basekey, &userID, keyNum)
+		key := d(basekey, keyNum)
 
 		if len(key[:]) != 32 {
 			t.Errorf("Key should be 256 bits, is %v instead", 64*len(key))
@@ -114,7 +113,7 @@ func deriveConsistencyTester(t *testing.T, expectedKeys []string, d func(dhkey *
 
 		if !reflect.DeepEqual(key[:], expectedKey) {
 			t.Errorf("%s did not produce the correct message on test %v\n\treceived: %#v\n\texpected: %#v", name, i, key, expectedKey)
-			//fmt.Println(base64.StdEncoding.EncodeToString(key[:]))
+			fmt.Println(base64.StdEncoding.EncodeToString(key[:]))
 		}
 
 	}
@@ -125,8 +124,7 @@ func TestAllDifferent(t *testing.T) {
 	const numtests = 25
 
 	basekeyPrng := rand.New(rand.NewSource(42))
-	userIDPrng := rand.New(rand.NewSource(69))
-	keynumsPrng := rand.New(rand.NewSource(420))
+	keynumsPrng := rand.New(rand.NewSource(69))
 
 	baseKeyLen := grp.GetP().ByteLen()
 
@@ -137,16 +135,15 @@ func TestAllDifferent(t *testing.T) {
 		basekey := grp.NewIntFromBytes(baseKeyBytes)
 
 		userIDBytes := make([]byte, 33)
-		userIDPrng.Read(userIDBytes)
 		userID := id.ID{}
 		copy(userID[:], userIDBytes)
 
 		keyNum := keynumsPrng.Uint32()
 
-		key := DeriveKey(basekey, &userID, keyNum)
-		rekey := DeriveReKey(basekey, &userID, keyNum)
-		fp := DeriveKeyFingerprint(basekey, &userID, keyNum)
-		refp := DeriveReKeyFingerprint(basekey, &userID, keyNum)
+		key := DeriveKey(basekey, keyNum)
+		rekey := DeriveReKey(basekey, keyNum)
+		fp := DeriveKeyFingerprint(basekey, keyNum)
+		refp := DeriveReKeyFingerprint(basekey, keyNum)
 
 		list := make([][]byte, 4)
 		list[0] = key[:]
