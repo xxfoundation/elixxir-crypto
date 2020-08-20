@@ -26,7 +26,7 @@ func TestEncryptDecrypt(t *testing.T) {
 	msg := []byte{5, 12, 11}
 
 	// Encrypt key
-	encMsg, err := Encrypt(key, fp, msg)
+	encMsg, err := Encrypt(key, fp, msg, 200)
 
 	if err != nil {
 		t.Errorf("Encrypt() produced an unexpected error\n\treceived: %v\n\texpected: %v", err, nil)
@@ -52,7 +52,7 @@ func TestEncryptDecrypt_LeadingZeroes(t *testing.T) {
 	msg := []byte{0, 0, 11, 5, 255, 0}
 
 	// Encrypt key
-	encMsg, err := Encrypt(key, fp, msg)
+	encMsg, err := Encrypt(key, fp, msg, 200)
 
 	if err != nil {
 		t.Errorf("Encrypt() produced an unexpected error\n\treceived: %v\n\texpected: %v", err, nil)

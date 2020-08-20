@@ -26,9 +26,10 @@ func CryptUnsafe(key Key, fingerprint format.Fingerprint, msg []byte) []byte {
 
 // Encrypt encrypts a message by first padding it, using rand.Reader and then
 // encrypts the payload with salsa20.
-func Encrypt(key Key, fingerprint format.Fingerprint, msg []byte) ([]byte, error) {
+// encLen is the length of the payload after padding
+func Encrypt(key Key, fingerprint format.Fingerprint, msg []byte, encLen int) ([]byte, error) {
 	// Get the padded message
-	encMsg, err := Pad(msg, len(msg)*8)
+	encMsg, err := Pad(msg, encLen)
 
 	// Return if an error occurred
 	if err != nil {
