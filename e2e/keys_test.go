@@ -39,8 +39,8 @@ func TestDeriveKeyFingerprint_Consistency(t *testing.T) {
 	expectedKeys := []string{
 		"biUwFTuy+udrvH9iMCjBfen4seZAC9Q/5yZMwtVVTyk=",
 		"Nv+cWM+lTzxEmtpk0h7Cr4O+GK7F5QTYSguywmnL4jw=",
-		"pLLv4zWiydGW0ZU/8AxQYHZavBjm/Fw8KuE5dqgLPgo=",
-		"15CDZZA2O1ck7PgyarTdT4wGcykQNfTsJJePy5OAJh8=",
+		"JLLv4zWiydGW0ZU/8AxQYHZavBjm/Fw8KuE5dqgLPgo=",
+		"V5CDZZA2O1ck7PgyarTdT4wGcykQNfTsJJePy5OAJh8=",
 	}
 
 	d := func(dhkey *cyclic.Int, keyNum uint32) []byte {

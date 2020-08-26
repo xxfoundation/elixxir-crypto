@@ -64,5 +64,10 @@ func DeriveKeyFingerprint(dhkey *cyclic.Int, keyNum uint32) format.Fingerprint {
 	//put the keybytes in a key object and return
 	fp := format.Fingerprint{}
 	copy(fp[:], fpBytes)
+
+	// set the first bit of the fingerprint to 0 to ensure the final stored
+	// payloads are within the group
+	fp[0] &= 0x7f
+
 	return fp
 }
