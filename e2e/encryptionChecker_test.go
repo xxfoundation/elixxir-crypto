@@ -13,23 +13,26 @@ import (
 	"testing"
 )
 
+const messageSize = 150
+
 // Tests if IsUnencrypted() correctly determines an encrypted message as
 // encrypted.
 func TestIsUnencrypted_EncryptedMessage(t *testing.T) {
 	// Generate random byte slice
-	randSlice := make([]byte, 256)
+	randSlice := make([]byte, messageSize)
 	rand.Read(randSlice)
-	fpSlice := make([]byte, 32)
+	fpSlice := make([]byte, format.KeyFPLen)
 	rand.Read(fpSlice)
+	fpSlice[0] &= 0x7f
 
 	// Create message
-	m := format.NewMessage()
+	m := format.NewMessage(messageSize)
 	// Set message payload
 	m.SetPayloadA(randSlice)
 	m.SetPayloadB(randSlice)
 
 	// Set the MAC
-	m.SetMAC(fpSlice)
+	m.SetMac(fpSlice)
 
 	// Check the message
 	unencrypted := IsUnencrypted(m)
@@ -45,11 +48,11 @@ func TestIsUnencrypted_EncryptedMessage(t *testing.T) {
 // unencrypted.
 func TestIsUnencrypted_UnencryptedMessage(t *testing.T) {
 	// Generate random byte slice
-	randSlice := make([]byte, 256)
+	randSlice := make([]byte, messageSize)
 	rand.Read(randSlice)
 
 	// Create message
-	m := format.NewMessage()
+	m := format.NewMessage(messageSize)
 
 	// Set message payload
 	m.SetPayloadA(randSlice)
@@ -57,10 +60,13 @@ func TestIsUnencrypted_UnencryptedMessage(t *testing.T) {
 
 	// Create new hash
 	h, _ := hash.NewCMixHash()
-	h.Write(m.Contents.Get())
+	h.Write(m.GetSecretPayload())
+	payloadHash := h.Sum(nil)
+	payloadHash[0] &= 0x7F
 
 	// Set the MAC
-	m.SetMAC(h.Sum(nil))
+	m.SetMac(payloadHash)
+	//fmt.Println("gsp external 2", m.GetSecretPayload())
 
 	// Check the message
 	unencrypted := IsUnencrypted(m)
@@ -76,20 +82,20 @@ func TestIsUnencrypted_UnencryptedMessage(t *testing.T) {
 // IsUnencrypted().
 func TestSetUnencrypted(t *testing.T) {
 	// Generate random byte slice
-	randSlice := make([]byte, 256)
+	randSlice := make([]byte, messageSize)
 	rand.Read(randSlice)
-	fpSlice := make([]byte, 32)
+	fpSlice := make([]byte, format.KeyFPLen)
 	rand.Read(fpSlice)
 
 	// Create message
-	m := format.NewMessage()
+	m := format.NewMessage(messageSize)
 
 	// Set message payload
 	m.SetPayloadA(randSlice)
 	m.SetPayloadB(randSlice)
 
 	// Set the MAC
-	m.SetMAC(fpSlice)
+	m.SetMac(fpSlice)
 
 	SetUnencrypted(m)
 

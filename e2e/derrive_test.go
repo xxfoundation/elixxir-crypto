@@ -13,10 +13,10 @@ import (
 //checks that the derived keys are as is expected
 func TestDerive_Consistency(t *testing.T) {
 	expectedKeys := []string{
-		"ShPEi7JwZIzpIOPpUG9jBF3BRRozA+Z2JLDOXiT0YLc=",
-		"YZ8M4uOyDxVAXTHk+pr4kdhTme8urtHPTnbBqAatlgw=",
-		"IoTeCHeLlJ+MW9uuSOYoOVw6+TRQqmilRcChBP+4Tow=",
-		"QeAllQ/0OVce0Wrg5m1GuW4x5cJRbE12wKW+xYJpM0U=",
+		"xnry59JCUEvvkzAr+S/IHUGHyY2NcWQynI5sYtWL0aE=",
+		"cPTYRt8EIosS8MmpLZMfNEUIUPT7aqwWliscrBJQ6Vk=",
+		"7UUQcBh0rzBGXH7TZoGCAu596kJWIzgncTqgjuKj89s=",
+		"JPzdfI7shMZdrGEk/CgCxCkiiRSWu36UyVDrFI619wQ=",
 	}
 	// Generate keys, fingerprints and messages
 	var keyIds []uint32

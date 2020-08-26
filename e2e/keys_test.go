@@ -34,23 +34,6 @@ func TestDeriveKey_Consistency(t *testing.T) {
 	deriveConsistencyTester(t, expectedKeys, d, "DeriveKey()")
 }
 
-//test consistency for DeriveReKey
-func TestDeriveReKey_Consistency(t *testing.T) {
-	expectedKeys := []string{
-		"e/br4X5+UOH24+yINEKjhw/MEKzivNJJzvn3tPL2hVU=",
-		"e4aMisC9bnY5JUT36hTiUQFjjrf3DF92kKKWmfZDInI=",
-		"uufiizFsJwIa+/WDthUxCziSMZ9Afu24+8k2sOAz+2A=",
-		"jRwJaIX04ILQv1mR9l8eVQvQGM2kjKeXoXQz5gcox3Q=",
-	}
-
-	d := func(dhkey *cyclic.Int, keyNum uint32) []byte {
-		k := DeriveReKey(dhkey, keyNum)
-		return k[:]
-	}
-
-	deriveConsistencyTester(t, expectedKeys, d, "DeriveReKey()")
-}
-
 //test consistency for DeriveKeyFingerprint
 func TestDeriveKeyFingerprint_Consistency(t *testing.T) {
 	expectedKeys := []string{
@@ -66,23 +49,6 @@ func TestDeriveKeyFingerprint_Consistency(t *testing.T) {
 	}
 
 	deriveConsistencyTester(t, expectedKeys, d, "DeriveKeyFingerprint()")
-}
-
-//test consistency for DeriveReKeyFingerprint
-func TestDeriveReKeyFingerprint_Consistency(t *testing.T) {
-	expectedKeys := []string{
-		"IaXR6e7UXWMXWDPzCrOBkpjfu0vxHbg0bYf0OZg4K9E=",
-		"f5HYovwi5VBfuD1xgEMW9109FbgqKtpxIzRd9drOs/k=",
-		"bDcv10RwH6oanu+XS8dTy5fPFXfN84yMNj9LiOcYN2c=",
-		"/K/XG4NS1UUuDuxxPaf7cBRDmo11vHn3CGf8fYA6DEg=",
-	}
-
-	d := func(dhkey *cyclic.Int, keyNum uint32) []byte {
-		fp := DeriveReKeyFingerprint(dhkey, keyNum)
-		return fp[:]
-	}
-
-	deriveConsistencyTester(t, expectedKeys, d, "DeriveReKeyFingerprint()")
 }
 
 func deriveConsistencyTester(t *testing.T, expectedKeys []string, d func(dhkey *cyclic.Int, keyNum uint32) []byte, name string) {
@@ -115,7 +81,6 @@ func deriveConsistencyTester(t *testing.T, expectedKeys []string, d func(dhkey *
 			t.Errorf("%s did not produce the correct message on test %v\n\treceived: %#v\n\texpected: %#v", name, i, key, expectedKey)
 			fmt.Println(base64.StdEncoding.EncodeToString(key[:]))
 		}
-
 	}
 }
 
@@ -141,20 +106,16 @@ func TestAllDifferent(t *testing.T) {
 		keyNum := keynumsPrng.Uint32()
 
 		key := DeriveKey(basekey, keyNum)
-		rekey := DeriveReKey(basekey, keyNum)
 		fp := DeriveKeyFingerprint(basekey, keyNum)
-		refp := DeriveReKeyFingerprint(basekey, keyNum)
 
-		list := make([][]byte, 4)
+		list := make([][]byte, 2)
 		list[0] = key[:]
-		list[1] = rekey[:]
-		list[2] = fp[:]
-		list[3] = refp[:]
+		list[1] = fp[:]
 
-		names := []string{"key", "rekey", "fingerprint", "reKeyFingerprint"}
+		names := []string{"key", "fingerprint"}
 
-		for x := 0; x < 4; x++ {
-			for y := x + 1; y < 4; y++ {
+		for x := 0; x < 2; x++ {
+			for y := x + 1; y < 2; y++ {
 				if bytes.Equal(list[x], list[y]) {
 					t.Errorf("on set %v %s and %s are equal: "+
 						"%s: %v, %s: %s", i, names[x], names[y], names[x],

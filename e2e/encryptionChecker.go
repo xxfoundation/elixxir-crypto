@@ -18,7 +18,7 @@ import (
 // IsUnencrypted determines if the message is unencrypted by comparing the hash
 // of the message payload to the MAC. Returns true if the message is unencrypted
 // and false otherwise.
-func IsUnencrypted(m *format.Message) bool {
+func IsUnencrypted(m format.Message) bool {
 	// Create new hash
 	h, err := hash.NewCMixHash()
 
@@ -27,16 +27,19 @@ func IsUnencrypted(m *format.Message) bool {
 	}
 
 	// Hash the message payload
-	h.Write(m.Contents.Get())
+	h.Write(m.GetSecretPayload())
 	payloadHash := h.Sum(nil)
 
+	//set the first bit as zero to ensure everything stays in the group
+	payloadHash[0] &= 0x7F
+
 	// Return true if the byte slices are equal
-	return bytes.Equal(payloadHash, m.AssociatedData.GetMAC())
+	return bytes.Equal(payloadHash, m.GetMac())
 }
 
 // SetUnencrypted sets up the condition where the message would be determined to
 // be unencrypted by setting the MAC to the hash of the message payload.
-func SetUnencrypted(m *format.Message) {
+func SetUnencrypted(m format.Message) {
 	// Create new hash
 	h, err := hash.NewCMixHash()
 
@@ -45,9 +48,12 @@ func SetUnencrypted(m *format.Message) {
 	}
 
 	// Hash the message payload
-	h.Write(m.Contents.Get())
+	h.Write(m.GetSecretPayload())
 	payloadHash := h.Sum(nil)
 
+	//set the first bit as zero to ensure everything stays in the group
+	payloadHash[0] &= 0x7F
+
 	// Set the MAC
-	m.AssociatedData.SetMAC(payloadHash)
+	m.SetMac(payloadHash)
 }
