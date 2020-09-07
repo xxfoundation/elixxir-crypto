@@ -27,7 +27,7 @@ func IsUnencrypted(m format.Message) bool {
 	}
 
 	// Hash the message payload
-	h.Write(m.GetSecretPayload())
+	h.Write(m.GetContents())
 	payloadHash := h.Sum(nil)
 
 	//set the first bit as zero to ensure everything stays in the group
@@ -48,7 +48,7 @@ func SetUnencrypted(m format.Message) {
 	}
 
 	// Hash the message payload
-	h.Write(m.GetSecretPayload())
+	h.Write(m.GetContents())
 	payloadHash := h.Sum(nil)
 
 	//set the first bit as zero to ensure everything stays in the group

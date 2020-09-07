@@ -60,7 +60,7 @@ func TestIsUnencrypted_UnencryptedMessage(t *testing.T) {
 
 	// Create new hash
 	h, _ := hash.NewCMixHash()
-	h.Write(m.GetSecretPayload())
+	h.Write(m.GetContents())
 	payloadHash := h.Sum(nil)
 	payloadHash[0] &= 0x7F
 
