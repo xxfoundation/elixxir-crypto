@@ -18,13 +18,15 @@ import (
 	"gitlab.com/elixxir/crypto/csprng"
 	_ "golang.org/x/crypto/blake2b"
 	"hash"
+	"math"
 	"sync"
+	"sync/atomic"
 )
 
 type StreamGenerator struct {
-	streams        []*Stream
 	waitingStreams chan *Stream
 	numStreams     uint
+	extantStreams  *uint64
 	scalingFactor  uint
 	rngConstructor csprng.SourceConstructor
 }
@@ -43,19 +45,26 @@ type Stream struct {
 // NewStreamGenerator creates a StreamGenerator object containing
 // streamCount streams. The passed in rngConstructor will be the source of
 // randomness for the streams.
+// set streamCount to 0 to allow the maximum number of streams to be created
 func NewStreamGenerator(scalingFactor uint, streamCount uint,
 	rng csprng.SourceConstructor) *StreamGenerator {
-	newStreamGenerator := StreamGenerator{
-		scalingFactor:  scalingFactor,
-		waitingStreams: make(chan *Stream, streamCount),
-		numStreams:     streamCount,
-		streams:        make([]*Stream, 0, streamCount),
-		rngConstructor: rng,
+
+	// if streamCount is zero, overwrite with the uint64 max and do not
+	// create a waiting queue
+	var waiting chan *Stream
+	if streamCount == 0 {
+		streamCount = math.MaxUint64
+	} else {
+		waiting = make(chan *Stream, streamCount)
 	}
 
-	// Add streamCount streams to the new stream generator
-	for i := uint(0); i < streamCount; i++ {
-		newStreamGenerator.waitingStreams <- newStreamGenerator.newStream()
+	extantStreams := uint64(0)
+	newStreamGenerator := StreamGenerator{
+		scalingFactor:  scalingFactor,
+		waitingStreams: waiting,
+		numStreams:     streamCount,
+		extantStreams:  &extantStreams,
+		rngConstructor: rng,
 	}
 
 	return &newStreamGenerator
@@ -64,15 +73,14 @@ func NewStreamGenerator(scalingFactor uint, streamCount uint,
 // newStream creates a new stream, having it point to the corresponding stream generator
 // Also increment the amount of streams created in the stream generator
 // Bookkeeping slice for streams made
-func (sg *StreamGenerator) newStream() *Stream {
+func (sg *StreamGenerator) newStream(num uint) *Stream {
 	tmpStream := &Stream{
 		streamGen:   sg,
-		numStream:   sg.numStreams,
+		numStream:   num,
 		entropyCnt:  1,
 		fortunaHash: crypto.BLAKE2b_256.New(),
 		rng:         sg.rngConstructor(),
 	}
-	sg.streams = append(sg.streams, tmpStream)
 	return tmpStream
 }
 
@@ -80,10 +88,15 @@ func (sg *StreamGenerator) newStream() *Stream {
 // If the # of open streams exceeds streamCount,
 // this function blocks (and prints a log warning) until a stream is available
 func (sg *StreamGenerator) GetStream() *Stream {
+	extantStreams := atomic.AddUint64(sg.extantStreams, 1)
+	if extantStreams < uint64(sg.numStreams) {
+		return sg.newStream(uint(extantStreams - 1))
+	}
 	return <-sg.waitingStreams
 }
 
 // Close closes the stream object, locking it from external users and marking it as available in the stream list
+// Do not use if using in infinite streams mode
 func (sg *StreamGenerator) Close(stream *Stream) {
 	sg.waitingStreams <- stream
 }
