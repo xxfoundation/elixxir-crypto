@@ -72,7 +72,7 @@ func InGroup(sample, prime []byte) bool {
 func Generate(size int, rng io.Reader) ([]byte, error) {
 	key := make([]byte, size)
 	byteCount, err := rng.Read(key)
-	fmt.Printf("%s, ", key)
+	fmt.Printf("%v, ", key)
 	if err == nil && byteCount != size {
 		err = fmt.Errorf("Generated %d bytes, not %d as requested!",
 			byteCount, size)
