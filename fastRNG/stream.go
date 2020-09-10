@@ -22,12 +22,17 @@ import (
 )
 
 type StreamGenerator struct {
-	waitingStreams chan *Stream
+	waitingStreams chan *stream
 	scalingFactor  uint
 	rngConstructor csprng.SourceConstructor
 }
 
 type Stream struct {
+	*stream
+	gen *StreamGenerator
+}
+
+type stream struct {
 	//configuration
 	scalingFactor uint
 
@@ -55,7 +60,7 @@ func NewStreamGenerator(scalingFactor uint, maxWaiting uint,
 
 	newStreamGenerator := StreamGenerator{
 		scalingFactor:  scalingFactor,
-		waitingStreams: make(chan *Stream, maxWaiting),
+		waitingStreams: make(chan *stream, maxWaiting),
 		rngConstructor: rng,
 	}
 
@@ -65,31 +70,34 @@ func NewStreamGenerator(scalingFactor uint, maxWaiting uint,
 // newStream creates a new stream, having it point to the corresponding stream generator
 // Also increment the amount of streams created in the stream generator
 // Bookkeeping slice for streams made
-func (sg *StreamGenerator) newStream() *Stream {
-	tmpStream := &Stream{
+func (sg *StreamGenerator) newStream() *stream {
+	return &stream{
 		scalingFactor: sg.scalingFactor,
 		entropyCnt:    1,
 		fortunaHash:   crypto.BLAKE2b_256.New(),
 		rng:           sg.rngConstructor(),
 	}
-	return tmpStream
 }
 
-// GetStream gets an existing stream or creates a new Stream object.
-// If the # of open streams exceeds streamCount,
-// this function blocks (and prints a log warning) until a stream is available
+// GetStream gets an existing stream or creates a new stream object.
+// It returns a new stream object if none can be retrieved from the pool of
+// waiting streams
 func (sg *StreamGenerator) GetStream() *Stream {
+	var s *stream
 	select {
-	case s := <-sg.waitingStreams:
-		return s
+	case s = <-sg.waitingStreams:
 	default:
-		return sg.newStream()
+		s = sg.newStream()
+	}
+	return &Stream{
+		stream: s,
+		gen:    sg,
 	}
 }
 
-// Close closes the stream object, locking it from external users and marking it as available in the stream list
-// Do not use if using in infinite streams mode
-func (sg *StreamGenerator) Close(stream *Stream) {
+// Close closes the stream object, locking it from external users and
+// adding it back to the stream pool. The stream is dropped if the pool is full
+func (sg *StreamGenerator) close(stream *stream) {
 	select {
 	case sg.waitingStreams <- stream:
 	default:
@@ -102,7 +110,12 @@ func (sg *StreamGenerator) Close(stream *Stream) {
 // Users of stream objects should close them when they are finished using them. We read the AES
 // BlockSize into AES then run it until blockSize*scalingFactor bytes are read. Every time
 // BlockSize*scalingFactor bytes are read this functions blocks until it rereads csprng.Source.
-func (s *Stream) Read(b []byte) (int, error) {
+// Will crash if the stream has been closed.
+func (s *stream) Read(b []byte) (int, error) {
+	if s == nil {
+		jww.FATAL.Panicf("Stream is closed, cannot read")
+	}
+
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -149,6 +162,18 @@ func (s *Stream) Read(b []byte) (int, error) {
 	return len(b), nil
 }
 
+// Closes the stream returning it to its source generator if there is room in
+// the pool
+func (s *Stream) Close() {
+	if s.stream == nil {
+		jww.FATAL.Panicf("Stream is closed, cannot close")
+	}
+
+	s.gen.close(s.stream)
+
+	s.stream = nil
+}
+
 // The Fortuna construction is used to generate randomness
 func Fortuna(src, ext []byte, fortunaHash hash.Hash) cipher.Stream {
 	// Create a key based on the hash of the src and an extension
@@ -170,7 +195,7 @@ func Fortuna(src, ext []byte, fortunaHash hash.Hash) cipher.Stream {
 
 // SetSeed does not do anything. Function exists to comply with the
 // csprng.Source interface.
-func (s *Stream) SetSeed(seed []byte) error {
-	jww.INFO.Printf("Stream does not utilise SetSeed().")
+func (s *stream) SetSeed(seed []byte) error {
+	jww.INFO.Printf("stream does not utilise SetSeed().")
 	return nil
 }
