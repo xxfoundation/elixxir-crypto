@@ -43,21 +43,23 @@ func keyGen(grp *cyclic.Group, salt []byte, baseKey, output *cyclic.Int) *cyclic
 	h2 := sha256.New()
 
 	a := baseKey.Bytes()
-	fmt.Printf("a: %v", a)
+	fmt.Printf("a: %v\n", a)
 
 	// Blake2b Hash of the result of previous stage (base key + salt)
 	h1.Reset()
 	h1.Write(a)
 	h1.Write(salt)
 	x := h1.Sum(nil)
-	fmt.Printf("x: %v", x)
+	fmt.Printf("x: %v\n", x)
 
 	// Different Hash (SHA256) of the previous result to add entropy
 	h2.Reset()
 	h2.Write(x)
 	y := h2.Sum(nil)
-	fmt.Printf("y: %v", y)
+	fmt.Printf("y: %v\n", y)
 
 	// Expand Key using SHA512
-	return hash.ExpandKey(sha512.New(), grp, y, output)
+	k := hash.ExpandKey(sha512.New(), grp, y, output)
+	fmt.Printf("k: %v\n", k.Bytes())
+	return k
 }
