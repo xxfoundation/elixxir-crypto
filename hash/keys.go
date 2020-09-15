@@ -10,6 +10,7 @@
 package hash
 
 import (
+	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
 	"gitlab.com/elixxir/crypto/cyclic"
@@ -28,9 +29,10 @@ func ExpandKey(h hash.Hash, g *cyclic.Group, key []byte,
 		return h
 	}
 	keyGen := hkdf.Expand(foo, key, nil)
+
 	pBytes := g.GetPBytes()
 	expandedKey, err := csprng.GenerateInGroup(pBytes, len(pBytes), keyGen)
-
+	fmt.Printf("expandedKey: %v\n", expandedKey)
 	if err != nil {
 		jww.FATAL.Panicf("Key expansion failure: %v", err)
 	}
