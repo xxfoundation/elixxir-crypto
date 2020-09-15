@@ -169,9 +169,11 @@ func (s *Stream) Close() {
 		jww.FATAL.Panicf("Stream is closed, cannot close")
 	}
 
+	st := s.stream
+
 	s.stream = nil
 
-	s.gen.close(s.stream)
+	s.gen.close(st)
 }
 
 // The Fortuna construction is used to generate randomness
