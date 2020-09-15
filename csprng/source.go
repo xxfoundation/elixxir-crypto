@@ -92,8 +92,6 @@ func Generate(size int, rng io.Reader) ([]byte, error) {
 //          note 11.67
 func GenerateInGroup(prime []byte, size int, rng io.Reader) ([]byte,
 	error) {
-	fmt.Printf("Reader: ")
-	defer fmt.Printf("\n")
 	primeLen := len(prime)
 	if primeLen > 0 && prime[0] == 0 {
 		return nil, fmt.Errorf("prime must start with a non-zero byte")
