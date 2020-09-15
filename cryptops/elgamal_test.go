@@ -64,7 +64,7 @@ func TestElgamal_Single(t *testing.T) {
 
 		pubkey := grp.ExpG(privateKey, grp.NewInt(1))
 		if pubkey.Cmp(decCypher) != 0 {
-			t.Errorf("Elgamal: Decrypted Cypher incorrect, got wrong public key on attempt %v, Expected %v, Recieved: %v",
+			t.Errorf("Elgamal: Decrypted Cypher incorrect, got wrong public key on attempt %v, Expected %v, Received: %v",
 				i, pubkey.Text(16), decCypher.Text(16))
 		}
 
@@ -72,7 +72,7 @@ func TestElgamal_Single(t *testing.T) {
 		keyInvActual := grp.Mul(ecrKeys, cypherInv, grp.NewInt(1))
 
 		if keyInvActual.Cmp(keyInv) != 0 {
-			t.Errorf("Elgamal: Key not decrypted properly on attempt %v, Expected %v, Recieved: %v",
+			t.Errorf("Elgamal: Key not decrypted properly on attempt %v, Expected %v, Received: %v",
 				i, keyInv.Text(16), keyInvActual.Text(16))
 		}
 	}
@@ -126,7 +126,7 @@ func TestElgamal_Double(t *testing.T) {
 		pubkey := grp.Mul(pubkey1, pubkey2, grp.NewInt(1))
 
 		if pubkey.Cmp(decCypher) != 0 {
-			t.Errorf("Elgamal: Decrypted double Cypher incorrect, got wrong public key on attempt %v, Expected %v, Recieved: %v",
+			t.Errorf("Elgamal: Decrypted double Cypher incorrect, got wrong public key on attempt %v, Expected %v, Received: %v",
 				i, pubkey.Text(16), decCypher.Text(16))
 		}
 
@@ -136,7 +136,7 @@ func TestElgamal_Double(t *testing.T) {
 		keyInvDouble := grp.Mul(keyInv1, keyInv2, grp.NewInt(1))
 
 		if keyInvActual.Cmp(keyInvDouble) != 0 {
-			t.Errorf("Elgamal: Key not doubly decrypted properly on attempt %v, Expected %v, Recieved: %v",
+			t.Errorf("Elgamal: Key not doubly decrypted properly on attempt %v, Expected %v, Received: %v",
 				i, keyInvDouble.Text(16), keyInvActual.Text(16))
 		}
 	}
@@ -213,12 +213,12 @@ func TestElgamal_Consistency(t *testing.T) {
 	ElGamal(grp, keyInv, privateKey, publicCypherKey, ecrKeys, cypher)
 
 	if cypher.Cmp(expectedCypher) != 0 {
-		t.Errorf("ElGamal: Crypher incorrect in consistency test: Recieved %v, Expected %v",
+		t.Errorf("ElGamal: Crypher incorrect in consistency test: Received %v, Expected %v",
 			expectedCypher.Text(16), cypher.Text(16))
 	}
 
 	if ecrKeys.Cmp(expectedEcrKeys) != 0 {
-		t.Errorf("ElGamal: EcrKeys incorrect in consistency test: Recieved %v, Expected %v",
+		t.Errorf("ElGamal: EcrKeys incorrect in consistency test: Received %v, Expected %v",
 			expectedEcrKeys.Text(16), ecrKeys.Text(16))
 	}
 
@@ -228,7 +228,7 @@ func TestElgamal_Consistency(t *testing.T) {
 func TestElGamalSignature_GetMinSize(t *testing.T) {
 	expected := 1
 	if ElGamal.GetInputSize() != 1 {
-		t.Errorf("ElGamal: MinSize not correct: Recieved %v, Expected %v", ElGamal.GetInputSize(), expected)
+		t.Errorf("ElGamal: MinSize not correct: Received %v, Expected %v", ElGamal.GetInputSize(), expected)
 	}
 }
 
@@ -236,6 +236,6 @@ func TestElGamalSignature_GetMinSize(t *testing.T) {
 func TestElGamalSignature_GetName(t *testing.T) {
 	expected := "ElGamal"
 	if ElGamal.GetName() != expected {
-		t.Errorf("ElGamal: Name not correct: Recieved %v, Expected %v", ElGamal.GetName(), expected)
+		t.Errorf("ElGamal: Name not correct: Received %v, Expected %v", ElGamal.GetName(), expected)
 	}
 }
