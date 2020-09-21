@@ -74,10 +74,10 @@ func TestGenerateKeyTTL_ValidTTL(t *testing.T) {
 	expectedNumKeys := uint32(19140)
 
 	if ttl != expectedTTL {
-		t.Errorf("TTL generated doesn't match expected value, Expected %v, Recieved %v", expectedTTL, ttl)
+		t.Errorf("TTL generated doesn't match expected value, Expected %v, Received %v", expectedTTL, ttl)
 	}
 	if numKeys != expectedNumKeys {
-		t.Errorf("Num keys generated doesn't match expected value, Expected %v, Recieved %v", expectedNumKeys, numKeys)
+		t.Errorf("Num keys generated doesn't match expected value, Expected %v, Received %v", expectedNumKeys, numKeys)
 	}
 
 }
