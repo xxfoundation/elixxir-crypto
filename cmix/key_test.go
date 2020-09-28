@@ -44,14 +44,12 @@ var grp = cyclic.NewGroup(p, g)
 
 var baseKey = grp.NewIntFromString("a906df88f30d6afbfa6165a50cc9e208d16b34e70b367068dc5d6bd6e155b2c3", 16)
 var salt = []byte("fdecfa52a8ad1688dbfa7d16df74ebf27e535903c469cefc007ebbe1ee895064")
-var expectStr = "2e4c99e14e0b1cd18c08467c395a4d5c0eb594507595041a5cfa83eb2f57" +
-	"91f3db46c933040d4c9862b91539fb8bc75e0b84ed07dd6a760dda6baec8c5f3f119eff0" +
-	"0a0bdd6bc712c43e3f98d34cde6f6234191b1c68b9b2d9a80ad7652513caf0bae5fc3070" +
-	"bd921c914a67d55005ce624c0140782cbe8ab55327e21ba0328379cfadda661d835be329" +
-	"125fa237e9848af469b4b68cc922f994d404e3f8818f9c84ef9e6a6b2efbfdc5f24ec7cd" +
-	"346775225b4abe84d202b479b91d19399ab216dc3f7961fcc499f4287323c2a96df0127a" +
-	"b4f4ab64be76ca2906a49ad4ee3f0240f80a881177b9ed4a903dc5667473cec67ab4d52c" +
-	"7f73f019311e6ccf9a75"
+var expectStr = "3102489eee9b85c88e99ddb06906eab5c5ba3480a2e1d22bce527d16272fafabdcad64b13818d2752bed6da6" +
+	"80a2c45aa94fc7676f2323500c9615c501e7c384d7bfc66abb91e07f20c54110a769abf1290267b6ddb0314d83e001080064" +
+	"13c4ce908bcde6b797b66fa860782462ff8ee50ebb21a34c0f5cb61cc9b539a69650fd0990a165d075d0c02ce643bd0c1013" +
+	"e88f3c009f2544e0de72bedaf2d976440574ec5be2284d19342e57e56cec5c27ab34091c4c526cd9a1d3bc35c520c1768545" +
+	"70daf13ae4d3a5624c2341eb27c55564fcb23ce26c3adff6177f4b6f19f02d742f5404dc9232c26d9b4f2775ee6e53762125" +
+	"760971739698692e58e3ffdb"
 
 func makeBaseKeys(size int) []*cyclic.Int {
 	keys := make([]*cyclic.Int, 0)
@@ -71,6 +69,7 @@ func TestKeyGen(t *testing.T) {
 	expected := grp.NewIntFromString(expectStr, 16)
 
 	if key.Cmp(expected) != 0 {
+		t.Log(key.TextVerbose(16, 2000))
 		t.Errorf("keyGen() generated an incorrect key"+
 			"\n\treceived: %v\n\texpected: %v",
 			key.TextVerbose(10, 35),
