@@ -3,7 +3,7 @@
 variables:
   REPO_DIR: gitlab.com/elixxir
   REPO_NAME: crypto
-  DOCKER_IMAGE: elixxirlabs/cuda-go:latest
+  DOCKER_IMAGE: elixxirlabs/cuda-go:go1.15-cuda10.2
   MIN_CODE_COVERAGE: "95.5"
 
 before_script:
