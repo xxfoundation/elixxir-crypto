@@ -18,7 +18,7 @@ update_release:
 	GOFLAGS="" go get -u gitlab.com/elixxir/primitives@release
 
 update_master:
-	GOFLAGS="" go get -u gitlab.com/elixxir/primitives@master
+	GOFLAGS="" go get -u gitlab.com/elixxir/primitives@hotfix/newMessageFormat
 
 master: clean update_master build
 
