@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/large"
-	"gitlab.com/elixxir/primitives/format"
 	"math/rand"
 	"os"
 	"reflect"
@@ -132,9 +131,9 @@ func TestEncrypt_Consistency(t *testing.T) {
 	keyPrng := rand.New(rand.NewSource(42))
 	msgPrng := rand.New(rand.NewSource(69))
 	for i := 0; i < len(expectedMsgs); i++ {
-		msgBytes := make([]byte, format.ContentsLen)
+		msgBytes := make([]byte, 256)
 		keys = append(keys, grp.NewInt(keyPrng.Int63()))
-		msgPrng.Read(msgBytes[:format.ContentsLen-2])
+		msgPrng.Read(msgBytes[:256-2])
 		msgs = append(msgs, msgBytes)
 	}
 
@@ -145,7 +144,7 @@ func TestEncrypt_Consistency(t *testing.T) {
 		expectedMsg, _ := b64.StdEncoding.DecodeString(expectedMsgs[i])
 
 		if !reflect.DeepEqual(encMsg, expectedMsg) {
-			t.Errorf("EncryptUnsafe() did not produce the correct message on test %v\n\treceived: %#v\n\texpected: %#v", i, encMsg, expectedMsg)
+			t.Errorf("EncryptUnsafe() did not produce the correct message on test %v\n\treceived: %s\n\texpected: %#v", i, encMsg, expectedMsg)
 			fmt.Println(b64.StdEncoding.EncodeToString(encMsg))
 		}
 	}
