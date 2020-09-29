@@ -17,13 +17,13 @@ import (
 // encrypted.
 func TestIsUnencrypted_EncryptedMessage(t *testing.T) {
 	// Generate random byte slice
-	randSlice := make([]byte, 256)
+	randSlice := make([]byte, primeLength)
 	rand.Read(randSlice)
 	fpSlice := make([]byte, 32)
 	rand.Read(fpSlice)
 
 	// Create message
-	m := format.NewMessage(256)
+	m := format.NewMessage(primeLength)
 	// Set message payload
 	m.SetPayloadA(randSlice)
 	m.SetPayloadB(randSlice)
@@ -45,11 +45,11 @@ func TestIsUnencrypted_EncryptedMessage(t *testing.T) {
 // unencrypted.
 func TestIsUnencrypted_UnencryptedMessage(t *testing.T) {
 	// Generate random byte slice
-	randSlice := make([]byte, 256)
+	randSlice := make([]byte, primeLength)
 	rand.Read(randSlice)
 
 	// Create message
-	m := format.NewMessage(256)
+	m := format.NewMessage(primeLength)
 
 	// Set message payload
 	m.SetPayloadA(randSlice)
@@ -76,13 +76,13 @@ func TestIsUnencrypted_UnencryptedMessage(t *testing.T) {
 // IsUnencrypted().
 func TestSetUnencrypted(t *testing.T) {
 	// Generate random byte slice
-	randSlice := make([]byte, 256)
+	randSlice := make([]byte, primeLength)
 	rand.Read(randSlice)
 	fpSlice := make([]byte, 32)
 	rand.Read(fpSlice)
 
 	// Create message
-	m := format.NewMessage(256)
+	m := format.NewMessage(primeLength)
 
 	// Set message payload
 	m.SetPayloadA(randSlice)

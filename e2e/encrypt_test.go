@@ -19,7 +19,7 @@ import (
 )
 
 var grp *cyclic.Group
-
+var primeLength int
 // Build global group for tests to utilise
 func TestMain(m *testing.M) {
 	// Create group
@@ -39,7 +39,7 @@ func TestMain(m *testing.M) {
 	p := large.NewIntFromString(primeString, 16)
 	g := large.NewInt(2)
 	grp = cyclic.NewGroup(p, g)
-
+	primeLength = grp.GetP().ByteLen()
 	os.Exit(m.Run())
 }
 
