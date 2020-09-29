@@ -15,15 +15,15 @@ import (
 )
 
 // Fill part of message with random payload and associated data
-func makeMsg() *format.Message {
+func makeMsg() format.Message {
 	rng := rand.New(rand.NewSource(21))
-	payloadA := make([]byte, format.PayloadLen)
-	payloadB := make([]byte, format.PayloadLen)
+	payloadA := make([]byte, 256)
+	payloadB := make([]byte, 256)
 	rng.Read(payloadA)
 	rng.Read(payloadB)
-	msg := format.NewMessage()
+	msg := format.NewMessage(256)
 	msg.SetPayloadA(payloadA)
-	msg.SetDecryptedPayloadB(payloadB)
+	msg.SetPayloadB(payloadB)
 
 	return msg
 }
@@ -54,9 +54,9 @@ func TestEncrypt(t *testing.T) {
 	multPayloadA := grp.NewInt(1)
 	multPayloadB := grp.NewInt(1)
 	grp.Mul(keyEcrA, grp.NewIntFromBytes(msg.GetPayloadA()), multPayloadA)
-	grp.Mul(keyEcrB, grp.NewIntFromBytes(msg.GetPayloadBForEncryption()), multPayloadB)
+	grp.Mul(keyEcrB, grp.NewIntFromBytes(msg.GetPayloadB()), multPayloadB)
 
-	testMsg := format.NewMessage()
+	testMsg := format.NewMessage(256)
 	testMsg.SetPayloadA(multPayloadA.Bytes())
 	testMsg.SetPayloadB(multPayloadB.Bytes())
 
@@ -88,17 +88,17 @@ func TestEncrypt_Consistency(t *testing.T) {
 		169, 188, 62, 20, 194, 139, 15, 144, 112, 104, 254, 53, 112, 139, 96, 39, 225, 113, 227, 208, 247, 184, 234,
 		164, 29, 202, 47, 126, 140, 90, 112, 94, 100, 118, 77, 87, 193, 65, 6, 103, 119, 73, 242}
 
-	expectPLB := []byte{87, 205, 233, 225, 75, 64, 227, 223, 90, 106, 173, 83, 26, 62, 80, 147, 74, 95, 110, 244, 187,
-		29, 54, 32, 222, 89, 149, 131, 245, 156, 17, 241, 9, 95, 70, 131, 151, 204, 63, 191, 220, 158, 144, 25, 180,
-		145, 235, 202, 134, 181, 79, 179, 163, 96, 179, 54, 162, 67, 200, 254, 6, 165, 75, 23, 246, 204, 80, 155, 22,
-		48, 174, 252, 166, 34, 113, 125, 201, 35, 30, 82, 143, 148, 183, 0, 249, 76, 0, 94, 111, 0, 218, 63, 109, 185,
-		63, 72, 139, 1, 39, 174, 68, 117, 136, 122, 78, 231, 1, 126, 3, 72, 140, 234, 226, 91, 13, 157, 146, 59, 82, 14,
-		210, 215, 37, 149, 233, 115, 165, 2, 117, 225, 17, 111, 65, 8, 15, 99, 67, 188, 158, 193, 40, 181, 73, 45, 124,
-		224, 48, 72, 201, 229, 123, 124, 182, 212, 249, 13, 99, 58, 233, 61, 102, 219, 194, 105, 112, 223, 81, 9, 56,
-		186, 214, 143, 117, 25, 144, 221, 24, 115, 196, 253, 32, 83, 143, 129, 163, 254, 230, 173, 88, 149, 215, 209,
-		253, 44, 198, 126, 193, 184, 194, 181, 70, 53, 148, 246, 114, 121, 213, 105, 17, 233, 217, 48, 113, 110, 7, 246,
-		91, 231, 200, 202, 195, 15, 72, 25, 148, 180, 110, 235, 198, 58, 248, 223, 179, 73, 94, 250, 220, 91, 198, 8,
-		198, 26, 63, 234, 40, 107, 83, 61, 198, 31, 175, 131, 67, 210, 79, 3}
+	expectPLB := []byte{204, 47, 167, 175, 197, 191, 173, 43, 192, 50, 98, 5, 203, 129, 99, 127, 29, 81, 150, 174, 174,
+		101, 93, 228, 139, 239, 137, 24, 217, 91, 121, 116, 130, 249, 66, 173, 236, 44, 102, 36, 118, 242, 108, 5, 185,
+		143, 101, 182, 172, 152, 11, 204, 115, 155, 236, 154, 90, 254, 125, 146, 188, 193, 20, 180, 117, 143, 65, 125,
+		25, 11, 71, 144, 51, 0, 30, 105, 17, 210, 97, 199, 79, 4, 81, 178, 150, 88, 255, 111, 218, 212, 78, 179, 197,
+		237, 119, 149, 52, 34, 55, 240, 1, 219, 84, 173, 77, 123, 60, 49, 177, 5, 108, 204, 155, 52, 1, 16, 192, 125,
+		69, 152, 50, 217, 223, 170, 210, 136, 228, 155, 145, 214, 81, 45, 237, 77, 13, 236, 80, 250, 248, 111, 91, 81,
+		94, 71, 241, 159, 66, 82, 237, 24, 75, 241, 21, 235, 67, 134, 124, 18, 143, 177, 139, 250, 126, 250, 28, 139,
+		102, 243, 136, 86, 123, 141, 124, 166, 214, 31, 75, 74, 63, 245, 224, 168, 221, 161, 167, 130, 61, 246, 208,
+		108, 184, 222, 71, 135, 0, 9, 110, 47, 153, 193, 49, 136, 136, 249, 211, 239, 164, 37, 220, 140, 34, 131, 21,
+		202, 248, 54, 182, 39, 60, 136, 37, 118, 24, 0, 79, 214, 127, 164, 225, 100, 123, 247, 6, 226, 254, 242, 210,
+		136, 18, 102, 227, 190, 100, 232, 3, 75, 149, 36, 251, 65, 38, 234, 249, 95, 94, 245}
 
 	// Encrypt message
 	encMsg := ClientEncrypt(grp, makeMsg(), salt, makeBaseKeys(10))
@@ -147,9 +147,9 @@ func TestDecrypt(t *testing.T) {
 	DecPayloadB := grp.Mul(keyEcrB_Inv, grp.NewIntFromBytes(encMsg.GetPayloadB()), grp.NewInt(1))
 
 	//Set decrypted messages to the above payloads
-	decMsg := format.NewMessage()
+	decMsg := format.NewMessage(256)
 	decMsg.SetPayloadA(DecPayloadA.Bytes())
-	decMsg.SetDecryptedPayloadB(DecPayloadB.LeftpadBytes(format.PayloadLen))
+	decMsg.SetPayloadB(DecPayloadB.LeftpadBytes(256))
 
 	//Compare decrypted message with the original message
 	if !reflect.DeepEqual(decMsg.GetPayloadA(), msg.GetPayloadA()) {
