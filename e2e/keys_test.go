@@ -34,6 +34,47 @@ func TestDeriveKey_Consistency(t *testing.T) {
 	deriveConsistencyTester(t, expectedKeys, d, "DeriveKey()")
 }
 
+func TestDeriveKey_Consistency_salt(t *testing.T) {
+
+	salt := []byte("salt")
+
+	//notice these are different from the test above
+	expectedKeys := []string{
+		"PI10XqqBtrUFjQb9KEO4berrvNi6X/Pnx3rfsf71D2E=",
+		"uOKI3LAap9o7cFPevMVq5b8WYp7E7OCR9i31DsAFMBQ=",
+		"hHxcaW2t3MDUxRCt25f9IKZ0mHVJCsz/sv12mhj4Et8=",
+		"X12LBBqzOr6XdmkSB3CpcjtldeJFVE0quQSHOTwr9R8=",
+	}
+
+	d := func(dhkey *cyclic.Int, keyNum uint32) []byte {
+		k := DeriveKey(dhkey, keyNum, salt)
+		return k[:]
+	}
+
+	deriveConsistencyTester(t, expectedKeys, d, "DeriveKey()")
+}
+
+func TestDeriveKey_Consistency_doubleSalt(t *testing.T) {
+
+	salt := []byte("salt")
+	salt2 := []byte("electricBoogaloo")
+
+	//notice these are different from the test above and the one above that
+	expectedKeys := []string{
+		"VJONuzoQnwvjdNWZCwcA1n+r7lssoLG9sAUC0OLMIIk=",
+		"9HzDPYpetfKK7YYgudLEDDRJiZFvqLxRqS/8gIWlndM=",
+		"5DkJha9tw6c3uYmIX+0GAEAfNwMKoQspc1Fiqk2hLsY=",
+		"ukk5qfWTi+5dldxkPgnN1zkb98V5Aspf3BttHeouqvM=",
+	}
+
+	d := func(dhkey *cyclic.Int, keyNum uint32) []byte {
+		k := DeriveKey(dhkey, keyNum, salt, salt2)
+		return k[:]
+	}
+
+	deriveConsistencyTester(t, expectedKeys, d, "DeriveKey()")
+}
+
 //test consistency for DeriveKeyFingerprint
 func TestDeriveKeyFingerprint_Consistency(t *testing.T) {
 	expectedKeys := []string{

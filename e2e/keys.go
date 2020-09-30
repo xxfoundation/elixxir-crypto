@@ -23,7 +23,7 @@ type Key [KeyLen]byte
 // derives a single key at position keynum using blake2B on the concatenation
 // of the first half of the cyclic basekey and the keynum
 // Key = H(First half of base key | keyNum)
-func DeriveKey(basekey *cyclic.Int, keyNum uint32) Key {
+func DeriveKey(basekey *cyclic.Int, keyNum uint32, salts ...[]byte) Key {
 	//use the first half of the bits to create the key
 	data := basekey.Bytes()
 	data = data[:len(data)/2]
@@ -36,7 +36,7 @@ func DeriveKey(basekey *cyclic.Int, keyNum uint32) Key {
 	}
 
 	//derive the key
-	keyBytes := derive(h, data, keyNum)
+	keyBytes := derive(h, data, keyNum, salts...)
 
 	//put the keybytes in a key object and return
 	k := Key{}
@@ -47,7 +47,7 @@ func DeriveKey(basekey *cyclic.Int, keyNum uint32) Key {
 // derives a single key fingerprint at position keynum using blake2B on
 // the concatenation of the second half of the cyclic basekey and the keynum
 // Fingerprint = H(Second half of base key | userID | keyNum)
-func DeriveKeyFingerprint(dhkey *cyclic.Int, keyNum uint32) format.Fingerprint {
+func DeriveKeyFingerprint(dhkey *cyclic.Int, keyNum uint32, salts ...[]byte) format.Fingerprint {
 	//use the first half of the bits to create the key
 	data := dhkey.Bytes()
 	data = data[len(data)/2:]
@@ -59,7 +59,7 @@ func DeriveKeyFingerprint(dhkey *cyclic.Int, keyNum uint32) format.Fingerprint {
 			"DeriveKeyFingerprint(): %s", err))
 	}
 	//derive the key
-	fpBytes := derive(h, data, keyNum)
+	fpBytes := derive(h, data, keyNum, salts...)
 
 	//put the keybytes in a key object and return
 	fp := format.Fingerprint{}
