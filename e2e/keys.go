@@ -21,8 +21,8 @@ const KeyLen = 32
 type Key [KeyLen]byte
 
 // derives a single key at position keynum using blake2B on the concatenation
-// of the first half of the cyclic basekey and the keynum
-// Key = H(First half of base key | keyNum)
+// of the first half of the cyclic basekey and the keynum and the salts
+// Key = H(First half of base key | keyNum | salt[0] | salt[1] | ...)
 func DeriveKey(basekey *cyclic.Int, keyNum uint32, salts ...[]byte) Key {
 	//use the first half of the bits to create the key
 	data := basekey.Bytes()
@@ -46,7 +46,8 @@ func DeriveKey(basekey *cyclic.Int, keyNum uint32, salts ...[]byte) Key {
 
 // derives a single key fingerprint at position keynum using blake2B on
 // the concatenation of the second half of the cyclic basekey and the keynum
-// Fingerprint = H(Second half of base key | userID | keyNum)
+// and the salts
+// Fingerprint = H(Second half of base key | userID | keyNum | salt[0] | salt[1] | ...)
 func DeriveKeyFingerprint(dhkey *cyclic.Int, keyNum uint32, salts ...[]byte) format.Fingerprint {
 	//use the first half of the bits to create the key
 	data := dhkey.Bytes()
