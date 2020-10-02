@@ -17,14 +17,19 @@ func TestMakeRelationshipFingerprint(t *testing.T) {
 	var fpList [][]byte
 
 	//create 9 fingerprints, all with different arrangements of inputs
-	for i := 0; i < 3; i++ {
-		for j := 0; j < 3; j++ {
-			for k := 0; k < 3; k++ {
-				originKey := grp.NewIntFromUInt(uint64(2 + i))
-				sender := id.NewIdFromUInt(uint64(1+j), id.User, t)
-				receiver := id.NewIdFromUInt(uint64(1+k), id.User, t)
+	for i := 0; i < 4; i++ {
+		for j := 0; j < 4; j++ {
+			for k := 0; k < 4; k++ {
+				for l := 0; l < 4; l++ {
+					pubKeyA := grp.NewIntFromUInt(uint64(2 + i))
+					pubKeyB := grp.NewIntFromUInt(uint64(20 + j))
+					sender := id.NewIdFromUInt(uint64(1+k), id.User, t)
+					receiver := id.NewIdFromUInt(uint64(1+l), id.User, t)
 
-				fpList = append(fpList, MakeRelationshipFingerprint(originKey, sender, receiver))
+					fpList = append(fpList, MakeRelationshipFingerprint(pubKeyA,
+						pubKeyB, sender, receiver))
+				}
+
 			}
 		}
 	}
