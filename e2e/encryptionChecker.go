@@ -13,12 +13,16 @@ import (
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/hash"
 	"gitlab.com/elixxir/primitives/format"
+	"gitlab.com/xx_network/primitives/id"
 )
 
 // IsUnencrypted determines if the message is unencrypted by comparing the hash
 // of the message payload to the MAC. Returns true if the message is unencrypted
 // and false otherwise.
-func IsUnencrypted(m *format.Message) bool {
+// the highest bit of the recpient ID is stored in the highest bit of the MAC
+// field. This is accounted for and the id is reassembled, with a presumed user
+// type
+func IsUnencrypted(m format.Message) (bool, *id.ID) {
 	// Create new hash
 	h, err := hash.NewCMixHash()
 
@@ -27,16 +31,35 @@ func IsUnencrypted(m *format.Message) bool {
 	}
 
 	// Hash the message payload
-	h.Write(m.Contents.Get())
+	h.Write(m.GetContents())
 	payloadHash := h.Sum(nil)
 
+	//set the first bit as zero to ensure everything stays in the group
+	payloadHash[0] &= 0b00111111
+	mac := m.GetMac()
+	idHighBit := (mac[0] & 0b01000000) << 1
+
+	mac[0] &= 0b00111111
+
+	//return false if the message is not unencrypted
+	if !bytes.Equal(payloadHash, m.GetMac()) {
+		return false, nil
+	}
+
+	//extract the user ID
+	idBytes := m.GetKeyFP()
+	idBytes[0] |= idHighBit
+	uid := id.ID{}
+	copy(uid[:], idBytes[:])
+	uid.SetType(id.User)
+
 	// Return true if the byte slices are equal
-	return bytes.Equal(payloadHash, m.AssociatedData.GetMAC())
+	return true, &uid
 }
 
 // SetUnencrypted sets up the condition where the message would be determined to
 // be unencrypted by setting the MAC to the hash of the message payload.
-func SetUnencrypted(m *format.Message) {
+func SetUnencrypted(m format.Message, uid *id.ID) {
 	// Create new hash
 	h, err := hash.NewCMixHash()
 
@@ -45,9 +68,24 @@ func SetUnencrypted(m *format.Message) {
 	}
 
 	// Hash the message payload
-	h.Write(m.Contents.Get())
+	h.Write(m.GetContents())
 	payloadHash := h.Sum(nil)
 
+	//set the first bit as zero to ensure everything stays in the group
+	payloadHash[0] &= 0b00111111
+
+	//copy in the high bit of the userID for storage
+	idHighBit := (uid[0] & 0b10000000) >> 1
+	payloadHash[0] |= idHighBit
+
 	// Set the MAC
-	m.AssociatedData.SetMAC(payloadHash)
+	m.SetMac(payloadHash)
+
+	//remove the type byte off of the userID and clear the highest bit so
+	//it can be stored in the fingerprint
+	fp := format.Fingerprint{}
+	copy(fp[:], uid[:format.KeyFPLen])
+	fp[0] &= 0b01111111
+
+	m.SetKeyFP(fp)
 }
