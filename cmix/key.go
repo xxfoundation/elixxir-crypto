@@ -55,6 +55,5 @@ func keyGen(grp *cyclic.Group, salt []byte, baseKey, output *cyclic.Int) *cyclic
 	y := h2.Sum(nil)
 
 	// Expand Key using SHA512
-	k := hash.ExpandKey(sha512.New(), grp, y, output)
-	return k
+	return hash.ExpandKey(sha512.New(), grp, y, output)
 }

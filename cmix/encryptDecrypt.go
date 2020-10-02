@@ -22,8 +22,8 @@ import (
 
 // ClientEncrypt encrypts the message for the client by multiplying the
 // inverted encryption key by the message payload
-func ClientEncrypt(grp *cyclic.Group, msg format.Message,
-	salt []byte, baseKeys []*cyclic.Int) format.Message {
+func ClientEncrypt(grp *cyclic.Group, msg *format.Message,
+	salt []byte, baseKeys []*cyclic.Int) *format.Message {
 
 	// Get the salt for associated data
 	hash, err := blake2b.New256(nil)
@@ -39,19 +39,17 @@ func ClientEncrypt(grp *cyclic.Group, msg format.Message,
 
 	// Get message payloads as cyclic integers
 	payloadA := grp.NewIntFromBytes(msg.GetPayloadA())
-	payloadB := grp.NewIntFromBytes(msg.GetPayloadB())
+	payloadB := grp.NewIntFromBytes(msg.GetPayloadBForEncryption())
 
 	// Encrypt payload A with the key
 	EcrPayloadA := grp.Mul(keyEcrA, payloadA, grp.NewInt(1))
 	EcrPayloadB := grp.Mul(keyEcrB, payloadB, grp.NewInt(1))
 
-	primeLen := grp.GetP().ByteLen()
-
 	// Create the encrypted message
-	encryptedMsg := format.NewMessage(primeLen)
+	encryptedMsg := format.NewMessage()
 
-	encryptedMsg.SetPayloadA(EcrPayloadA.LeftpadBytes(uint64(primeLen)))
-	encryptedMsg.SetPayloadB(EcrPayloadB.LeftpadBytes(uint64(primeLen)))
+	encryptedMsg.SetPayloadA(EcrPayloadA.LeftpadBytes(format.PayloadLen))
+	encryptedMsg.SetPayloadB(EcrPayloadB.LeftpadBytes(format.PayloadLen))
 
 	return encryptedMsg
 

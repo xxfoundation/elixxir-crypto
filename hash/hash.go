@@ -35,20 +35,17 @@ func CreateHMAC(message, key []byte) []byte {
 	h := hmac.New(sha256.New, key)
 	h.Write(message)
 
-	hMAC := h.Sum(nil)
-
-	// blank out the first first bit in order to ensure the group is satisfied
-	// in the message payload.  See primitives/format/message.go for more details
-	hMAC[0] &= 0x7F
-
-	return hMAC
+	return h.Sum(nil)
 }
 
 // CheckHMAC receives a MAC value along with the respective message and key associated with the Msg Authentication Code
 // Returns true if calculated MAC matches the received one. False if not.
 // *Function was copied from (https://golang.org/pkg/crypto/hmac/), we need to analyze this again in the future *
 func VerifyHMAC(message, MAC, key []byte) bool {
-	expectedMAC := CreateHMAC(message, key)
+
+	mac := hmac.New(sha256.New, key)
+	mac.Write(message)
+	expectedMAC := mac.Sum(nil)
 
 	return hmac.Equal(MAC, expectedMAC)
 }

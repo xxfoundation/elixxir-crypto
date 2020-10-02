@@ -22,46 +22,40 @@ import (
 )
 
 type StreamGenerator struct {
-	waitingStreams chan *stream
+	streams        []*Stream
+	waitingStreams chan *Stream
+	numStreams     uint
 	scalingFactor  uint
 	rngConstructor csprng.SourceConstructor
 }
 
 type Stream struct {
-	*stream
-	gen *StreamGenerator
-}
-
-type stream struct {
-	//configuration
-	scalingFactor uint
-
-	//cryptographic primatives
-	rng         csprng.Source
+	streamGen   *StreamGenerator
 	AESCtr      cipher.Stream
+	entropyCnt  uint
+	rng         csprng.Source
+	source      []byte
+	numStream   uint
+	mutex       sync.Mutex
 	fortunaHash hash.Hash
-
-	//state
-	entropyCnt uint
-	source     []byte
-
-	//thread control
-	mutex sync.Mutex
 }
 
 // NewStreamGenerator creates a StreamGenerator object containing
 // streamCount streams. The passed in rngConstructor will be the source of
 // randomness for the streams.
-// maxWaiting allows the creation of a pool for the reuse of streams. To reuse a
-// stream it must be closed, then it will be returned on the next attempted
-// get of a new stream. Set it to zero if reuse isn't wanted
-func NewStreamGenerator(scalingFactor uint, maxWaiting uint,
+func NewStreamGenerator(scalingFactor uint, streamCount uint,
 	rng csprng.SourceConstructor) *StreamGenerator {
-
 	newStreamGenerator := StreamGenerator{
 		scalingFactor:  scalingFactor,
-		waitingStreams: make(chan *stream, maxWaiting),
+		waitingStreams: make(chan *Stream, streamCount),
+		numStreams:     streamCount,
+		streams:        make([]*Stream, 0, streamCount),
 		rngConstructor: rng,
+	}
+
+	// Add streamCount streams to the new stream generator
+	for i := uint(0); i < streamCount; i++ {
+		newStreamGenerator.waitingStreams <- newStreamGenerator.newStream()
 	}
 
 	return &newStreamGenerator
@@ -70,52 +64,35 @@ func NewStreamGenerator(scalingFactor uint, maxWaiting uint,
 // newStream creates a new stream, having it point to the corresponding stream generator
 // Also increment the amount of streams created in the stream generator
 // Bookkeeping slice for streams made
-func (sg *StreamGenerator) newStream() *stream {
-	return &stream{
-		scalingFactor: sg.scalingFactor,
-		entropyCnt:    1,
-		fortunaHash:   crypto.BLAKE2b_256.New(),
-		rng:           sg.rngConstructor(),
+func (sg *StreamGenerator) newStream() *Stream {
+	tmpStream := &Stream{
+		streamGen:   sg,
+		numStream:   sg.numStreams,
+		entropyCnt:  1,
+		fortunaHash: crypto.BLAKE2b_256.New(),
+		rng:         sg.rngConstructor(),
 	}
+	sg.streams = append(sg.streams, tmpStream)
+	return tmpStream
 }
 
-// GetStream gets an existing stream or creates a new stream object.
-// It returns a new stream object if none can be retrieved from the pool of
-// waiting streams
+// GetStream gets an existing stream or creates a new Stream object.
+// If the # of open streams exceeds streamCount,
+// this function blocks (and prints a log warning) until a stream is available
 func (sg *StreamGenerator) GetStream() *Stream {
-	var s *stream
-	select {
-	case s = <-sg.waitingStreams:
-	default:
-		s = sg.newStream()
-	}
-	return &Stream{
-		stream: s,
-		gen:    sg,
-	}
+	return <-sg.waitingStreams
 }
 
-// Close closes the stream object, locking it from external users and
-// adding it back to the stream pool. The stream is dropped if the pool is full
-func (sg *StreamGenerator) close(stream *stream) {
-	select {
-	case sg.waitingStreams <- stream:
-	default:
-		jww.WARN.Printf("Failed to recycle stream, " +
-			"could not send to channel")
-	}
+// Close closes the stream object, locking it from external users and marking it as available in the stream list
+func (sg *StreamGenerator) Close(stream *Stream) {
+	sg.waitingStreams <- stream
 }
 
 // Read reads up to len(b) bytes from the csprng.Source object. This function returns and error if the stream is locked.
 // Users of stream objects should close them when they are finished using them. We read the AES
 // BlockSize into AES then run it until blockSize*scalingFactor bytes are read. Every time
 // BlockSize*scalingFactor bytes are read this functions blocks until it rereads csprng.Source.
-// Will crash if the stream has been closed.
-func (s *stream) Read(b []byte) (int, error) {
-	if s == nil {
-		jww.FATAL.Panicf("Stream is closed, cannot read")
-	}
-
+func (s *Stream) Read(b []byte) (int, error) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -148,7 +125,7 @@ func (s *stream) Read(b []byte) (int, error) {
 			if err != nil {
 				return 0, err
 			}
-			s.entropyCnt = s.scalingFactor
+			s.entropyCnt = s.streamGen.scalingFactor
 			s.AESCtr = Fortuna(dst, extension, s.fortunaHash)
 		}
 
@@ -160,20 +137,6 @@ func (s *stream) Read(b []byte) (int, error) {
 	copy(b, d[:len(b)])
 
 	return len(b), nil
-}
-
-// Closes the stream returning it to its source generator if there is room in
-// the pool
-func (s *Stream) Close() {
-	if s.stream == nil {
-		jww.FATAL.Panicf("Stream is closed, cannot close")
-	}
-
-	st := s.stream
-
-	s.stream = nil
-
-	s.gen.close(st)
 }
 
 // The Fortuna construction is used to generate randomness
@@ -197,7 +160,7 @@ func Fortuna(src, ext []byte, fortunaHash hash.Hash) cipher.Stream {
 
 // SetSeed does not do anything. Function exists to comply with the
 // csprng.Source interface.
-func (s *stream) SetSeed(seed []byte) error {
-	jww.INFO.Printf("stream does not utilise SetSeed().")
+func (s *Stream) SetSeed(seed []byte) error {
+	jww.INFO.Printf("Stream does not utilise SetSeed().")
 	return nil
 }
