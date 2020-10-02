@@ -9,14 +9,17 @@ package fastRNG
 import (
 	"bytes"
 	"crypto/rand"
+	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
 	"io"
+	"reflect"
 	"testing"
+	"time"
 )
 
 // Line will error if the stream does not comply with the csprng.Source
 // interface.
-var _ csprng.Source = &stream{}
+var _ csprng.Source = &Stream{}
 
 // Mock struct and members for a mockRead test
 type mockRNG struct {
@@ -35,7 +38,7 @@ func (m *mockRNG) SetSeed(seed []byte) error {
 //Test the creation of a new stream generator and that it is configured correctly
 func TestNewStreamGenerator(t *testing.T) {
 	sg := NewStreamGenerator(12, 20, csprng.NewSystemRNG)
-	if cap(sg.waitingStreams) != 20 || sg.scalingFactor != 12 {
+	if sg.numStreams != 20 || sg.scalingFactor != 12 {
 		t.Errorf("Failure to initialize a stream generator correctly")
 	}
 }
@@ -43,33 +46,46 @@ func TestNewStreamGenerator(t *testing.T) {
 //Test the creation of new streams and that the counters are in fact working
 func TestNewStream(t *testing.T) {
 	sg := NewStreamGenerator(12, 3, csprng.NewSystemRNG)
-	s1 := sg.GetStream()
-	if s1.entropyCnt != 1 {
-		t.Errorf("New stream is not new")
+	sg.GetStream()
+	sg.GetStream()
+	sg.GetStream()
+	//See if there are the appropriate amount of streams in the streams slice and the stream count
+	if sg.numStreams != uint(len(sg.streams)) && sg.numStreams != 3 {
+		t.Errorf("New streams bookkeeping is not working.")
 	}
-	s2 := sg.GetStream()
-	if s2.entropyCnt != 1 {
-		t.Errorf("New stream is not new")
+}
+
+//Test that a blocked channel will grab a stream what it becomes available
+func TestGetStream_GrabsWaitingStream(t *testing.T) {
+	sg := NewStreamGenerator(12, 3, csprng.NewSystemRNG)
+	stream0 := sg.GetStream()
+	sg.GetStream()
+	sg.GetStream()
+	//Allow the main thread to block as streams aren't available, then close it
+	go func() {
+		time.Sleep(1 * time.Second)
+		sg.Close(stream0)
+	}()
+	newStream := sg.GetStream()
+	if !reflect.DeepEqual(newStream, stream0) {
+		t.Errorf("The next stream did not grab the correct stream")
 	}
 }
 
 //Test that a blocked channel will grab a stream that is available
 func TestGetStream_GrabsAlreadyWaitingStream(t *testing.T) {
-	sg := NewStreamGenerator(43, 3, csprng.NewSystemRNG)
+	sg := NewStreamGenerator(12, 3, csprng.NewSystemRNG)
 	stream0 := sg.GetStream()
 
 	stream1 := sg.GetStream()
 	sg.GetStream()
 	//Allow the main thread to block as streams aren't available, then close it
-	b := make([]byte, 32)
-	stream0.Read(b)
-	stream1.Read(b)
-	stream0.Close()
-	stream1.Close()
+	sg.Close(stream0)
+	sg.Close(stream1)
 
-	s4 := sg.GetStream()
-	if s4.entropyCnt != 42 {
-		t.Errorf("New stream is not old: %d", s4.entropyCnt)
+	newStream := sg.GetStream()
+	if !reflect.DeepEqual(newStream, sg.streams[0]) {
+		t.Errorf("The next stream did not grab the correct stream")
 	}
 }
 
@@ -80,51 +96,14 @@ func TestClose_WaitingChannelLength(t *testing.T) {
 	stream2 := sg.GetStream()
 
 	//Close all the streams created
-	stream0.Close()
-	stream1.Close()
-	stream2.Close()
+	sg.Close(stream0)
+	sg.Close(stream1)
+	sg.Close(stream2)
 
 	//Check that the waiting streams channel is the appropriate length
 	if len(sg.waitingStreams) != 3 {
 		t.Errorf("Waiting channel isn't the appropriate size after closing streams")
 	}
-}
-
-// Tests that the read length is not byte aligned
-func TestRead_ClosedChannel(t *testing.T) {
-	defer func() {
-		if r := recover(); r != nil {
-		}
-	}()
-
-	sg := NewStreamGenerator(12, 3, csprng.NewSystemRNG)
-	stream0 := sg.GetStream()
-	requestedBytes := make([]byte, 95)
-	testSource := make([]byte, 128, 128)
-	stream0.source = testSource
-
-	stream0.Close()
-
-	_, _ = stream0.Read(requestedBytes)
-
-	t.Errorf("Read didnt panc when it should")
-}
-
-// Tests that the read length is not byte aligned
-func TestClose_ClosedChannel(t *testing.T) {
-	defer func() {
-		if r := recover(); r != nil {
-		}
-	}()
-
-	sg := NewStreamGenerator(12, 3, csprng.NewSystemRNG)
-	stream0 := sg.GetStream()
-
-	stream0.Close()
-
-	stream0.Close()
-
-	t.Errorf("Close didnt panic when it should")
 }
 
 // Tests that the read length is not byte aligned
@@ -165,7 +144,7 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 	testSource := make([]byte, 256, 256)
 	_, err := io.ReadFull(rand.Reader, testSource)
 	if err != nil {
-		t.Errorf("failed to read from io reader: %s", err)
+		jww.WARN.Printf(err.Error())
 	}
 
 	//Initialize streamGenerator & streams
@@ -194,11 +173,11 @@ func TestRead_MultipleStreams_DifferentOutputs(t *testing.T) {
 	testSource1 := make([]byte, 256, 256)
 	_, err := io.ReadFull(rand.Reader, testSource0)
 	if err != nil {
-		t.Errorf("failed to read from io reader: %s", err)
+		jww.WARN.Printf(err.Error())
 	}
 	_, err1 := io.ReadFull(rand.Reader, testSource1)
 	if err1 != nil {
-		t.Errorf("failed to read from io reader: %s", err)
+		jww.WARN.Printf(err1.Error())
 	}
 
 	sg := NewStreamGenerator(20, 2, csprng.NewSystemRNG)
@@ -234,7 +213,7 @@ func TestRead_DelinkedSource(t *testing.T) {
 	testSource := make([]byte, 256, 256)
 	_, err := io.ReadFull(rand.Reader, testSource)
 	if err != nil {
-		t.Errorf("failed to read from io reader: %s", err)
+		jww.WARN.Printf(err.Error())
 	}
 
 	//Initialize streamGenerator & streams
@@ -253,7 +232,7 @@ func TestRead_DelinkedSource(t *testing.T) {
 	//Overwrite the entirety of requestedBytes
 	_, err2 := io.ReadFull(rand.Reader, requestedBytes)
 	if err2 != nil {
-		t.Errorf("failed to read from io reader: %s", err)
+		jww.WARN.Printf(err2.Error())
 	}
 	//Test if source has changed from it's copy
 	if bytes.Compare(sourceAfterRead, stream.source) != 0 {

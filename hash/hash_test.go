@@ -34,6 +34,10 @@ func TestNewCMixHash(t *testing.T) {
 
 // TestHMAC tests that we get the expected value for the payload "Mario" and a key "key"
 func TestHMAC(t *testing.T) {
+
+	tests := 2
+	pass := 0
+
 	payload := []byte("Mario")
 	key := []byte("a906df88f30d6afbfa6165a50cc9e208d16b34e70b367068dc5d6bd6e155b2c3")
 
@@ -42,22 +46,15 @@ func TestHMAC(t *testing.T) {
 
 	if hex.EncodeToString(hmac1) != expectedHMAC {
 		t.Errorf("TestHMAC(): Error 1: MACs should have matched!")
+	} else {
+		pass++
 	}
 
-	if !VerifyHMAC(payload, hmac1, key) {
+	if VerifyHMAC(payload, hmac1, key) {
+		pass++
+	} else {
 		t.Errorf("TestHMAC(): Error 2: MACs should have matched!")
 	}
-}
 
-// tests that the first bit is blanked when we have a leading 1 on
-// the output
-func TestHMAC_LeadingOne(t *testing.T) {
-	payload := []byte("ARO00OOO")
-	key := []byte("a906df88f30d6afbfa6165a50cc9e208d16b34e70b367068dc5d6bd6e155b2c3")
-
-	hmac1 := CreateHMAC(payload, key)
-
-	if hmac1[0]>>7 != 0 {
-		t.Errorf("First bit not blanked!")
-	}
+	println("TestHMAC():", pass, "out of", tests, "tests passed.")
 }
