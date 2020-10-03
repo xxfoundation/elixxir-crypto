@@ -34,7 +34,7 @@ func TestInversePrototype_GetInputSize(t *testing.T) {
 
 	if actual != expect {
 		t.Errorf("GetInputSize() for InversePrototype did not return the "+
-			"correct minimum input size\n\trecieved: %v\n\texpected: %v",
+			"correct minimum input size\n\treceived: %v\n\texpected: %v",
 			actual, expect)
 	}
 
@@ -47,7 +47,7 @@ func TestInversePrototype_GetName(t *testing.T) {
 
 	if actual != expect {
 		t.Errorf("GetName() for InversePrototype did not return the "+
-			"name\n\trecieved: %v\n\texpected: %v",
+			"name\n\treceived: %v\n\texpected: %v",
 			actual, expect)
 	}
 }
@@ -77,7 +77,7 @@ func TestInversePrototype_MathProp(t *testing.T) {
 
 		if val[1].Cmp(val[2]) != 0 {
 			t.Errorf("Inverse() did not produce the correct inverted value "+
-				"under the group\n\trecieved: %v\n\texpected: %v",
+				"under the group\n\treceived: %v\n\texpected: %v",
 				result.Text(10), val[2].Text(10))
 		}
 	}
@@ -123,7 +123,7 @@ func TestInversePrototype_Consistency(t *testing.T) {
 		// The multiplication of x with its inverse should be 1
 		if mul.Cmp(grp.NewInt(1)) != 0 {
 			t.Errorf("Multiplication of inverse did not produce unit value of 1 "+
-				"under the group\n\trecieved: %v\n\texpected: %v",
+				"under the group\n\treceived: %v\n\texpected: %v",
 				mul.Text(10), x.Text(10))
 		}
 	}

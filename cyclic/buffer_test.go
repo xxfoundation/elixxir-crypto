@@ -51,7 +51,7 @@ func TestIntBuffer_Len(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		ib := grp.NewIntBuffer(uint32(i), nil)
 		if ib.Len() != i {
-			t.Errorf("IntBuffer.Len: returned incorrect len, Expected: %v, Recieved: %v", i, ib.Len())
+			t.Errorf("IntBuffer.Len: returned incorrect len, Expected: %v, Received: %v", i, ib.Len())
 		}
 	}
 }
@@ -66,7 +66,7 @@ func TestIntBuffer_GetFingerprint(t *testing.T) {
 
 	if ib1.GetFingerprint() != grp1.GetFingerprint() {
 		t.Errorf("IntBuffer.GetFingerprint: returned incorrect fingerprint,"+
-			"Expected: %v, Recieved: %v", grp1.GetFingerprint(), ib1.fingerprint)
+			"Expected: %v, Received: %v", grp1.GetFingerprint(), ib1.fingerprint)
 	}
 
 	p2 := large.NewInt(1000000010101111011)
@@ -76,7 +76,7 @@ func TestIntBuffer_GetFingerprint(t *testing.T) {
 
 	if ib2.GetFingerprint() != grp2.GetFingerprint() {
 		t.Errorf("IntBuffer.GetFingerprint: returned incorrect fingerprint,"+
-			"Expected: %v, Recieved: %v", grp2.GetFingerprint(), ib2.fingerprint)
+			"Expected: %v, Received: %v", grp2.GetFingerprint(), ib2.fingerprint)
 	}
 
 }
@@ -105,7 +105,7 @@ func TestIntBuffer_GetRegion(t *testing.T) {
 	//check that the length is correct
 	if bufSub.Len() != int(end-begin) {
 		t.Errorf("IntBuffer.GetSubBuffer: Size of region of incorrect,"+
-			"Expected: %v, Recieved: %v", end-begin, bufSub.Len())
+			"Expected: %v, Received: %v", end-begin, bufSub.Len())
 	}
 
 	for i := begin; i < end; i++ {
@@ -113,13 +113,13 @@ func TestIntBuffer_GetRegion(t *testing.T) {
 		bufint := bufSub.Get(i - begin)
 		if bufint.GetLargeInt().Int64() != int64(i) {
 			t.Errorf("IntBuffer.GetSubBuffer: Region mapped incorrectly,"+
-				"Expected: %v, Recieved: %v", i, bufint.GetLargeInt().Int64())
+				"Expected: %v, Received: %v", i, bufint.GetLargeInt().Int64())
 		}
 		//check that when editing one, the other is edited
 		grp.SetUint64(bufint, uint64(100-i))
 		if buf.Get(i).GetLargeInt().Int64() != int64(100-i) {
 			t.Errorf("IntBuffer.GetSubBuffer: Region not connected to originator,"+
-				"Expected: %v, Recieved: %v", 100-i, buf.Get(i).GetLargeInt().Int64())
+				"Expected: %v, Received: %v", 100-i, buf.Get(i).GetLargeInt().Int64())
 		}
 	}
 }
@@ -144,7 +144,7 @@ func TestIntBuffer_DeepCopy(t *testing.T) {
 
 	if bufCpy.Len() != buf.Len() {
 		t.Errorf("IntBuffer.DeepCopy: Size of region of incorrect,"+
-			"Expected: %v, Recieved: %v", buf.Len(), bufCpy.Len())
+			"Expected: %v, Received: %v", buf.Len(), bufCpy.Len())
 	}
 
 	for i := uint32(0); i < intBuffLen; i++ {
@@ -152,13 +152,13 @@ func TestIntBuffer_DeepCopy(t *testing.T) {
 		bufint := bufCpy.Get(i)
 		if bufint.GetLargeInt().Int64() != int64(i) {
 			t.Errorf("IntBuffer.DeepCopy: Copy not equal to original at %v,"+
-				"Expected: %v, Recieved: %v", i, i, bufint.GetLargeInt().Int64())
+				"Expected: %v, Received: %v", i, i, bufint.GetLargeInt().Int64())
 		}
 		//check that editing one does not edit the other
 		grp.SetUint64(bufint, uint64(100-i))
 		if buf.Get(i).GetLargeInt().Int64() == int64(100-i) {
 			t.Errorf("IntBuffer.DeepCopy: Region connected to originator,"+
-				"Expected: %v, Recieved: %v", 100-i, buf.Get(i).GetLargeInt().Int64())
+				"Expected: %v, Received: %v", 100-i, buf.Get(i).GetLargeInt().Int64())
 		}
 	}
 }

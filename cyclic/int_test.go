@@ -1,4 +1,3 @@
-////////////////////////////////////////////////////////////////////////////////////////////
 // Copyright © 2020 xx network SEZC                                                       //
 //                                                                                        //
 // Use of this source code is governed by a license that can be found in the LICENSE file //
@@ -267,7 +266,7 @@ func TestGob(t *testing.T) {
 
 	if inInt.Cmp(outInt) != 0 {
 		t.Errorf("GobEncoder/GobDecoder failed, "+
-			"Expected: %v; Recieved: %v ",
+			"Expected: %v; Received: %v ",
 			inInt.TextVerbose(10, 12),
 			outInt.TextVerbose(10, 12))
 	}

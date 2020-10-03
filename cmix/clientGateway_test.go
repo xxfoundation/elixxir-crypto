@@ -29,7 +29,7 @@ func TestGenerateClientGatewayKey(t *testing.T) {
 		clientGatewayKey := GenerateClientGatewayKey(baseKey)
 		if !reflect.DeepEqual(clientGatewayKey, precannedClientGatewayKey[i]) {
 			t.Errorf("KMAC %v did not match expected:"+
-				"\n  Recieved: %v\n  Expected: %v", i, clientGatewayKey, precannedClientGatewayKey[i])
+				"\n  Received: %v\n  Expected: %v", i, clientGatewayKey, precannedClientGatewayKey[i])
 		}
 	}
 }

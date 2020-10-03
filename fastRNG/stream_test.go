@@ -51,16 +51,25 @@ func TestNewStream(t *testing.T) {
 	if s2.entropyCnt != 1 {
 		t.Errorf("New stream is not new")
 	}
-	s3 := sg.GetStream()
-	if s3.entropyCnt != 1 {
-		t.Errorf("New stream is not new")
-	}
-	s3.entropyCnt = 42
-	s3.Close()
+}
+
+//Test that a blocked channel will grab a stream that is available
+func TestGetStream_GrabsAlreadyWaitingStream(t *testing.T) {
+	sg := NewStreamGenerator(43, 3, csprng.NewSystemRNG)
+	stream0 := sg.GetStream()
+
+	stream1 := sg.GetStream()
+	sg.GetStream()
+	//Allow the main thread to block as streams aren't available, then close it
+	b := make([]byte, 32)
+	stream0.Read(b)
+	stream1.Read(b)
+	stream0.Close()
+	stream1.Close()
 
 	s4 := sg.GetStream()
 	if s4.entropyCnt != 42 {
-		t.Errorf("New stream is not old")
+		t.Errorf("New stream is not old: %d", s4.entropyCnt)
 	}
 }
 

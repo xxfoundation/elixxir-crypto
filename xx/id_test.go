@@ -50,8 +50,8 @@ func TestNewID(t *testing.T) {
 		24, 119, 98, 166, 104, 13, 252, 226, 1}, t)
 
 	if !reflect.DeepEqual(expectedID1, nid) && !reflect.DeepEqual(expectedID2, nid) {
-		t.Errorf("Recieved ID did not match expected: "+
-			"Expected: %s or %s, Recieved: %s", expectedID1, expectedID2, nid)
+		t.Errorf("Received ID did not match expected: "+
+			"Expected: %s or %s, Received: %s", expectedID1, expectedID2, nid)
 	}
 
 	// Send bad type

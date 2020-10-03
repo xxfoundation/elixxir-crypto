@@ -164,14 +164,14 @@ func TestInt_DeepCopy(t *testing.T) {
 		lgCopy := lg.DeepCopy()
 
 		if lg.Cmp(lgCopy) != 0 {
-			t.Errorf("Int.DeepCopy: Copy not equal to original, Expected: %v, Recieved: %v",
+			t.Errorf("Int.DeepCopy: Copy not equal to original, Expected: %v, Received: %v",
 				lg.Text(16), lgCopy.Text(16))
 		}
 
 		lgCopy.Sub(lgCopy, NewInt(1))
 
 		if lg.Cmp(lgCopy) == 0 {
-			t.Errorf("Int.DeepCopy: Copy not seperate from original, Expected: %v, Recieved: %v",
+			t.Errorf("Int.DeepCopy: Copy not seperate from original, Expected: %v, Received: %v",
 				lg.Text(16), lgCopy.Text(16))
 		}
 	}
@@ -977,7 +977,7 @@ func TestRightShift(t *testing.T) {
 		actual := NewInt(0).RightShift(value, uint(shift))
 
 		if actual.Uint64() != (aInt >> shift) {
-			t.Errorf("Int.RightShift: shifted value not as expected: Expected: %v, Recieved: %v",
+			t.Errorf("Int.RightShift: shifted value not as expected: Expected: %v, Received: %v",
 				aInt>>shift, actual.Uint64())
 		}
 	}
@@ -998,7 +998,7 @@ func TestLeftShift(t *testing.T) {
 		actual := NewInt(0).LeftShift(value, uint(shift))
 
 		if actual.Uint64() != (aInt << shift) {
-			t.Errorf("Int.LeftShift: shifted value not as expected: Expected: %v, Recieved: %v",
+			t.Errorf("Int.LeftShift: shifted value not as expected: Expected: %v, Received: %v",
 				aInt<<shift, actual.Uint64())
 		}
 	}
@@ -1019,7 +1019,7 @@ func TestOr(t *testing.T) {
 		actual := NewInt(0).Or(val1, val2)
 
 		if actual.Uint64() != (aInt | bInt) {
-			t.Errorf("Int.Or: ored value not as expected: Expected: %v, Recieved: %v",
+			t.Errorf("Int.Or: ored value not as expected: Expected: %v, Received: %v",
 				aInt|bInt, actual.Uint64())
 		}
 	}
@@ -1039,7 +1039,7 @@ func TestXor(t *testing.T) {
 		actual := NewInt(0).Xor(val1, val2)
 
 		if actual.Uint64() != (aInt ^ bInt) {
-			t.Errorf("Int.Xor: xored value not as expected: Expected: %v, Recieved: %v",
+			t.Errorf("Int.Xor: xored value not as expected: Expected: %v, Received: %v",
 				aInt^bInt, actual.Uint64())
 		}
 	}
@@ -1059,7 +1059,7 @@ func TestAnd(t *testing.T) {
 		actual := NewInt(0).And(val1, val2)
 
 		if actual.Uint64() != (aInt & bInt) {
-			t.Errorf("Int.And: andd value not as expected: Expected: %v, Recieved: %v",
+			t.Errorf("Int.And: andd value not as expected: Expected: %v, Received: %v",
 				aInt&bInt, actual.Uint64())
 		}
 	}
@@ -1214,7 +1214,7 @@ func TestGob(t *testing.T) {
 
 	if inInt.Cmp(outInt) != 0 {
 		t.Errorf("GobEncoder/GobDecoder failed, "+
-			"Expected: %v; Recieved: %v ", inInt.Text(10), outInt.Text(10))
+			"Expected: %v; Received: %v ", inInt.Text(10), outInt.Text(10))
 	}
 
 }
