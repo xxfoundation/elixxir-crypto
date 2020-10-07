@@ -7,7 +7,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/jwalterweatherman v1.1.0
-	gitlab.com/elixxir/primitives v0.0.0-20200706165052-9fe7a4fb99a3
+	gitlab.com/elixxir/primitives v0.0.0-20200929195204-dd3970d93573
 	golang.org/x/crypto v0.0.0-20200510223506-06a226fb4e37
 	google.golang.org/grpc v1.29.1
 )

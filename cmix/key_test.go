@@ -41,7 +41,7 @@ var p = large.NewIntFromString(pString, base)
 var g = large.NewIntFromString(gString, base)
 
 var grp = cyclic.NewGroup(p, g)
-
+var primeLength = len(grp.GetPBytes())
 var baseKey = grp.NewIntFromString("a906df88f30d6afbfa6165a50cc9e208d16b34e70b367068dc5d6bd6e155b2c3", 16)
 var salt = []byte("fdecfa52a8ad1688dbfa7d16df74ebf27e535903c469cefc007ebbe1ee895064")
 var expectStr = "2e4c99e14e0b1cd18c08467c395a4d5c0eb594507595041a5cfa83eb2f57" +
