@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"gitlab.com/elixxir/crypto/csprng"
 	"gitlab.com/elixxir/crypto/cyclic"
+	"io"
 )
 
 const DefaultPrivateKeyLengthBits = 256
@@ -22,7 +23,7 @@ const DefaultPrivateKeyLength = DefaultPrivateKeyLengthBits / 8
 // group. It is recommended to use the "DefaultPrivateKeyLength"
 // for most use cases.
 // key size must be divisible by 8
-func GeneratePrivateKey(size int, group *cyclic.Group, source csprng.Source) *cyclic.Int {
+func GeneratePrivateKey(size int, group *cyclic.Group, source io.Reader) *cyclic.Int {
 
 	k1, err := csprng.GenerateInGroup(group.GetPBytes(), size, source)
 
