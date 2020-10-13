@@ -1,3 +1,8 @@
+////////////////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2020 xx network SEZC                                                       //
+//                                                                                        //
+// Use of this source code is governed by a license that can be found in the LICENSE file //
+////////////////////////////////////////////////////////////////////////////////////////////
 package auth
 
 import (
@@ -24,8 +29,10 @@ func TestMakeOwnershipProof_Consistency(t *testing.T) {
 	prng := rand.New(rand.NewSource(42))
 
 	for i := 0; i < len(expected); i++ {
-		myPrivKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, grp, prng)
-		partnerPubKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(512, grp, prng), grp)
+		myPrivKey := diffieHellman.GeneratePrivateKey(
+			diffieHellman.DefaultPrivateKeyLength, grp, prng)
+		partnerPubKey := diffieHellman.GeneratePublicKey(
+			diffieHellman.GeneratePrivateKey(512, grp, prng), grp)
 		proof := MakeOwnershipProof(myPrivKey, partnerPubKey, grp)
 		proof64 := base64.StdEncoding.EncodeToString(proof)
 		if expected[i] != proof64 {
@@ -44,8 +51,10 @@ func TestMakeOwnershipProof_Verified(t *testing.T) {
 	prng := rand.New(rand.NewSource(69))
 
 	for i := 0; i < numTests; i++ {
-		myPrivKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, grp, prng)
-		partnerPubKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(512, grp, prng), grp)
+		myPrivKey := diffieHellman.GeneratePrivateKey(
+			diffieHellman.DefaultPrivateKeyLength, grp, prng)
+		partnerPubKey := diffieHellman.GeneratePublicKey(
+			diffieHellman.GeneratePrivateKey(512, grp, prng), grp)
 		proof := MakeOwnershipProof(myPrivKey, partnerPubKey, grp)
 
 		if !VerifyOwnershipProof(myPrivKey, partnerPubKey, grp, proof) {
@@ -63,8 +72,10 @@ func TestVerifyOwnershipProof_Bad(t *testing.T) {
 	prng := rand.New(rand.NewSource(420))
 
 	for i := 0; i < numTests; i++ {
-		myPrivKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, grp, prng)
-		partnerPubKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(512, grp, prng), grp)
+		myPrivKey := diffieHellman.GeneratePrivateKey(
+			diffieHellman.DefaultPrivateKeyLength, grp, prng)
+		partnerPubKey := diffieHellman.GeneratePublicKey(
+			diffieHellman.GeneratePrivateKey(512, grp, prng), grp)
 		proof := make([]byte, 32)
 		prng.Read(proof)
 
