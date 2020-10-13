@@ -24,7 +24,7 @@ func TestMakeOwnershipProof_Consistency(t *testing.T) {
 	prng := rand.New(rand.NewSource(42))
 
 	for i := 0; i < len(expected); i++ {
-		myPrivKey := diffieHellman.GeneratePrivateKey(512, grp, prng)
+		myPrivKey := diffieHellman.GeneratePrivateKey(128, grp, prng)
 		partnerPubKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(512, grp, prng), grp)
 		proof := MakeOwnershipProof(myPrivKey, partnerPubKey, grp)
 		proof64 := base64.StdEncoding.EncodeToString(proof)
@@ -44,7 +44,7 @@ func TestMakeOwnershipProof_Verified(t *testing.T) {
 	prng := rand.New(rand.NewSource(69))
 
 	for i := 0; i < numTests; i++ {
-		myPrivKey := diffieHellman.GeneratePrivateKey(512, grp, prng)
+		myPrivKey := diffieHellman.GeneratePrivateKey(128, grp, prng)
 		partnerPubKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(512, grp, prng), grp)
 		proof := MakeOwnershipProof(myPrivKey, partnerPubKey, grp)
 
@@ -63,7 +63,7 @@ func TestVerifyOwnershipProof_Bad(t *testing.T) {
 	prng := rand.New(rand.NewSource(420))
 
 	for i := 0; i < numTests; i++ {
-		myPrivKey := diffieHellman.GeneratePrivateKey(512, grp, prng)
+		myPrivKey := diffieHellman.GeneratePrivateKey(128, grp, prng)
 		partnerPubKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(512, grp, prng), grp)
 		proof := make([]byte, 32)
 		prng.Read(proof)
