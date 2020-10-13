@@ -75,6 +75,7 @@ func TestMakeAuthKey_Consistency(t *testing.T) {
 
 }
 
+// Check that for every input varied in MakeAuthKey, outputs vary
 func TestMakeAuthKey_InputVariance(t *testing.T) {
 	// Initialize a mock salt
 	salt := []byte("salt")
