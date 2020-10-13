@@ -112,7 +112,7 @@ func TestMakeAuthKey_InputVariance(t *testing.T) {
 	}
 
 	// Vary the salt inputted, check the outputs
-	badKey, _ = MakeAuthKey(badPrivKey, badPartnerPubKey, badSalt, grp)
+	badKey, badVector = MakeAuthKey(badPrivKey, badPartnerPubKey, badSalt, grp)
 	if bytes.Equal(key, badKey) || bytes.Equal(vector, badVector) {
 		t.Errorf("Outputs generated were identical when the salt varied")
 	}
