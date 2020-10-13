@@ -6,7 +6,6 @@
 package auth
 
 import (
-	"bytes"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/cyclic"
 	dh "gitlab.com/elixxir/crypto/diffieHellman"
@@ -35,14 +34,4 @@ func MakeAuthKey(myPrivKey, partnerPubKey *cyclic.Int, salt []byte,
 
 	return h.Sum(nil), []byte(KeygenVector)
 
-}
-
-// Verifies that the auth key is valid
-func VerifyAuthKey(myPrivKey, partnerPubKey *cyclic.Int, salt []byte,
-	grp *cyclic.Group, authKey []byte) bool {
-
-	generatedKey, _ := MakeAuthKey(myPrivKey,
-		partnerPubKey, salt, grp)
-
-	return bytes.Equal(generatedKey, authKey)
 }

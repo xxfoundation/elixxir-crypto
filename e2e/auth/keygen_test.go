@@ -6,6 +6,7 @@
 package auth
 
 import (
+	"bytes"
 	"encoding/base64"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/diffieHellman"
@@ -14,6 +15,7 @@ import (
 	"testing"
 )
 
+// Check the consistency of outputs for MakeAuthKey
 func TestMakeAuthKey_Consistency(t *testing.T) {
 	// Hardcoded expected values
 	expected := []string{
@@ -55,11 +57,7 @@ func TestMakeAuthKey_Consistency(t *testing.T) {
 
 }
 
-//Tests that the generated auth keys are verified
-func TestMakeAuthKey_Verified(t *testing.T) {
-	// Set up a number of tests to perform
-	const numTests = 100
-
+func TestMakeAuthKey_InputVariance(t *testing.T) {
 	// Initialize a mock salt
 	salt := []byte("salt")
 
@@ -69,52 +67,37 @@ func TestMakeAuthKey_Verified(t *testing.T) {
 	// Generate a pseudo-rng
 	prng := rand.New(rand.NewSource(42))
 
-	// Generate and verify a key NUMTESTS times
-	for i := 0; i < numTests; i++ {
-		// Generate the two keys, public and private
-		myPrivKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, grp, prng)
-		partnerPubKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(512, grp, prng), grp)
+	// Generate the two keys, public and private
+	myPrivKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, grp, prng)
+	partnerPubKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(512, grp, prng), grp)
 
-		// Create the auth key
-		key, _ := MakeAuthKey(myPrivKey, partnerPubKey, salt, grp)
+	// Create the auth key
+	key, _ := MakeAuthKey(myPrivKey, partnerPubKey, salt, grp)
 
-		// If the auth key cannot be verified, this run fails
-		if !VerifyAuthKey(myPrivKey, partnerPubKey, salt, grp, key) {
-			t.Errorf("Auth key could not be verified at index %v", i)
-		}
+	// Generate 'bad' (ie different) input values
+	badPrng := rand.New(rand.NewSource(69))
+	badPrivKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, grp, badPrng)
+	badPartnerPubKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(512, grp, badPrng), grp)
+	badSalt := []byte("BadSalt")
+
+	// Vary the private key inputted
+	badKey, _ := MakeAuthKey(badPrivKey, partnerPubKey, salt, grp)
+	if bytes.Equal(key, badKey) {
+		t.Errorf("Auth keys generated were identical when our private key varied")
 	}
-}
 
-//Tests that bad proofs are not verified
-func TestVerifyOwnershipProof_Bad(t *testing.T) {
-	// Set up a number of tests to perform
-	const numTests = 100
-
-	// Initialize a mock salt
-	salt := []byte("salt")
-
-	// Generate a group
-	grp := getGrp()
-
-	// Generate a pseudo-rng
-	prng := rand.New(rand.NewSource(42))
-
-	// Generate a bad auth key and check it's not verified
-	for i := 0; i < numTests; i++ {
-		// Generate the two keys, public and private
-		myPrivKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, grp, prng)
-		partnerPubKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(512, grp, prng), grp)
-
-		// Generate a random, non-proper auth key
-		badKey := make([]byte, 32)
-		prng.Read(badKey)
-
-		// If this non proper auth key is verified, this run fails
-		if VerifyAuthKey(myPrivKey, partnerPubKey, salt, grp, badKey) {
-			t.Errorf("AuthKey was verified at index %v when it is bad", i)
-		}
-
+	// Vary the public key inputted
+	badKey, _ = MakeAuthKey(myPrivKey, badPartnerPubKey, salt, grp)
+	if bytes.Equal(key, badKey) {
+		t.Errorf("Auth keys generated were identical when the parner public key varied")
 	}
+
+	// Vary the salt inputted
+	badKey, _ = MakeAuthKey(badPrivKey, badPartnerPubKey, badSalt, grp)
+	if bytes.Equal(key, badKey) {
+		t.Errorf("Auth keys generated were identical when the salt varied")
+	}
+
 }
 
 // Helper function which generate a group for testing
