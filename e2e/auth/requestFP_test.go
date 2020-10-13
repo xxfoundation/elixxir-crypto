@@ -17,10 +17,10 @@ import (
 func TestMakeRequestFingerprint_Consistency(t *testing.T) {
 	expected := []string{
 		"MY/pv2UmD7nvcsU6hmcly72humiiqOWIspbiGw4pHr4=",
-		"FFx68poO2W+DyF3gR306HHjHUSXv/7/y4PlivQTC01k=",
-		"bKe4HoHyxyr4kZ06JqDG6VMwbHJj7XP1cU/or7l5nYY=",
-		"PLh2LmE18XPLw9J1bvkDpYEBlYS+J8TF1PaOLenRX8A=",
-		"PGeHBikffOe3Z8fEnT0YGy2zk4giC8UoK9drmIJt/vk=",
+		"PL2EufLks2RRfSWWY4lCz14k7g/Pj1rXz/W1CEqrv4s=",
+		"Z5ylMk3gWI010LdHaziE5y8B1JjJjnYIj8GAy+mudk4=",
+		"Atjw2OmNr/s4TvAiL9v3DSZyoFeRQxRku7FpCsSZXLw=",
+		"D4n4ammObGofQuAUcDaR4avOgkB8dB26vfRR0LhLSLE=",
 	}
 
 	grp := getGrp()
@@ -64,10 +64,10 @@ func TestMakeRequestFingerprint_FirstBitZero(t *testing.T) {
 func TestSetRequestFingerprint_Consistency(t *testing.T) {
 	expected := []string{
 		"MY/pv2UmD7nvcsU6hmcly72humiiqOWIspbiGw4pHr4=",
-		"PL2EufLks2RRfSWWY4lCz14k7g/Pj1rXz/W1CEqrv4s=",
-		"55ylMk3gWI010LdHaziE5y8B1JjJjnYIj8GAy+mudk4=",
-		"gtjw2OmNr/s4TvAiL9v3DSZyoFeRQxRku7FpCsSZXLw=",
-		"D4n4ammObGofQuAUcDaR4avOgkB8dB26vfRR0LhLSLE=",
+		"FFx68poO2W+DyF3gR306HHjHUSXv/7/y4PlivQTC01k=",
+		"bKe4HoHyxyr4kZ06JqDG6VMwbHJj7XP1cU/or7l5nYY=",
+		"PLh2LmE18XPLw9J1bvkDpYEBlYS+J8TF1PaOLenRX8A=",
+		"PGeHBikffOe3Z8fEnT0YGy2zk4giC8UoK9drmIJt/vk=",
 	}
 
 	grp := getGrp()
