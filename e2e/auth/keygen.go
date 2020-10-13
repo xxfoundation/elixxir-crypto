@@ -12,7 +12,9 @@ import (
 	"gitlab.com/elixxir/crypto/hash"
 )
 
-const KeygenVector = "MakeAuthKey"
+// Const string which gets hashed into the auth key
+// to help indicate which operation has been done
+var keygenVector = []byte("MakeAuthKey")
 
 // MakeAuthKey generates a one-off key to be used to encrypt payloads
 // for an authenticated channel
@@ -30,7 +32,7 @@ func MakeAuthKey(myPrivKey, partnerPubKey *cyclic.Int, salt []byte,
 	// Hash the base key, the salt and the vector together
 	h.Write(baseKey.Bytes())
 	h.Write(salt)
-	h.Write([]byte(KeygenVector))
+	h.Write([]byte(keygenVector))
 
 	// Generate the auth key
 	authKey := h.Sum(nil)
@@ -40,8 +42,8 @@ func MakeAuthKey(myPrivKey, partnerPubKey *cyclic.Int, salt []byte,
 
 	// Hash the auth key to generate the vector
 	h.Write(authKey)
-	vector := h.Sum(nil)
+	authKeyHash := h.Sum(nil)
 
-	return authKey, vector
+	return authKey, authKeyHash
 
 }
