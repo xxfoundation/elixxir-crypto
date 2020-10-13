@@ -32,6 +32,16 @@ func MakeAuthKey(myPrivKey, partnerPubKey *cyclic.Int, salt []byte,
 	h.Write(salt)
 	h.Write([]byte(KeygenVector))
 
-	return h.Sum(nil), []byte(KeygenVector)
+	// Generate the auth key
+	authKey := h.Sum(nil)
+
+	// Reset the hash
+	h.Reset()
+
+	// Hash the auth key to generate the vector
+	h.Write(authKey)
+	vector := h.Sum(nil)
+
+	return authKey, vector
 
 }
