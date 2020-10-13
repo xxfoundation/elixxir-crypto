@@ -6,7 +6,6 @@
 package auth
 
 import (
-	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/hash"
 	"gitlab.com/elixxir/primitives/format"
@@ -30,10 +29,11 @@ func SetRequestFingerprint(m format.Message, partnerPublicKey *cyclic.Int) {
 //creates a valid auth request fingerprint from a public key
 func MakeRequestFingerprint(publicKey *cyclic.Int) format.Fingerprint {
 	// Create new hash
-	h, err := hash.NewCMixHash()
-	if err != nil {
-		jww.ERROR.Panicf("Failed to create hash: %+v", err)
-	}
+	//suppress because we just panic and a nil hash will panic anyhow
+	h, _ := hash.NewCMixHash()
+	// This will panic if we got an error in the line above, but does nothing
+	// if it worked.
+	h.Reset()
 
 	// Hash the message payload
 	h.Write(publicKey.Bytes())

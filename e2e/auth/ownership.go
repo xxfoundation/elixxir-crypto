@@ -7,7 +7,6 @@ package auth
 
 import (
 	"bytes"
-	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/diffieHellman"
 	"gitlab.com/elixxir/crypto/hash"
@@ -22,10 +21,11 @@ func MakeOwnershipProof(myHistoricalPrivKey, partnerHistoricalPubKey *cyclic.Int
 	historicalBaseKey := diffieHellman.GenerateSessionKey(myHistoricalPrivKey,
 		partnerHistoricalPubKey, grp)
 
-	h, err := hash.NewCMixHash()
-	if err != nil {
-		jww.FATAL.Panicf("Could not get hash: %+v", err)
-	}
+	//suppress because we just panic and a nil hash will panic anyhow
+	h, _ := hash.NewCMixHash()
+	// This will panic if we got an error in the line above, but does nothing
+	// if it worked.
+	h.Reset()
 
 	h.Write(historicalBaseKey.Bytes())
 	h.Write([]byte(ownershipVector))
