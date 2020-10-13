@@ -16,14 +16,33 @@ func TestCryptCrypt(t *testing.T) {
 	msg := []byte{5, 12, 11}
 
 	// Encrypt key
-	encMsg := Crypt(key, vector, msg)
+	encMsg, _ := Crypt(key, vector, msg)
 
 	// Decrypt key
-	dncMsg := Crypt(key, vector, encMsg)
+	dncMsg, _ := Crypt(key, vector, encMsg)
 
 	if !reflect.DeepEqual(dncMsg, msg) {
 		t.Errorf("Encrypt() did not encrypt the message correctly\n\treceived: %v\n\texpected: %v", dncMsg, msg)
 	}
+}
+
+func TestCrypt_Panic(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Crypt should panic on when the vector has less that VectorLen (%d)!", VectorLen)
+		}
+	}()
+	// Create key and message
+	key := []byte{82, 253, 252, 7, 33, 130, 101, 79, 22, 63, 95, 15, 154, 98, 29, 114, 149, 102, 199, 77, 16, 3, 124,
+		77, 123, 187, 4, 7, 209, 226, 198, 73}
+	msg := []byte{5, 12, 11}
+
+	// Pass in a vector of insufficient length for encrypting
+	vector := []byte("badLength")
+
+	// Encrypt key, should cause a panic
+	Crypt(key, vector, msg)
+
 }
 
 // Ensures that encrypted messages are consistency encrypted to the same value
@@ -61,7 +80,7 @@ func TestEncrypt_Consistency(t *testing.T) {
 
 	//encrypt messages with fingerprints and check they match the expected
 	for i := 0; i < len(msgs); i++ {
-		encMsg := Crypt(keys[i], vectors[i], msgs[i])
+		encMsg, _ := Crypt(keys[i], vectors[i], msgs[i])
 
 		// Decode base64 encoded expected message
 		expectedMsg := expectedMsgs[i]
