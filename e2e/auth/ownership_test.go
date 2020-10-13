@@ -13,18 +13,18 @@ import (
 func TestMakeOwnershipProof_Consistency(t *testing.T) {
 
 	expected := []string{
-		"wQ1qLb7GEpZ3EqJ8bvO9fLiRQWPg6zp885pc8mtTUik=",
-		"dAtL2QxNF+3UpFb3as7i+0FR4EpF77SJzhZYDgjzzKg=",
-		"N6eQTmXGD0XdJjj4mP/Gf+DJ64HurjBWXxyZ6fGxcWc=",
-		"4tPUddOr6ItHlqeZk7f56hXa+Fg5msd240Tcvs7cAYQ=",
-		"NT50KHtItDioL9xa5amz8RObnAOH2slKwcxFxsTk4AQ=",
+		"aG1BkGOnHEwO4ik1IrSMdLEUPPoQPpjabgMC/JFNTfo=",
+		"GR9FD79Tsp9DLTzdbEGFiKBSafGMu2eJNeY7PMKpY3U=",
+		"KSg+MJHksiG4Yg9mpu79z+hAsHOgcP2RIgE3zqNxWwg=",
+		"R+1T9UDxTSkIDqa+fDQBifYYBZSLd6dIsE/ArCpgdF4=",
+		"mb7XkuFz1UjCYZbmKAeOUMSKo8synVtBShycjHS66H0=",
 	}
 
 	grp := getGrp()
 	prng := rand.New(rand.NewSource(42))
 
 	for i := 0; i < len(expected); i++ {
-		myPrivKey := diffieHellman.GeneratePrivateKey(128, grp, prng)
+		myPrivKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, grp, prng)
 		partnerPubKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(512, grp, prng), grp)
 		proof := MakeOwnershipProof(myPrivKey, partnerPubKey, grp)
 		proof64 := base64.StdEncoding.EncodeToString(proof)
@@ -44,7 +44,7 @@ func TestMakeOwnershipProof_Verified(t *testing.T) {
 	prng := rand.New(rand.NewSource(69))
 
 	for i := 0; i < numTests; i++ {
-		myPrivKey := diffieHellman.GeneratePrivateKey(128, grp, prng)
+		myPrivKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, grp, prng)
 		partnerPubKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(512, grp, prng), grp)
 		proof := MakeOwnershipProof(myPrivKey, partnerPubKey, grp)
 
@@ -63,7 +63,7 @@ func TestVerifyOwnershipProof_Bad(t *testing.T) {
 	prng := rand.New(rand.NewSource(420))
 
 	for i := 0; i < numTests; i++ {
-		myPrivKey := diffieHellman.GeneratePrivateKey(128, grp, prng)
+		myPrivKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, grp, prng)
 		partnerPubKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(512, grp, prng), grp)
 		proof := make([]byte, 32)
 		prng.Read(proof)
