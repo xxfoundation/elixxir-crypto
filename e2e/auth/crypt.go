@@ -14,14 +14,14 @@ import (
 // Crypt Salsa20 encrypts or decrypts a message with the passed key and vector
 func Crypt(key, vector, msg []byte) (crypt []byte) {
 	// Bound check that the vector is long enough for Salsa20 encryption/decryption
-	if len(vector) < VectorLen {
+	if len(vector) < NonceLength {
 		jww.ERROR.Panicf("Vector is not of sufficient length for encryption/decryption")
 	}
 
 	out := make([]byte, len(msg))
 	var keyArray [32]byte
 	copy(keyArray[:], key)
-	salsa20.XORKeyStream(out, msg, vector[:VectorLen], &keyArray)
+	salsa20.XORKeyStream(out, msg, vector[:NonceLength], &keyArray)
 
 	// Return the result
 	return out

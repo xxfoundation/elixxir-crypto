@@ -1,3 +1,3 @@
 package auth
 
-const VectorLen = 24
+const NonceLength = 24

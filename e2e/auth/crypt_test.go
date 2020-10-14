@@ -29,7 +29,7 @@ func TestCryptCrypt(t *testing.T) {
 func TestCrypt_Panic(t *testing.T) {
 	defer func() {
 		if r := recover(); r == nil {
-			t.Errorf("Crypt should panic on when the vector has less that VectorLen (%d)!", VectorLen)
+			t.Errorf("Crypt should panic on when the vector has less than (%d)!", NonceLength)
 		}
 	}()
 	// Create key and message

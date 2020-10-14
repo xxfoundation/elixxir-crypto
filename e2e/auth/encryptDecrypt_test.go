@@ -46,7 +46,7 @@ func TestPayloadEncryptDecrypt_Consistency(t *testing.T) {
 	for i := 0; i < len(expectedFingerprints); i++ {
 		// Generate the paylod, vector and salt
 		payload := []byte("payloadMessage" + strconv.Itoa(i))
-		testVector := make([]byte, VectorLen)
+		testVector := make([]byte, NonceLength)
 		copy(testVector[:], "test"+strconv.Itoa(i))
 		testSalt := []byte("salt" + strconv.Itoa(i))
 
@@ -111,7 +111,7 @@ func TestPayloadEncryptDecrypt_Consistency(t *testing.T) {
 func TestAuthPayloadEncryptDecrypt(t *testing.T) {
 	grp := getGrp()
 	prng := rand.New(rand.NewSource(42))
-	testVector := make([]byte, VectorLen)
+	testVector := make([]byte, NonceLength)
 	copy(testVector[:], "test")
 	testSalt := []byte("salt")
 	payload := []byte("payloadMessage")
