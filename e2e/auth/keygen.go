@@ -10,6 +10,7 @@ import (
 	"gitlab.com/elixxir/crypto/cyclic"
 	dh "gitlab.com/elixxir/crypto/diffieHellman"
 	"gitlab.com/elixxir/crypto/hash"
+	"gitlab.com/elixxir/primitives/format"
 )
 
 // Const string which gets hashed into the auth key
@@ -19,7 +20,7 @@ var keygenVector = []byte("MakeAuthKey")
 // MakeAuthKey generates a one-off key to be used to encrypt payloads
 // for an authenticated channel
 func MakeAuthKey(myPrivKey, partnerPubKey *cyclic.Int, salt []byte,
-	grp *cyclic.Group) (Key []byte, Vector []byte) {
+	grp *cyclic.Group) (Key []byte, Vector []byte, fp format.Fingerprint) {
 	// Generate the base key for the two users
 	baseKey := dh.GenerateSessionKey(myPrivKey, partnerPubKey, grp)
 
@@ -44,6 +45,16 @@ func MakeAuthKey(myPrivKey, partnerPubKey *cyclic.Int, salt []byte,
 	h.Write(authKey)
 	authKeyHash := h.Sum(nil)
 
-	return authKey, authKeyHash
+	// Generate a fingerprint of the vector
+	h.Reset()
+
+	// Hash the vector
+	h.Write(authKeyHash[:])
+	hashVector := h.Sum(nil)
+
+	// Place the hash into a fingerprint format
+	copy(fp[:], hashVector)
+
+	return authKey, authKeyHash, fp
 
 }

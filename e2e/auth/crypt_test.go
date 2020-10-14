@@ -26,6 +26,25 @@ func TestCryptCrypt(t *testing.T) {
 	}
 }
 
+func TestCrypt_Panic(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Crypt should panic on when the vector has less than (%d)!", NonceLength)
+		}
+	}()
+	// Create key and message
+	key := []byte{82, 253, 252, 7, 33, 130, 101, 79, 22, 63, 95, 15, 154, 98, 29, 114, 149, 102, 199, 77, 16, 3, 124,
+		77, 123, 187, 4, 7, 209, 226, 198, 73}
+	msg := []byte{5, 12, 11}
+
+	// Pass in a vector of insufficient length for encrypting
+	vector := []byte("badLength")
+
+	// Encrypt key, should cause a panic
+	Crypt(key, vector, msg)
+
+}
+
 // Ensures that encrypted messages are consistency encrypted to the same value
 // (when replacing the random number generater with a pseudo one)
 func TestEncrypt_Consistency(t *testing.T) {

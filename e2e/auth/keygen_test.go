@@ -33,6 +33,14 @@ func TestMakeAuthKey_Consistency(t *testing.T) {
 		"PFrcY1rjHHehkPK++chBSbT9+SPUIfLMn1ZkRzX0Z18=",
 	}
 
+	expectedFingerPrints := []string{
+		"I5vse9t+QzlDmClZSNkLPVvTmWJ++YT/fTbyiy1I/rI=",
+		"xWrc3RJE6W+2FGv90m3+txH0m6xIojOq04xATvpa//U=",
+		"zdGCji6CPmmGQ5euPSjkWUJBnkPt2VDgU49XLneyo28=",
+		"1M98jFztIo3iUVF2ndJyL0POlD1Zzp9d7nhvI70ZRTY=",
+		"Odhht6oFXBxQ4wJTfgYKTd4QGhOw9bX4hhTjwgN7heM=",
+	}
+
 	// Initialize a mock salt
 	salt := []byte("salt")
 
@@ -50,7 +58,7 @@ func TestMakeAuthKey_Consistency(t *testing.T) {
 		partnerPubKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(512, grp, prng), grp)
 
 		// Create the auth key
-		key, vector := MakeAuthKey(myPrivKey, partnerPubKey, salt, grp)
+		key, vector, fpVec := MakeAuthKey(myPrivKey, partnerPubKey, salt, grp)
 
 		// Encode the auth key for comparison
 		key64Encoded := base64.StdEncoding.EncodeToString(key)
@@ -58,16 +66,24 @@ func TestMakeAuthKey_Consistency(t *testing.T) {
 		// Encode the vector for comparison
 		vector64Encoded := base64.StdEncoding.EncodeToString(vector)
 
+		fpVec64 := base64.StdEncoding.EncodeToString(fpVec[:])
+
 		// Check if the key matches the expected value
 		if expectedKeys[i] != key64Encoded {
-			t.Errorf("received and expected do not match at index %v\n"+
+			t.Errorf("received and expected do not match at index %v for keys\n"+
 				"\treceived: %s\n\texpected: %s", i, key64Encoded, expectedKeys[i])
 		}
 
 		// Check if the vector matches the expected value
 		if expectedVectors[i] != vector64Encoded {
-			t.Errorf("received and expected do not match at index %v\n"+
+			t.Errorf("received and expected do not match at index %v for vectors\n"+
 				"\treceived: %s\n\texpected: %s", i, vector64Encoded, expectedVectors[i])
+		}
+
+		if expectedFingerPrints[i] != fpVec64 {
+			t.Errorf("received and expected do not match at index %v for fingerprint\n"+
+				"\treceived: %s\n\texpected: %s", i, fpVec64, expectedFingerPrints[i])
+
 		}
 	}
 
@@ -89,7 +105,7 @@ func TestMakeAuthKey_InputVariance(t *testing.T) {
 	partnerPubKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(512, grp, prng), grp)
 
 	// Create the auth key
-	key, vector := MakeAuthKey(myPrivKey, partnerPubKey, salt, grp)
+	key, vector, fpVec := MakeAuthKey(myPrivKey, partnerPubKey, salt, grp)
 
 	// Generate 'bad' (ie different) input values
 	badPrng := rand.New(rand.NewSource(69))
@@ -98,20 +114,20 @@ func TestMakeAuthKey_InputVariance(t *testing.T) {
 	badSalt := []byte("BadSalt")
 
 	// Vary the private key inputted, check the outputs
-	badKey, badVector := MakeAuthKey(badPrivKey, partnerPubKey, salt, grp)
-	if bytes.Equal(key, badKey) || bytes.Equal(vector, badVector) {
+	badKey, badVector, badFPVec := MakeAuthKey(badPrivKey, partnerPubKey, salt, grp)
+	if bytes.Equal(key, badKey) || bytes.Equal(vector, badVector) || bytes.Equal(fpVec[:], badFPVec[:]) {
 		t.Errorf("Outputs generated were identical when our private key varied")
 	}
 
 	// Vary the public key inputted, check the outputs
-	badKey, badVector = MakeAuthKey(myPrivKey, badPartnerPubKey, salt, grp)
-	if bytes.Equal(key, badKey) || bytes.Equal(vector, badVector) {
+	badKey, badVector, badFPVec = MakeAuthKey(myPrivKey, badPartnerPubKey, salt, grp)
+	if bytes.Equal(key, badKey) || bytes.Equal(vector, badVector) || bytes.Equal(fpVec[:], badFPVec[:]) {
 		t.Errorf("Outputs generated were identical when the parner public key varied")
 	}
 
 	// Vary the salt inputted, check the outputs
-	badKey, badVector = MakeAuthKey(badPrivKey, badPartnerPubKey, badSalt, grp)
-	if bytes.Equal(key, badKey) || bytes.Equal(vector, badVector) {
+	badKey, badVector, badFPVec = MakeAuthKey(badPrivKey, badPartnerPubKey, badSalt, grp)
+	if bytes.Equal(key, badKey) || bytes.Equal(vector, badVector) || bytes.Equal(fpVec[:], badFPVec[:]) {
 		t.Errorf("Outputs generated were identical when the salt varied")
 	}
 
