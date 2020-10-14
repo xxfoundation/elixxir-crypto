@@ -16,10 +16,10 @@ func TestCryptCrypt(t *testing.T) {
 	msg := []byte{5, 12, 11}
 
 	// Encrypt key
-	encMsg, _ := Crypt(key, vector, msg)
+	encMsg := Crypt(key, vector, msg)
 
 	// Decrypt key
-	dncMsg, _ := Crypt(key, vector, encMsg)
+	dncMsg := Crypt(key, vector, encMsg)
 
 	if !reflect.DeepEqual(dncMsg, msg) {
 		t.Errorf("Encrypt() did not encrypt the message correctly\n\treceived: %v\n\texpected: %v", dncMsg, msg)
@@ -80,7 +80,7 @@ func TestEncrypt_Consistency(t *testing.T) {
 
 	//encrypt messages with fingerprints and check they match the expected
 	for i := 0; i < len(msgs); i++ {
-		encMsg, _ := Crypt(keys[i], vectors[i], msgs[i])
+		encMsg := Crypt(keys[i], vectors[i], msgs[i])
 
 		// Decode base64 encoded expected message
 		expectedMsg := expectedMsgs[i]
