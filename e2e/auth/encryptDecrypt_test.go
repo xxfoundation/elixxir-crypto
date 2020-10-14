@@ -21,25 +21,25 @@ func TestPayloadEncryptDecrypt_Consistency(t *testing.T) {
 
 	// The expected values for encrypted messages, MACs and fingerprints
 	expectedEncrypted := []string{
-		"4hsxVHFT1hBlrn6HYyas",
-		"vsitOqh5clZF3F/v5Hqq",
-		"vju+iXTG/QShVaV/G6lQ",
-		"GcwqYRjYnI1Mz0FDnk6g",
-		"42xrxH2LglZpXDrzNc0i",
+		"p3gclxUyLgEJnds12f+S",
+		"zwKMLOdjcLmGozAkvs+o",
+		"t0IclvgIS1GQM6Mnu7kR",
+		"tt1AcInPKOjk54fWTj8S",
+		"1MUXQRgAN6gC0lzR5IKF",
 	}
 	expectedMac := []string{
-		"H/8GiORzJ6RBSNCwIdJq1TNnvRuPJx5eKCzeE7H+rSM=",
-		"UV+CHvaqK9vqTCGIBwbFtCEixJCbPRN5zXRDPLnQN0Y=",
-		"8vS1lGArSQTvxhbuq6OhPpOjrdyLwHB0QAHFKlHScCE=",
-		"f/cMqLA57UR5yOScT2I4w8F3nB0Seqk2lrSqriAIW8E=",
-		"tbpFyrG4DBA+TJ4Dz3vMyx6SeZ7/JWbKHxFu7mwSE3Q=",
+		"6n6Cjkv4KlTW5Syd+WQBhZ0kPJIYz/E9AYyQkxcYw8E=",
+		"3eSYrf8mQ61MQVaJT5Zz4ho4T30a40AZmooJcb/dsas=",
+		"GhzKIclJAP2LKVWgrH9WCinDIKIQqVYr1Omlo99VMDM=",
+		"evoeLwK5mxPZtLHV22WDOc8ih/bqREBzCOuabrHZ/1U=",
+		"CexuXGkx23NzPre5Nnbnma739984Lb1ocq4bsXheNTs=",
 	}
 	expectedFingerprints := []string{
-		"r3zSknIZqSD3xIV3JuER1PH7rne/ghcVdtSLTHMwEx8=",
-		"rtoXXxA36jkhK4jw0LjCLdfU1s6mCHGvT3SUWwf373o=",
-		"N8hJqAM9SjML62SluMOqdK2XhzdLBlzujj9tLilc+xo=",
-		"iCPkm0Tc51YpwwgbYwgiWu2OedpJlbAyv1bJRvwkNHE=",
-		"Dco4onqYu2NCqUMuVuFge6w8/Kc4Mnb/+/geXrYyHDg=",
+		"4juO1SAC6IG67PVQvuf+t1CtLP7r752Ul6hPk0J4jyM=",
+		"Pp1b0l99KdGrg4M282Ydo+3WfNLvKa0aQfbW/eVk/wY=",
+		"YxMq2etN6rBjbbfd6TLgxZ/UxxyOcUDO8jNjGjTyNz0=",
+		"bGF5Cf1x2oPr+uCTT/Qzy2f2n7gYTDpMyg2XPTsuIyU=",
+		"akQWCbPsJgbvLjWwd8VeD2OsFc+SyrCYOcfoPMBKLvo=",
 	}
 
 	// Encrypt/Decrypt 5 messages
@@ -57,7 +57,7 @@ func TestPayloadEncryptDecrypt_Consistency(t *testing.T) {
 			diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, grp, prng), grp)
 
 		// Run the encryption
-		ecr, mac, fpVector := AuthPayloadEncrypt(myPrivKey, parnterPubKey, testVector, testSalt, payload, grp)
+		ecr, mac, fpVector := Encrypt(myPrivKey, parnterPubKey, testSalt, payload, grp)
 
 		// Check if the encrypted message is consistent
 		ecr64 := base64.StdEncoding.EncodeToString(ecr)
@@ -81,8 +81,7 @@ func TestPayloadEncryptDecrypt_Consistency(t *testing.T) {
 		}
 
 		// Run the decryption
-		ok, decrypted, decFPVector := AuthPayloadDecrypt(myPrivKey,
-			parnterPubKey, testVector, testSalt, ecr, mac, grp)
+		ok, decrypted, decFPVector := Decrypt(myPrivKey, parnterPubKey, testSalt, ecr, mac, grp)
 
 		if !ok {
 			t.Errorf("Did not pass a successful MAC check on decryption at index %d", i)
@@ -124,8 +123,8 @@ func TestAuthPayloadEncryptDecrypt(t *testing.T) {
 	theirPubKey := diffieHellman.GeneratePublicKey(theirPrivKey, grp)
 
 	// Run the encryption
-	ecr, mac, _ := AuthPayloadEncrypt(myPrivKey, theirPubKey, testVector, testSalt, payload, grp)
-	ok, dec, _ := AuthPayloadDecrypt(myPrivKey, theirPubKey, testVector, testSalt, ecr, mac, grp)
+	ecr, mac, _ := Encrypt(myPrivKey, theirPubKey, testSalt, payload, grp)
+	ok, dec, _ := Decrypt(myPrivKey, theirPubKey, testSalt, ecr, mac, grp)
 	if !ok {
 		t.Errorf("Could not verify MAC")
 	}
@@ -135,8 +134,8 @@ func TestAuthPayloadEncryptDecrypt(t *testing.T) {
 			"\treceived: %v\n\texpected: %v", dec, payload)
 	}
 
-	ecr, mac, _ = AuthPayloadEncrypt(theirPrivKey, myPubKey, testVector, testSalt, payload, grp)
-	ok, dec, _ = AuthPayloadDecrypt(theirPrivKey, myPubKey, testVector, testSalt, ecr, mac, grp)
+	ecr, mac, _ = Encrypt(theirPrivKey, myPubKey, testSalt, payload, grp)
+	ok, dec, _ = Decrypt(theirPrivKey, myPubKey, testSalt, ecr, mac, grp)
 	if !ok {
 		t.Errorf("Could not verify MAC")
 	}

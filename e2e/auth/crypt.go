@@ -11,6 +11,9 @@ import (
 	"golang.org/x/crypto/salsa20"
 )
 
+// Required length of the nonce within Salsa20
+const NonceLength = 24
+
 // Crypt Salsa20 encrypts or decrypts a message with the passed key and vector
 func Crypt(key, vector, msg []byte) (crypt []byte) {
 	// Bound check that the vector is long enough for Salsa20 encryption/decryption
