@@ -22,8 +22,41 @@ func AuthPayloadEncrypt(myPrivKey, partnerPubKey *cyclic.Int, vector,
 	// Generate the base key
 	baseKey := dh.GenerateSessionKey(myPrivKey, partnerPubKey, grp)
 
+	// Encrypt the payload
 	ecrPayload = Crypt(baseKey.Bytes(), vector, payload)
 
+	// Generate the fingerprint
+	fpKey = generateFingerprint(vector)
+
+	// Generate the MAC
+	mac = MakeMac(partnerPubKey, baseKey.Bytes(), salt, ecrPayload)
+	return ecrPayload, mac, fpKey
+}
+
+// Decrypts the payload for use in authenticated channels and provides a MAC
+// on this encrypted payload
+func AuthPayloadDecrypt(myPrivKey, partnerPubKey *cyclic.Int, vector,
+	salt, ecrPayload, MAC []byte, grp *cyclic.Group) (success bool, payload []byte,
+	fpKey format.Fingerprint) {
+
+	// Generate the base key
+	baseKey := dh.GenerateSessionKey(myPrivKey, partnerPubKey, grp)
+
+	// Check if the mac if valid
+	if !VerifyMac(partnerPubKey, baseKey.Bytes(), salt, ecrPayload, MAC) {
+		return false, nil, format.Fingerprint{}
+	}
+
+	// Decrypt the payload
+	payload = Crypt(baseKey.Bytes(), vector, ecrPayload)
+
+	fpKey = generateFingerprint(vector)
+
+	return true, payload, fpKey
+}
+
+// Generate a fingerprint based off of the vector
+func generateFingerprint(vector []byte) format.Fingerprint {
 	// Generate a hash
 	h, err := hash.NewCMixHash()
 	if err != nil {
@@ -37,27 +70,5 @@ func AuthPayloadEncrypt(myPrivKey, partnerPubKey *cyclic.Int, vector,
 	// Place the hash into a fingerprint format
 	fp := format.Fingerprint{}
 	copy(fp[:], hashVector)
-
-	mac = MakeMac(partnerPubKey, baseKey.Bytes(), salt, ecrPayload)
-	return ecrPayload, mac, fpKey
-}
-
-// Decrypts the payload for use in authenticated channels and provides a MAC
-// on this encrypted payload
-func AuthPayloadDecrypt(myPrivKey, partnerPubKey *cyclic.Int, vector,
-	salt, ecrPayload, MAC []byte, grp *cyclic.Group) (success bool, payload []byte,
-	fpVector format.Fingerprint) {
-
-	// Generate the base key
-	baseKey := dh.GenerateSessionKey(myPrivKey, partnerPubKey, grp)
-
-	// Check if the mac if valid
-	if !VerifyMac(partnerPubKey, baseKey.Bytes(), salt, ecrPayload, MAC) {
-		return false, nil, format.Fingerprint{}
-	}
-
-	// Decrypt the payload
-	payload = Crypt(baseKey.Bytes(), vector, ecrPayload)
-
-	return true, payload, fpVector
+	return fp
 }
