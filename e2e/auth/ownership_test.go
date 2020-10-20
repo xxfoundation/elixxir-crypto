@@ -84,7 +84,7 @@ func TestMakeOwnershipProofFP_Consistency(t *testing.T) {
 			diffieHellman.GeneratePrivateKey(512, grp, prng), grp)
 		proof := MakeOwnershipProof(myPrivKey, partnerPubKey, grp)
 		proofFP := MakeOwnershipProofFP(proof)
-		proofFP64 := base64.StdEncoding.EncodeToString(proofFP)
+		proofFP64 := base64.StdEncoding.EncodeToString(proofFP[:])
 		if expected[i] != proofFP64 {
 			t.Errorf("received and expected do not match at index %v\n"+
 				"\treceived: %s\n\texpected: %s", i, proofFP64, expected[i])

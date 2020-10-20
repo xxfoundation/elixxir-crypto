@@ -10,6 +10,7 @@ import (
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/diffieHellman"
 	"gitlab.com/elixxir/crypto/hash"
+	"gitlab.com/elixxir/primitives/format"
 )
 
 const ownershipVector = "ownershipVector"
@@ -45,7 +46,7 @@ func VerifyOwnershipProof(myHistoricalPrivKey, partnerHistoricalPubKey *cyclic.I
 }
 
 // Ownership proofs allow users to build short proofs they own public DH keys
-func MakeOwnershipProofFP(ownershipProof []byte) []byte {
+func MakeOwnershipProofFP(ownershipProof []byte) format.Fingerprint {
 	//suppress because we just panic and a nil hash will panic anyhow
 	h, _ := hash.NewCMixHash()
 	// This will panic if we got an error in the line above, but does nothing
@@ -55,5 +56,8 @@ func MakeOwnershipProofFP(ownershipProof []byte) []byte {
 	h.Write(ownershipProof)
 	h.Write([]byte(ownershipFPVector))
 
-	return h.Sum(nil)
+	fp := format.Fingerprint{}
+	copy(fp[:], h.Sum(nil))
+
+	return fp
 }
