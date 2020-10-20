@@ -63,6 +63,35 @@ func TestMakeOwnershipProof_Verified(t *testing.T) {
 	}
 }
 
+//Tests that the generated proof fingerprints are always the same
+func TestMakeOwnershipProofFP_Consistency(t *testing.T) {
+
+	expected := []string{
+		"4j9ZJTuCvekX5+MqoCilaxU9RaJZeVdHz2+XDY9+H2o=",
+		"a57o+Dk0HzgxVHpxVap/YauaCv+GYmO7Jvhxa8XvkZU=",
+		"C3v2JIjInugyWndHl3b+KSZQ982uHN84fKItmUS0Zr0=",
+		"hYXdUwJpC57p9Qzto1QX/qC4rjr7RbSnDP0NSLQJjdY=",
+		"lllCGVIyINMeeuYjHSAFGvCR7DeedJAiJ4JPSY1hMNE=",
+	}
+
+	grp := getGrp()
+	prng := rand.New(rand.NewSource(42))
+
+	for i := 0; i < len(expected); i++ {
+		myPrivKey := diffieHellman.GeneratePrivateKey(
+			diffieHellman.DefaultPrivateKeyLength, grp, prng)
+		partnerPubKey := diffieHellman.GeneratePublicKey(
+			diffieHellman.GeneratePrivateKey(512, grp, prng), grp)
+		proof := MakeOwnershipProof(myPrivKey, partnerPubKey, grp)
+		proofFP := MakeOwnershipProofFP(proof)
+		proofFP64 := base64.StdEncoding.EncodeToString(proofFP)
+		if expected[i] != proofFP64 {
+			t.Errorf("received and expected do not match at index %v\n"+
+				"\treceived: %s\n\texpected: %s", i, proofFP64, expected[i])
+		}
+	}
+}
+
 //Tests that bad proofs are not verified
 func TestVerifyOwnershipProof_Bad(t *testing.T) {
 

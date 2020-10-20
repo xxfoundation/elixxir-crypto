@@ -7,40 +7,39 @@ package auth
 
 import (
 	"gitlab.com/elixxir/crypto/cyclic"
-	"gitlab.com/elixxir/primitives/format"
 )
 
 // Encrypts the payload for use in authenticated channels and provides a MAC
 // on this encrypted payload
 func Encrypt(myPrivKey, partnerPubKey *cyclic.Int, salt, payload []byte,
-	grp *cyclic.Group) (ecrPayload, mac []byte, fpKey format.Fingerprint) {
+	grp *cyclic.Group) (ecrPayload, mac []byte) {
 
 	// Generate the base key
-	authKey, vec, fpKey := MakeAuthKey(myPrivKey, partnerPubKey, salt, grp)
+	authKey, vec := MakeAuthKey(myPrivKey, partnerPubKey, salt, grp)
 
 	// Encrypt the payload
 	ecrPayload = Crypt(authKey, vec, payload)
 
 	// Generate the MAC
 	mac = MakeMac(partnerPubKey, authKey, salt, ecrPayload)
-	return ecrPayload, mac, fpKey
+	return ecrPayload, mac
 }
 
 // Decrypts the payload for use in authenticated channels and provides a MAC
 // on this encrypted payload
 func Decrypt(myPrivKey, partnerPubKey *cyclic.Int, salt, ecrPayload, MAC []byte,
-	grp *cyclic.Group) (success bool, payload []byte, fpKey format.Fingerprint) {
+	grp *cyclic.Group) (success bool, payload []byte) {
 
 	// Generate the base key
-	authKey, vec, fpKey := MakeAuthKey(myPrivKey, partnerPubKey, salt, grp)
+	authKey, vec := MakeAuthKey(myPrivKey, partnerPubKey, salt, grp)
 
 	// Check if the mac if valid
 	if !VerifyMac(partnerPubKey, authKey, salt, ecrPayload, MAC) {
-		return false, nil, format.Fingerprint{}
+		return false, nil
 	}
 
 	// Decrypt the payload
 	payload = Crypt(authKey, vec, ecrPayload)
 
-	return true, payload, fpKey
+	return true, payload
 }

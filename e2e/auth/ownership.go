@@ -13,6 +13,7 @@ import (
 )
 
 const ownershipVector = "ownershipVector"
+const ownershipFPVector = "ownershipFPVector"
 
 // Ownership proofs allow users to build short proofs they own public DH keys
 func MakeOwnershipProof(myHistoricalPrivKey, partnerHistoricalPubKey *cyclic.Int,
@@ -41,4 +42,18 @@ func VerifyOwnershipProof(myHistoricalPrivKey, partnerHistoricalPubKey *cyclic.I
 		partnerHistoricalPubKey, grp)
 
 	return bytes.Equal(generatedProof, proof)
+}
+
+// Ownership proofs allow users to build short proofs they own public DH keys
+func MakeOwnershipProofFP(ownershipProof []byte) []byte {
+	//suppress because we just panic and a nil hash will panic anyhow
+	h, _ := hash.NewCMixHash()
+	// This will panic if we got an error in the line above, but does nothing
+	// if it worked.
+	h.Reset()
+
+	h.Write(ownershipProof)
+	h.Write([]byte(ownershipFPVector))
+
+	return h.Sum(nil)
 }

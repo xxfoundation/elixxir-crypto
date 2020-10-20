@@ -57,7 +57,7 @@ func TestPayloadEncryptDecrypt_Consistency(t *testing.T) {
 			diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, grp, prng), grp)
 
 		// Run the encryption
-		ecr, mac, fpVector := Encrypt(myPrivKey, parnterPubKey, testSalt, payload, grp)
+		ecr, mac := Encrypt(myPrivKey, parnterPubKey, testSalt, payload, grp)
 
 		// Check if the encrypted message is consistent
 		ecr64 := base64.StdEncoding.EncodeToString(ecr)
@@ -73,15 +73,8 @@ func TestPayloadEncryptDecrypt_Consistency(t *testing.T) {
 				"\treceived: %s\n\texpected: %s", i, mac64, expectedMac[i])
 		}
 
-		// Check if the fingerprint is consistent
-		fp64 := base64.StdEncoding.EncodeToString(fpVector[:])
-		if expectedFingerprints[i] != fp64 {
-			t.Errorf("received and expected do not match at index %v for fingerprints\n"+
-				"\treceived: %s\n\texpected: %s", i, fp64, expectedFingerprints[i])
-		}
-
 		// Run the decryption
-		ok, decrypted, decFPVector := Decrypt(myPrivKey, parnterPubKey, testSalt, ecr, mac, grp)
+		ok, decrypted := Decrypt(myPrivKey, parnterPubKey, testSalt, ecr, mac, grp)
 
 		if !ok {
 			t.Errorf("Did not pass a successful MAC check on decryption at index %d", i)
@@ -93,13 +86,6 @@ func TestPayloadEncryptDecrypt_Consistency(t *testing.T) {
 			t.Errorf("received and expected do not match at index %v for decrypted\n"+
 				"\treceived: %s\n\texpected: %s", i, decrypted, payload)
 
-		}
-
-		// Check if the fingerprint is consistent
-		decFP64 := base64.StdEncoding.EncodeToString(decFPVector[:])
-		if expectedFingerprints[i] != decFP64 {
-			t.Errorf("received and expected do not match at index %v for fingerprints\n"+
-				"\treceived: %s\n\texpected: %s", i, decFP64, expectedFingerprints[i])
 		}
 
 	}
@@ -123,8 +109,8 @@ func TestAuthPayloadEncryptDecrypt(t *testing.T) {
 	theirPubKey := diffieHellman.GeneratePublicKey(theirPrivKey, grp)
 
 	// Run the encryption
-	ecr, mac, _ := Encrypt(myPrivKey, theirPubKey, testSalt, payload, grp)
-	ok, dec, _ := Decrypt(myPrivKey, theirPubKey, testSalt, ecr, mac, grp)
+	ecr, mac := Encrypt(myPrivKey, theirPubKey, testSalt, payload, grp)
+	ok, dec := Decrypt(myPrivKey, theirPubKey, testSalt, ecr, mac, grp)
 	if !ok {
 		t.Errorf("Could not verify MAC")
 	}
@@ -134,8 +120,8 @@ func TestAuthPayloadEncryptDecrypt(t *testing.T) {
 			"\treceived: %v\n\texpected: %v", dec, payload)
 	}
 
-	ecr, mac, _ = Encrypt(theirPrivKey, myPubKey, testSalt, payload, grp)
-	ok, dec, _ = Decrypt(theirPrivKey, myPubKey, testSalt, ecr, mac, grp)
+	ecr, mac = Encrypt(theirPrivKey, myPubKey, testSalt, payload, grp)
+	ok, dec = Decrypt(theirPrivKey, myPubKey, testSalt, ecr, mac, grp)
 	if !ok {
 		t.Errorf("Could not verify MAC")
 	}
