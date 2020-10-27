@@ -27,11 +27,11 @@ func IsUnencrypted(m *format.Message) bool {
 	}
 
 	// Hash the message payload
-	h.Write(m.Contents.Get())
+	h.Write(m.GetContents())
 	payloadHash := h.Sum(nil)
 
 	// Return true if the byte slices are equal
-	return bytes.Equal(payloadHash, m.AssociatedData.GetMAC())
+	return bytes.Equal(payloadHash, m.GetMac())
 }
 
 // SetUnencrypted sets up the condition where the message would be determined to
@@ -45,9 +45,9 @@ func SetUnencrypted(m *format.Message) {
 	}
 
 	// Hash the message payload
-	h.Write(m.Contents.Get())
+	h.Write(m.GetContents())
 	payloadHash := h.Sum(nil)
 
 	// Set the MAC
-	m.AssociatedData.SetMAC(payloadHash)
+	m.SetMac(payloadHash)
 }
