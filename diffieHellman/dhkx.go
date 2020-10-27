@@ -10,50 +10,49 @@ package diffieHellman
 
 import (
 	"fmt"
+	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/csprng"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"io"
 )
 
-const DefaultPrivateKeyLengthBits = 256
-const DefaultPrivateKeyLength = DefaultPrivateKeyLengthBits / 8
+// CreateDHKeyPair is a function that receives the generator and prime and
+// returns a Diffie-Hellman Key pair withing the group
+func CreateDHKeyPair(group *cyclic.Group) (*cyclic.Int, *cyclic.Int) {
+	if !group.GetP().IsPrime() {
+		jww.FATAL.Panicf("CreateDHKeyPair(): Passed number is not prime")
+	}
 
-// Creates a private key of the passed length in bits in the given group using
-// the passed csprng. The length of the key must be within the prime of the
-// group. It is recommended to use the "DefaultPrivateKeyLength"
-// for most use cases.
-// key size must be divisible by 8
-func GeneratePrivateKey(size int, group *cyclic.Group, source io.Reader) *cyclic.Int {
+	//256 bits
+	size := 32
 
-	k1, err := csprng.GenerateInGroup(group.GetPBytes(), size, source)
+	csprig := csprng.NewSystemRNG()
+
+	k1 := make([]byte, size)
+
+	_, err := csprig.Read(k1)
 
 	if err != nil {
-		panic(fmt.Sprintf("Failed to generate key: %s", err.Error()))
+		panic(fmt.Sprintf("Key RNG in Diffie Hellman Failed: %s", err.Error()))
 	}
 
 	privateKey := group.NewIntFromBytes(k1)
 
-	return privateKey
-}
-
-// Computes a public key for the given private key. The private key must be
-// in the group passed
-func GeneratePublicKey(myPrivateKey *cyclic.Int, group *cyclic.Group) *cyclic.Int {
-
 	publicKey := group.NewInt(1)
-	group.Exp(group.GetGCyclic(), myPrivateKey, publicKey)
+	group.Exp(group.GetGCyclic(), privateKey, publicKey)
 
-	return publicKey
+	return privateKey, publicKey
 }
 
-// CreateSessionKey takes the prime, the other party's public key and private key
+// CreateDHSessionKey takes the prime, the other party's public key and private key
 // Function returns a valid session Key within the group
-func GenerateSessionKey(myPrivateKey *cyclic.Int, theirPublicKey *cyclic.Int,
-	group *cyclic.Group) *cyclic.Int {
+// v1.0 still does not include the CheckPublicKeyFeature
+func CreateDHSessionKey(publicKey *cyclic.Int, privateKey *cyclic.Int,
+	group *cyclic.Group) (*cyclic.Int, error) {
 	sessionKey := group.NewInt(1)
-	group.Exp(theirPublicKey, myPrivateKey, sessionKey)
+	group.Exp(publicKey, privateKey, sessionKey)
 
-	return sessionKey
+	return sessionKey, nil
 }
 
 // CheckPublicKey uses the Legendre Symbol calculation to check if a specific public key is valid

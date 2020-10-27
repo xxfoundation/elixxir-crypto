@@ -13,8 +13,6 @@ package cyclic
 import (
 	"bytes"
 	"crypto/sha256"
-	"encoding/base64"
-	"encoding/binary"
 	"encoding/gob"
 	"encoding/json"
 	jww "github.com/spf13/jwalterweatherman"
@@ -161,13 +159,6 @@ func (g *Group) checkInts(ints ...*Int) {
 // GetFingerprint gets the group's fingerprint
 func (g *Group) GetFingerprint() uint64 {
 	return g.fingerprint
-}
-
-func (g *Group) GetFingerprintText() string {
-	buf := make([]byte, 8)
-	binary.BigEndian.PutUint64(buf, g.fingerprint)
-	fullText := base64.StdEncoding.EncodeToString(buf)
-	return fullText[:8] + "..."
 }
 
 // -------------- Setters -------------- //

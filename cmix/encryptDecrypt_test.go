@@ -17,11 +17,11 @@ import (
 // Fill part of message with random payload and associated data
 func makeMsg() format.Message {
 	rng := rand.New(rand.NewSource(21))
-	payloadA := make([]byte, grp.GetP().ByteLen())
-	payloadB := make([]byte, grp.GetP().ByteLen())
+	payloadA := make([]byte, primeLength)
+	payloadB := make([]byte, primeLength)
 	rng.Read(payloadA)
 	rng.Read(payloadB)
-	msg := format.NewMessage(grp.GetP().ByteLen())
+	msg := format.NewMessage(primeLength)
 	msg.SetPayloadA(payloadA)
 	msg.SetPayloadB(payloadB)
 
@@ -56,7 +56,7 @@ func TestEncrypt(t *testing.T) {
 	grp.Mul(keyEcrA, grp.NewIntFromBytes(msg.GetPayloadA()), multPayloadA)
 	grp.Mul(keyEcrB, grp.NewIntFromBytes(msg.GetPayloadB()), multPayloadB)
 
-	testMsg := format.NewMessage(grp.GetP().ByteLen())
+	testMsg := format.NewMessage(primeLength)
 	testMsg.SetPayloadA(multPayloadA.Bytes())
 	testMsg.SetPayloadB(multPayloadB.Bytes())
 
@@ -147,9 +147,9 @@ func TestDecrypt(t *testing.T) {
 	DecPayloadB := grp.Mul(keyEcrB_Inv, grp.NewIntFromBytes(encMsg.GetPayloadB()), grp.NewInt(1))
 
 	//Set decrypted messages to the above payloads
-	decMsg := format.NewMessage(grp.GetP().ByteLen())
+	decMsg := format.NewMessage(primeLength)
 	decMsg.SetPayloadA(DecPayloadA.Bytes())
-	decMsg.SetPayloadB(DecPayloadB.LeftpadBytes(uint64(grp.GetP().ByteLen())))
+	decMsg.SetPayloadB(DecPayloadB.LeftpadBytes(uint64(primeLength)))
 
 	//Compare decrypted message with the original message
 	if !reflect.DeepEqual(decMsg.GetPayloadA(), msg.GetPayloadA()) {

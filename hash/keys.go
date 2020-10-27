@@ -28,9 +28,9 @@ func ExpandKey(h hash.Hash, g *cyclic.Group, key []byte,
 		return h
 	}
 	keyGen := hkdf.Expand(foo, key, nil)
-
 	pBytes := g.GetPBytes()
 	expandedKey, err := csprng.GenerateInGroup(pBytes, len(pBytes), keyGen)
+
 	if err != nil {
 		jww.FATAL.Panicf("Key expansion failure: %v", err)
 	}
