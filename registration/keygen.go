@@ -9,6 +9,7 @@
 package registration
 
 import (
+	"fmt"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/diffieHellman"
 	"hash"
@@ -23,7 +24,9 @@ import (
 func GenerateBaseKey(g *cyclic.Group, peerPubKey *cyclic.Int,
 	ownPrivKey *cyclic.Int, h hash.Hash) *cyclic.Int {
 
-	sessionKey := diffieHellman.GenerateSessionKey(peerPubKey, ownPrivKey, g)
+	sessionKey := diffieHellman.GenerateSessionKey(ownPrivKey, peerPubKey, g)
+
+	fmt.Println(sessionKey.Text(16))
 
 	h.Write(sessionKey.Bytes())
 	return g.NewIntFromBytes(h.Sum(nil))

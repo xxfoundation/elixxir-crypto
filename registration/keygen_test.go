@@ -9,8 +9,10 @@ package registration
 import (
 	"crypto/sha256"
 	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/elixxir/crypto/diffieHellman"
 	"gitlab.com/elixxir/crypto/hash"
 	"gitlab.com/elixxir/crypto/large"
+	"math/rand"
 	"testing"
 )
 
@@ -37,11 +39,13 @@ func TestGenerateBaseKey(t *testing.T) {
 	g := large.NewInt(2)
 	grp := cyclic.NewGroup(p, g)
 
-	ownPrivKey := grp.RandomCoprime(grp.NewInt(1))
-	ownPubKey := grp.ExpG(ownPrivKey, grp.NewInt(1))
+	prng := rand.New(rand.NewSource(42))
 
-	peerPrivKey := grp.RandomCoprime(grp.NewInt(1))
-	peerPubKey := grp.ExpG(peerPrivKey, grp.NewInt(1))
+	ownPrivKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, grp, prng)
+	ownPubKey := diffieHellman.GeneratePublicKey(ownPrivKey, grp)
+
+	peerPrivKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, grp, prng)
+	peerPubKey := diffieHellman.GeneratePublicKey(peerPrivKey, grp)
 
 	// Generate transmission base keys using blake2b as the hash
 	b, _ := hash.NewCMixHash()
