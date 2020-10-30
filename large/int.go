@@ -352,6 +352,22 @@ func (z *Int) GobEncode() ([]byte, error) {
 	return z.Bytes(), nil
 }
 
+// -------------- Marshal Operators -------------- //
+func (z *Int) MarshalJSON() ([]byte, error) {
+	bigInt := big.Int(*z)
+	return bigInt.MarshalJSON()
+}
+
+func (z *Int) UnmarshalJSON(b []byte) error {
+	bigInt := big.Int(*z)
+	err := bigInt.UnmarshalJSON(b)
+	if err != nil {
+		return err
+	}
+	*z = (Int)(bigInt)
+	return nil
+}
+
 // CONSTANTS
 
 // A 4128bit int, meant to be the size of post moded cyclic ints.
