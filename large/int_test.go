@@ -1218,3 +1218,39 @@ func TestGob(t *testing.T) {
 	}
 
 }
+
+// -------------- TEST Marshal Operators -------------- //
+
+// Happy path.
+func TestInt_MarshalJSON_UnmarshalJSON(t *testing.T) {
+	inInt := NewInt(42)
+
+	data, err := inInt.MarshalJSON()
+	if err != nil {
+		t.Errorf("MarshalJSON() produced an error: %+v", err)
+	}
+	outInt := NewInt(0)
+	err = outInt.UnmarshalJSON(data)
+	if err != nil {
+		t.Errorf("UnmarshalJSON() produced an error: %+v", err)
+	}
+
+	if inInt.Cmp(outInt) != 0 {
+		t.Errorf("Failed to marshal and unmarshal Int."+
+			"\n\texpected: %s\n\treceived: %s", inInt.Text(10), outInt.Text(10))
+	}
+}
+
+// Error path: json data does not contain int data.
+func TestInt_UnmarshalJSON_InvalidIntError(t *testing.T) {
+	outInt := NewInt(0)
+	err := outInt.UnmarshalJSON([]byte("\"abc\""))
+	if err == nil {
+		t.Errorf("UnmarshalJSON() did not produce an error for invalid Int data.")
+	}
+
+	if outInt.Cmp(NewInt(0)) != 0 {
+		t.Errorf("Failed to marshal and unmarshal Int."+
+			"\n\texpected: %s\n\treceived: %s", outInt.Text(10), NewInt(0).Text(10))
+	}
+}
