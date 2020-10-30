@@ -10,7 +10,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"errors"
-	"gitlab.com/elixxir/crypto/large"
+	"gitlab.com/xx_network/crypto/large"
 	"math/rand"
 	"reflect"
 	"testing"

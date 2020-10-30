@@ -10,8 +10,8 @@ package diffieHellman
 
 import (
 	"fmt"
-	"gitlab.com/elixxir/crypto/csprng"
 	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/xx_network/crypto/csprng"
 	"io"
 )
 

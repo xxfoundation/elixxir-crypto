@@ -15,7 +15,7 @@ import (
 	"crypto/cipher"
 	"encoding/binary"
 	jww "github.com/spf13/jwalterweatherman"
-	"gitlab.com/elixxir/crypto/csprng"
+	"gitlab.com/xx_network/crypto/csprng"
 	_ "golang.org/x/crypto/blake2b"
 	"hash"
 	"sync"

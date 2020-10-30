@@ -11,7 +11,7 @@
 package cyclic
 
 import (
-	"gitlab.com/elixxir/crypto/large"
+	"gitlab.com/xx_network/crypto/large"
 )
 
 // Store the same group fingerprint for multiple values

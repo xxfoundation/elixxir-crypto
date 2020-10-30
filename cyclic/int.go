@@ -16,7 +16,7 @@ import (
 	"encoding/binary"
 	"encoding/gob"
 	"encoding/json"
-	"gitlab.com/elixxir/crypto/large"
+	"gitlab.com/xx_network/crypto/large"
 )
 
 // Create the cyclic.Int type as a wrapper of a large.Int

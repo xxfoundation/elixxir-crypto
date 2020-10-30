@@ -7,10 +7,10 @@
 package cmix
 
 import (
-	"gitlab.com/elixxir/crypto/csprng"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/hash"
-	"gitlab.com/elixxir/crypto/large"
+	"gitlab.com/xx_network/crypto/csprng"
+	"gitlab.com/xx_network/crypto/large"
 	"math/rand"
 	"reflect"
 	"testing"
