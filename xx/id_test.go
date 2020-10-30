@@ -7,7 +7,7 @@
 package xx
 
 import (
-	"gitlab.com/elixxir/crypto/csprng"
+	"gitlab.com/xx_network/crypto/csprng"
 	"gitlab.com/xx_network/crypto/signature/rsa"
 	"gitlab.com/xx_network/primitives/id"
 	"math/rand"

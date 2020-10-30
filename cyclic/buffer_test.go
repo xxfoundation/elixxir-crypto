@@ -7,7 +7,7 @@
 package cyclic
 
 import (
-	"gitlab.com/elixxir/crypto/large"
+	"gitlab.com/xx_network/crypto/large"
 	"testing"
 )
 
