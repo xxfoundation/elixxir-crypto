@@ -26,12 +26,12 @@ type GeneratePrototype func(g *cyclic.Group, phaseKey,
 //
 // Has been changes to 2048 due to security concerns
 var Generate GeneratePrototype = func(g *cyclic.Group, phaseKey,
-	shareKey *cyclic.Int, exponentKeySize int, rng csprng.Source) error {
+	exponentKey *cyclic.Int, exponentKeySize int, rng csprng.Source) error {
 	p := g.GetPBytes()
-	var shareKeyBytes, phaseKeyBytes []byte
+	var exponentKeyBytes, phaseKeyBytes []byte
 	var err error
 
-	shareKeyBytes, err = csprng.GenerateInGroup(p, exponentKeySize, rng)
+	exponentKeyBytes, err = csprng.GenerateInGroup(p, exponentKeySize, rng)
 	if err != nil {
 		return err
 	}
@@ -40,7 +40,7 @@ var Generate GeneratePrototype = func(g *cyclic.Group, phaseKey,
 		return err
 	}
 
-	g.SetBytes(shareKey, shareKeyBytes)
+	g.SetBytes(exponentKey, exponentKeyBytes)
 	g.SetBytes(phaseKey, phaseKeyBytes)
 	return nil
 }
