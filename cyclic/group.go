@@ -147,6 +147,19 @@ func (g *Group) NewIntFromUInt(i uint64) *Int {
 	return n
 }
 
+// NewIntFromBits creates a new cyclic int from a words array
+func (g *Group) NewIntFromBits(b large.Bits) *Int {
+	val := large.NewIntFromBits(b)
+	n := &Int{
+		value:       val,
+		fingerprint: g.fingerprint,
+	}
+	if !g.Inside(n.value) {
+		panic("NewIntFromBits: Attempted creation of cyclic outside of group")
+	}
+	return n
+}
+
 // Check if all cyclic Ints belong to the group and panic otherwise
 func (g *Group) checkInts(ints ...*Int) {
 	for _, i := range ints {
@@ -189,6 +202,14 @@ func (g *Group) SetLargeInt(x *Int, y *large.Int) *Int {
 
 	x.value.Set(y)
 
+	return x
+}
+
+// SetBits sets x in the group to bits and returns x
+// This method does not copy. If you need to set the number to a copy, please copy the bits outside of this.
+func (g *Group) SetBits(x *Int, b large.Bits) *Int {
+	x.value.SetBits(b)
+	g.checkInts(x)
 	return x
 }
 
