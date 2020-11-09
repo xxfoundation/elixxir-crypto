@@ -18,10 +18,10 @@ import (
 func TestMakeMac_Consistency(t *testing.T) {
 
 	expected := []string{
-		"9uJfD5XVaW5Dukia2tD1BqY3ne9O64JfN/x8i7Hq1UM=",
+		"duJfD5XVaW5Dukia2tD1BqY3ne9O64JfN/x8i7Hq1UM=",
 		"Xrjwg+hBcBh/px2G+JUoUA1h+H7hdeg7ukrIwd2D1TI=",
 		"dwpk2Wj/qEC8XmE449qXjpnwawz+O6ofolg9fQzxHu0=",
-		"1vNjJLcmTLV1QHK7++UZpMLCSVEeRXQ6EFZv/PIiG78=",
+		"VvNjJLcmTLV1QHK7++UZpMLCSVEeRXQ6EFZv/PIiG78=",
 		"f4Tcyoywe3CzQh9e1d6rtjTg+ZfVUGL4xXGIU8J/1wk=",
 	}
 

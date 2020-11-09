@@ -28,8 +28,8 @@ func TestPayloadEncryptDecrypt_Consistency(t *testing.T) {
 		"1MUXQRgAN6gC0lzR5IKF",
 	}
 	expectedMac := []string{
-		"6n6Cjkv4KlTW5Syd+WQBhZ0kPJIYz/E9AYyQkxcYw8E=",
-		"3eSYrf8mQ61MQVaJT5Zz4ho4T30a40AZmooJcb/dsas=",
+		"an6Cjkv4KlTW5Syd+WQBhZ0kPJIYz/E9AYyQkxcYw8E=",
+		"XeSYrf8mQ61MQVaJT5Zz4ho4T30a40AZmooJcb/dsas=",
 		"GhzKIclJAP2LKVWgrH9WCinDIKIQqVYr1Omlo99VMDM=",
 		"evoeLwK5mxPZtLHV22WDOc8ih/bqREBzCOuabrHZ/1U=",
 		"CexuXGkx23NzPre5Nnbnma739984Lb1ocq4bsXheNTs=",
