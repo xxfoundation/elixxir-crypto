@@ -16,32 +16,32 @@ import (
 // GeneratePrototype is the function type for generating phase and sharing keys.
 // phase keys are those used to encrypt/decrypt/permute during realtime, and
 // share keys are used to share the phase keys under encryption.
-type GeneratePrototype func(g *cyclic.Group, phaseKey,
-	exponentKey *cyclic.Int, exponentKeySize int, rng csprng.Source) error
+type GeneratePrototype func(g *cyclic.Group, Key,
+	exponent *cyclic.Int, exponentSize int, rng csprng.Source) error
 
 // Generate implements the Generate Prototype.
 //
-// The exponent key size needs to be large enough to be secure, but performance
+// The exponent size needs to be large enough to be secure, but performance
 // is linear with size
 // Size guidelines can be found here:
 //   https://www.keylength.com/en/4/
-var Generate GeneratePrototype = func(g *cyclic.Group, phaseKey,
-	exponentKey *cyclic.Int, exponentKeySize int, rng csprng.Source) error {
+var Generate GeneratePrototype = func(g *cyclic.Group, key,
+	exponent *cyclic.Int, exponentSize int, rng csprng.Source) error {
 	p := g.GetPBytes()
-	var exponentKeyBytes, phaseKeyBytes []byte
+	var exponentBytes, keyBytes []byte
 	var err error
 
-	exponentKeyBytes, err = csprng.GenerateInGroup(p, exponentKeySize, rng)
+	exponentBytes, err = csprng.GenerateInGroup(p, exponentSize, rng)
 	if err != nil {
 		return err
 	}
-	phaseKeyBytes, err = csprng.GenerateInGroup(p, len(p), rng)
+	keyBytes, err = csprng.GenerateInGroup(p, len(p), rng)
 	if err != nil {
 		return err
 	}
 
-	g.SetBytes(exponentKey, exponentKeyBytes)
-	g.SetBytes(phaseKey, phaseKeyBytes)
+	g.SetBytes(exponent, exponentBytes)
+	g.SetBytes(key, keyBytes)
 	return nil
 }
 
