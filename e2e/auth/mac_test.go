@@ -18,11 +18,11 @@ import (
 func TestMakeMac_Consistency(t *testing.T) {
 
 	expected := []string{
-		"duJfD5XVaW5Dukia2tD1BqY3ne9O64JfN/x8i7Hq1UM=",
-		"Xrjwg+hBcBh/px2G+JUoUA1h+H7hdeg7ukrIwd2D1TI=",
-		"dwpk2Wj/qEC8XmE449qXjpnwawz+O6ofolg9fQzxHu0=",
-		"VvNjJLcmTLV1QHK7++UZpMLCSVEeRXQ6EFZv/PIiG78=",
-		"f4Tcyoywe3CzQh9e1d6rtjTg+ZfVUGL4xXGIU8J/1wk=",
+		"Q81/bnOcvEdzC2YF3P/ZE2gnLuwcjRPN3IyuQPqVscc=",
+		"LnKQHfU/YqjB/HbKMFlK+QIhdyEHuU8e9Yj0l287Tms=",
+		"EEdYuEezQbqP71kibU/Wpos7U/IiqhUpGPfBKJ/303k=",
+		"Idsa5BtyYLwepCNwzqZPuLBDgMu0vAVrgeP6t1djAFc=",
+		"FJyj0Uf7DDhxyNH2InYbPbRdI9UrRoQgM3hlmAgi17k=",
 	}
 
 	grp := getGrp()
@@ -36,7 +36,7 @@ func TestMakeMac_Consistency(t *testing.T) {
 		prng.Read(salt)
 		encryptedPayload := make([]byte, 128)
 		prng.Read(encryptedPayload)
-		mac := MakeMac(pubkey, baseKey.Bytes(), salt, encryptedPayload)
+		mac := MakeMac(baseKey.Bytes(), salt, encryptedPayload)
 		mac64 := base64.StdEncoding.EncodeToString(mac)
 
 		if expected[i] != mac64 {
@@ -61,9 +61,9 @@ func TestVerifyMac(t *testing.T) {
 		prng.Read(salt)
 		encryptedPayload := make([]byte, 128)
 		prng.Read(encryptedPayload)
-		mac := MakeMac(pubkey, baseKey.Bytes(), salt, encryptedPayload)
+		mac := MakeMac(baseKey.Bytes(), salt, encryptedPayload)
 
-		if !VerifyMac(pubkey, baseKey.Bytes(), salt, encryptedPayload, mac) {
+		if !VerifyMac(baseKey.Bytes(), salt, encryptedPayload, mac) {
 			t.Errorf("MAC could not be verified at index %v", i)
 		}
 	}
@@ -87,7 +87,7 @@ func TestVerifyMac_Bad(t *testing.T) {
 		mac := make([]byte, 32)
 		prng.Read(mac)
 
-		if VerifyMac(pubkey, baseKey.Bytes(), salt, encryptedPayload, mac) {
+		if VerifyMac(baseKey.Bytes(), salt, encryptedPayload, mac) {
 			t.Errorf("MAC was verified at index %v when it is bad", i)
 		}
 	}
@@ -115,7 +115,7 @@ func TestMacInputProof(t *testing.T) {
 					prng.Read(salt)
 					encryptedPayload := make([]byte, 128+l)
 					prng.Read(encryptedPayload)
-					mac := MakeMac(pubkey, baseKey.Bytes(), salt, encryptedPayload)
+					mac := MakeMac(baseKey.Bytes(), salt, encryptedPayload)
 
 					macList = append(macList, mac)
 				}
