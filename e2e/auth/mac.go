@@ -29,7 +29,11 @@ func MakeMac(pubkey *cyclic.Int, baseKey, salt, encryptedPayload []byte) []byte 
 	h.Write(salt)
 	h.Write(encryptedPayload)
 
-	return h.Sum(nil)
+	sum := h.Sum(nil)
+	// The first bit must be 0.
+	sum[0] &= 0x7F
+
+	return sum
 }
 
 // VerifyMac ensures that the provided MAC matches the provided payload
