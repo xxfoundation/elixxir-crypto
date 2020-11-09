@@ -56,8 +56,12 @@ func MakeOwnershipProofFP(ownershipProof []byte) format.Fingerprint {
 	h.Write(ownershipProof)
 	h.Write([]byte(ownershipFPVector))
 
+	sum := h.Sum(nil)
+	// Fingerprints require the first bit to be 0
+	sum[0] &= 0x7F
+
 	fp := format.Fingerprint{}
-	copy(fp[:], h.Sum(nil))
+	copy(fp[:], sum)
 
 	return fp
 }
