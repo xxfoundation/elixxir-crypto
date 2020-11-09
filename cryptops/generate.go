@@ -21,10 +21,10 @@ type GeneratePrototype func(g *cyclic.Group, phaseKey,
 
 // Generate implements the Generate Prototype.
 //
-// Previously the share key was 256 bits, generated per guidelines here:
+// The exponent key size needs to be large enough to be secure, but performance
+// is linear with size
+// Size guidelines can be found here:
 //   https://www.keylength.com/en/4/
-//
-// Has been changes to 2048 due to security concerns
 var Generate GeneratePrototype = func(g *cyclic.Group, phaseKey,
 	exponentKey *cyclic.Int, exponentKeySize int, rng csprng.Source) error {
 	p := g.GetPBytes()
