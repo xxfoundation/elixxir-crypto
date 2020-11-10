@@ -17,7 +17,7 @@ import (
 // phase keys are those used to encrypt/decrypt/permute during realtime, and
 // share keys are used to share the phase keys under encryption.
 type GeneratePrototype func(g *cyclic.Group, Key,
-	exponent *cyclic.Int, exponentSize int, rng csprng.Source) error
+	exponent *cyclic.Int, rng csprng.Source) error
 
 // Generate implements the Generate Prototype.
 //
@@ -26,12 +26,12 @@ type GeneratePrototype func(g *cyclic.Group, Key,
 // Size guidelines can be found here:
 //   https://www.keylength.com/en/4/
 var Generate GeneratePrototype = func(g *cyclic.Group, key,
-	exponent *cyclic.Int, exponentSize int, rng csprng.Source) error {
+	exponent *cyclic.Int, rng csprng.Source) error {
 	p := g.GetPBytes()
 	var exponentBytes, keyBytes []byte
 	var err error
 
-	exponentBytes, err = csprng.GenerateInGroup(p, exponentSize, rng)
+	exponentBytes, err = csprng.GenerateInGroup(p, len(p), rng)
 	if err != nil {
 		return err
 	}
