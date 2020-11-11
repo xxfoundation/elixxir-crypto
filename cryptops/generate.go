@@ -13,34 +13,35 @@ import (
 	"gitlab.com/elixxir/crypto/cyclic"
 )
 
-const ShareKeyBytesLen = 256 / 8
-
 // GeneratePrototype is the function type for generating phase and sharing keys.
 // phase keys are those used to encrypt/decrypt/permute during realtime, and
 // share keys are used to share the phase keys under encryption.
-type GeneratePrototype func(g *cyclic.Group, phaseKey,
-	shareKey *cyclic.Int, rng csprng.Source) error
+type GeneratePrototype func(g *cyclic.Group, Key,
+	exponent *cyclic.Int, rng csprng.Source) error
 
-// Generate implements the Generate Prototype. Notably the share key is
-// 256 bits, generated per guidelines here:
+// Generate implements the Generate Prototype.
+//
+// The exponent size needs to be large enough to be secure, but performance
+// is linear with size
+// Size guidelines can be found here:
 //   https://www.keylength.com/en/4/
-var Generate GeneratePrototype = func(g *cyclic.Group, phaseKey,
-	shareKey *cyclic.Int, rng csprng.Source) error {
+var Generate GeneratePrototype = func(g *cyclic.Group, key,
+	exponent *cyclic.Int, rng csprng.Source) error {
 	p := g.GetPBytes()
-	var shareKeyBytes, phaseKeyBytes []byte
+	var exponentBytes, keyBytes []byte
 	var err error
 
-	shareKeyBytes, err = csprng.GenerateInGroup(p, ShareKeyBytesLen, rng)
+	exponentBytes, err = csprng.GenerateInGroup(p, len(p), rng)
 	if err != nil {
 		return err
 	}
-	phaseKeyBytes, err = csprng.GenerateInGroup(p, len(p), rng)
+	keyBytes, err = csprng.GenerateInGroup(p, len(p), rng)
 	if err != nil {
 		return err
 	}
 
-	g.SetBytes(shareKey, shareKeyBytes)
-	g.SetBytes(phaseKey, phaseKeyBytes)
+	g.SetBytes(exponent, exponentBytes)
+	g.SetBytes(key, keyBytes)
 	return nil
 }
 
