@@ -15,7 +15,8 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/gob"
-	"gitlab.com/elixxir/crypto/large"
+	"encoding/json"
+	"gitlab.com/xx_network/crypto/large"
 )
 
 // Create the cyclic.Int type as a wrapper of a large.Int
@@ -191,4 +192,38 @@ func (z *Int) GobEncode() ([]byte, error) {
 func (z *Int) Erase() {
 	z.value.SetInt64(0)
 	z.fingerprint = 0
+}
+
+// -------------- Marshal Operators -------------- //
+// intData holds the value of a cyclic int in public fields to allow for
+// marshalling and unmarshalling.
+type intData struct {
+	Value       *large.Int
+	Fingerprint uint64
+}
+
+// MarshalJSON is a custom marshaling function for cyclic int. It is used when
+// json.Marshal is called on a large int.
+func (z *Int) MarshalJSON() ([]byte, error) {
+	data := intData{
+		Value:       z.value,
+		Fingerprint: z.fingerprint,
+	}
+
+	return json.Marshal(data)
+}
+
+// UnmarshalJSON is a custom unmarshalling function for cyclic int. It is used
+// when json.Unmarshal is called on a large int.
+func (z *Int) UnmarshalJSON(b []byte) error {
+	data := &intData{}
+	err := json.Unmarshal(b, data)
+	if err != nil {
+		return err
+	}
+
+	z.value = data.Value
+	z.fingerprint = data.Fingerprint
+
+	return nil
 }

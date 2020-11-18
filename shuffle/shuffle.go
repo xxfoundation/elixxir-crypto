@@ -11,7 +11,7 @@ package shuffle
 import (
 	"encoding/binary"
 	jww "github.com/spf13/jwalterweatherman"
-	"gitlab.com/elixxir/crypto/csprng"
+	"gitlab.com/xx_network/crypto/csprng"
 	"math"
 	"math/bits"
 )

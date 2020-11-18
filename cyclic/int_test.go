@@ -1,4 +1,3 @@
-////////////////////////////////////////////////////////////////////////////////////////////
 // Copyright © 2020 xx network SEZC                                                       //
 //                                                                                        //
 // Use of this source code is governed by a license that can be found in the LICENSE file //
@@ -10,7 +9,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"errors"
-	"gitlab.com/elixxir/crypto/large"
+	"gitlab.com/xx_network/crypto/large"
 	"reflect"
 	"testing"
 )
@@ -301,5 +300,34 @@ func TestInt_Erase(t *testing.T) {
 		t.Errorf("Erase() did not properly delete Int's underlying fingerprint"+
 			"\n\treceived: %#v\n\texpected: %#v",
 			cycInt.fingerprint, 0)
+	}
+}
+
+// Happy path.
+func TestInt_MarshalJSON_UnmarshalJSON(t *testing.T) {
+	cycInt := grp.NewInt(42)
+	data, err := cycInt.MarshalJSON()
+	if err != nil {
+		t.Errorf("MarshalJSON() returned an error: %+v", err)
+	}
+	outInt := &Int{}
+	err = outInt.UnmarshalJSON(data)
+	if err != nil {
+		t.Errorf("UnmarshalJSON() returned an error: %+v", err)
+	}
+
+	if cycInt.Cmp(outInt) != 0 {
+		t.Errorf("Failed to correctly marshal and unmarshal cyclic int."+
+			"\n\texpected: %s\n\trecieved: %s", cycInt.Text(10), outInt.Text(10))
+	}
+}
+
+// Error path: invalid JSON data.
+func TestInt_UnmarshalJSON(t *testing.T) {
+	data := []byte("invalid JSON")
+	outInt := &Int{}
+	err := outInt.UnmarshalJSON(data)
+	if err == nil {
+		t.Errorf("UnmarshalJSON() did not return an error for invalid JSON.")
 	}
 }

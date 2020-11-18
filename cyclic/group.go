@@ -13,11 +13,13 @@ package cyclic
 import (
 	"bytes"
 	"crypto/sha256"
+	"encoding/base64"
+	"encoding/binary"
 	"encoding/gob"
 	"encoding/json"
 	jww "github.com/spf13/jwalterweatherman"
-	"gitlab.com/elixxir/crypto/csprng"
-	"gitlab.com/elixxir/crypto/large"
+	"gitlab.com/xx_network/crypto/csprng"
+	"gitlab.com/xx_network/crypto/large"
 )
 
 // Groups provide cyclic int operations that keep the return values confined to
@@ -159,6 +161,13 @@ func (g *Group) checkInts(ints ...*Int) {
 // GetFingerprint gets the group's fingerprint
 func (g *Group) GetFingerprint() uint64 {
 	return g.fingerprint
+}
+
+func (g *Group) GetFingerprintText() string {
+	buf := make([]byte, 8)
+	binary.BigEndian.PutUint64(buf, g.fingerprint)
+	fullText := base64.StdEncoding.EncodeToString(buf)
+	return fullText[:8] + "..."
 }
 
 // -------------- Setters -------------- //

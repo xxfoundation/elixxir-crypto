@@ -10,7 +10,7 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 	"gitlab.com/elixxir/crypto/cyclic"
-	"gitlab.com/elixxir/crypto/large"
+	"gitlab.com/xx_network/crypto/large"
 	"testing"
 )
 
