@@ -213,6 +213,27 @@ func (g *Group) SetBits(x *Int, b large.Bits) *Int {
 	return x
 }
 
+// OverwriteBits copies b over x. If there isn't enough memory
+// available in x already, it allocates a new slice with enough memory
+// Under no circumstance will b be the backing memory of the returned Int
+// This is important for our usage of CGBN, which constantly overwrites the output memory
+func (g *Group) OverwriteBits(x *Int, b large.Bits) *Int {
+	bits := x.Bits()
+	if cap(bits) >= len(b) {
+		// Existing int is big enough; copying over existing bits is OK
+		bits = bits[:cap(bits)]
+		copy(bits, b)
+		bits = bits[:len(b)]
+	} else {
+		// A new slice is needed, since the existing int isn't big enough
+		newBits := make(large.Bits, len(b))
+		copy(newBits, b)
+		x.value.SetBits(newBits)
+	}
+	g.checkInts(x)
+	return x
+}
+
 // SetBytes sets x in the group to bytes and returns x
 func (g *Group) SetBytes(x *Int, buf []byte) *Int {
 	x.value.SetBytes(buf)
