@@ -33,6 +33,8 @@ func IsUnencrypted(m format.Message) (bool, *id.ID) {
 
 	//return false if the message is not unencrypted
 	if !bytes.Equal(expectedMac, receivedMac) {
+		jww.INFO.Printf("Failed isUnencrypted! \n\tExpected: %v; " +
+			"\n\tReceived: %v", expectedMac, receivedMac)
 		return false, nil
 	}
 
