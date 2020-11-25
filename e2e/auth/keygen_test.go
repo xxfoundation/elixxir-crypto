@@ -13,6 +13,47 @@ import (
 	"testing"
 )
 
+// TestMakeAuthKey_Smoke tests basic functionality of MakeAuth s.t. it
+// produces the same auth key on both sides of a connection
+func TestMakeAuthKey_Smoke(t *testing.T) {
+	// Initialize a mock salt
+	salt := []byte("salt")
+
+	// Generate a group
+	grp := getGrp()
+
+	// Generate a pseudo-rng
+	prng := rand.New(rand.NewSource(42))
+
+	// Generate the two keys, public and private
+	keyLen := diffieHellman.DefaultPrivateKeyLength
+	privKey1 := diffieHellman.GeneratePrivateKey(keyLen, grp, prng)
+	pubKey1 := diffieHellman.GeneratePublicKey(privKey1, grp)
+	privKey2 := diffieHellman.GeneratePrivateKey(keyLen, grp, prng)
+	pubKey2 := diffieHellman.GeneratePublicKey(privKey2, grp)
+
+	// Create the auth keys
+	key1, vector1 := MakeAuthKey(privKey1, pubKey2, salt, grp)
+	key2, vector2 := MakeAuthKey(privKey2, pubKey1, salt, grp)
+
+	for i := 0; i < len(key1); i++ {
+		if key1[i] == key2[i] {
+			continue
+		}
+		t.Errorf("MakeAuthKey Key Mismatch at %d: %d != %d",
+			i, key1[i], key2[i])
+	}
+
+	for i := 0; i < len(vector1); i++ {
+		if vector1[i] == vector2[i] {
+			continue
+		}
+		t.Errorf("MakeAuthKey Vector Mismatch at %d: %d != %d",
+			i, vector1[i], vector2[i])
+	}
+
+}
+
 // Check the consistency of outputs for MakeAuthKey
 func TestMakeAuthKey_Consistency(t *testing.T) {
 	// Hardcoded expected values for auth keys

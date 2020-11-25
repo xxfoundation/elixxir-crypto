@@ -67,11 +67,11 @@ func TestMakeOwnershipProof_Verified(t *testing.T) {
 func TestMakeOwnershipProofFP_Consistency(t *testing.T) {
 
 	expected := []string{
-		"4j9ZJTuCvekX5+MqoCilaxU9RaJZeVdHz2+XDY9+H2o=",
+		"Yj9ZJTuCvekX5+MqoCilaxU9RaJZeVdHz2+XDY9+H2o=",
 		"a57o+Dk0HzgxVHpxVap/YauaCv+GYmO7Jvhxa8XvkZU=",
 		"C3v2JIjInugyWndHl3b+KSZQ982uHN84fKItmUS0Zr0=",
-		"hYXdUwJpC57p9Qzto1QX/qC4rjr7RbSnDP0NSLQJjdY=",
-		"lllCGVIyINMeeuYjHSAFGvCR7DeedJAiJ4JPSY1hMNE=",
+		"BYXdUwJpC57p9Qzto1QX/qC4rjr7RbSnDP0NSLQJjdY=",
+		"FllCGVIyINMeeuYjHSAFGvCR7DeedJAiJ4JPSY1hMNE=",
 	}
 
 	grp := getGrp()

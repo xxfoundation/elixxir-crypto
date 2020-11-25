@@ -21,7 +21,7 @@ func Encrypt(myPrivKey, partnerPubKey *cyclic.Int, salt, payload []byte,
 	ecrPayload = Crypt(authKey, vec, payload)
 
 	// Generate the MAC
-	mac = MakeMac(partnerPubKey, authKey, salt, ecrPayload)
+	mac = MakeMac(authKey, salt, ecrPayload)
 	return ecrPayload, mac
 }
 
@@ -34,7 +34,7 @@ func Decrypt(myPrivKey, partnerPubKey *cyclic.Int, salt, ecrPayload, MAC []byte,
 	authKey, vec := MakeAuthKey(myPrivKey, partnerPubKey, salt, grp)
 
 	// Check if the mac if valid
-	if !VerifyMac(partnerPubKey, authKey, salt, ecrPayload, MAC) {
+	if !VerifyMac(authKey, salt, ecrPayload, MAC) {
 		return false, nil
 	}
 
