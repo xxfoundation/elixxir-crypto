@@ -117,9 +117,7 @@ func TestSetUnencrypted(t *testing.T) {
 	// Generate random byte slice
 	randSlice := make([]byte, messageSize)
 	rand.Read(randSlice)
-	macSlice := make([]byte, format.KeyFPLen)
-	rand.Read(macSlice)
-	macSlice[0] &= 0x7f
+
 
 	// Create message
 	m := format.NewMessage(messageSize)
@@ -127,9 +125,6 @@ func TestSetUnencrypted(t *testing.T) {
 	// Set message payload
 	m.SetPayloadA(randSlice)
 	m.SetPayloadB(randSlice)
-
-	// Set the MAC
-	m.SetMac(macSlice)
 
 	uid := id.ID{}
 	rand.Read(uid[:32])
