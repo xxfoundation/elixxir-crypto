@@ -235,6 +235,38 @@ func TestNewIntFromString_Panic(t *testing.T) {
 	t.Errorf("NewIntFromString created even when outside of the group")
 }
 
+// Show that NewIntFromBits fails when outside of group
+func TestGroup_NewIntFromBits_Panic(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			return
+		}
+	}()
+
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	grp := NewGroup(p, g)
+
+	grp.NewIntFromBits(large.Bits{0})
+
+	t.Errorf("NewIntFromBits created even when outside of the group")
+}
+
+// Show that NewIntFromBits makes a big int from a word string
+func TestGroup_NewIntFromBits(t *testing.T) {
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	grp := NewGroup(p, g)
+
+	expected := grp.NewIntFromString("123456", 16)
+	i := grp.NewIntFromBits(large.Bits{0x123456})
+	t.Log(i.TextVerbose(16, 0))
+
+	if expected.Cmp(i) != 0 {
+		t.Errorf("Expected int to be %v, got %v", expected.Text(16), i.Text(16))
+	}
+}
+
 // Test creation of cyclicInt in the group from Max4KInt value
 func TestNewMaxInt(t *testing.T) {
 	p := large.NewInt(1000000010101111111)
@@ -433,6 +465,109 @@ func TestSetBytes_Panic(t *testing.T) {
 	}()
 
 	grp.SetBytes(actual, []byte("TEST"))
+}
+
+// Shows that setting bits results in a different integer
+func TestGroup_SetBits(t *testing.T) {
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	grp := NewGroup(p, g)
+
+	expected := grp.NewInt(2)
+	newInt := grp.NewInt(1)
+	grp.SetBits(newInt, large.Bits{2})
+	if expected.Cmp(newInt) != 0 {
+		t.Errorf("Setbits didn't set to the expected int result. Got %v, expected %v", newInt.Text(16), expected.Text(16))
+	}
+}
+
+// Shows that setting bits with a different group from the original integer panics
+func TestGroup_SetBits_Panic(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			return
+		}
+	}()
+
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	grp := NewGroup(p, g)
+	g2 := large.NewInt(2)
+	grp2 := NewGroup(p, g2)
+
+	i := grp.NewInt(1)
+	grp2.SetBits(i, large.Bits{123456})
+
+	t.Errorf("SetBits worked even when another group was used")
+}
+
+// OverwriteBits is a higher-level method that copies a bits slice into an integer
+// or allocates a new slice if necessary
+// Shows that OverwriteBits never uses the passed bits slice to back the new integer
+// Shows that the results are as expected, even in cases where the lengths aren't equal
+func TestGroup_OverwriteBits(t *testing.T) {
+	// We need a bigger group than the other tests, because for this test to be meaningful
+	// the prime needs to take up more than one word
+	// Using modp1536
+	p := large.NewIntFromString("FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F83655D23DCA3AD961C62F356208552BB9ED529077096966D670C354E4ABC9804F1746C08CA237327FFFFFFFFFFFFFFFF", 16)
+	g := large.NewInt(5)
+	grp := NewGroup(p, g)
+
+	// Case 1: enough space in the existing int for the overwriting int to exist
+	existing := grp.NewMaxInt()
+	existingStart := &existing.Bits()[0]
+	t.Log("existing cap:", cap(existing.Bits()))
+	expected := grp.NewIntFromString("1234567890abcdef1234567890abcdef1234567890abcdef123", 16)
+	t.Log("expected len:", len(expected.Bits()))
+	grp.OverwriteBits(existing, expected.Bits())
+
+	// Start of backing bits slice should be the same
+	if existingStart != &existing.Bits()[0] {
+		t.Errorf("start of existing changed. had %v, got %v", existingStart, &existing.Bits()[0])
+	}
+	// Should get expected number in existing
+	if existing.Cmp(expected) != 0 {
+		t.Errorf("actual differed from expected. actual: %v, expected %v", existing, expected)
+	}
+
+	// Case 2: not enough space in the existing int for the overwriting int to exist
+	newAlloc := grp.NewInt(1)
+	newAllocStart := &newAlloc.Bits()[0]
+	t.Log("newAlloc cap:", cap(newAlloc.Bits()))
+	grp.OverwriteBits(newAlloc, expected.Bits())
+
+	// Start of backing bits slice should be different
+	if newAllocStart == &newAlloc.Bits()[0] {
+		t.Errorf("start of newAlloc didn't change. had %v, got %v", newAllocStart, &newAlloc.Bits()[0])
+	}
+	// It should also be different from the backing bits slice of expected
+	if &newAlloc.Bits()[0] == &existing.Bits()[0] {
+		t.Errorf("newAlloc uses same backing memory as existing! bad!!")
+	}
+	// Of course, the int should be equal to existing
+	if expected.Cmp(newAlloc) != 0 {
+		t.Errorf("actual differed from expected. actual: %v, expected %v", newAlloc, expected)
+	}
+}
+
+// Is it possible to trigger the panic?
+func TestGroup_OverwriteBits_Panic(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			return
+		}
+	}()
+
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	grp := NewGroup(p, g)
+	g2 := large.NewInt(2)
+	grp2 := NewGroup(p, g2)
+
+	i := grp.NewInt(1)
+	grp2.OverwriteBits(i, large.Bits{123456})
+
+	t.Errorf("OverwriteBits worked with a different group")
 }
 
 // Test setting cyclicInt in the same group from string

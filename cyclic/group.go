@@ -148,6 +148,7 @@ func (g *Group) NewIntFromUInt(i uint64) *Int {
 }
 
 // NewIntFromBits creates a new cyclic int from a words array
+// This method doesn't copy the bits array, so if you need a copy, copy the array before passing it in
 func (g *Group) NewIntFromBits(b large.Bits) *Int {
 	val := large.NewIntFromBits(b)
 	n := &Int{
@@ -223,7 +224,7 @@ func (g *Group) OverwriteBits(x *Int, b large.Bits) *Int {
 		// Existing int is big enough; copying over existing bits is OK
 		bits = bits[:cap(bits)]
 		copy(bits, b)
-		bits = bits[:len(b)]
+		x.value.SetBits(bits[:len(b)])
 	} else {
 		// A new slice is needed, since the existing int isn't big enough
 		newBits := make(large.Bits, len(b))
