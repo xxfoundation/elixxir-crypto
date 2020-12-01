@@ -449,14 +449,14 @@ func (g Group) RootCoprime(x, y, z *Int) *Int {
 // The function will panic if bits >= log2(g.prime), so the caller MUST use
 // a correct value of bits
 
-func (g Group) FindSmallCoprimeInverse(z *Int, bits uint32) *Int {
-	if bits >= uint32(g.prime.BitLen()) {
+func (g Group) FindSmallCoprimeInverse(z *Int, bitLen uint32) *Int {
+	if bitLen >= uint32(g.prime.BitLen()) {
 		jww.FATAL.Panicf("Requested bits: %d is greater than"+
-			" or equal to group's prime: %d", bits, g.prime.BitLen())
+			" or equal to group's prime: %d", bitLen, g.prime.BitLen())
 	}
 
 	g.checkInts(z)
-	// RNG that ensures the output is an odd number between 2 and 2^bits
+	// RNG that ensures the output is an odd number between 2 and 2^bitLen
 	// that is not equal to p-1/2.  This must occur because for a proper
 	// modular inverse to exist within a group a number must have no common
 	// factors with the number that defines the group.  Normally that would not
@@ -466,15 +466,15 @@ func (g Group) FindSmallCoprimeInverse(z *Int, bits uint32) *Int {
 
 	// In order to generate the number in the range
 	// the following steps are taken:
-	// 1. max = 2^(bits)-2
+	// 1. max = 2^(bitLen)-2
 	// 2. gen rand num by reading from rng
-	// 3. rand mod max : giving a range of 0 - 2^(bits)-3
-	// 4. rand + 2: range: 2 - 2^(bits)-1
-	// 5. rand ^ 1: range: 3 - 2^(bits)-1, odd number
+	// 3. rand mod max : giving a range of 0 - 2^(bitLen)-3
+	// 4. rand + 2: range: 2 - 2^(bitLen)-1
+	// 5. rand ^ 1: range: 3 - 2^(bitLen)-1, odd number
 	max := large.NewInt(1).Sub(
 		large.NewInt(1).LeftShift(
 			g.one,
-			uint(bits)),
+			uint(bitLen)),
 		g.two)
 
 	zinv := large.NewInt(1)
