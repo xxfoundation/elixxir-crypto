@@ -118,7 +118,6 @@ func TestSetUnencrypted(t *testing.T) {
 	randSlice := make([]byte, messageSize)
 	rand.Read(randSlice)
 
-
 	// Create message
 	m := format.NewMessage(messageSize)
 

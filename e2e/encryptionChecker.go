@@ -68,7 +68,7 @@ func SetUnencrypted(m format.Message, uid *id.ID) {
 }
 
 // returns the mac, fingerprint, and the highest byte
-func makeUnencryptedMAC(payload []byte)[]byte{
+func makeUnencryptedMAC(payload []byte) []byte {
 	// Create new hash
 	h, err := hash.NewCMixHash()
 

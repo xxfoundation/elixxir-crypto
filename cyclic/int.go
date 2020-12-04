@@ -47,6 +47,13 @@ func (z *Int) GetGroupFingerprint() uint64 {
 	return z.fingerprint
 }
 
+// Bits gets the underlying word slice of cyclic int
+// Use this for low-level functions where speed is critical
+// For speed reasons, I don't copy here. This could allow the int to be set outside of the group
+func (z *Int) Bits() large.Bits {
+	return z.value.Bits()
+}
+
 // Bytes gets the bytes of cyclicInt value
 func (z *Int) Bytes() []byte {
 	return z.value.Bytes()
