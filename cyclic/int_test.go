@@ -331,3 +331,31 @@ func TestInt_UnmarshalJSON(t *testing.T) {
 		t.Errorf("UnmarshalJSON() did not return an error for invalid JSON.")
 	}
 }
+
+// Happy path.
+func TestInt_BinaryEncode_BinaryDecode(t *testing.T) {
+	cycInt := grp.NewInt(42)
+	buff := cycInt.BinaryEncode()
+	testInt := &Int{}
+	err := testInt.BinaryDecode(buff)
+	if err != nil {
+		t.Errorf("BinaryDecode() returned an error: %+v", err)
+	}
+
+	if cycInt.Cmp(testInt) != 0 {
+		t.Errorf("Failed to encode and decode Int."+
+			"\n\texpected: %s\n\treceived: %s",
+			cycInt.TextVerbose(10, 32), testInt.TextVerbose(10, 32))
+	}
+}
+
+// Error path: buffer not long enough
+func TestInt_BinaryDecode_BuffTooShortErr(t *testing.T) {
+	cycInt := grp.NewInt(42)
+	buff := cycInt.BinaryEncode()
+	testInt := &Int{}
+	err := testInt.BinaryDecode(buff[:2])
+	if err == nil {
+		t.Errorf("BinaryDecode() did not return an error on a buffer that is too short.")
+	}
+}
