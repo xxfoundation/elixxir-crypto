@@ -16,6 +16,7 @@ import (
 	"encoding/binary"
 	"encoding/gob"
 	"encoding/json"
+	"github.com/pkg/errors"
 	"gitlab.com/xx_network/crypto/large"
 )
 
@@ -191,6 +192,32 @@ func (z *Int) GobEncode() ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
+}
+
+// BinaryEncode encodes the Int into a compressed byte format.
+func (z *Int) BinaryEncode() []byte {
+	var buff bytes.Buffer
+	b := make([]byte, binary.MaxVarintLen64)
+
+	binary.PutUvarint(b, z.fingerprint)
+	buff.Write(b)
+	buff.Write(z.Bytes())
+
+	return buff.Bytes()
+}
+
+// BinaryDecode decompresses the encoded byte slice to an Int.
+func (z *Int) BinaryDecode(b []byte) error {
+	buff := bytes.NewBuffer(b)
+	fp, err := binary.ReadUvarint(buff)
+	if err != nil {
+		return errors.Errorf("Failed to decode Int fingerprint: %+v", err)
+	}
+
+	z.fingerprint = fp
+	z.value = large.NewIntFromBytes(buff.Bytes())
+
+	return nil
 }
 
 // Erase overwrite all underlying data from a cyclic Int by setting its value
