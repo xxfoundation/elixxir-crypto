@@ -9,4 +9,7 @@ require (
 	gitlab.com/xx_network/crypto v0.0.5-0.20210107183440-804e0f8b7d22
 	gitlab.com/xx_network/primitives v0.0.4-0.20210106014326-691ebfca3b07
 	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de
+	golang.org/x/lint v0.0.0-20190313153728-d0100b6bd8b3 // indirect
+	golang.org/x/tools v0.0.0-20190524140312-2c0ae7006135 // indirect
+	honnef.co/go/tools v0.0.0-20190523083050-ea95bdfd59fc // indirect
 )
