@@ -17,28 +17,39 @@ import (
 
 const responseFPConstant = "responseFPConstant"
 
-func ResponseFingerprint(pubKey *cyclic.Int, keyNum uint64) format.Fingerprint {
+// ResponseFingerprint generates the fingerprint for the response message for
+// the given key number.
+func ResponseFingerprint(dhKey *cyclic.Int, keyNum uint64) format.Fingerprint {
 	// Create fingerprint
 	fp := format.Fingerprint{}
-	copy(fp[:], makeHash(pubKey, keyNum, responseFPConstant))
+	copy(fp[:], makeKeyHash(dhKey, keyNum, responseFPConstant))
 
 	return fp
 }
 
-func makeHash(pubKey *cyclic.Int, keyNum uint64, constant string) []byte {
+// makeHash generates a hash from the given key and list of bytes.
+func makeHash(key *cyclic.Int, data ...[]byte) []byte {
+	// Create new hash
 	h, err := hash.NewCMixHash()
 	if err != nil {
-		jww.ERROR.Panicf("Failed to create hash: %v", err)
+		jww.ERROR.Panicf("Failed to create new hash for single-use "+
+			"communication: %v", err)
 	}
 
-	// Convert the key number to bytes
-	buff := make([]byte, binary.MaxVarintLen64)
-	binary.BigEndian.PutUint64(buff, keyNum)
-
-	// Hash the key, number, and constant
-	h.Write(pubKey.Bytes())
-	h.Write(buff)
-	h.Write([]byte(constant))
+	// Hash the key and data
+	h.Write(key.Bytes())
+	for _, d := range data {
+		h.Write(d)
+	}
 
 	return h.Sum(nil)
+}
+
+// makeKeyHash generates a hash from a key, an integer, and a string.
+func makeKeyHash(dhKey *cyclic.Int, keyNum uint64, constant string) []byte {
+	// Convert the key number to bytes
+	keyNumBytes := make([]byte, binary.MaxVarintLen64)
+	binary.BigEndian.PutUint64(keyNumBytes, keyNum)
+
+	return makeHash(dhKey, keyNumBytes, []byte(constant))
 }

@@ -20,14 +20,14 @@ func TestResponseKey(t *testing.T) {
 	grp := getGrp()
 	prng := rand.New(rand.NewSource(42))
 
-	pubKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(
+	dhKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(
 		diffieHellman.DefaultPrivateKeyLength, grp, prng), grp)
-	testKey := ResponseKey(pubKey, 0)
+	testKey := ResponseKey(dhKey, 0)
 	testKeyBase64 := base64.StdEncoding.EncodeToString(testKey)
 
 	if expectedKey != testKeyBase64 {
 		t.Errorf("ResponseKey() did not return the expected key for public "+
 			"key %s.\nexpected: %s\nreceived: %s",
-			pubKey.Text(10), expectedKey, testKeyBase64)
+			dhKey.Text(10), expectedKey, testKeyBase64)
 	}
 }

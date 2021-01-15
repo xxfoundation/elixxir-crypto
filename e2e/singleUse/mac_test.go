@@ -35,17 +35,17 @@ func TestMAC_Consistency(t *testing.T) {
 	for i, expected := range expectedMACs {
 		privKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, grp, prng)
 		pubkey := diffieHellman.GeneratePublicKey(privKey, grp)
-		baseKey := diffieHellman.GenerateSessionKey(privKey, pubkey, grp)
+		dhKey := diffieHellman.GenerateSessionKey(privKey, pubkey, grp)
 		encryptedPayload := make([]byte, 128)
 		prng.Read(encryptedPayload)
-		testMAC := MakeMAC(baseKey, encryptedPayload)
+		testMAC := MakeMAC(dhKey, encryptedPayload)
 		testMACBase64 := base64.StdEncoding.EncodeToString(testMAC)
 
 		if expected != testMACBase64 {
 			t.Errorf("MakeMAC() did not return the expected MAC for the given "+
 				"base key and encrypted payload at index %d."+
 				"\nbase key: %s\nexpected: %s\nreceived: %s",
-				i, baseKey.Text(10), expected, testMACBase64)
+				i, dhKey.Text(10), expected, testMACBase64)
 		}
 	}
 }
@@ -62,18 +62,18 @@ func TestMAC_Unique(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		privKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, grp, prng)
 		pubkey := diffieHellman.GeneratePublicKey(privKey, grp)
-		baseKey := diffieHellman.GenerateSessionKey(privKey, pubkey, grp)
+		dhKey := diffieHellman.GenerateSessionKey(privKey, pubkey, grp)
 		encryptedPayload := make([]byte, 128)
 		prng.Read(encryptedPayload)
-		testMAC := MakeMAC(baseKey, encryptedPayload)
+		testMAC := MakeMAC(dhKey, encryptedPayload)
 		testMACBase64 := base64.StdEncoding.EncodeToString(testMAC)
 
 		if _, exists := MACs[testMACBase64]; exists {
 			t.Errorf("Generated MAC collides with previously generated MAC."+
-				"\ncurrent MAC:   baseKey: %s  encryptedPayload: %s"+
-				"\npreviouse MAC: baseKey: %s  encryptedPayload: %s"+
+				"\ncurrent MAC:   dhKey: %s  encryptedPayload: %s"+
+				"\npreviouse MAC: dhKey: %s  encryptedPayload: %s"+
 				"\nMAC:           %s",
-				baseKey.Text(10),
+				dhKey.Text(10),
 				base64.StdEncoding.EncodeToString(encryptedPayload),
 				MACs[testMACBase64].key.Text(10),
 				base64.StdEncoding.EncodeToString(MACs[testMACBase64].encryptedPayload),
@@ -82,7 +82,7 @@ func TestMAC_Unique(t *testing.T) {
 			MACs[testMACBase64] = struct {
 				key              *cyclic.Int
 				encryptedPayload []byte
-			}{baseKey, encryptedPayload}
+			}{dhKey, encryptedPayload}
 		}
 	}
 }
@@ -106,18 +106,18 @@ func TestVerifyMAC(t *testing.T) {
 	for i, expected := range expectedMACs {
 		privKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, grp, prng)
 		pubkey := diffieHellman.GeneratePublicKey(privKey, grp)
-		baseKey := diffieHellman.GenerateSessionKey(privKey, pubkey, grp)
+		dhKey := diffieHellman.GenerateSessionKey(privKey, pubkey, grp)
 		encryptedPayload := make([]byte, 128)
 		prng.Read(encryptedPayload)
-		testMAC := MakeMAC(baseKey, encryptedPayload)
+		testMAC := MakeMAC(dhKey, encryptedPayload)
 		testMACBase64 := base64.StdEncoding.EncodeToString(testMAC)
 
 		receivedMac, _ := base64.StdEncoding.DecodeString(expected)
 
-		if !VerifyMAC(baseKey, encryptedPayload, receivedMac) {
+		if !VerifyMAC(dhKey, encryptedPayload, receivedMac) {
 			t.Errorf("VerifyMAC() failed for a correct MAC (%d)."+
 				"\nbase key: %s\nexpected: %s\nreceived: %s",
-				i, baseKey.Text(10), expected, testMACBase64)
+				i, dhKey.Text(10), expected, testMACBase64)
 		}
 	}
 }

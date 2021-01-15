@@ -13,6 +13,8 @@ import (
 
 const responseKeyConstant = "responseKeyConstant"
 
-func ResponseKey(pubKey *cyclic.Int, keyNum uint64) []byte {
-	return makeHash(pubKey, keyNum, responseKeyConstant)
+// ResponseKey generates the key for the response message that corresponds with
+// the given key number.
+func ResponseKey(dhKey *cyclic.Int, keyNum uint64) []byte {
+	return makeKeyHash(dhKey, keyNum, responseKeyConstant)
 }

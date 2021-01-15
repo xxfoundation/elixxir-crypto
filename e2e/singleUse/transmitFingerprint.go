@@ -8,29 +8,18 @@
 package singleUse
 
 import (
-	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/cyclic"
-	"gitlab.com/elixxir/crypto/hash"
 	"gitlab.com/elixxir/primitives/format"
 )
 
 const transmitFPConstant = "transmitFPConstant"
 
-func TransmitFingerprint(pubKey *cyclic.Int) format.Fingerprint {
-	// Create new hash
-	h, err := hash.NewCMixHash()
-	if err != nil {
-		jww.ERROR.Panicf("Failed to create hash: %v", err)
-	}
-
-	// Hash the key and constant
-	h.Write(pubKey.Bytes())
-	h.Write([]byte(transmitFPConstant))
-	keyHash := h.Sum(nil)
-
+// TransmitFingerprint generates the fingerprint used for the transmission
+// message.
+func TransmitFingerprint(dhKey *cyclic.Int) format.Fingerprint {
 	// Create fingerprint
 	fp := format.Fingerprint{}
-	copy(fp[:], keyHash)
+	copy(fp[:], makeHash(dhKey, []byte(transmitFPConstant)))
 
 	return fp
 }
