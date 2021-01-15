@@ -35,16 +35,16 @@ func TestTransmitFingerprint_Consistency(t *testing.T) {
 	prng := rand.New(rand.NewSource(42))
 
 	for i, expected := range expectedFPs {
-		pubKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(
+		dhKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(
 			diffieHellman.DefaultPrivateKeyLength, grp, prng), grp)
-		testFP := TransmitFingerprint(pubKey)
+		testFP := TransmitFingerprint(dhKey)
 		testFPBase64 := base64.StdEncoding.EncodeToString(testFP[:])
 
 		if expected != testFPBase64 {
 			t.Errorf("TransmitFingerprint() did not return the expected "+
 				"fingerprint for public key %s at index %d."+
 				"\nexpected: %s\nreceived: %s",
-				pubKey.Text(10), i, expected, testFPBase64)
+				dhKey.Text(10), i, expected, testFPBase64)
 		}
 	}
 }
@@ -56,17 +56,17 @@ func TestTransmitFingerprint_Unique(t *testing.T) {
 	FPs := make(map[format.Fingerprint]*cyclic.Int, 100)
 
 	for i := 0; i < 100; i++ {
-		pubKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(
+		dhKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(
 			diffieHellman.DefaultPrivateKeyLength, grp, prng), grp)
-		testFP := TransmitFingerprint(pubKey)
+		testFP := TransmitFingerprint(dhKey)
 
 		if FPs[testFP] != nil {
 			t.Errorf("Generated fingerprint from key %s collides with "+
 				"previously generated fingerprint from key %s."+
-				"\nfingerprint: %s", pubKey.Text(10), FPs[testFP].Text(10),
+				"\nfingerprint: %s", dhKey.Text(10), FPs[testFP].Text(10),
 				base64.StdEncoding.EncodeToString(testFP[:]))
 		} else {
-			FPs[testFP] = pubKey
+			FPs[testFP] = dhKey
 		}
 	}
 }

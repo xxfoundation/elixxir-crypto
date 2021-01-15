@@ -21,16 +21,16 @@ func TestResponseFingerprint(t *testing.T) {
 	grp := getGrp()
 	prng := rand.New(rand.NewSource(42))
 
-	pubKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(
+	dhKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(
 		diffieHellman.DefaultPrivateKeyLength, grp, prng), grp)
-	testFP := ResponseFingerprint(pubKey, 0)
+	testFP := ResponseFingerprint(dhKey, 0)
 	testFPBase64 := base64.StdEncoding.EncodeToString(testFP[:])
 
 	if expectedFP != testFPBase64 {
 		t.Errorf("ResponseFingerprint() did not return the expected "+
 			"fingerprint for public key %s."+
 			"\nexpected: %s\nreceived: %s",
-			pubKey.Text(10), expectedFP, testFPBase64)
+			dhKey.Text(10), expectedFP, testFPBase64)
 	}
 }
 
@@ -52,15 +52,15 @@ func Test_makeHash_Consistency(t *testing.T) {
 	prng := rand.New(rand.NewSource(42))
 
 	for i, expectedHash := range expectedHashes {
-		pubKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(
+		dhKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(
 			diffieHellman.DefaultPrivateKeyLength, grp, prng), grp)
-		testHash := makeHash(pubKey, uint64(i), "constant")
+		testHash := makeKeyHash(dhKey, uint64(i), "constant")
 		testHashBase64 := base64.StdEncoding.EncodeToString(testHash)
 
 		if expectedHash != testHashBase64 {
 			t.Errorf("makeHash() did not return the expected hash for public "+
 				"key %s at index %d.\nexpected: %s\nreceived: %s",
-				pubKey.Text(10), i, expectedHash, testHashBase64)
+				dhKey.Text(10), i, expectedHash, testHashBase64)
 		}
 	}
 }
@@ -72,18 +72,18 @@ func Test_makeHash_Unique(t *testing.T) {
 	hashes := make(map[string]*cyclic.Int, 100)
 
 	for i := 0; i < 100; i++ {
-		pubKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(
+		dhKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(
 			diffieHellman.DefaultPrivateKeyLength, grp, prng), grp)
-		testHash := makeHash(pubKey, uint64(i), "constant")
+		testHash := makeKeyHash(dhKey, uint64(i), "constant")
 
 		hashBase64 := base64.StdEncoding.EncodeToString(testHash)
 
 		if hashes[hashBase64] != nil {
 			t.Errorf("Generated hash from key %s collides with "+
 				"previously generated hash from key %s.\nfingerprint: %s",
-				pubKey.Text(10), hashes[hashBase64].Text(10), hashBase64)
+				dhKey.Text(10), hashes[hashBase64].Text(10), hashBase64)
 		} else {
-			hashes[hashBase64] = pubKey
+			hashes[hashBase64] = dhKey
 		}
 	}
 }
