@@ -20,13 +20,13 @@ func TestMAC_Consistency(t *testing.T) {
 	expectedMACs := []string{
 		"D7vXMT3iX/1tvFPjowoz3w5b3PbECB4EFgkR3hNzyCM=",
 		"ffW26eqwyTHERUPHbmFkUitRj7c+c/PQayfwQPLihNs=",
-		"/lyTEnFbzEEmmMjOQhq6qr0jUYE2j22ERcR4CLH9368=",
-		"vPB8eXP8BXWdxSU4a+Lp1pYVWb98COtWtR0sBngGyTs=",
+		"flyTEnFbzEEmmMjOQhq6qr0jUYE2j22ERcR4CLH9368=",
+		"PPB8eXP8BXWdxSU4a+Lp1pYVWb98COtWtR0sBngGyTs=",
 		"BuvhuSO01uM+nVQPwXlOwRzr7xchVM1dRoF9h5TC2HU=",
-		"vF5iYaFdhLtgOO5hWNpAF6jJaW4utF1MLGaz/gYb0TY=",
-		"opI2htMJEqZvvEKHAwWnTSqgvaAempY9//rRxNNFHQU=",
-		"ppGzFglPaLzytF5gJRtSFbYoidsShEBoX1cxkAJY3F4=",
-		"pdzZmlz6qdChwo7B5sChTRUpQ5zLvlH5LgndOhDHAt8=",
+		"PF5iYaFdhLtgOO5hWNpAF6jJaW4utF1MLGaz/gYb0TY=",
+		"IpI2htMJEqZvvEKHAwWnTSqgvaAempY9//rRxNNFHQU=",
+		"JpGzFglPaLzytF5gJRtSFbYoidsShEBoX1cxkAJY3F4=",
+		"JdzZmlz6qdChwo7B5sChTRUpQ5zLvlH5LgndOhDHAt8=",
 		"BHP2yvbUcynr6vM61qt+18YshTsyArJqv0VCq/EI3+o=",
 	}
 	grp := getGrp()
@@ -91,13 +91,13 @@ func TestVerifyMAC(t *testing.T) {
 	expectedMACs := []string{
 		"D7vXMT3iX/1tvFPjowoz3w5b3PbECB4EFgkR3hNzyCM=",
 		"ffW26eqwyTHERUPHbmFkUitRj7c+c/PQayfwQPLihNs=",
-		"/lyTEnFbzEEmmMjOQhq6qr0jUYE2j22ERcR4CLH9368=",
-		"vPB8eXP8BXWdxSU4a+Lp1pYVWb98COtWtR0sBngGyTs=",
+		"flyTEnFbzEEmmMjOQhq6qr0jUYE2j22ERcR4CLH9368=",
+		"PPB8eXP8BXWdxSU4a+Lp1pYVWb98COtWtR0sBngGyTs=",
 		"BuvhuSO01uM+nVQPwXlOwRzr7xchVM1dRoF9h5TC2HU=",
-		"vF5iYaFdhLtgOO5hWNpAF6jJaW4utF1MLGaz/gYb0TY=",
-		"opI2htMJEqZvvEKHAwWnTSqgvaAempY9//rRxNNFHQU=",
-		"ppGzFglPaLzytF5gJRtSFbYoidsShEBoX1cxkAJY3F4=",
-		"pdzZmlz6qdChwo7B5sChTRUpQ5zLvlH5LgndOhDHAt8=",
+		"PF5iYaFdhLtgOO5hWNpAF6jJaW4utF1MLGaz/gYb0TY=",
+		"IpI2htMJEqZvvEKHAwWnTSqgvaAempY9//rRxNNFHQU=",
+		"JpGzFglPaLzytF5gJRtSFbYoidsShEBoX1cxkAJY3F4=",
+		"JdzZmlz6qdChwo7B5sChTRUpQ5zLvlH5LgndOhDHAt8=",
 		"BHP2yvbUcynr6vM61qt+18YshTsyArJqv0VCq/EI3+o=",
 	}
 	grp := getGrp()

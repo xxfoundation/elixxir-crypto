@@ -21,5 +21,8 @@ func TransmitFingerprint(dhKey *cyclic.Int) format.Fingerprint {
 	fp := format.Fingerprint{}
 	copy(fp[:], makeHash(dhKey, []byte(transmitFPConstant)))
 
+	// Set the first bit as zero to ensure everything stays in the group
+	fp[0] &= 0b01111111
+
 	return fp
 }
