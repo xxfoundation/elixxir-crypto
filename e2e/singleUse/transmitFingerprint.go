@@ -18,8 +18,7 @@ const transmitFPConstant = "transmitFPConstant"
 // message.
 func TransmitFingerprint(dhKey *cyclic.Int) format.Fingerprint {
 	// Create fingerprint
-	fp := format.Fingerprint{}
-	copy(fp[:], makeHash(dhKey, []byte(transmitFPConstant)))
+	fp := format.NewFingerprint(makeHash(dhKey, []byte(transmitFPConstant)))
 
 	// Set the first bit as zero to ensure everything stays in the group
 	fp[0] &= 0b01111111

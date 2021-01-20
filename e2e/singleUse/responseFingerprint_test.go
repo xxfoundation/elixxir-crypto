@@ -24,13 +24,12 @@ func TestResponseFingerprint(t *testing.T) {
 	dhKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(
 		diffieHellman.DefaultPrivateKeyLength, grp, prng), grp)
 	testFP := ResponseFingerprint(dhKey, 0)
-	testFPBase64 := base64.StdEncoding.EncodeToString(testFP[:])
 
-	if expectedFP != testFPBase64 {
+	if expectedFP != testFP.String() {
 		t.Errorf("ResponseFingerprint() did not return the expected "+
 			"fingerprint for public key %s."+
 			"\nexpected: %s\nreceived: %s",
-			dhKey.Text(10), expectedFP, testFPBase64)
+			dhKey.Text(10), expectedFP, testFP)
 	}
 }
 
