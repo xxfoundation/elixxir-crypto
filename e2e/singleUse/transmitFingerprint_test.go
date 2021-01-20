@@ -38,13 +38,12 @@ func TestTransmitFingerprint_Consistency(t *testing.T) {
 		dhKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(
 			diffieHellman.DefaultPrivateKeyLength, grp, prng), grp)
 		testFP := TransmitFingerprint(dhKey)
-		testFPBase64 := base64.StdEncoding.EncodeToString(testFP[:])
 
-		if expected != testFPBase64 {
+		if expected != testFP.String() {
 			t.Errorf("TransmitFingerprint() did not return the expected "+
 				"fingerprint for public key %s at index %d."+
 				"\nexpected: %s\nreceived: %s",
-				dhKey.Text(10), i, expected, testFPBase64)
+				dhKey.Text(10), i, expected, testFP)
 		}
 	}
 }
