@@ -20,16 +20,16 @@ import (
 // Tests that the generated fingerprints do not change.
 func TestTransmitFingerprint_Consistency(t *testing.T) {
 	expectedFPs := []string{
-		"8xef7y86YmR6+qVBaVghPYbEd0j7seLUxR1v1dxqiNo=",
+		"cxef7y86YmR6+qVBaVghPYbEd0j7seLUxR1v1dxqiNo=",
 		"LJ1HQ8zZPY3z+6UkKZMSDN2WymMmwuWW3GCjtAGfUlc=",
 		"Fc8CN69uMxT1zBAr3Ed/AOy6Py3XDb3i7LngRsax0K8=",
-		"4mvA+dxgIy/UxRVIvzFgGtEuMoWI8RodF7JMFIO5xcI=",
-		"3YJPhLeI2+RawlSMUTEwTP1iJrFAa5zboCf5fjc/k3o=",
-		"mEOS0pDuNYS5hpNHeJ2IhzlZFf9J5oHRvFpovNwWS7c=",
-		"i3k7dv1Nch1oTT4aOxbBDifmf7+mT34ErFFaWW5LDb8=",
+		"YmvA+dxgIy/UxRVIvzFgGtEuMoWI8RodF7JMFIO5xcI=",
+		"XYJPhLeI2+RawlSMUTEwTP1iJrFAa5zboCf5fjc/k3o=",
+		"GEOS0pDuNYS5hpNHeJ2IhzlZFf9J5oHRvFpovNwWS7c=",
+		"C3k7dv1Nch1oTT4aOxbBDifmf7+mT34ErFFaWW5LDb8=",
 		"ck/wkZ3lv0bcQuW+Z2dw37m+Re0URPw4UsWBPAWBEtw=",
-		"k/YRXaE2dplVPZSiEY+7C0e6GlDeR3jLrIPRWgeL3cI=",
-		"qkT2Hfz8A7jNxOhDYG266b/hvWcQtAx0ay67Az80bAY=",
+		"E/YRXaE2dplVPZSiEY+7C0e6GlDeR3jLrIPRWgeL3cI=",
+		"KkT2Hfz8A7jNxOhDYG266b/hvWcQtAx0ay67Az80bAY=",
 	}
 	grp := getGrp()
 	prng := rand.New(rand.NewSource(42))
@@ -38,13 +38,12 @@ func TestTransmitFingerprint_Consistency(t *testing.T) {
 		dhKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(
 			diffieHellman.DefaultPrivateKeyLength, grp, prng), grp)
 		testFP := TransmitFingerprint(dhKey)
-		testFPBase64 := base64.StdEncoding.EncodeToString(testFP[:])
 
-		if expected != testFPBase64 {
+		if expected != testFP.String() {
 			t.Errorf("TransmitFingerprint() did not return the expected "+
 				"fingerprint for public key %s at index %d."+
 				"\nexpected: %s\nreceived: %s",
-				dhKey.Text(10), i, expected, testFPBase64)
+				dhKey.Text(10), i, expected, testFP)
 		}
 	}
 }

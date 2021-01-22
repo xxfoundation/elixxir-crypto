@@ -17,7 +17,12 @@ const macConstant = "macConstant"
 // MakeMAC generates the MAC used in the cmix message holding the single-use
 // payload.
 func MakeMAC(dhKey *cyclic.Int, encryptedPayload []byte) []byte {
-	return makeHash(dhKey, encryptedPayload, []byte(macConstant))
+	mac := makeHash(dhKey, encryptedPayload, []byte(macConstant))
+
+	// Set the first bit as zero to ensure everything stays in the group
+	mac[0] &= 0b01111111
+
+	return mac
 }
 
 // VerifyMAC determines if the provided MAC is valid for the given key and
