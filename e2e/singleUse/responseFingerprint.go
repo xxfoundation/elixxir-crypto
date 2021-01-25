@@ -21,7 +21,8 @@ const responseFPConstant = "responseFPConstant"
 // the given key number.
 func ResponseFingerprint(dhKey *cyclic.Int, keyNum uint64) format.Fingerprint {
 	// Create fingerprint
-	fp := format.NewFingerprint(makeKeyHash(dhKey, keyNum, responseFPConstant))
+	fp := format.Fingerprint{}
+	copy(fp[:], makeKeyHash(dhKey, keyNum, responseFPConstant))
 
 	// Set the first bit as zero to ensure everything stays in the group
 	fp[0] &= 0b01111111
