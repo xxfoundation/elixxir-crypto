@@ -54,3 +54,19 @@ func TestIdentityFP(t *testing.T) {
 		t.Logf("\n\tID1 [%+v]\n\tID2 [%+v]\n\tID3 [%+v]\n\tID4 [%+v]\n\tID5 [%+v]\n", fp1, fp2, fp3, fp4, fp5)
 	}
 }
+
+func TestCheckIdentityFP(t *testing.T) {
+	message1 := []byte("I'm an encrypted message!")
+	user1 := id.NewIdFromString("zezima", id.User, t)
+
+	// Check that two fingerprints created from the same data are identical
+	fp1, err := IdentityFP(message1, user1)
+	if err != nil {
+		t.Errorf("Failed to create identity fingerprint 1: %+v", err)
+	}
+
+	ok, err := CheckIdentityFP(fp1, message1, user1)
+	if err != nil || !ok {
+		t.Errorf("Should have gotten ok from CheckIdentityFP.  Instead got (%+v, %+v)", ok, err)
+	}
+}

@@ -8,6 +8,7 @@
 package fingerprint
 
 import (
+	"bytes"
 	"crypto"
 	"github.com/pkg/errors"
 	"gitlab.com/xx_network/primitives/id"
@@ -33,4 +34,13 @@ func IdentityFP(encryptedMessagePayload []byte, recipientId *id.ID) ([]byte, err
 			recipientId.Marshal())
 	}
 	return b2b.Sum(nil)[:identityFpSizeBytes], nil
+}
+
+// Check if a received fingerprint is correct based on message payload and ID
+func CheckIdentityFP(receivedFP, encryptedMessagePayload []byte, recipientId *id.ID) (bool, error) {
+	identityFP, err := IdentityFP(encryptedMessagePayload, recipientId)
+	if err != nil {
+		return false, err
+	}
+	return bytes.Compare(identityFP, receivedFP) == 0, nil
 }
