@@ -10,31 +10,38 @@ package singleUse
 import (
 	"bytes"
 	jww "github.com/spf13/jwalterweatherman"
-	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/hash"
 )
 
-const macConstant = "macConstant"
+const macSalt = "singleUseMacSalt"
 
-// MakeMAC generates the MAC for the given base key and encrypted payload.
-func MakeMAC(baseKey *cyclic.Int, encryptedPayload []byte) []byte {
+// MakeMAC generates the MAC used in both the transmission and response CMIX
+// messages.
+func MakeMAC(key []byte, encryptedPayload []byte) []byte {
+	// Create new hash
 	h, err := hash.NewCMixHash()
 	if err != nil {
-		jww.ERROR.Panicf("Failed to create hash: %v", err)
+		jww.ERROR.Panicf("Failed to create new hash for single-use MAC: %v", err)
 	}
 
-	// Hash the key, number, and constant
-	h.Write(baseKey.Bytes())
+	// Hash the key, encrypted payload, and salt
+	h.Write(key)
 	h.Write(encryptedPayload)
-	h.Write([]byte(macConstant))
+	h.Write([]byte(macSalt))
 
-	return h.Sum(nil)
+	// Get hash bytes
+	mac := h.Sum(nil)
+
+	// Set the first bit as zero to ensure everything stays in the group
+	mac[0] &= 0b01111111
+
+	return mac
 }
 
-// VerifyMAC determines if the provided MAC is valid for the given base key and
+// VerifyMAC determines if the provided MAC is valid for the given key and
 // encrypted payload.
-func VerifyMAC(baseKey *cyclic.Int, encryptedPayload, receivedMAC []byte) bool {
-	newMAC := MakeMAC(baseKey, encryptedPayload)
+func VerifyMAC(key []byte, encryptedPayload, receivedMAC []byte) bool {
+	newMAC := MakeMAC(key, encryptedPayload)
 
 	return bytes.Equal(newMAC, receivedMAC)
 }

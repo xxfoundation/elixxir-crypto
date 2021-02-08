@@ -10,114 +10,175 @@ package singleUse
 import (
 	"encoding/base64"
 	"gitlab.com/elixxir/crypto/cyclic"
-	"gitlab.com/elixxir/crypto/diffieHellman"
+	"gitlab.com/xx_network/crypto/large"
 	"math/rand"
 	"testing"
 )
 
 // Tests that the generated MACs do not change.
 func TestMAC_Consistency(t *testing.T) {
-	expectedMACs := []string{
-		"D7vXMT3iX/1tvFPjowoz3w5b3PbECB4EFgkR3hNzyCM=",
-		"ffW26eqwyTHERUPHbmFkUitRj7c+c/PQayfwQPLihNs=",
-		"/lyTEnFbzEEmmMjOQhq6qr0jUYE2j22ERcR4CLH9368=",
-		"vPB8eXP8BXWdxSU4a+Lp1pYVWb98COtWtR0sBngGyTs=",
-		"BuvhuSO01uM+nVQPwXlOwRzr7xchVM1dRoF9h5TC2HU=",
-		"vF5iYaFdhLtgOO5hWNpAF6jJaW4utF1MLGaz/gYb0TY=",
-		"opI2htMJEqZvvEKHAwWnTSqgvaAempY9//rRxNNFHQU=",
-		"ppGzFglPaLzytF5gJRtSFbYoidsShEBoX1cxkAJY3F4=",
-		"pdzZmlz6qdChwo7B5sChTRUpQ5zLvlH5LgndOhDHAt8=",
-		"BHP2yvbUcynr6vM61qt+18YshTsyArJqv0VCq/EI3+o=",
+	expectedMacs := []string{
+		"P5Arek8yIlKVmM4IHJTOycUph0RLeiP0emA0DCx4z90=",
+		"P9LcMFLn+q8/6SOSb9rrYpLyn3X5MMuephBSOtIF4M0=",
+		"UOPiUuATfn9C/KjmFZdA4zTfIykMb0HIgELKLbixrtk=",
+		"UYUHQLjbyDBdZn/MTNQBgrvUQPN0MnVpdYEI0iB/Q68=",
+		"fArOwzcunIaDYoIgtViaoBOkL2/v95Hm+6KRTEE6F9A=",
+		"XMhNPEyxy8q0p+bsjGHPQL5vzA+HyqUoooHXrTBEYF4=",
+		"IDJ4iTo9IcNB/oR5RP45de53SxuWsSSKlYcmGInQtoU=",
+		"Z4QqQfBp0ezUzAU2MHBUR9K0Bdl9Z3WF5Rcy553fb+8=",
+		"HthTNmjJ78iCdjMX+zSyhabsiCEE8QmH/AsDFfH8yUA=",
+		"GnE0KJAwk594cKLt6i2kHAqMJZ8DnXv7XyrByU27F/g=",
 	}
-	grp := getGrp()
 	prng := rand.New(rand.NewSource(42))
 
-	for i, expected := range expectedMACs {
-		privKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, grp, prng)
-		pubkey := diffieHellman.GeneratePublicKey(privKey, grp)
-		baseKey := diffieHellman.GenerateSessionKey(privKey, pubkey, grp)
-		encryptedPayload := make([]byte, 128)
+	for i, expectedMac := range expectedMacs {
+		key := make([]byte, prng.Intn(255))
+		prng.Read(key)
+		encryptedPayload := make([]byte, prng.Intn(500))
 		prng.Read(encryptedPayload)
-		testMAC := MakeMAC(baseKey, encryptedPayload)
-		testMACBase64 := base64.StdEncoding.EncodeToString(testMAC)
+		testMAC := MakeMAC(key, encryptedPayload)
+		testMacBase64 := base64.StdEncoding.EncodeToString(testMAC)
 
-		if expected != testMACBase64 {
-			t.Errorf("MakeMAC() did not return the expected MAC for the given "+
-				"base key and encrypted payload at index %d."+
-				"\nbase key: %s\nexpected: %s\nreceived: %s",
-				i, baseKey.Text(10), expected, testMACBase64)
+		if expectedMac != testMacBase64 {
+			t.Errorf("MakeMAC() did not return the expected MAC (%d)."+
+				"\nexpected: %s\nreceived: %s", i, expectedMac, testMacBase64)
 		}
 	}
 }
 
 // Tests that all generated MACs are unique.
 func TestMAC_Unique(t *testing.T) {
-	grp := getGrp()
+	testRuns := 20
 	prng := rand.New(rand.NewSource(42))
 	MACs := make(map[string]struct {
-		key              *cyclic.Int
+		key              []byte
 		encryptedPayload []byte
-	}, 100)
+	})
 
-	for i := 0; i < 100; i++ {
-		privKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, grp, prng)
-		pubkey := diffieHellman.GeneratePublicKey(privKey, grp)
-		baseKey := diffieHellman.GenerateSessionKey(privKey, pubkey, grp)
-		encryptedPayload := make([]byte, 128)
+	// Test with same key but differing payloads
+	for i := 0; i < testRuns; i++ {
+		key := make([]byte, prng.Intn(32)+i)
+		prng.Read(key)
+		for j := 0; j < testRuns; j++ {
+			encryptedPayload := make([]byte, prng.Intn(500)+j)
+			prng.Read(encryptedPayload)
+
+			testMAC := MakeMAC(key, encryptedPayload)
+			testMACBase64 := base64.StdEncoding.EncodeToString(testMAC)
+
+			if _, exists := MACs[testMACBase64]; exists {
+				t.Errorf("Generated MAC collides with previously generated MAC (%d, %d)."+
+					"\ncurrent MAC:   key: %+v  encryptedPayload: %+v"+
+					"\npreviouse MAC: key: %+v  encryptedPayload: %+v"+
+					"\nMAC:           %s", i, j,
+					key, encryptedPayload, MACs[testMACBase64].key,
+					MACs[testMACBase64].encryptedPayload, testMAC)
+			} else {
+				MACs[testMACBase64] = struct {
+					key              []byte
+					encryptedPayload []byte
+				}{key, encryptedPayload}
+			}
+		}
+	}
+
+	// Test with same payload but differing keys
+	for i := 0; i < testRuns; i++ {
+		encryptedPayload := make([]byte, prng.Intn(500)+i)
 		prng.Read(encryptedPayload)
-		testMAC := MakeMAC(baseKey, encryptedPayload)
-		testMACBase64 := base64.StdEncoding.EncodeToString(testMAC)
+		for j := 0; j < testRuns; j++ {
+			key := make([]byte, prng.Intn(32)+j)
+			prng.Read(key)
 
-		if _, exists := MACs[testMACBase64]; exists {
-			t.Errorf("Generated MAC collides with previously generated MAC."+
-				"\ncurrent MAC:   baseKey: %s  encryptedPayload: %s"+
-				"\npreviouse MAC: baseKey: %s  encryptedPayload: %s"+
-				"\nMAC:           %s",
-				baseKey.Text(10),
-				base64.StdEncoding.EncodeToString(encryptedPayload),
-				MACs[testMACBase64].key.Text(10),
-				base64.StdEncoding.EncodeToString(MACs[testMACBase64].encryptedPayload),
-				base64.StdEncoding.EncodeToString(testMAC))
-		} else {
-			MACs[testMACBase64] = struct {
-				key              *cyclic.Int
-				encryptedPayload []byte
-			}{baseKey, encryptedPayload}
+			testMAC := MakeMAC(key, encryptedPayload)
+			testMACBase64 := base64.StdEncoding.EncodeToString(testMAC)
+
+			if _, exists := MACs[testMACBase64]; exists {
+				t.Errorf("Generated MAC collides with previously generated MAC (%d, %d)."+
+					"\ncurrent MAC:   key: %+v  encryptedPayload: %+v"+
+					"\npreviouse MAC: key: %+v  encryptedPayload: %+v"+
+					"\nMAC:           %s", i, j,
+					key, encryptedPayload, MACs[testMACBase64].key,
+					MACs[testMACBase64].encryptedPayload, testMAC)
+			} else {
+				MACs[testMACBase64] = struct {
+					key              []byte
+					encryptedPayload []byte
+				}{key, encryptedPayload}
+			}
 		}
 	}
 }
 
+// Happy path.
 func TestVerifyMAC(t *testing.T) {
 	expectedMACs := []string{
-		"D7vXMT3iX/1tvFPjowoz3w5b3PbECB4EFgkR3hNzyCM=",
-		"ffW26eqwyTHERUPHbmFkUitRj7c+c/PQayfwQPLihNs=",
-		"/lyTEnFbzEEmmMjOQhq6qr0jUYE2j22ERcR4CLH9368=",
-		"vPB8eXP8BXWdxSU4a+Lp1pYVWb98COtWtR0sBngGyTs=",
-		"BuvhuSO01uM+nVQPwXlOwRzr7xchVM1dRoF9h5TC2HU=",
-		"vF5iYaFdhLtgOO5hWNpAF6jJaW4utF1MLGaz/gYb0TY=",
-		"opI2htMJEqZvvEKHAwWnTSqgvaAempY9//rRxNNFHQU=",
-		"ppGzFglPaLzytF5gJRtSFbYoidsShEBoX1cxkAJY3F4=",
-		"pdzZmlz6qdChwo7B5sChTRUpQ5zLvlH5LgndOhDHAt8=",
-		"BHP2yvbUcynr6vM61qt+18YshTsyArJqv0VCq/EI3+o=",
+		"P5Arek8yIlKVmM4IHJTOycUph0RLeiP0emA0DCx4z90=",
+		"P9LcMFLn+q8/6SOSb9rrYpLyn3X5MMuephBSOtIF4M0=",
+		"UOPiUuATfn9C/KjmFZdA4zTfIykMb0HIgELKLbixrtk=",
+		"UYUHQLjbyDBdZn/MTNQBgrvUQPN0MnVpdYEI0iB/Q68=",
+		"fArOwzcunIaDYoIgtViaoBOkL2/v95Hm+6KRTEE6F9A=",
+		"XMhNPEyxy8q0p+bsjGHPQL5vzA+HyqUoooHXrTBEYF4=",
+		"IDJ4iTo9IcNB/oR5RP45de53SxuWsSSKlYcmGInQtoU=",
+		"Z4QqQfBp0ezUzAU2MHBUR9K0Bdl9Z3WF5Rcy553fb+8=",
+		"HthTNmjJ78iCdjMX+zSyhabsiCEE8QmH/AsDFfH8yUA=",
+		"GnE0KJAwk594cKLt6i2kHAqMJZ8DnXv7XyrByU27F/g=",
 	}
-	grp := getGrp()
 	prng := rand.New(rand.NewSource(42))
 
 	for i, expected := range expectedMACs {
-		privKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, grp, prng)
-		pubkey := diffieHellman.GeneratePublicKey(privKey, grp)
-		baseKey := diffieHellman.GenerateSessionKey(privKey, pubkey, grp)
-		encryptedPayload := make([]byte, 128)
+		key := make([]byte, prng.Intn(255))
+		prng.Read(key)
+		encryptedPayload := make([]byte, prng.Intn(500))
 		prng.Read(encryptedPayload)
-		testMAC := MakeMAC(baseKey, encryptedPayload)
-		testMACBase64 := base64.StdEncoding.EncodeToString(testMAC)
 
+		testMAC := MakeMAC(key, encryptedPayload)
+		testMACBase64 := base64.StdEncoding.EncodeToString(testMAC)
 		receivedMac, _ := base64.StdEncoding.DecodeString(expected)
 
-		if !VerifyMAC(baseKey, encryptedPayload, receivedMac) {
+		if !VerifyMAC(key, encryptedPayload, receivedMac) {
 			t.Errorf("VerifyMAC() failed for a correct MAC (%d)."+
-				"\nbase key: %s\nexpected: %s\nreceived: %s",
-				i, baseKey.Text(10), expected, testMACBase64)
+				"\nkey: %+v\nexpected: %s\nreceived: %s",
+				i, key, expected, testMACBase64)
 		}
 	}
+}
+
+// Error path: tests that bad MACs are not verified.
+func TestVerifyMAC_InvalidMacError(t *testing.T) {
+	prng := rand.New(rand.NewSource(42))
+
+	for i := 0; i < 100; i++ {
+		key := make([]byte, prng.Intn(255))
+		prng.Read(key)
+		encryptedPayload := make([]byte, prng.Intn(500))
+		prng.Read(encryptedPayload)
+		expectedMac := make([]byte, prng.Intn(255))
+		prng.Read(expectedMac)
+
+		testMAC := MakeMAC(key, encryptedPayload)
+		testMACBase64 := base64.StdEncoding.EncodeToString(testMAC)
+		expectedMACBase64 := base64.StdEncoding.EncodeToString(expectedMac)
+
+		if VerifyMAC(key, encryptedPayload, expectedMac) {
+			t.Errorf("VerifyMAC() verified invalid MAC (%d)."+
+				"\nkey: %+v\nexpected: %s\nreceived: %s",
+				i, key, expectedMACBase64, testMACBase64)
+		}
+	}
+}
+
+// getGrp returns a cyclic Group for testing.
+func getGrp() *cyclic.Group {
+	primeString := "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088" +
+		"A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F1" +
+		"4374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7EDE" +
+		"E386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3DC2007CB8A163BF0598DA4" +
+		"8361C55D39A69163FA8FD24CF5F83655D23DCA3AD961C62F356208552BB9ED529077" +
+		"096966D670C354E4ABC9804F1746C08CA18217C32905E462E36CE3BE39E772C180E8" +
+		"6039B2783A2EC07A28FB5C55DF06F4C52C9DE2BCBF6955817183995497CEA956AE51" +
+		"5D2261898FA051015728E5A8AACAA68FFFFFFFFFFFFFFFF"
+	p := large.NewIntFromString(primeString, 16)
+	g := large.NewInt(2)
+	return cyclic.NewGroup(p, g)
 }

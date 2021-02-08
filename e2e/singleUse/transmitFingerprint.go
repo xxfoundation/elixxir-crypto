@@ -14,23 +14,28 @@ import (
 	"gitlab.com/elixxir/primitives/format"
 )
 
-const transmitFPConstant = "transmitFPConstant"
+const transmitFpSalt = "singleUseTransmitFingerprintSalt"
 
-func TransmitFingerprint(pubKey *cyclic.Int) format.Fingerprint {
+// NewTransmitFingerprint generates the fingerprint used for the transmission
+// message.
+func NewTransmitFingerprint(pubKey *cyclic.Int) format.Fingerprint {
 	// Create new hash
 	h, err := hash.NewCMixHash()
 	if err != nil {
-		jww.ERROR.Panicf("Failed to create hash: %v", err)
+		jww.ERROR.Panicf("Failed to create new hash for single-use "+
+			"transmission fingerprint: %v", err)
 	}
 
-	// Hash the key and constant
+	// Hash the public key and salt
 	h.Write(pubKey.Bytes())
-	h.Write([]byte(transmitFPConstant))
-	keyHash := h.Sum(nil)
+	h.Write([]byte(transmitFpSalt))
 
-	// Create fingerprint
+	// Get hash bytes
 	fp := format.Fingerprint{}
-	copy(fp[:], keyHash)
+	copy(fp[:], h.Sum(nil))
+
+	// Set the first bit as zero to ensure everything stays in the group
+	fp[0] &= 0b01111111
 
 	return fp
 }
