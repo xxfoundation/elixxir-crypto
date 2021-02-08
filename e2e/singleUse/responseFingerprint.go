@@ -15,30 +15,32 @@ import (
 	"gitlab.com/elixxir/primitives/format"
 )
 
-const responseFPConstant = "responseFPConstant"
+const responseFpSalt = "singleUseResponseFingerprintSalt"
 
-func ResponseFingerprint(pubKey *cyclic.Int, keyNum uint64) format.Fingerprint {
-	// Create fingerprint
-	fp := format.Fingerprint{}
-	copy(fp[:], makeHash(pubKey, keyNum, responseFPConstant))
-
-	return fp
-}
-
-func makeHash(pubKey *cyclic.Int, keyNum uint64, constant string) []byte {
+// NewResponseFingerprint generates the fingerprint for the response message for
+// the given key number.
+func NewResponseFingerprint(dhKey *cyclic.Int, keyNum uint64) format.Fingerprint {
+	// Create new hash
 	h, err := hash.NewCMixHash()
 	if err != nil {
-		jww.ERROR.Panicf("Failed to create hash: %v", err)
+		jww.ERROR.Panicf("Failed to create new hash for single-use response "+
+			"fingerprint: %v", err)
 	}
 
-	// Convert the key number to bytes
-	buff := make([]byte, binary.MaxVarintLen64)
-	binary.BigEndian.PutUint64(buff, keyNum)
+	keyNumBytes := make([]byte, binary.MaxVarintLen64)
+	binary.BigEndian.PutUint64(keyNumBytes, keyNum)
 
-	// Hash the key, number, and constant
-	h.Write(pubKey.Bytes())
-	h.Write(buff)
-	h.Write([]byte(constant))
+	// Hash the DH key, key number, and salt
+	h.Write(dhKey.Bytes())
+	h.Write(keyNumBytes)
+	h.Write([]byte(responseFpSalt))
 
-	return h.Sum(nil)
+	// Get hash bytes
+	fp := format.Fingerprint{}
+	copy(fp[:], h.Sum(nil))
+
+	// Set the first bit as zero to ensure everything stays in the group
+	fp[0] &= 0b01111111
+
+	return fp
 }
