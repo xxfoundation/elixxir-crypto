@@ -14,11 +14,12 @@ import (
 )
 
 func TestFingerprint(t *testing.T) {
-	expected := []byte("\xf0dD\u05fbb\xf6\x85\xde\xd9\x1a,\xaah\x85\xf0\xfchp\xf4\xd3\xc9[{\x87.\xe6e\xec\x18\xacI")
+	expected := []byte("\xdb\x10\x1e\xed\x0eAi\xb4\x13?[6\x0e\x154\xbd\x1a\xa8\x19\xb5\xaa\x1c\xfe\xb9\xd2\xe3\xfc\xfc\xa4\xbb\xd7\x01")
 	testVal, err := fact.NewFact(fact.Email, "marie@elixxir.io")
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	retVal := Fingerprint(testVal)
 	if !bytes.Equal(retVal, expected) {
 		fmt.Println(retVal)

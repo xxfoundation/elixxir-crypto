@@ -10,7 +10,6 @@ package fingerprint
 import (
 	"bytes"
 	"crypto"
-	"github.com/pkg/errors"
 	"gitlab.com/xx_network/primitives/id"
 	_ "golang.org/x/crypto/blake2b"
 )
@@ -23,16 +22,8 @@ var identityFpSizeBytes = identityFpSizeBits / 8
 // Recipient ID is 200 bits and is the result of hashing the message payload with the marshalled ID
 func IdentityFP(encryptedMessagePayload []byte, recipientId *id.ID) ([]byte, error) {
 	b2b := crypto.BLAKE2b_256.New()
-	_, err := b2b.Write(encryptedMessagePayload)
-	if err != nil {
-		return nil, errors.WithMessagef(err, "Failed to write encrypted message payload %+v to hash",
-			encryptedMessagePayload)
-	}
-	_, err = b2b.Write(recipientId.Marshal())
-	if err != nil {
-		return nil, errors.WithMessagef(err, "Failed to write recipient ID %+v to hash",
-			recipientId.Marshal())
-	}
+	b2b.Write(encryptedMessagePayload)
+	b2b.Write(recipientId.Marshal())
 	return b2b.Sum(nil)[:identityFpSizeBytes], nil
 }
 
