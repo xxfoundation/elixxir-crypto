@@ -9,6 +9,7 @@ package cmix
 import (
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/xx_network/crypto/large"
+	"gitlab.com/xx_network/primitives/id"
 	"testing"
 )
 
@@ -43,15 +44,16 @@ var g = large.NewIntFromString(gString, base)
 var grp = cyclic.NewGroup(p, g)
 var primeLength = len(grp.GetPBytes())
 var baseKey = grp.NewIntFromString("a906df88f30d6afbfa6165a50cc9e208d16b34e70b367068dc5d6bd6e155b2c3", 16)
+var rid = id.Round(42)
 var salt = []byte("fdecfa52a8ad1688dbfa7d16df74ebf27e535903c469cefc007ebbe1ee895064")
-var expectStr = "2e4c99e14e0b1cd18c08467c395a4d5c0eb594507595041a5cfa83eb2f57" +
-	"91f3db46c933040d4c9862b91539fb8bc75e0b84ed07dd6a760dda6baec8c5f3f119eff0" +
-	"0a0bdd6bc712c43e3f98d34cde6f6234191b1c68b9b2d9a80ad7652513caf0bae5fc3070" +
-	"bd921c914a67d55005ce624c0140782cbe8ab55327e21ba0328379cfadda661d835be329" +
-	"125fa237e9848af469b4b68cc922f994d404e3f8818f9c84ef9e6a6b2efbfdc5f24ec7cd" +
-	"346775225b4abe84d202b479b91d19399ab216dc3f7961fcc499f4287323c2a96df0127a" +
-	"b4f4ab64be76ca2906a49ad4ee3f0240f80a881177b9ed4a903dc5667473cec67ab4d52c" +
-	"7f73f019311e6ccf9a75"
+var expectStr = "5e2dea50eb3422571384debaea7fef4e97f8ece160ffc50ccd7ebfe6d4" +
+	"f4ec56e4b756f95193b6b8dccf5d68a9abb5a8f0c5cec1a37f2b1ff531827c864f408a25" +
+	"cd026540f7d32e419dcbe5d675c611bdbf544925fe1cdf579df0ecfcc58e152ac27c31b0" +
+	"05b0d5cdfb46192c91f6db4c745ec1cb94747d566ac408f76a2951930f13f30226d9493c" +
+	"0842e6d4d8349cb777e354eb75de8325f85c2c6eaf6cfc04b7dfd32167b963b8812f30df" +
+	"ce95510212d872964bad9bd59d9673ad13461bbe023193b0708099e8804762e527bb3652" +
+	"8dcce0af4f6fd0fa09cffaf220a4031e90ad9bacab3f57998415a1e178274da666e8946e" +
+	"b81d88e71f12537f44cc78"
 
 func makeBaseKeys(size int) []*cyclic.Int {
 	keys := make([]*cyclic.Int, 0)
@@ -66,15 +68,15 @@ func makeBaseKeys(size int) []*cyclic.Int {
 // Test that keyGen() produces the correct key.
 func TestKeyGen(t *testing.T) {
 	key := grp.NewInt(1)
-	keyGen(grp, salt, baseKey, key)
+	keyGen(grp, salt, rid, baseKey, key)
 
 	expected := grp.NewIntFromString(expectStr, 16)
 
 	if key.Cmp(expected) != 0 {
 		t.Errorf("keyGen() generated an incorrect key"+
 			"\n\treceived: %v\n\texpected: %v",
-			key.TextVerbose(10, 35),
-			expected.TextVerbose(10, 35))
+			key.TextVerbose(16, 0),
+			expected.TextVerbose(16, 0))
 	}
 }
 
@@ -82,29 +84,29 @@ func TestKeyGen(t *testing.T) {
 // TestKeyGen() because NodeKeyGen() is a wrapper of keyGen().
 func TestNodeKeyGen(t *testing.T) {
 	key := grp.NewInt(1)
-	NodeKeyGen(grp, salt, baseKey, key)
+	NodeKeyGen(grp, salt, rid, baseKey, key)
 
 	expected := grp.NewIntFromString(expectStr, 16)
 
 	if key.Cmp(expected) != 0 {
 		t.Errorf("NodeKeyGen() generated an incorrect key"+
 			"\n\treceived: %v\n\texpected: %v",
-			key.TextVerbose(10, 35),
-			expected.TextVerbose(10, 35))
+			key.TextVerbose(16, 0),
+			expected.TextVerbose(16, 0))
 	}
 }
 
 // Test that multiple baseKeys return a slice of same size with correct results
 func TestClientKeyGen(t *testing.T) {
 	size := 10
-	key := ClientKeyGen(grp, salt, makeBaseKeys(size))
+	key := ClientKeyGen(grp, salt, rid, makeBaseKeys(size))
 
 	expected := grp.NewInt(1)
 	tmpKey := grp.NewInt(1)
 
 	for i := 0; i < size; i++ {
 		tmpKey = grp.NewIntFromString(expectStr, 16)
-		keyGen(grp, salt, baseKey, tmpKey)
+		keyGen(grp, salt, rid, baseKey, tmpKey)
 		grp.Mul(tmpKey, expected, expected)
 	}
 	grp.Inverse(expected, expected)

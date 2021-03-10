@@ -8,6 +8,7 @@ package cmix
 
 import (
 	"gitlab.com/elixxir/primitives/format"
+	"gitlab.com/xx_network/primitives/id"
 	"golang.org/x/crypto/blake2b"
 	"math/rand"
 	"reflect"
@@ -37,7 +38,9 @@ func TestEncrypt(t *testing.T) {
 	size := 10
 	baseKeys := makeBaseKeys(size)
 
-	encMsg := ClientEncrypt(grp, msg, salt, baseKeys)
+	rid := id.Round(42)
+
+	encMsg := ClientEncrypt(grp, msg, salt, baseKeys, rid)
 
 	// Get encryption key
 	//general local keys
@@ -49,8 +52,8 @@ func TestEncrypt(t *testing.T) {
 	hash.Reset()
 	hash.Write(salt)
 
-	keyEcrA := ClientKeyGen(grp, salt, baseKeys)
-	keyEcrB := ClientKeyGen(grp, hash.Sum(nil), baseKeys)
+	keyEcrA := ClientKeyGen(grp, salt, rid, baseKeys)
+	keyEcrB := ClientKeyGen(grp, hash.Sum(nil), rid, baseKeys)
 	multPayloadA := grp.NewInt(1)
 	multPayloadB := grp.NewInt(1)
 	grp.Mul(keyEcrA, grp.NewIntFromBytes(msg.GetPayloadA()), multPayloadA)
@@ -76,43 +79,45 @@ func TestEncrypt(t *testing.T) {
 // Tests the consistency of ClientEncrypt() to correctly encrypt the
 // message.
 func TestEncrypt_Consistency(t *testing.T) {
-	expectPayloadA := []byte{226, 222, 67, 222, 255, 124, 97, 243, 80, 71, 244, 142, 251, 152, 192, 195, 85, 39, 39,
-		177, 88, 2, 2, 23, 75, 65, 208, 108, 57, 228, 122, 229, 93, 193, 187, 225, 40, 48, 32, 163, 233, 79, 115, 244,
-		179, 231, 3, 7, 38, 60, 249, 204, 159, 35, 143, 180, 61, 79, 153, 109, 245, 221, 192, 119, 130, 87, 56, 34, 228,
-		192, 4, 220, 90, 82, 166, 97, 55, 101, 107, 214, 207, 95, 119, 246, 154, 80, 127, 51, 160, 49, 101, 197, 165,
-		54, 51, 247, 92, 88, 118, 145, 119, 240, 227, 20, 126, 109, 158, 15, 32, 192, 160, 69, 191, 66, 106, 24, 174,
-		170, 198, 203, 39, 11, 178, 232, 193, 184, 195, 93, 64, 178, 195, 189, 23, 108, 197, 131, 111, 71, 200, 198,
-		152, 10, 70, 150, 161, 180, 239, 215, 156, 148, 145, 192, 157, 132, 217, 52, 82, 121, 29, 24, 247, 20, 190, 105,
-		4, 222, 50, 84, 77, 233, 70, 39, 100, 142, 79, 251, 42, 8, 113, 38, 204, 18, 51, 232, 93, 102, 249, 113, 8, 225,
-		104, 102, 236, 196, 226, 136, 113, 217, 86, 33, 105, 159, 25, 93, 205, 224, 156, 6, 145, 236, 233, 161, 187,
-		169, 188, 62, 20, 194, 139, 15, 144, 112, 104, 254, 53, 112, 139, 96, 39, 225, 113, 227, 208, 247, 184, 234,
-		164, 29, 202, 47, 126, 140, 90, 112, 94, 100, 118, 77, 87, 193, 65, 6, 103, 119, 73, 242}
+	rid := id.Round(42)
+	expectPayloadA := []byte{138, 3, 6, 246, 237, 200, 193, 179, 155, 223, 231, 145, 21, 56, 216, 129, 219, 12, 163, 45,
+		14, 216, 222, 52, 126, 59, 239, 65, 255, 91, 35, 35, 248, 37, 246, 108, 101, 62, 252, 13, 123, 205, 235, 227,
+		145, 189, 127, 197, 36, 200, 157, 171, 136, 192, 230, 158, 88, 7, 167, 138, 181, 47, 241, 108, 165, 125, 164,
+		76, 146, 99, 246, 155, 66, 35, 90, 247, 226, 184, 123, 250, 30, 9, 112, 24, 146, 32, 114, 152, 230, 44, 253,
+		201, 169, 64, 128, 113, 64, 148, 34, 121, 214, 178, 60, 232, 202, 190, 253, 209, 211, 237, 36, 114, 53, 81, 60,
+		105, 232, 177, 193, 0, 188, 111, 81, 195, 168, 56, 237, 165, 237, 254, 19, 223, 170, 132, 218, 228, 111, 77,
+		176, 17, 215, 197, 100, 74, 79, 240, 47, 231, 17, 236, 57, 37, 44, 53, 72, 173, 134, 184, 13, 212, 134, 26, 236,
+		213, 121, 82, 204, 139, 248, 58, 189, 108, 228, 228, 11, 19, 93, 164, 242, 128, 45, 97, 14, 131, 33, 220, 5,
+		241, 168, 219, 131, 65, 125, 81, 171, 251, 13, 103, 59, 66, 32, 44, 103, 181, 51, 115, 180, 173, 52, 63, 143,
+		206, 117, 245, 134, 159, 92, 225, 242, 89, 65, 127, 29, 184, 27, 93, 54, 241, 87, 46, 127, 100, 98, 142, 233,
+		64, 220, 120, 89, 72, 129, 134, 45, 5, 112, 232, 252, 194, 34, 136, 207, 153, 112, 228, 119, 29}
 
-	expectPLB := []byte{204, 47, 167, 175, 197, 191, 173, 43, 192, 50, 98, 5, 203, 129, 99, 127, 29, 81, 150, 174, 174,
-		101, 93, 228, 139, 239, 137, 24, 217, 91, 121, 116, 130, 249, 66, 173, 236, 44, 102, 36, 118, 242, 108, 5, 185,
-		143, 101, 182, 172, 152, 11, 204, 115, 155, 236, 154, 90, 254, 125, 146, 188, 193, 20, 180, 117, 143, 65, 125,
-		25, 11, 71, 144, 51, 0, 30, 105, 17, 210, 97, 199, 79, 4, 81, 178, 150, 88, 255, 111, 218, 212, 78, 179, 197,
-		237, 119, 149, 52, 34, 55, 240, 1, 219, 84, 173, 77, 123, 60, 49, 177, 5, 108, 204, 155, 52, 1, 16, 192, 125,
-		69, 152, 50, 217, 223, 170, 210, 136, 228, 155, 145, 214, 81, 45, 237, 77, 13, 236, 80, 250, 248, 111, 91, 81,
-		94, 71, 241, 159, 66, 82, 237, 24, 75, 241, 21, 235, 67, 134, 124, 18, 143, 177, 139, 250, 126, 250, 28, 139,
-		102, 243, 136, 86, 123, 141, 124, 166, 214, 31, 75, 74, 63, 245, 224, 168, 221, 161, 167, 130, 61, 246, 208,
-		108, 184, 222, 71, 135, 0, 9, 110, 47, 153, 193, 49, 136, 136, 249, 211, 239, 164, 37, 220, 140, 34, 131, 21,
-		202, 248, 54, 182, 39, 60, 136, 37, 118, 24, 0, 79, 214, 127, 164, 225, 100, 123, 247, 6, 226, 254, 242, 210,
-		136, 18, 102, 227, 190, 100, 232, 3, 75, 149, 36, 251, 65, 38, 234, 249, 95, 94, 245}
+	expectPayloadB := []byte{52, 176, 178, 247, 133, 16, 100, 130, 232, 96, 232, 38, 210, 162, 223, 252, 207, 189,
+		208, 0, 195, 49, 197, 179, 50, 72, 194, 151, 99, 10, 249, 46, 43, 1, 134, 199, 199, 182, 192, 226, 91, 77,
+		96, 174, 108, 223, 88, 33, 51, 46, 47, 176, 25, 0, 28, 69, 74, 22, 61, 63, 194, 47, 104, 2, 163, 152, 192,
+		11, 41, 149, 167, 155, 109, 228, 181, 130, 159, 74, 69, 228, 43, 220, 117, 241, 215, 73, 94, 63, 36, 254,
+		103, 46, 16, 23, 80, 34, 10, 35, 27, 144, 101, 181, 11, 89, 104, 150, 229, 65, 16, 117, 255, 145, 164, 212,
+		57, 96, 220, 152, 219, 177, 131, 154, 150, 95, 78, 111, 104, 237, 214, 143, 162, 33, 226, 104, 20, 132, 46,
+		133, 231, 68, 172, 6, 235, 197, 165, 162, 235, 185, 4, 210, 124, 107, 213, 203, 179, 186, 254, 192, 217,
+		254, 95, 95, 76, 112, 128, 123, 34, 62, 163, 188, 59, 167, 158, 161, 19, 129, 28, 105, 132, 151, 66, 64,
+		234, 253, 8, 30, 80, 19, 184, 39, 197, 112, 58, 73, 63, 58, 229, 33, 39, 167, 8, 89, 216, 102, 190, 77, 15,
+		169, 42, 24, 160, 42, 186, 137, 204, 53, 188, 197, 174, 148, 198, 217, 68, 208, 30, 27, 25, 167, 228, 156,
+		72, 92, 137, 64, 99, 90, 141, 121, 67, 151, 52, 129, 97, 104, 27, 154, 161, 233, 8, 126, 179, 123, 209, 162,
+		115, 120}
 
 	// Encrypt message
-	encMsg := ClientEncrypt(grp, makeMsg(), salt, makeBaseKeys(10))
+	encMsg := ClientEncrypt(grp, makeMsg(), salt, makeBaseKeys(10), rid)
 
 	if !reflect.DeepEqual(encMsg.GetPayloadA(), expectPayloadA) {
-		t.Errorf("EncryptDecrypt() did not produce the correct payload in consistency test"+
-			"\n\treceived: %d\n\texpected: %d",
+		t.Errorf("EncryptDecrypt() did not produce the correct payload "+
+			"A in consistency test\n\treceived: %d\n\texpected: %d",
 			encMsg.GetPayloadA(), expectPayloadA)
 	}
 
-	if !reflect.DeepEqual(encMsg.GetPayloadB(), expectPLB) {
-		t.Errorf("EncryptDecrypt() did not produce the correct associated data in consistency test"+
-			"\n\treceived: %d\n\texpected: %d",
-			encMsg.GetPayloadB(), expectPLB)
+	if !reflect.DeepEqual(encMsg.GetPayloadB(), expectPayloadB) {
+		t.Errorf("EncryptDecrypt() did not produce the correct payload "+
+			"B in consistency test \n\treceived: %d\n\texpected: %d",
+			encMsg.GetPayloadB(), expectPayloadB)
 	}
 }
 
@@ -123,7 +128,7 @@ func TestDecrypt(t *testing.T) {
 	size := 10
 	baseKeys := makeBaseKeys(size)
 
-	encMsg := ClientEncrypt(grp, msg, salt, baseKeys)
+	encMsg := ClientEncrypt(grp, msg, salt, baseKeys, rid)
 
 	//general local keys
 	hash, err := blake2b.New256(nil)
@@ -135,8 +140,8 @@ func TestDecrypt(t *testing.T) {
 	hash.Write(salt)
 
 	//Generate encryption keys
-	keyEcrA := ClientKeyGen(grp, salt, baseKeys)
-	keyEcrB := ClientKeyGen(grp, hash.Sum(nil), baseKeys)
+	keyEcrA := ClientKeyGen(grp, salt, rid, baseKeys)
+	keyEcrB := ClientKeyGen(grp, hash.Sum(nil), rid, baseKeys)
 
 	//Generate the inverse of the keys
 	keyEcrA_Inv := grp.Inverse(keyEcrA, grp.NewInt(1))
