@@ -15,7 +15,9 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/gob"
-	"gitlab.com/elixxir/crypto/large"
+	"encoding/json"
+	"github.com/pkg/errors"
+	"gitlab.com/xx_network/crypto/large"
 )
 
 // Create the cyclic.Int type as a wrapper of a large.Int
@@ -44,6 +46,13 @@ func (z *Int) GetLargeInt() *large.Int {
 // GetGroupFingerprint gets the group fingerprint from cyclicInt
 func (z *Int) GetGroupFingerprint() uint64 {
 	return z.fingerprint
+}
+
+// Bits gets the underlying word slice of cyclic int
+// Use this for low-level functions where speed is critical
+// For speed reasons, I don't copy here. This could allow the int to be set outside of the group
+func (z *Int) Bits() large.Bits {
+	return z.value.Bits()
 }
 
 // Bytes gets the bytes of cyclicInt value
@@ -185,10 +194,70 @@ func (z *Int) GobEncode() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+// BinaryEncode encodes the Int into a compressed byte format.
+func (z *Int) BinaryEncode() []byte {
+	var buff bytes.Buffer
+	b := make([]byte, binary.MaxVarintLen64)
+
+	binary.PutUvarint(b, z.fingerprint)
+	buff.Write(b)
+	buff.Write(z.Bytes())
+
+	return buff.Bytes()
+}
+
+// BinaryDecode decompresses the encoded byte slice to an Int.
+func (z *Int) BinaryDecode(b []byte) error {
+	buff := bytes.NewBuffer(b)
+	fp, err := binary.ReadUvarint(buff)
+	if err != nil {
+		return errors.Errorf("Failed to decode Int fingerprint: %+v", err)
+	}
+
+	z.fingerprint = fp
+	z.value = large.NewIntFromBytes(buff.Bytes())
+
+	return nil
+}
+
 // Erase overwrite all underlying data from a cyclic Int by setting its value
 // and fingerprint to zero. All underlying released data will be removed by the
 // garbage collector.
 func (z *Int) Erase() {
 	z.value.SetInt64(0)
 	z.fingerprint = 0
+}
+
+// -------------- Marshal Operators -------------- //
+// intData holds the value of a cyclic int in public fields to allow for
+// marshalling and unmarshalling.
+type intData struct {
+	Value       *large.Int
+	Fingerprint uint64
+}
+
+// MarshalJSON is a custom marshaling function for cyclic int. It is used when
+// json.Marshal is called on a large int.
+func (z *Int) MarshalJSON() ([]byte, error) {
+	data := intData{
+		Value:       z.value,
+		Fingerprint: z.fingerprint,
+	}
+
+	return json.Marshal(data)
+}
+
+// UnmarshalJSON is a custom unmarshalling function for cyclic int. It is used
+// when json.Unmarshal is called on a large int.
+func (z *Int) UnmarshalJSON(b []byte) error {
+	data := &intData{}
+	err := json.Unmarshal(b, data)
+	if err != nil {
+		return err
+	}
+
+	z.value = data.Value
+	z.fingerprint = data.Fingerprint
+
+	return nil
 }

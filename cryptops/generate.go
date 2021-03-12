@@ -9,8 +9,8 @@
 package cryptops
 
 import (
-	"gitlab.com/elixxir/crypto/csprng"
 	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/xx_network/crypto/csprng"
 )
 
 // GeneratePrototype is the function type for generating phase and sharing keys.

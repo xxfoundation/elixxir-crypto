@@ -7,7 +7,7 @@
 package cmix
 
 import (
-	"gitlab.com/elixxir/crypto/csprng"
+	"gitlab.com/xx_network/crypto/csprng"
 	"testing"
 )
 

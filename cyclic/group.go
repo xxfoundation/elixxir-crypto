@@ -13,11 +13,13 @@ package cyclic
 import (
 	"bytes"
 	"crypto/sha256"
+	"encoding/base64"
+	"encoding/binary"
 	"encoding/gob"
 	"encoding/json"
 	jww "github.com/spf13/jwalterweatherman"
-	"gitlab.com/elixxir/crypto/csprng"
-	"gitlab.com/elixxir/crypto/large"
+	"gitlab.com/xx_network/crypto/csprng"
+	"gitlab.com/xx_network/crypto/large"
 )
 
 // Groups provide cyclic int operations that keep the return values confined to
@@ -145,6 +147,20 @@ func (g *Group) NewIntFromUInt(i uint64) *Int {
 	return n
 }
 
+// NewIntFromBits creates a new cyclic int from a words array
+// This method doesn't copy the bits array, so if you need a copy, copy the array before passing it in
+func (g *Group) NewIntFromBits(b large.Bits) *Int {
+	val := large.NewIntFromBits(b)
+	n := &Int{
+		value:       val,
+		fingerprint: g.fingerprint,
+	}
+	if !g.Inside(n.value) {
+		panic("NewIntFromBits: Attempted creation of cyclic outside of group")
+	}
+	return n
+}
+
 // Check if all cyclic Ints belong to the group and panic otherwise
 func (g *Group) checkInts(ints ...*Int) {
 	for _, i := range ints {
@@ -159,6 +175,13 @@ func (g *Group) checkInts(ints ...*Int) {
 // GetFingerprint gets the group's fingerprint
 func (g *Group) GetFingerprint() uint64 {
 	return g.fingerprint
+}
+
+func (g *Group) GetFingerprintText() string {
+	buf := make([]byte, 8)
+	binary.BigEndian.PutUint64(buf, g.fingerprint)
+	fullText := base64.StdEncoding.EncodeToString(buf)
+	return fullText[:8] + "..."
 }
 
 // -------------- Setters -------------- //
@@ -180,6 +203,35 @@ func (g *Group) SetLargeInt(x *Int, y *large.Int) *Int {
 
 	x.value.Set(y)
 
+	return x
+}
+
+// SetBits sets x in the group to bits and returns x
+// This method does not copy. If you need to set the number to a copy, please copy the bits outside of this.
+func (g *Group) SetBits(x *Int, b large.Bits) *Int {
+	x.value.SetBits(b)
+	g.checkInts(x)
+	return x
+}
+
+// OverwriteBits copies b over x. If there isn't enough memory
+// available in x already, it allocates a new slice with enough memory
+// Under no circumstance will b be the backing memory of the returned Int
+// This is important for our usage of CGBN, which constantly overwrites the output memory
+func (g *Group) OverwriteBits(x *Int, b large.Bits) *Int {
+	bits := x.Bits()
+	if cap(bits) >= len(b) {
+		// Existing int is big enough; copying over existing bits is OK
+		bits = bits[:cap(bits)]
+		copy(bits, b)
+		x.value.SetBits(bits[:len(b)])
+	} else {
+		// A new slice is needed, since the existing int isn't big enough
+		newBits := make(large.Bits, len(b))
+		copy(newBits, b)
+		x.value.SetBits(newBits)
+	}
+	g.checkInts(x)
 	return x
 }
 
@@ -397,14 +449,14 @@ func (g Group) RootCoprime(x, y, z *Int) *Int {
 // The function will panic if bits >= log2(g.prime), so the caller MUST use
 // a correct value of bits
 
-func (g Group) FindSmallCoprimeInverse(z *Int, bits uint32) *Int {
-	if bits >= uint32(g.prime.BitLen()) {
+func (g Group) FindSmallCoprimeInverse(z *Int, bitLen uint32) *Int {
+	if bitLen >= uint32(g.prime.BitLen()) {
 		jww.FATAL.Panicf("Requested bits: %d is greater than"+
-			" or equal to group's prime: %d", bits, g.prime.BitLen())
+			" or equal to group's prime: %d", bitLen, g.prime.BitLen())
 	}
 
 	g.checkInts(z)
-	// RNG that ensures the output is an odd number between 2 and 2^bits
+	// RNG that ensures the output is an odd number between 2 and 2^bitLen
 	// that is not equal to p-1/2.  This must occur because for a proper
 	// modular inverse to exist within a group a number must have no common
 	// factors with the number that defines the group.  Normally that would not
@@ -414,15 +466,15 @@ func (g Group) FindSmallCoprimeInverse(z *Int, bits uint32) *Int {
 
 	// In order to generate the number in the range
 	// the following steps are taken:
-	// 1. max = 2^(bits)-2
+	// 1. max = 2^(bitLen)-2
 	// 2. gen rand num by reading from rng
-	// 3. rand mod max : giving a range of 0 - 2^(bits)-3
-	// 4. rand + 2: range: 2 - 2^(bits)-1
-	// 5. rand ^ 1: range: 3 - 2^(bits)-1, odd number
+	// 3. rand mod max : giving a range of 0 - 2^(bitLen)-3
+	// 4. rand + 2: range: 2 - 2^(bitLen)-1
+	// 5. rand ^ 1: range: 3 - 2^(bitLen)-1, odd number
 	max := large.NewInt(1).Sub(
 		large.NewInt(1).LeftShift(
 			g.one,
-			uint(bits)),
+			uint(bitLen)),
 		g.two)
 
 	zinv := large.NewInt(1)

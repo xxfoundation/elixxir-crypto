@@ -8,9 +8,9 @@ package cryptops
 
 import (
 	"fmt"
-	"gitlab.com/elixxir/crypto/csprng"
 	"gitlab.com/elixxir/crypto/cyclic"
-	"gitlab.com/elixxir/crypto/large"
+	"gitlab.com/xx_network/crypto/csprng"
+	"gitlab.com/xx_network/crypto/large"
 	"os"
 	"testing"
 )
@@ -45,7 +45,7 @@ func TestGeneratePrototype_GetInputSize(t *testing.T) {
 
 	if actual != expect {
 		t.Errorf("GetInputSize() for GeneratePrototype did not return the "+
-			"correct minimum input size\n\trecieved: %v\n\texpected: %v",
+			"correct minimum input size\n\treceived: %v\n\texpected: %v",
 			actual, expect)
 	}
 
@@ -58,7 +58,7 @@ func TestGeneratePrototype_GetName(t *testing.T) {
 
 	if actual != expect {
 		t.Errorf("GetName() for GeneratePrototype did not return the "+
-			"name\n\trecieved: %v\n\texpected: %v",
+			"name\n\treceived: %v\n\texpected: %v",
 			actual, expect)
 	}
 }

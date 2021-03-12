@@ -9,58 +9,66 @@
 package e2e
 
 import (
-	"crypto/sha256"
-	"encoding/binary"
+	"fmt"
 	"gitlab.com/elixxir/crypto/cyclic"
-	hash2 "gitlab.com/elixxir/crypto/hash"
-	"gitlab.com/elixxir/primitives/id"
-	"hash"
+	"gitlab.com/elixxir/primitives/format"
+	"golang.org/x/crypto/blake2b"
 )
 
-const EMERGENCY_KEY_STR = "EMERGENCY"
+const ReKeyStr = "REKEY"
+const KeyLen = 32
 
-// deriveSingleKey derives a single key by calling ExpandKey using the passed hash
-// The basekey data is the blake2b hash of passed data and id
-func deriveSingleKey(h hash.Hash, g *cyclic.Group, data []byte, id uint) *cyclic.Int {
-	idBytes := make([]byte, binary.MaxVarintLen32)
-	n := binary.PutUvarint(idBytes, uint64(id))
-	b, _ := hash2.NewCMixHash()
-	b.Write(data)
-	b.Write(idBytes[:n])
-	return hash2.ExpandKey(h, g, b.Sum(nil), g.NewInt(1))
-}
+type Key [KeyLen]byte
 
-// deriveKeysCore derives multiple keys using the specified hash function
-// It creates the data bytes by concatenating dhkey, userID and
-// additionally emergency string for emergency keys
-// Then loops calls to deriveSingleKey to generate nkeys
-func deriveKeysCore(h hash.Hash, g *cyclic.Group, dhkey *cyclic.Int,
-	userID *id.ID, emergency bool, nkeys uint) []*cyclic.Int {
-	data := append(dhkey.Bytes(), userID.Bytes()...)
-	if emergency {
-		data = append(data, []byte(EMERGENCY_KEY_STR)...)
+// derives a single key at position keynum using blake2B on the concatenation
+// of the first half of the cyclic basekey and the keynum and the salts
+// Key = H(First half of base key | keyNum | salt[0] | salt[1] | ...)
+func DeriveKey(basekey *cyclic.Int, keyNum uint32, salts ...[]byte) Key {
+	//use the first half of the bits to create the key
+	data := basekey.Bytes()
+	data = data[:len(data)/2]
+
+	//get the hash
+	h, err := blake2b.New256(nil)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to create hash for "+
+			"DeriveKey: %s", err))
 	}
-	keys := make([]*cyclic.Int, nkeys)
-	var i uint
-	for i = 0; i < nkeys; i++ {
-		keys[i] = deriveSingleKey(h, g, data, i)
+
+	//derive the key
+	keyBytes := derive(h, data, keyNum, salts...)
+
+	//put the keybytes in a key object and return
+	k := Key{}
+	copy(k[:], keyBytes)
+	return k
+}
+
+// derives a single key fingerprint at position keynum using blake2B on
+// the concatenation of the second half of the cyclic basekey and the keynum
+// and the salts
+// Fingerprint = H(Second half of base key | userID | keyNum | salt[0] | salt[1] | ...)
+func DeriveKeyFingerprint(dhkey *cyclic.Int, keyNum uint32, salts ...[]byte) format.Fingerprint {
+	//use the first half of the bits to create the key
+	data := dhkey.Bytes()
+	data = data[len(data)/2:]
+
+	//get the hash
+	h, err := blake2b.New256(nil)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to create hash for "+
+			"DeriveKeyFingerprint(): %s", err))
 	}
-	return keys
-}
+	//derive the key
+	fpBytes := derive(h, data, keyNum, salts...)
 
-// DeriveKeys derives nkeys keys using blake2b as the hash function for key expansion
-// UserID should be your own for generating encryption keys
-// or the receiving userID for generating decryption keys
-func DeriveKeys(g *cyclic.Group, dhkey *cyclic.Int, userID *id.ID,
-	nkeys uint) []*cyclic.Int {
-	h, _ := hash2.NewCMixHash()
-	return deriveKeysCore(h, g, dhkey, userID, false, nkeys)
-}
+	//put the keybytes in a key object and return
+	fp := format.Fingerprint{}
+	copy(fp[:], fpBytes)
 
-// DeriveEmergencyKeys derives nkeys keys using sha256 as the hash function for key expansion
-// UserID should be your own for generating encryption keys
-// or the receiving userID for generating decryption keys
-// Use this to generate emergency keys
-func DeriveEmergencyKeys(g *cyclic.Group, dhkey *cyclic.Int, userID *id.ID, nkeys uint) []*cyclic.Int {
-	return deriveKeysCore(sha256.New(), g, dhkey, userID, true, nkeys)
+	// set the first bit of the fingerprint to 0 to ensure the final stored
+	// payloads are within the group
+	fp[0] &= 0x7f
+
+	return fp
 }

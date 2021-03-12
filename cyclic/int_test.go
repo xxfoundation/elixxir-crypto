@@ -1,4 +1,3 @@
-////////////////////////////////////////////////////////////////////////////////////////////
 // Copyright © 2020 xx network SEZC                                                       //
 //                                                                                        //
 // Use of this source code is governed by a license that can be found in the LICENSE file //
@@ -10,7 +9,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"errors"
-	"gitlab.com/elixxir/crypto/large"
+	"gitlab.com/xx_network/crypto/large"
 	"reflect"
 	"testing"
 )
@@ -267,7 +266,7 @@ func TestGob(t *testing.T) {
 
 	if inInt.Cmp(outInt) != 0 {
 		t.Errorf("GobEncoder/GobDecoder failed, "+
-			"Expected: %v; Recieved: %v ",
+			"Expected: %v; Received: %v ",
 			inInt.TextVerbose(10, 12),
 			outInt.TextVerbose(10, 12))
 	}
@@ -301,5 +300,62 @@ func TestInt_Erase(t *testing.T) {
 		t.Errorf("Erase() did not properly delete Int's underlying fingerprint"+
 			"\n\treceived: %#v\n\texpected: %#v",
 			cycInt.fingerprint, 0)
+	}
+}
+
+// Happy path.
+func TestInt_MarshalJSON_UnmarshalJSON(t *testing.T) {
+	cycInt := grp.NewInt(42)
+	data, err := cycInt.MarshalJSON()
+	if err != nil {
+		t.Errorf("MarshalJSON() returned an error: %+v", err)
+	}
+	outInt := &Int{}
+	err = outInt.UnmarshalJSON(data)
+	if err != nil {
+		t.Errorf("UnmarshalJSON() returned an error: %+v", err)
+	}
+
+	if cycInt.Cmp(outInt) != 0 {
+		t.Errorf("Failed to correctly marshal and unmarshal cyclic int."+
+			"\n\texpected: %s\n\trecieved: %s", cycInt.Text(10), outInt.Text(10))
+	}
+}
+
+// Error path: invalid JSON data.
+func TestInt_UnmarshalJSON(t *testing.T) {
+	data := []byte("invalid JSON")
+	outInt := &Int{}
+	err := outInt.UnmarshalJSON(data)
+	if err == nil {
+		t.Errorf("UnmarshalJSON() did not return an error for invalid JSON.")
+	}
+}
+
+// Happy path.
+func TestInt_BinaryEncode_BinaryDecode(t *testing.T) {
+	cycInt := grp.NewInt(42)
+	buff := cycInt.BinaryEncode()
+	testInt := &Int{}
+	err := testInt.BinaryDecode(buff)
+	if err != nil {
+		t.Errorf("BinaryDecode() returned an error: %+v", err)
+	}
+
+	if cycInt.Cmp(testInt) != 0 {
+		t.Errorf("Failed to encode and decode Int."+
+			"\n\texpected: %s\n\treceived: %s",
+			cycInt.TextVerbose(10, 32), testInt.TextVerbose(10, 32))
+	}
+}
+
+// Error path: buffer not long enough
+func TestInt_BinaryDecode_BuffTooShortErr(t *testing.T) {
+	cycInt := grp.NewInt(42)
+	buff := cycInt.BinaryEncode()
+	testInt := &Int{}
+	err := testInt.BinaryDecode(buff[:2])
+	if err == nil {
+		t.Errorf("BinaryDecode() did not return an error on a buffer that is too short.")
 	}
 }

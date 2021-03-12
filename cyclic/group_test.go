@@ -10,7 +10,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"errors"
-	"gitlab.com/elixxir/crypto/large"
+	"gitlab.com/xx_network/crypto/large"
 	"math/rand"
 	"reflect"
 	"testing"
@@ -235,6 +235,38 @@ func TestNewIntFromString_Panic(t *testing.T) {
 	t.Errorf("NewIntFromString created even when outside of the group")
 }
 
+// Show that NewIntFromBits fails when outside of group
+func TestGroup_NewIntFromBits_Panic(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			return
+		}
+	}()
+
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	grp := NewGroup(p, g)
+
+	grp.NewIntFromBits(large.Bits{0})
+
+	t.Errorf("NewIntFromBits created even when outside of the group")
+}
+
+// Show that NewIntFromBits makes a big int from a word string
+func TestGroup_NewIntFromBits(t *testing.T) {
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	grp := NewGroup(p, g)
+
+	expected := grp.NewIntFromString("123456", 16)
+	i := grp.NewIntFromBits(large.Bits{0x123456})
+	t.Log(i.TextVerbose(16, 0))
+
+	if expected.Cmp(i) != 0 {
+		t.Errorf("Expected int to be %v, got %v", expected.Text(16), i.Text(16))
+	}
+}
+
 // Test creation of cyclicInt in the group from Max4KInt value
 func TestNewMaxInt(t *testing.T) {
 	p := large.NewInt(1000000010101111111)
@@ -301,7 +333,21 @@ func TestGetFingerprint(t *testing.T) {
 
 	if grp.GetFingerprint() != expected {
 		t.Errorf("GetFingerprint returned wrong value, expected: %v,"+
-			"got: %v", expected, grp.GetFingerprint())
+			" got: %v", expected, grp.GetFingerprint())
+	}
+}
+
+// Test group fingerprint getter
+func TestGetFingerprintText(t *testing.T) {
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	grp := NewGroup(p, g)
+
+	expected := "ln9lzlk2..."
+
+	if grp.GetFingerprintText() != expected {
+		t.Errorf("GetFingerprintText returned wrong value, expected: %v,"+
+			" got: %v", expected, grp.GetFingerprintText())
 	}
 }
 
@@ -419,6 +465,109 @@ func TestSetBytes_Panic(t *testing.T) {
 	}()
 
 	grp.SetBytes(actual, []byte("TEST"))
+}
+
+// Shows that setting bits results in a different integer
+func TestGroup_SetBits(t *testing.T) {
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	grp := NewGroup(p, g)
+
+	expected := grp.NewInt(2)
+	newInt := grp.NewInt(1)
+	grp.SetBits(newInt, large.Bits{2})
+	if expected.Cmp(newInt) != 0 {
+		t.Errorf("Setbits didn't set to the expected int result. Got %v, expected %v", newInt.Text(16), expected.Text(16))
+	}
+}
+
+// Shows that setting bits with a different group from the original integer panics
+func TestGroup_SetBits_Panic(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			return
+		}
+	}()
+
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	grp := NewGroup(p, g)
+	g2 := large.NewInt(2)
+	grp2 := NewGroup(p, g2)
+
+	i := grp.NewInt(1)
+	grp2.SetBits(i, large.Bits{123456})
+
+	t.Errorf("SetBits worked even when another group was used")
+}
+
+// OverwriteBits is a higher-level method that copies a bits slice into an integer
+// or allocates a new slice if necessary
+// Shows that OverwriteBits never uses the passed bits slice to back the new integer
+// Shows that the results are as expected, even in cases where the lengths aren't equal
+func TestGroup_OverwriteBits(t *testing.T) {
+	// We need a bigger group than the other tests, because for this test to be meaningful
+	// the prime needs to take up more than one word
+	// Using modp1536
+	p := large.NewIntFromString("FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F83655D23DCA3AD961C62F356208552BB9ED529077096966D670C354E4ABC9804F1746C08CA237327FFFFFFFFFFFFFFFF", 16)
+	g := large.NewInt(5)
+	grp := NewGroup(p, g)
+
+	// Case 1: enough space in the existing int for the overwriting int to exist
+	existing := grp.NewMaxInt()
+	existingStart := &existing.Bits()[0]
+	t.Log("existing cap:", cap(existing.Bits()))
+	expected := grp.NewIntFromString("1234567890abcdef1234567890abcdef1234567890abcdef123", 16)
+	t.Log("expected len:", len(expected.Bits()))
+	grp.OverwriteBits(existing, expected.Bits())
+
+	// Start of backing bits slice should be the same
+	if existingStart != &existing.Bits()[0] {
+		t.Errorf("start of existing changed. had %v, got %v", existingStart, &existing.Bits()[0])
+	}
+	// Should get expected number in existing
+	if existing.Cmp(expected) != 0 {
+		t.Errorf("actual differed from expected. actual: %v, expected %v", existing, expected)
+	}
+
+	// Case 2: not enough space in the existing int for the overwriting int to exist
+	newAlloc := grp.NewInt(1)
+	newAllocStart := &newAlloc.Bits()[0]
+	t.Log("newAlloc cap:", cap(newAlloc.Bits()))
+	grp.OverwriteBits(newAlloc, expected.Bits())
+
+	// Start of backing bits slice should be different
+	if newAllocStart == &newAlloc.Bits()[0] {
+		t.Errorf("start of newAlloc didn't change. had %v, got %v", newAllocStart, &newAlloc.Bits()[0])
+	}
+	// It should also be different from the backing bits slice of expected
+	if &newAlloc.Bits()[0] == &existing.Bits()[0] {
+		t.Errorf("newAlloc uses same backing memory as existing! bad!!")
+	}
+	// Of course, the int should be equal to existing
+	if expected.Cmp(newAlloc) != 0 {
+		t.Errorf("actual differed from expected. actual: %v, expected %v", newAlloc, expected)
+	}
+}
+
+// Is it possible to trigger the panic?
+func TestGroup_OverwriteBits_Panic(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			return
+		}
+	}()
+
+	p := large.NewInt(1000000010101111111)
+	g := large.NewInt(5)
+	grp := NewGroup(p, g)
+	g2 := large.NewInt(2)
+	grp2 := NewGroup(p, g2)
+
+	i := grp.NewInt(1)
+	grp2.OverwriteBits(i, large.Bits{123456})
+
+	t.Errorf("OverwriteBits worked with a different group")
 }
 
 // Test setting cyclicInt in the same group from string
@@ -1651,7 +1800,7 @@ func TestGroup_MarshalJSON_IsValid(t *testing.T) {
 
 // BENCHMARKS
 
-func BenchmarkExpForGroup(b *testing.B) {
+func BenchmarkExpForGroup2k(b *testing.B) {
 	primeString := "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
 		"29024E088A67CC74020BBEA63B139B22514A08798E3404DD" +
 		"EF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245" +
@@ -1687,7 +1836,54 @@ func BenchmarkExpForGroup(b *testing.B) {
 	}
 }
 
-func BenchmarkMulForGroup(b *testing.B) {
+func BenchmarkExpForGroup4k(b *testing.B) {
+	primeString := "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
+		"29024E088A67CC74020BBEA63B139B22514A08798E3404DD" +
+		"EF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245" +
+		"E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7ED" +
+		"EE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3D" +
+		"C2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F" +
+		"83655D23DCA3AD961C62F356208552BB9ED529077096966D" +
+		"670C354E4ABC9804F1746C08CA18217C32905E462E36CE3B" +
+		"E39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9" +
+		"DE2BCBF6955817183995497CEA956AE515D2261898FA0510" +
+		"15728E5A8AAAC42DAD33170D04507A33A85521ABDF1CBA64" +
+		"ECFB850458DBEF0A8AEA71575D060C7DB3970F85A6E1E4C7" +
+		"ABF5AE8CDB0933D71E8C94E04A25619DCEE3D2261AD2EE6B" +
+		"F12FFA06D98A0864D87602733EC86A64521F2B18177B200C" +
+		"BBE117577A615D6C770988C0BAD946E208E24FA074E5AB31" +
+		"43DB5BFCE0FD108E4B82D120A92108011A723C12A787E6D7" +
+		"88719A10BDBA5B2699C327186AF4E23C1A946834B6150BDA" +
+		"2583E9CA2AD44CE8DBBBC2DB04DE8EF92E8EFC141FBECAA6" +
+		"287C59474E6BC05D99B2964FA090C3A2233BA186515BE7ED" +
+		"1F612970CEE2D7AFB81BDD762170481CD0069127D5B05AA9" +
+		"93B4EA988D8FDDC186FFB7DC90A6C08F4DF435C934063199" +
+		"FFFFFFFFFFFFFFFF"
+
+	p := large.NewIntFromString(primeString, 16)
+	g := large.NewInt(2)
+	grp := NewGroup(p, g)
+
+	//prebake inputs
+	z := grp.NewInt(1)
+	G := grp.GetGCyclic()
+
+	var inputs []*Int
+	var outputs []*Int
+
+	for i := 0; i < b.N; i++ {
+		nint := grp.Random(grp.NewInt(1))
+		inputs = append(inputs, nint)
+		outputs = append(outputs, grp.NewInt(1))
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		grp.Exp(G, inputs[i], z)
+	}
+}
+
+func BenchmarkMulForGroup2k(b *testing.B) {
 	primeString := "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
 		"29024E088A67CC74020BBEA63B139B22514A08798E3404DD" +
 		"EF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245" +
@@ -1725,7 +1921,56 @@ func BenchmarkMulForGroup(b *testing.B) {
 	}
 }
 
-func BenchmarkInverse(b *testing.B) {
+func BenchmarkMulForGroup4k(b *testing.B) {
+	primeString := "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
+		"29024E088A67CC74020BBEA63B139B22514A08798E3404DD" +
+		"EF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245" +
+		"E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7ED" +
+		"EE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3D" +
+		"C2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F" +
+		"83655D23DCA3AD961C62F356208552BB9ED529077096966D" +
+		"670C354E4ABC9804F1746C08CA18217C32905E462E36CE3B" +
+		"E39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9" +
+		"DE2BCBF6955817183995497CEA956AE515D2261898FA0510" +
+		"15728E5A8AAAC42DAD33170D04507A33A85521ABDF1CBA64" +
+		"ECFB850458DBEF0A8AEA71575D060C7DB3970F85A6E1E4C7" +
+		"ABF5AE8CDB0933D71E8C94E04A25619DCEE3D2261AD2EE6B" +
+		"F12FFA06D98A0864D87602733EC86A64521F2B18177B200C" +
+		"BBE117577A615D6C770988C0BAD946E208E24FA074E5AB31" +
+		"43DB5BFCE0FD108E4B82D120A92108011A723C12A787E6D7" +
+		"88719A10BDBA5B2699C327186AF4E23C1A946834B6150BDA" +
+		"2583E9CA2AD44CE8DBBBC2DB04DE8EF92E8EFC141FBECAA6" +
+		"287C59474E6BC05D99B2964FA090C3A2233BA186515BE7ED" +
+		"1F612970CEE2D7AFB81BDD762170481CD0069127D5B05AA9" +
+		"93B4EA988D8FDDC186FFB7DC90A6C08F4DF435C934063199" +
+		"FFFFFFFFFFFFFFFF"
+
+	p := large.NewIntFromString(primeString, 16)
+	g := large.NewInt(2)
+	grp := NewGroup(p, g)
+
+	//prebake inputs
+	z := grp.NewInt(1)
+
+	var inputA []*Int
+	var inputB []*Int
+	var outputs []*Int
+
+	for i := 0; i < b.N; i++ {
+		nint := grp.Random(grp.NewInt(1))
+		inputA = append(inputA, nint)
+		mint := grp.Random(grp.NewInt(1))
+		inputB = append(inputB, mint)
+		outputs = append(outputs, grp.NewInt(1))
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		grp.Mul(inputA[i], inputB[i], z)
+	}
+}
+
+func BenchmarkInverse2k(b *testing.B) {
 	primeString := "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
 		"29024E088A67CC74020BBEA63B139B22514A08798E3404DD" +
 		"EF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245" +
@@ -1737,6 +1982,54 @@ func BenchmarkInverse(b *testing.B) {
 		"E39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9" +
 		"DE2BCBF6955817183995497CEA956AE515D2261898FA0510" +
 		"15728E5A8AACAA68FFFFFFFFFFFFFFFF"
+
+	p := large.NewIntFromString(primeString, 16)
+	g := large.NewInt(2)
+	grp := NewGroup(p, g)
+
+	//prebake inputs
+	z := grp.NewInt(1)
+	G := grp.GetGCyclic()
+
+	var inputs []*Int
+	var outputs []*Int
+
+	for i := 0; i < b.N; i++ {
+		nint := grp.Random(grp.NewInt(1))
+		nint = grp.Exp(G, nint, z)
+		inputs = append(inputs, nint)
+		outputs = append(outputs, grp.NewInt(1))
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		grp.Inverse(inputs[i], outputs[i])
+	}
+}
+
+func BenchmarkInverse4k(b *testing.B) {
+	primeString := "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
+		"29024E088A67CC74020BBEA63B139B22514A08798E3404DD" +
+		"EF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245" +
+		"E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7ED" +
+		"EE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3D" +
+		"C2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F" +
+		"83655D23DCA3AD961C62F356208552BB9ED529077096966D" +
+		"670C354E4ABC9804F1746C08CA18217C32905E462E36CE3B" +
+		"E39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9" +
+		"DE2BCBF6955817183995497CEA956AE515D2261898FA0510" +
+		"15728E5A8AAAC42DAD33170D04507A33A85521ABDF1CBA64" +
+		"ECFB850458DBEF0A8AEA71575D060C7DB3970F85A6E1E4C7" +
+		"ABF5AE8CDB0933D71E8C94E04A25619DCEE3D2261AD2EE6B" +
+		"F12FFA06D98A0864D87602733EC86A64521F2B18177B200C" +
+		"BBE117577A615D6C770988C0BAD946E208E24FA074E5AB31" +
+		"43DB5BFCE0FD108E4B82D120A92108011A723C12A787E6D7" +
+		"88719A10BDBA5B2699C327186AF4E23C1A946834B6150BDA" +
+		"2583E9CA2AD44CE8DBBBC2DB04DE8EF92E8EFC141FBECAA6" +
+		"287C59474E6BC05D99B2964FA090C3A2233BA186515BE7ED" +
+		"1F612970CEE2D7AFB81BDD762170481CD0069127D5B05AA9" +
+		"93B4EA988D8FDDC186FFB7DC90A6C08F4DF435C934063199" +
+		"FFFFFFFFFFFFFFFF"
 
 	p := large.NewIntFromString(primeString, 16)
 	g := large.NewInt(2)

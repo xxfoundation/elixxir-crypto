@@ -8,7 +8,7 @@ package cryptops
 
 import (
 	"gitlab.com/elixxir/crypto/cyclic"
-	"gitlab.com/elixxir/crypto/large"
+	"gitlab.com/xx_network/crypto/large"
 	"math/rand"
 	"testing"
 )
@@ -191,7 +191,7 @@ func TestMul2_CryptopsInterface(t *testing.T) {
 func TestMul2Signature_GetInputSize(t *testing.T) {
 	expected := 1
 	if Mul2.GetInputSize() != 1 {
-		t.Errorf("Mul2: MinSize not correct: Recieved %v, Expected %v", Mul2.GetInputSize(), expected)
+		t.Errorf("Mul2: MinSize not correct: Received %v, Expected %v", Mul2.GetInputSize(), expected)
 	}
 }
 
@@ -199,6 +199,6 @@ func TestMul2Signature_GetInputSize(t *testing.T) {
 func TestMul2Signature_GetName(t *testing.T) {
 	expected := "Mul2"
 	if Mul2.GetName() != expected {
-		t.Errorf("Mul2: Name not correct: Recieved %v, Expected %v", Mul2.GetName(), expected)
+		t.Errorf("Mul2: Name not correct: Received %v, Expected %v", Mul2.GetName(), expected)
 	}
 }

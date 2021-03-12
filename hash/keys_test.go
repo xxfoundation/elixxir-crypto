@@ -10,7 +10,7 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 	"gitlab.com/elixxir/crypto/cyclic"
-	"gitlab.com/elixxir/crypto/large"
+	"gitlab.com/xx_network/crypto/large"
 	"testing"
 )
 
@@ -61,7 +61,7 @@ func TestExpandKey(t *testing.T) {
 
 	if x1.BitLen()/8 != 255 {
 		t.Errorf("TestExpandKey(): Error with the resulting key size."+
-			"Expected %v, Recieved: %v", 256, x1.BitLen()/8)
+			"Expected %v, Received: %v", 256, x1.BitLen()/8)
 	} else {
 		pass++
 	}
