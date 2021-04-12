@@ -197,9 +197,9 @@ func (z *Int) GobEncode() ([]byte, error) {
 // BinaryEncode encodes the Int into a compressed byte format.
 func (z *Int) BinaryEncode() []byte {
 	var buff bytes.Buffer
-	b := make([]byte, binary.MaxVarintLen64)
+	b := make([]byte, 8)
 
-	binary.PutUvarint(b, z.fingerprint)
+	binary.LittleEndian.PutUint64(b, z.fingerprint)
 	buff.Write(b)
 	buff.Write(z.Bytes())
 
@@ -208,15 +208,13 @@ func (z *Int) BinaryEncode() []byte {
 
 // BinaryDecode decompresses the encoded byte slice to an Int.
 func (z *Int) BinaryDecode(b []byte) error {
-	buff := bytes.NewBuffer(b)
-	fp, err := binary.ReadUvarint(buff)
-	if err != nil {
-		return errors.Errorf("Failed to decode Int fingerprint: %+v", err)
+	if len(b) < 8 {
+		return errors.Errorf("length of buffer %d != %d expected", len(b), 8)
 	}
 
-	z.fingerprint = fp
+	buff := bytes.NewBuffer(b)
+	z.fingerprint = binary.LittleEndian.Uint64(buff.Next(8))
 	z.value = large.NewIntFromBytes(buff.Bytes())
-
 	return nil
 }
 
