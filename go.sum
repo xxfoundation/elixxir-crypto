@@ -124,6 +124,8 @@ gitlab.com/elixxir/primitives v0.0.3-0.20210409183455-a45e87dbea39 h1:dhf2VwmAn0
 gitlab.com/elixxir/primitives v0.0.3-0.20210409183455-a45e87dbea39/go.mod h1:MkG5S32UvI6/ZcTLQxFpvEAnCshR6MNG8d8gUrvKC7g=
 gitlab.com/elixxir/primitives v0.0.3-0.20210409190923-7bf3cd8d97e7 h1:q3cw7WVtD6hDqTi8ydky+yiqJ4RkWp/hkTSNirr9Z6Y=
 gitlab.com/elixxir/primitives v0.0.3-0.20210409190923-7bf3cd8d97e7/go.mod h1:h0QHrjrixLNaP24ZXAgDOZXP4eegrQ24BCZPGitg8Jg=
+gitlab.com/elixxir/primitives v0.0.3-0.20210422213511-7cc01e95c4cd h1:CPyOxMMd7H0D3UP4tXgLdmky4JSfqP+ddT6mNzeCbck=
+gitlab.com/elixxir/primitives v0.0.3-0.20210422213511-7cc01e95c4cd/go.mod h1:h0QHrjrixLNaP24ZXAgDOZXP4eegrQ24BCZPGitg8Jg=
 gitlab.com/xx_network/comms v0.0.0-20200805174823-841427dd5023/go.mod h1:owEcxTRl7gsoM8c3RQ5KAm5GstxrJp5tn+6JfQ4z5Hw=
 gitlab.com/xx_network/comms v0.0.4-0.20201130190834-365ddae56e7b/go.mod h1:YViGbRj7FjJYoaO4NpALGEd9dK/l8uUT000FEBbUTL8=
 gitlab.com/xx_network/crypto v0.0.3 h1:MDQX71yKLLGC9cgvp9gzJ5b4bShPeYuoqk9tFsCjqIE=
@@ -164,6 +166,8 @@ gitlab.com/xx_network/crypto v0.0.5-0.20210401160648-4f06cace9123 h1:i2PajAamYla
 gitlab.com/xx_network/crypto v0.0.5-0.20210401160648-4f06cace9123/go.mod h1:CWV349I9Nv1zPCIY/f8Ej6yWs7NG0HLTWnm+Jlz7jKc=
 gitlab.com/xx_network/crypto v0.0.5-0.20210405224157-2b1f387b42c1 h1:4Hrphjtqn3vO8LI872YwVKy5dCFJdD5u0dE4O2QCZqU=
 gitlab.com/xx_network/crypto v0.0.5-0.20210405224157-2b1f387b42c1/go.mod h1:CUhRpioyLaKIylg+LIyZX1rhOmFaEXQQ6esNycx9dcA=
+gitlab.com/xx_network/crypto v0.0.5-0.20210420170153-2a6276844076 h1:bLR43541fUUhPTMGuCWKz7IEQevAm4OeTBVtsDt8tgg=
+gitlab.com/xx_network/crypto v0.0.5-0.20210420170153-2a6276844076/go.mod h1:CUhRpioyLaKIylg+LIyZX1rhOmFaEXQQ6esNycx9dcA=
 gitlab.com/xx_network/primitives v0.0.0-20200803231956-9b192c57ea7c/go.mod h1:wtdCMr7DPePz9qwctNoAUzZtbOSHSedcK++3Df3psjA=
 gitlab.com/xx_network/primitives v0.0.0-20200804183002-f99f7a7284da/go.mod h1:OK9xevzWCaPO7b1wiluVJGk7R5ZsuC7pHY5hteZFQug=
 gitlab.com/xx_network/primitives v0.0.2 h1:r45yKenJ9e7PylI1ZXJ1Es09oYNaYXjxVy9+uYlwo7Y=
