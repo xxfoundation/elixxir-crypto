@@ -122,7 +122,7 @@ func TestSignVerify(t *testing.T) {
 	}
 
 	// Sign data
-	sig, err := SignTimestamp(notRand, serverPrivKey, testTime, userPrivKey.GetPublic())
+	sig, err := SignWithTimestamp(notRand, serverPrivKey, testTime, userPrivKey.GetPublic())
 	if err != nil {
 		t.Fatalf("SignVerify error: "+
 			"Could not sign data: %v", err.Error())
@@ -136,7 +136,7 @@ func TestSignVerify(t *testing.T) {
 	}
 
 	// Test the verification
-	err = VerifyTimestamp(sig, serverPrivKey.GetPublic(), testTime, userPrivKey.GetPublic())
+	err = VerifyWithTimestamp(sig, serverPrivKey.GetPublic(), testTime, userPrivKey.GetPublic())
 	if err != nil {
 		t.Fatalf("SignVerify error: "+
 			"Could not verify signature: %v", err.Error())
@@ -156,14 +156,14 @@ func TestSignVerify(t *testing.T) {
 			"Could not generate key: %v", err.Error())
 	}
 
-	sig, err = SignTimestamp(notRand, serverPrivKey, testTime, userPrivKey.GetPublic())
+	sig, err = SignWithTimestamp(notRand, serverPrivKey, testTime, userPrivKey.GetPublic())
 	if err != nil {
 		t.Fatalf("SignVerify error: "+
 			"Could not sign data: %v", err.Error())
 	}
 
 	// Test the verification
-	err = VerifyTimestamp(sig, serverPrivKey.GetPublic(), testTime, userPrivKey.GetPublic())
+	err = VerifyWithTimestamp(sig, serverPrivKey.GetPublic(), testTime, userPrivKey.GetPublic())
 	if err != nil {
 		t.Fatalf("SignVerify error: "+
 			"Could not verify signature: %v", err.Error())
