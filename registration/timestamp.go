@@ -9,7 +9,6 @@ package registration
 import (
 	"encoding/binary"
 	"gitlab.com/xx_network/crypto/signature/rsa"
-	"gitlab.com/xx_network/crypto/xx"
 	"hash"
 	"io"
 	"time"
@@ -19,13 +18,13 @@ import (
 // This is used to verify that a user has registered with the network at a specific data and time
 
 // SignWithTimestamp signs a hash of the timestamp and the user's public key
-func SignWithTimestamp(rand io.Reader, priv *rsa.PrivateKey, ts time.Time,
-	userPubKey *rsa.PublicKey) ([]byte, error) {
+func SignWithTimestamp(rand io.Reader, priv *rsa.PrivateKey,
+	ts time.Time, userPubKeyPem string) ([]byte, error) {
 	// Construct the hash
 	options := rsa.NewDefaultOptions()
 
 	// Digest the timestamp and public key
-	hashedData := digest(options.Hash.New(), ts, userPubKey)
+	hashedData := digest(options.Hash.New(), ts, userPubKeyPem)
 
 	// Sign the data
 	return rsa.Sign(rand, priv, options.Hash, hashedData, options)
@@ -34,12 +33,12 @@ func SignWithTimestamp(rand io.Reader, priv *rsa.PrivateKey, ts time.Time,
 // VerifyWithTimestamp verifies the signature provided against serverPubKey and the
 // digest of the timestamp ts and userPubKey
 func VerifyWithTimestamp(sig []byte, serverPubKey *rsa.PublicKey,
-	ts time.Time, userPubKey *rsa.PublicKey) error {
+	ts time.Time, userPubKeyPem string) error {
 	// Construct the hash
 	options := rsa.NewDefaultOptions()
 
 	// Digest the timestamp and public key
-	hashedData := digest(options.Hash.New(), ts, userPubKey)
+	hashedData := digest(options.Hash.New(), ts, userPubKeyPem)
 
 	// Verify the signature
 	return rsa.Verify(serverPubKey, options.Hash, hashedData, sig, options)
@@ -47,9 +46,8 @@ func VerifyWithTimestamp(sig []byte, serverPubKey *rsa.PublicKey,
 
 // digest is a helper function which digests the timestamp ts and
 // rsa.PublicKey userPubKey given hash h
-func digest(h hash.Hash, ts time.Time, userPubKey *rsa.PublicKey) []byte {
+func digest(h hash.Hash, ts time.Time, userPubKeyPem string) []byte {
 	// Serialize the public key
-	pubKeyBytes := xx.PublicKeyBytes(&(*userPubKey).PublicKey)
 
 	// Serialize the timestamp
 	tsBytes := make([]byte, 8)
@@ -57,7 +55,7 @@ func digest(h hash.Hash, ts time.Time, userPubKey *rsa.PublicKey) []byte {
 
 	// Hash the data and verify
 	h.Write(tsBytes)
-	h.Write(pubKeyBytes)
+	h.Write([]byte(userPubKeyPem))
 
 	return h.Sum(nil)
 }
