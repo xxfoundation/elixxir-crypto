@@ -123,7 +123,7 @@ func TestSignVerify(t *testing.T) {
 
 	// Sign data
 	userPubKeyPem := string(rsa.CreatePublicKeyPem(userPrivKey.GetPublic()))
-	sig, err := SignWithTimestamp(notRand, serverPrivKey, testTime, userPubKeyPem)
+	sig, err := SignWithTimestamp(notRand, serverPrivKey, testTime.UnixNano(), userPubKeyPem)
 	if err != nil {
 		t.Fatalf("SignVerify error: "+
 			"Could not sign data: %v", err.Error())
@@ -137,7 +137,7 @@ func TestSignVerify(t *testing.T) {
 	}
 
 	// Test the verification
-	err = VerifyWithTimestamp(sig, serverPrivKey.GetPublic(), testTime, userPubKeyPem)
+	err = VerifyWithTimestamp(serverPrivKey.GetPublic(), testTime.UnixNano(), userPubKeyPem, sig)
 	if err != nil {
 		t.Fatalf("SignVerify error: "+
 			"Could not verify signature: %v", err.Error())
@@ -157,14 +157,14 @@ func TestSignVerify(t *testing.T) {
 			"Could not generate key: %v", err.Error())
 	}
 
-	sig, err = SignWithTimestamp(notRand, serverPrivKey, testTime, userPubKeyPem)
+	sig, err = SignWithTimestamp(notRand, serverPrivKey, testTime.UnixNano(), userPubKeyPem)
 	if err != nil {
 		t.Fatalf("SignVerify error: "+
 			"Could not sign data: %v", err.Error())
 	}
 
 	// Test the verification
-	err = VerifyWithTimestamp(sig, serverPrivKey.GetPublic(), testTime, userPubKeyPem)
+	err = VerifyWithTimestamp(serverPrivKey.GetPublic(), testTime.UnixNano(), userPubKeyPem, sig)
 	if err != nil {
 		t.Fatalf("SignVerify error: "+
 			"Could not verify signature: %v", err.Error())
