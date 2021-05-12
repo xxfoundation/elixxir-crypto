@@ -17,13 +17,14 @@ package cmix
 import (
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/primitives/format"
+	"gitlab.com/xx_network/primitives/id"
 	"golang.org/x/crypto/blake2b"
 )
 
 // ClientEncrypt encrypts the message for the client by multiplying the
 // inverted encryption key by the message payload
 func ClientEncrypt(grp *cyclic.Group, msg format.Message,
-	salt []byte, baseKeys []*cyclic.Int) format.Message {
+	salt []byte, symmetricKeys []*cyclic.Int, roundID id.Round) format.Message {
 
 	// Get the salt for associated data
 	hash, err := blake2b.New256(nil)
@@ -34,8 +35,8 @@ func ClientEncrypt(grp *cyclic.Group, msg format.Message,
 	hash.Write(salt)
 
 	// Get encryption keys
-	keyEcrA := ClientKeyGen(grp, salt, baseKeys)
-	keyEcrB := ClientKeyGen(grp, hash.Sum(nil), baseKeys)
+	keyEcrA := ClientKeyGen(grp, salt, roundID, symmetricKeys)
+	keyEcrB := ClientKeyGen(grp, hash.Sum(nil), roundID, symmetricKeys)
 
 	// Get message payloads as cyclic integers
 	payloadA := grp.NewIntFromBytes(msg.GetPayloadA())

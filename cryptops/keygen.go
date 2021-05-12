@@ -11,11 +11,12 @@ package cryptops
 import (
 	"gitlab.com/elixxir/crypto/cmix"
 	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/xx_network/primitives/id"
 )
 
 // Wraps existing keygen operations in the cmix package
 type KeygenPrototype func(group *cyclic.Group,
-	salt []byte, baseKey, generatedKey *cyclic.Int)
+	salt []byte, roundID id.Round, symmetricKey, generatedKey *cyclic.Int)
 
 // KeyGen implements the cmix.NodeKeyGen(() within the cryptops interface
 var Keygen KeygenPrototype = cmix.NodeKeyGen

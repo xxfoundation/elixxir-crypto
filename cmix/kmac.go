@@ -10,35 +10,50 @@ package cmix
 
 import (
 	"bytes"
+	"encoding/binary"
 	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/xx_network/primitives/id"
 	"hash"
 )
 
+const kmacGenerationSalt = "cmixClientNodeKMACGenerationSalt"
+
 // GenerateKMAC hashes the salt and base key together using the passed in hashing
 // algorithm to produce a kmac
-func GenerateKMAC(salt []byte, baseKey *cyclic.Int, h hash.Hash) []byte {
+func GenerateKMAC(salt []byte, symmetricKey *cyclic.Int, roundID id.Round,
+	h hash.Hash) []byte {
+
+	// get the bytes of the roundID (monotonic counter)
+	m := make([]byte, 8)
+	binary.BigEndian.PutUint64(m, uint64(roundID))
+
+	//generate the kmac
 	h.Reset()
-	h.Write(baseKey.Bytes())
+	h.Write(symmetricKey.Bytes())
 	h.Write(salt)
+	h.Write(m)
+	h.Write([]byte(kmacGenerationSalt))
 	return h.Sum(nil)
 }
 
 // GenerateKMACs creates a list of KMACs all with the same salt but different
 // base keys
-func GenerateKMACs(salt []byte, baseKeys []*cyclic.Int, h hash.Hash) [][]byte {
-	kmacs := make([][]byte, len(baseKeys))
+func GenerateKMACs(salt []byte, symmetricKeys []*cyclic.Int, roundID id.Round,
+	h hash.Hash) [][]byte {
+	kmacs := make([][]byte, len(symmetricKeys))
 
-	for i, baseKey := range baseKeys {
-		kmacs[i] = GenerateKMAC(salt, baseKey, h)
+	for i, baseKey := range symmetricKeys {
+		kmacs[i] = GenerateKMAC(salt, baseKey, roundID, h)
 	}
 
 	return kmacs
 }
 
 // VerifyKMAC verifies that the generated GenerateKMAC is the same as the passed in GenerateKMAC
-func VerifyKMAC(expectedKmac, salt []byte, baseKey *cyclic.Int, h hash.Hash) bool {
+func VerifyKMAC(expectedKmac, salt []byte, symmetricKey *cyclic.Int,
+	roundID id.Round, h hash.Hash) bool {
 	//Generate KMAC based on the passed salt, key and hashing algorithm
-	generated := GenerateKMAC(salt, baseKey, h)
+	generated := GenerateKMAC(salt, symmetricKey, roundID, h)
 
 	//Check that the kmacs are the same length
 	if len(generated) != len(expectedKmac) {
