@@ -7,8 +7,11 @@
 package hash
 
 import (
+	"crypto/sha512"
+	"encoding/hex"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/xx_network/crypto/large"
+	"testing"
 )
 
 var primeString = "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
@@ -27,48 +30,47 @@ var p = large.NewIntFromString(primeString, 16)
 var g = large.NewInt(2)
 var grp = cyclic.NewGroup(p, g)
 
-// FIXME: commented out to work with go 1.16.4
-// //TestExpandKey verifies ExpandKey with two different hashes
-// func TestExpandKey(t *testing.T) {
-// 	test := 4
-// 	pass := 0
-//
-// 	key := []byte("a906df88f30d6afbfa6165a50cc9e208d16b34e70b367068dc5d6bd6e155b2c3")
-//
-// 	b, _ := NewCMixHash()
-// 	x1 := ExpandKey(b, grp, []byte("key"), grp.NewInt(1))
-// 	b.Reset()
-// 	x2 := ExpandKey(b, grp, key, grp.NewInt(1))
-//
-// 	if x1.BitLen()/8 != 256 {
-// 		t.Errorf("TestExpandKey(): Error with the resulting key size")
-// 	} else {
-// 		pass++
-// 	}
-//
-// 	if hex.EncodeToString(x1.Bytes()) != hex.EncodeToString(x2.Bytes()) {
-// 		pass++
-// 	} else {
-// 		t.Errorf("TestExpandKey():Error in the Key Expansion. Keys should not be the same!")
-// 	}
-//
-// 	h := sha512.New()
-// 	x1 = ExpandKey(h, grp, []byte("key"), grp.NewInt(1))
-// 	h.Reset()
-// 	x2 = ExpandKey(h, grp, key, grp.NewInt(1))
-//
-// 	if x1.BitLen()/8 != 255 {
-// 		t.Errorf("TestExpandKey(): Error with the resulting key size."+
-// 			"Expected %v, Received: %v", 256, x1.BitLen()/8)
-// 	} else {
-// 		pass++
-// 	}
-//
-// 	if hex.EncodeToString(x1.Bytes()) != hex.EncodeToString(x2.Bytes()) {
-// 		pass++
-// 	} else {
-// 		t.Errorf("TestExpandKey():Error in the Key Expansion. Keys should not be the same!")
-// 	}
-//
-// 	println("TestExpandKey():", pass, "out of", test, "tests passed")
-// }
+//TestExpandKey verifies ExpandKey with two different hashes
+func TestExpandKey(t *testing.T) {
+	test := 4
+	pass := 0
+
+	key := []byte("a906df88f30d6afbfa6165a50cc9e208d16b34e70b367068dc5d6bd6e155b2c3")
+
+	b, _ := NewCMixHash()
+	x1 := ExpandKey(b, grp, []byte("key"), grp.NewInt(1))
+	b.Reset()
+	x2 := ExpandKey(b, grp, key, grp.NewInt(1))
+
+	if x1.BitLen()/8 != 256 {
+		t.Errorf("TestExpandKey(): Error with the resulting key size")
+	} else {
+		pass++
+	}
+
+	if hex.EncodeToString(x1.Bytes()) != hex.EncodeToString(x2.Bytes()) {
+		pass++
+	} else {
+		t.Errorf("TestExpandKey():Error in the Key Expansion. Keys should not be the same!")
+	}
+
+	h := sha512.New()
+	x1 = ExpandKey(h, grp, []byte("key"), grp.NewInt(1))
+	h.Reset()
+	x2 = ExpandKey(h, grp, key, grp.NewInt(1))
+
+	if x1.BitLen()/8 != 255 {
+		t.Errorf("TestExpandKey(): Error with the resulting key size."+
+			"Expected %v, Received: %v", 256, x1.BitLen()/8)
+	} else {
+		pass++
+	}
+
+	if hex.EncodeToString(x1.Bytes()) != hex.EncodeToString(x2.Bytes()) {
+		pass++
+	} else {
+		t.Errorf("TestExpandKey():Error in the Key Expansion. Keys should not be the same!")
+	}
+
+	println("TestExpandKey():", pass, "out of", test, "tests passed")
+}
