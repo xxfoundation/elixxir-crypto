@@ -88,7 +88,6 @@ func TestDummyKeyGen_KeysMatch(t *testing.T) {
 			t.Errorf("Key mismatch")
 		}
 	}
-
 }
 
 // Ensure that order doesn't matter when generating a hash from two user ids
