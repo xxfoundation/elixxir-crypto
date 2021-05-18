@@ -11,6 +11,7 @@ import (
 	"encoding/hex"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/xx_network/crypto/large"
+	"hash"
 	"testing"
 )
 
@@ -37,10 +38,12 @@ func TestExpandKey(t *testing.T) {
 
 	key := []byte("a906df88f30d6afbfa6165a50cc9e208d16b34e70b367068dc5d6bd6e155b2c3")
 
-	b, _ := NewCMixHash()
-	x1 := ExpandKey(b, grp, []byte("key"), grp.NewInt(1))
-	b.Reset()
-	x2 := ExpandKey(b, grp, key, grp.NewInt(1))
+	hashFunc := func() hash.Hash {
+		h, _ := NewCMixHash()
+		return h
+	}
+	x1 := ExpandKey(hashFunc, grp, []byte("key"), grp.NewInt(1))
+	x2 := ExpandKey(hashFunc, grp, key, grp.NewInt(1))
 
 	if x1.BitLen()/8 != 256 {
 		t.Errorf("TestExpandKey(): Error with the resulting key size")
@@ -54,14 +57,15 @@ func TestExpandKey(t *testing.T) {
 		t.Errorf("TestExpandKey():Error in the Key Expansion. Keys should not be the same!")
 	}
 
-	h := sha512.New()
-	x1 = ExpandKey(h, grp, []byte("key"), grp.NewInt(1))
-	h.Reset()
-	x2 = ExpandKey(h, grp, key, grp.NewInt(1))
+	hashFunc = func() hash.Hash {
+		return sha512.New()
+	}
+	x1 = ExpandKey(hashFunc, grp, []byte("key"), grp.NewInt(1))
+	x2 = ExpandKey(hashFunc, grp, key, grp.NewInt(1))
 
-	if x1.BitLen()/8 != 256 {
+	if x1.BitLen()/8 != 255 {
 		t.Errorf("TestExpandKey(): Error with the resulting key size."+
-			"Expected %v, Received: %v", 256, x1.BitLen()/8)
+			"\nexpected: %d\nreceived: %d", 256, x1.BitLen()/8)
 	} else {
 		pass++
 	}
