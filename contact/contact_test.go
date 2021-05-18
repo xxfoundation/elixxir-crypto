@@ -12,12 +12,14 @@ import (
 	"crypto"
 	"encoding/base64"
 	"fmt"
+	"github.com/liyue201/goqr"
 	"github.com/skip2/go-qrcode"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/primitives/fact"
 	"gitlab.com/xx_network/crypto/csprng"
 	"gitlab.com/xx_network/crypto/large"
 	"gitlab.com/xx_network/primitives/id"
+	"image"
 	"math/rand"
 	"reflect"
 	"strings"
@@ -25,30 +27,30 @@ import (
 )
 
 // Tests marshaling and unmarshalling of a common Contact.
-//func TestContact_Marshal_Unmarshal(t *testing.T) {
-//	expectedContact := Contact{
-//		ID:       id.NewIdFromUInt(rand.Uint64(), id.User, t),
-//		DhPubKey: getCycInt(256),
-//		Facts: fact.FactList{
-//			{Fact: "myUsername", T: fact.Username},
-//			{Fact: "devinputvalidation@elixxir.io", T: fact.Email},
-//			{Fact: "6502530000US", T: fact.Phone},
-//			{Fact: "6502530001US", T: fact.Phone},
-//		},
-//	}
-//
-//	buff := expectedContact.Marshal()
-//
-//	testContact, err := Unmarshal(buff)
-//	if err != nil {
-//		t.Errorf("Unmarshal() produced an error: %+v", err)
-//	}
-//
-//	if !reflect.DeepEqual(expectedContact, testContact) {
-//		t.Errorf("Unmarshaled Contact does not match expected."+
-//			"\nexpected: %s\nreceived: %s", expectedContact, testContact)
-//	}
-//}
+func TestContact_Marshal_Unmarshal(t *testing.T) {
+	expectedContact := Contact{
+		ID:       id.NewIdFromUInt(rand.Uint64(), id.User, t),
+		DhPubKey: getCycInt(256),
+		Facts: fact.FactList{
+			{Fact: "myUsername", T: fact.Username},
+			{Fact: "devinputvalidation@elixxir.io", T: fact.Email},
+			{Fact: "6502530000US", T: fact.Phone},
+			{Fact: "6502530001US", T: fact.Phone},
+		},
+	}
+
+	buff := expectedContact.Marshal()
+
+	testContact, err := Unmarshal(buff)
+	if err != nil {
+		t.Errorf("Unmarshal() produced an error: %+v", err)
+	}
+
+	if !reflect.DeepEqual(expectedContact, testContact) {
+		t.Errorf("Unmarshaled Contact does not match expected."+
+			"\nexpected: %s\nreceived: %s", expectedContact, testContact)
+	}
+}
 
 // Tests marshaling and unmarshalling of a Contact with nil fields.
 func TestContact_Marshal_Unmarshal_Nil(t *testing.T) {
@@ -362,52 +364,52 @@ func TestContact_GetFingerprint_Consistency(t *testing.T) {
 }
 
 // Happy path.
-//func TestContact_MakeQR(t *testing.T) {
-//	c := Contact{
-//		ID: id.NewIdFromUInts([4]uint64{rand.Uint64(), rand.Uint64(),
-//			rand.Uint64(), rand.Uint64()}, id.User, t),
-//		DhPubKey: getCycInt(256),
-//		Facts: fact.FactList{
-//			{Fact: "myUsername", T: fact.Username},
-//			{Fact: "devinputvalidation@elixxir.io", T: fact.Email},
-//			{Fact: "6502530000US", T: fact.Phone},
-//			{Fact: "6502530001US", T: fact.Phone},
-//		},
-//	}
-//	qrCode, err := c.MakeQR(512, qrcode.Medium)
-//	if err != nil {
-//		t.Errorf("MakeQR() returned an error: %+v", err)
-//	}
-//	img, _, err := image.Decode(bytes.NewReader(qrCode))
-//	if err != nil {
-//		t.Fatalf("Failed to decode image: %+v", err)
-//	}
-//
-//	qrCodes, err := goqr.Recognize(img)
-//	if err != nil {
-//		t.Fatalf("Failed to recognize QR code: %+v", err)
-//	}
-//
-//	var qrBytes []byte
-//	for _, qrCode := range qrCodes {
-//		qrBytes = append(qrBytes, qrCode.Payload...)
-//	}
-//
-//	if !bytes.Equal(c.Marshal(), qrBytes) {
-//		t.Errorf("Generated QR code data does not match expected."+
-//			"\nexpected: %s\nreceived: %s", c.Marshal(), qrBytes)
-//	}
-//
-//	testContact, err := Unmarshal(qrBytes)
-//	if err != nil {
-//		t.Errorf("Failed to unmarshal QR code data: %+v", err)
-//	}
-//
-//	if !Equal(c, testContact) {
-//		t.Errorf("Contact unmarshaled from QR code does not match original."+
-//			"\nexpected: %s\nreceived: %s", c, testContact)
-//	}
-//}
+func TestContact_MakeQR(t *testing.T) {
+	c := Contact{
+		ID: id.NewIdFromUInts([4]uint64{rand.Uint64(), rand.Uint64(),
+			rand.Uint64(), rand.Uint64()}, id.User, t),
+		DhPubKey: getCycInt(256),
+		Facts: fact.FactList{
+			{Fact: "myUsername", T: fact.Username},
+			{Fact: "devinputvalidation@elixxir.io", T: fact.Email},
+			{Fact: "6502530000US", T: fact.Phone},
+			{Fact: "6502530001US", T: fact.Phone},
+		},
+	}
+	qrCode, err := c.MakeQR(512, qrcode.Medium)
+	if err != nil {
+		t.Errorf("MakeQR() returned an error: %+v", err)
+	}
+	img, _, err := image.Decode(bytes.NewReader(qrCode))
+	if err != nil {
+		t.Fatalf("Failed to decode image: %+v", err)
+	}
+
+	qrCodes, err := goqr.Recognize(img)
+	if err != nil {
+		t.Fatalf("Failed to recognize QR code: %+v", err)
+	}
+
+	var qrBytes []byte
+	for _, qrCode := range qrCodes {
+		qrBytes = append(qrBytes, qrCode.Payload...)
+	}
+
+	if !bytes.Equal(c.Marshal(), qrBytes) {
+		t.Errorf("Generated QR code data does not match expected."+
+			"\nexpected: %s\nreceived: %s", c.Marshal(), qrBytes)
+	}
+
+	testContact, err := Unmarshal(qrBytes)
+	if err != nil {
+		t.Errorf("Failed to unmarshal QR code data: %+v", err)
+	}
+
+	if !Equal(c, testContact) {
+		t.Errorf("Contact unmarshaled from QR code does not match original."+
+			"\nexpected: %s\nreceived: %s", c, testContact)
+	}
+}
 
 // Error path: marshaled data is too long to be encoded to a QR code.
 func TestContact_MakeQR_DataTooLargeError(t *testing.T) {
