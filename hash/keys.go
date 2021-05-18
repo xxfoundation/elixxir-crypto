@@ -14,6 +14,7 @@ import (
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/xx_network/crypto/csprng"
 	"gitlab.com/xx_network/crypto/large"
+	"golang.org/x/crypto/blake2b"
 	"golang.org/x/crypto/hkdf"
 	"hash"
 )
@@ -25,7 +26,11 @@ func ExpandKey(h hash.Hash, g *cyclic.Group, key []byte,
 	// The Hash will be created outside the function, so need to wrap
 	// it into a function to pass to HKDF.Expand
 	var foo = func() hash.Hash {
-		return h
+		result, err := blake2b.New256(key)
+		if err != nil {
+			jww.FATAL.Panicf("ExpandKey foo: failed to create new key: %v", err)
+		}
+		return result
 	}
 	keyGen := hkdf.Expand(foo, key, nil)
 

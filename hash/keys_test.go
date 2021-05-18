@@ -59,7 +59,7 @@ func TestExpandKey(t *testing.T) {
 	h.Reset()
 	x2 = ExpandKey(h, grp, key, grp.NewInt(1))
 
-	if x1.BitLen()/8 != 255 {
+	if x1.BitLen()/8 != 256 {
 		t.Errorf("TestExpandKey(): Error with the resulting key size."+
 			"Expected %v, Received: %v", 256, x1.BitLen()/8)
 	} else {
