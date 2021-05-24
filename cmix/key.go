@@ -11,11 +11,11 @@ package cmix
 
 import (
 	"crypto/sha256"
-	"crypto/sha512"
 	"encoding/binary"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/hash"
 	"gitlab.com/xx_network/primitives/id"
+	goHash "hash"
 )
 
 const keyGenerationSalt = "cmixClientNodeKeyGenerationSalt"
@@ -66,6 +66,7 @@ func keyGen(grp *cyclic.Group, salt []byte, roundID id.Round, symmetricKey, outp
 	y := h2.Sum(nil)
 
 	// Expand Key using SHA512
-	k := hash.ExpandKey(sha512.New(), grp, y, output)
+	hashFunc := func() goHash.Hash { return sha256.New() }
+	k := hash.ExpandKey(hashFunc, grp, y, output)
 	return k
 }

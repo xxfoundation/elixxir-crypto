@@ -3,8 +3,9 @@
 variables:
   REPO_DIR: gitlab.com/elixxir
   REPO_NAME: crypto
-  DOCKER_IMAGE: elixxirlabs/cuda-go:latest
-  MIN_CODE_COVERAGE: "95.4"
+  DOCKER_IMAGE: elixxirlabs/cuda-go:go1.16-cuda11.1
+  # TODO: Bump this up
+  MIN_CODE_COVERAGE: "90.0"
 
 before_script:
   - go version || echo "Go executable not found."
