@@ -23,7 +23,7 @@ import (
 func Sign(rand io.Reader, now time.Time, privKey *rsa.PrivateKey) ([]byte, error) {
 	// Construct the hash
 	options := rsa.NewDefaultOptions()
-	hashedData := digest(options.Hash.New(), now.UnixNano())
+	hashedData := digest(options.Hash.New(), now)
 
 	// Sign the data
 	return rsa.Sign(rand, privKey, options.Hash, hashedData, options)
@@ -41,8 +41,7 @@ func Verify(now time.Time, signedTS time.Time,
 	// Check that the signed timestamp is within the delta passed in
 	lowerBound := now.Add(-delta)
 	upperBound := now.Add(delta)
-	// todo remove this
-	//fmt.Printf("upper bound: %s\nlower bound: %s\nnow: %s\nsigned: %s\n", upperBound, lowerBound, now, signedTS)
+
 	if signedTS.After(upperBound) || signedTS.Before(lowerBound) {
 		return errors.Errorf("Signed timestamp (%s) is not within "+
 			"bounds given by delta (%s) and given current time (%s)", signedTS.String(), delta.String(), now.String())
@@ -62,7 +61,7 @@ func Verify(now time.Time, signedTS time.Time,
 
 	// Construct the hash
 	options := rsa.NewDefaultOptions()
-	hashedData := digest(options.Hash.New(), signedTS.UnixNano())
+	hashedData := digest(options.Hash.New(), signedTS)
 
 	// Verify the signature passed in
 	return rsa.Verify(pubkey, options.Hash, hashedData, signature, options)
@@ -70,10 +69,10 @@ func Verify(now time.Time, signedTS time.Time,
 }
 
 // digest serializes and hashes the given timestamp
-func digest(h hash.Hash, timestampNano int64) []byte {
+func digest(h hash.Hash, timestamp time.Time) []byte {
 	// Serialize the timestamp
 	tsBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(tsBytes, uint64(timestampNano))
+	binary.BigEndian.PutUint64(tsBytes, uint64(timestamp.UnixNano()))
 
 	// Hash the timestamp
 	h.Write(tsBytes)

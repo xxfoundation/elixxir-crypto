@@ -19,8 +19,8 @@ import (
 	"time"
 )
 
-// Unit test
-func TestSignVerify(t *testing.T) {
+// Consistency test for Sign
+func TestSignVerify_Consistency(t *testing.T) {
 	// Generate a pre-canned time for consistent testing
 	testTime, err := time.Parse(time.RFC3339,
 		"2012-12-21T22:08:41+00:00")
@@ -103,21 +103,60 @@ func TestSignVerify(t *testing.T) {
 			"Could not verify signature: %v", err.Error())
 	}
 
-	/*  -------- Test with random keys -------- */
+}
 
-	serverPrivKey, err = rsa.GenerateKey(rand.Reader, 1024)
+// Consistency test for digest
+func TestDigest_Consistency(t *testing.T) {
+	// Generate a pre-canned time for consistent testing
+	testTime, err := time.Parse(time.RFC3339,
+		"2012-12-21T22:08:41+00:00")
+	if err != nil {
+		t.Fatalf("SignVerify error: "+
+			"Could not parse precanned time: %v", err.Error())
+	}
+
+	// Construct the hash
+	options := rsa.NewDefaultOptions()
+
+	receivedDigest := digest(options.Hash.New(), testTime)
+
+	if !bytes.Equal(receivedDigest, expectedDigest) {
+		t.Fatalf("Digest consistency error: "+
+			"\n\tExpected: %v"+
+			"\n\tReceived: %v", expectedDigest, receivedDigest)
+	}
+}
+
+// Unit test
+func TestSignVerify(t *testing.T) {
+	// Generate a pre-canned time for consistent testing
+	testTime, err := time.Parse(time.RFC3339,
+		"2012-12-21T22:08:41+00:00")
+	if err != nil {
+		t.Fatalf("SignVerify error: "+
+			"Could not parse precanned time: %v", err.Error())
+	}
+
+	// Generate data required for verification
+	delta := 24 * time.Hour * 2
+	testNow := testTime.Add(delta / 2)
+
+	testSalt := make([]byte, 32)
+	copy(testSalt, "salt")
+
+	serverPrivKey, err := rsa.GenerateKey(rand.Reader, 1024)
 	if err != nil {
 		t.Fatalf("SignVerify error: "+
 			"Could not generate key: %v", err.Error())
 	}
 
-	sig, err = Sign(notRand, testTime, serverPrivKey)
+	sig, err := Sign(rand.Reader, testTime, serverPrivKey)
 	if err != nil {
 		t.Fatalf("SignVerify error: "+
 			"Could not sign data: %v", err.Error())
 	}
 
-	testId, err = xx.NewID(serverPrivKey.GetPublic(), testSalt, id.Node)
+	testId, err := xx.NewID(serverPrivKey.GetPublic(), testSalt, id.Node)
 	if err != nil {
 		t.Fatalf("SignVerify error: "+
 			"Could not generate a test signature: %v", err)
@@ -252,6 +291,9 @@ var expectedPrimes = [][]byte{
 		141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161,
 		162, 165},
 }
+
+var expectedDigest = []byte{19, 149, 39, 88, 8, 30, 138, 147, 218, 69, 4, 210, 20, 204, 60, 29, 36, 6, 79, 131,
+	171, 5, 188, 226, 27, 140, 45, 253, 67, 138, 229, 216}
 
 type CountingReader struct {
 	count uint8
