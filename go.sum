@@ -76,8 +76,8 @@ gitlab.com/elixxir/primitives v0.0.0-20200731184040-494269b53b4d/go.mod h1:OQgUZ
 gitlab.com/elixxir/primitives v0.0.0-20200804170709-a1896d262cd9/go.mod h1:p0VelQda72OzoUckr1O+vPW0AiFe0nyKQ6gYcmFSuF8=
 gitlab.com/elixxir/primitives v0.0.0-20200804182913-788f47bded40/go.mod h1:tzdFFvb1ESmuTCOl1z6+yf6oAICDxH2NPUemVgoNLxc=
 gitlab.com/elixxir/primitives v0.0.1/go.mod h1:kNp47yPqja2lHSiS4DddTvFpB/4D9dB2YKnw5c+LJCE=
-gitlab.com/elixxir/primitives v0.0.3-0.20210714165826-dd633e7e72d1 h1:YTQCpOycfk9IkKP5EPfLQZ2KYMyhA319L8iFbc+liiI=
-gitlab.com/elixxir/primitives v0.0.3-0.20210714165826-dd633e7e72d1/go.mod h1:t/QgaiMRw7+uaAjLOt0Ssp10YJwV2qBwG1K/SGIOKYs=
+gitlab.com/elixxir/primitives v0.0.3-0.20210714200942-a908050c230c h1:hXSiyL86U+Vn6gRSGm1rcTXtVLNW6FuP87/ozRLNONs=
+gitlab.com/elixxir/primitives v0.0.3-0.20210714200942-a908050c230c/go.mod h1:qRXX3Oe4fDsThqRXDaYvonu7cQxSufTqmntWFZ4FuSw=
 gitlab.com/xx_network/comms v0.0.0-20200805174823-841427dd5023/go.mod h1:owEcxTRl7gsoM8c3RQ5KAm5GstxrJp5tn+6JfQ4z5Hw=
 gitlab.com/xx_network/crypto v0.0.3/go.mod h1:DF2HYvvCw9wkBybXcXAgQMzX+MiGbFPjwt3t17VRqRE=
 gitlab.com/xx_network/crypto v0.0.4/go.mod h1:+lcQEy+Th4eswFgQDwT0EXKp4AXrlubxalwQFH5O0Mk=
@@ -86,8 +86,9 @@ gitlab.com/xx_network/crypto v0.0.5-0.20210714165656-1ed326047ba9/go.mod h1:O4kN
 gitlab.com/xx_network/primitives v0.0.0-20200803231956-9b192c57ea7c/go.mod h1:wtdCMr7DPePz9qwctNoAUzZtbOSHSedcK++3Df3psjA=
 gitlab.com/xx_network/primitives v0.0.0-20200804183002-f99f7a7284da/go.mod h1:OK9xevzWCaPO7b1wiluVJGk7R5ZsuC7pHY5hteZFQug=
 gitlab.com/xx_network/primitives v0.0.2/go.mod h1:cs0QlFpdMDI6lAo61lDRH2JZz+3aVkHy+QogOB6F/qc=
-gitlab.com/xx_network/primitives v0.0.4-0.20210702201204-ae7743707eba h1:QazFJ6j0e3L9rZKbhvToFW2l9uX4JaYS8jPUOZ2EDWI=
 gitlab.com/xx_network/primitives v0.0.4-0.20210702201204-ae7743707eba/go.mod h1:9imZHvYwNFobxueSvVtHneZLk9wTK7HQTzxPm+zhFhE=
+gitlab.com/xx_network/primitives v0.0.4-0.20210714200905-f386ca29a132 h1:hcVGxa//4D8qf1dhRlB47Z/mdCghFifkS+mfkXfhvOQ=
+gitlab.com/xx_network/primitives v0.0.4-0.20210714200905-f386ca29a132/go.mod h1:9imZHvYwNFobxueSvVtHneZLk9wTK7HQTzxPm+zhFhE=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20200510223506-06a226fb4e37/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
