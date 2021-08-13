@@ -10,8 +10,8 @@
 package group
 
 import (
-	"gitlab.com/elixxir/crypto/e2e/auth"
-	"gitlab.com/elixxir/primitives/format"
+	"git.xx.network/elixxir/crypto/e2e/auth"
+	"git.xx.network/elixxir/primitives/format"
 )
 
 // Encrypt encrypts the internal message with Salsa20.

@@ -9,7 +9,7 @@
 package e2e
 
 import (
-	"gitlab.com/elixxir/primitives/format"
+	"git.xx.network/elixxir/primitives/format"
 	"golang.org/x/crypto/salsa20"
 )
 

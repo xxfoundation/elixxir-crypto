@@ -15,7 +15,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	jww "github.com/spf13/jwalterweatherman"
-	"gitlab.com/xx_network/crypto/csprng"
+	"git.xx.network/xx_network/crypto/csprng"
 )
 
 const AES256KeyLen = 32

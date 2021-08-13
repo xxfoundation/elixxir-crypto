@@ -9,7 +9,7 @@
 package cryptops
 
 import (
-	"gitlab.com/elixxir/crypto/cyclic"
+	"git.xx.network/elixxir/crypto/cyclic"
 )
 
 type RootCoprimePrototype func(g *cyclic.Group, x, y, z *cyclic.Int) *cyclic.Int

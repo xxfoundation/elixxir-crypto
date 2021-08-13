@@ -11,8 +11,8 @@ package e2e
 import (
 	"encoding/binary"
 	jww "github.com/spf13/jwalterweatherman"
-	"gitlab.com/elixxir/crypto/hash"
-	"gitlab.com/xx_network/crypto/large"
+	"git.xx.network/elixxir/crypto/hash"
+	"git.xx.network/xx_network/crypto/large"
 	"math"
 )
 

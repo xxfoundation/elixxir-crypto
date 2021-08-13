@@ -9,7 +9,7 @@ package factID
 import (
 	"bytes"
 	"fmt"
-	"gitlab.com/elixxir/primitives/fact"
+	"git.xx.network/elixxir/primitives/fact"
 	"testing"
 )
 

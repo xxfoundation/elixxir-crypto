@@ -9,7 +9,7 @@ package registration
 import (
 	"bytes"
 	"crypto/rand"
-	"gitlab.com/xx_network/crypto/signature/rsa"
+	"git.xx.network/xx_network/crypto/signature/rsa"
 	"testing"
 	"time"
 )

@@ -17,7 +17,7 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"github.com/pkg/errors"
-	"gitlab.com/xx_network/crypto/large"
+	"git.xx.network/xx_network/crypto/large"
 )
 
 // Create the cyclic.Int type as a wrapper of a large.Int

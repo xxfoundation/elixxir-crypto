@@ -8,9 +8,9 @@ package e2e
 
 import (
 	"bytes"
-	"gitlab.com/elixxir/crypto/hash"
-	"gitlab.com/elixxir/primitives/format"
-	"gitlab.com/xx_network/primitives/id"
+	"git.xx.network/elixxir/crypto/hash"
+	"git.xx.network/elixxir/primitives/format"
+	"git.xx.network/xx_network/primitives/id"
 	"math/rand"
 	"testing"
 )

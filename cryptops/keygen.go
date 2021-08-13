@@ -9,9 +9,9 @@
 package cryptops
 
 import (
-	"gitlab.com/elixxir/crypto/cmix"
-	"gitlab.com/elixxir/crypto/cyclic"
-	"gitlab.com/xx_network/primitives/id"
+	"git.xx.network/elixxir/crypto/cmix"
+	"git.xx.network/elixxir/crypto/cyclic"
+	"git.xx.network/xx_network/primitives/id"
 )
 
 // Wraps existing keygen operations in the cmix package

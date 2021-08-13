@@ -11,9 +11,9 @@ package authorize
 import (
 	"encoding/binary"
 	"github.com/pkg/errors"
-	"gitlab.com/xx_network/crypto/signature/rsa"
-	"gitlab.com/xx_network/crypto/xx"
-	"gitlab.com/xx_network/primitives/id"
+	"git.xx.network/xx_network/crypto/signature/rsa"
+	"git.xx.network/xx_network/crypto/xx"
+	"git.xx.network/xx_network/primitives/id"
 	"hash"
 	"io"
 	"time"

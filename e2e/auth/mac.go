@@ -12,7 +12,7 @@ package auth
 
 import (
 	"bytes"
-	"gitlab.com/elixxir/crypto/hash"
+	"git.xx.network/elixxir/crypto/hash"
 )
 
 // MakeMac returns the MAC for the given payload.

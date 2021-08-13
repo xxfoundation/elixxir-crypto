@@ -11,8 +11,8 @@ package cmix
 import (
 	"bytes"
 	"encoding/binary"
-	"gitlab.com/elixxir/crypto/cyclic"
-	"gitlab.com/xx_network/primitives/id"
+	"git.xx.network/elixxir/crypto/cyclic"
+	"git.xx.network/xx_network/primitives/id"
 	"hash"
 )
 

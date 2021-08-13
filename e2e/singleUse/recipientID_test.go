@@ -1,9 +1,9 @@
 package singleUse
 
 import (
-	"gitlab.com/elixxir/crypto/cyclic"
-	"gitlab.com/elixxir/crypto/diffieHellman"
-	"gitlab.com/xx_network/primitives/id"
+	"git.xx.network/elixxir/crypto/cyclic"
+	"git.xx.network/elixxir/crypto/diffieHellman"
+	"git.xx.network/xx_network/primitives/id"
 	"math/rand"
 	"testing"
 )

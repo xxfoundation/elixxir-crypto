@@ -8,7 +8,7 @@
 // Operations include but are not limited to: key generation, ElGamal, multiplication, etc.
 package cryptops
 
-import "gitlab.com/elixxir/crypto/cyclic"
+import "git.xx.network/elixxir/crypto/cyclic"
 
 // An alias for a unary inverse operation which sets and returns an out variable
 type InversePrototype func(g *cyclic.Group, x, out *cyclic.Int) *cyclic.Int

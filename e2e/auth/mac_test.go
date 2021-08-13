@@ -9,7 +9,7 @@ package auth
 import (
 	"bytes"
 	"encoding/base64"
-	"gitlab.com/elixxir/crypto/diffieHellman"
+	"git.xx.network/elixxir/crypto/diffieHellman"
 	"math/rand"
 	"testing"
 )

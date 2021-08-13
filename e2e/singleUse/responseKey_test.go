@@ -9,8 +9,8 @@ package singleUse
 
 import (
 	"encoding/base64"
-	"gitlab.com/elixxir/crypto/cyclic"
-	"gitlab.com/elixxir/crypto/diffieHellman"
+	"git.xx.network/elixxir/crypto/cyclic"
+	"git.xx.network/elixxir/crypto/diffieHellman"
 	"math/rand"
 	"testing"
 )

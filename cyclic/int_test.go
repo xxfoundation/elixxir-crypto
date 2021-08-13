@@ -9,7 +9,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"errors"
-	"gitlab.com/xx_network/crypto/large"
+	"git.xx.network/xx_network/crypto/large"
 	"reflect"
 	"testing"
 )

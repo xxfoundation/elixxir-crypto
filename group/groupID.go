@@ -13,7 +13,7 @@ package group
 import (
 	"encoding/base64"
 	"github.com/pkg/errors"
-	"gitlab.com/xx_network/primitives/id"
+	"git.xx.network/xx_network/primitives/id"
 	"golang.org/x/crypto/blake2b"
 	"io"
 )

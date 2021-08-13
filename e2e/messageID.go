@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 	"github.com/pkg/errors"
 	jww "github.com/spf13/jwalterweatherman"
-	"gitlab.com/elixxir/crypto/hash"
+	"git.xx.network/elixxir/crypto/hash"
 )
 
 const MessageIDLen = 32

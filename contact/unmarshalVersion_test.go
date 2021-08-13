@@ -9,8 +9,8 @@ package contact
 
 import (
 	"encoding/base64"
-	"gitlab.com/elixxir/primitives/fact"
-	"gitlab.com/xx_network/primitives/id"
+	"git.xx.network/elixxir/primitives/fact"
+	"git.xx.network/xx_network/primitives/id"
 	"math/rand"
 	"testing"
 )

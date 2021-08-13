@@ -10,8 +10,8 @@ package e2e
 
 import (
 	"fmt"
-	"gitlab.com/elixxir/crypto/cyclic"
-	"gitlab.com/elixxir/primitives/format"
+	"git.xx.network/elixxir/crypto/cyclic"
+	"git.xx.network/elixxir/primitives/format"
 	"golang.org/x/crypto/blake2b"
 )
 

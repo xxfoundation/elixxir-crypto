@@ -9,8 +9,8 @@
 package registration
 
 import (
-	"gitlab.com/elixxir/crypto/cyclic"
-	"gitlab.com/elixxir/crypto/diffieHellman"
+	"git.xx.network/elixxir/crypto/cyclic"
+	"git.xx.network/elixxir/crypto/diffieHellman"
 	"hash"
 )
 

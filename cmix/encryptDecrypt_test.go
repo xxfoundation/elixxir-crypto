@@ -7,8 +7,8 @@
 package cmix
 
 import (
-	"gitlab.com/elixxir/primitives/format"
-	"gitlab.com/xx_network/primitives/id"
+	"git.xx.network/elixxir/primitives/format"
+	"git.xx.network/xx_network/primitives/id"
 	"golang.org/x/crypto/blake2b"
 	"math/rand"
 	"reflect"

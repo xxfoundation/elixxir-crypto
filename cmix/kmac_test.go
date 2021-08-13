@@ -7,11 +7,11 @@
 package cmix
 
 import (
-	"gitlab.com/elixxir/crypto/cyclic"
-	"gitlab.com/elixxir/crypto/hash"
-	"gitlab.com/xx_network/crypto/csprng"
-	"gitlab.com/xx_network/crypto/large"
-	"gitlab.com/xx_network/primitives/id"
+	"git.xx.network/elixxir/crypto/cyclic"
+	"git.xx.network/elixxir/crypto/hash"
+	"git.xx.network/xx_network/crypto/csprng"
+	"git.xx.network/xx_network/crypto/large"
+	"git.xx.network/xx_network/primitives/id"
 	"math/rand"
 	"reflect"
 	"testing"

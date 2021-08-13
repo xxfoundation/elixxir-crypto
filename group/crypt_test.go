@@ -2,7 +2,7 @@ package group
 
 import (
 	"bytes"
-	"gitlab.com/elixxir/primitives/format"
+	"git.xx.network/elixxir/primitives/format"
 	"math/rand"
 	"testing"
 )

@@ -9,8 +9,8 @@ package e2e
 import (
 	"bytes"
 	"encoding/hex"
-	"gitlab.com/xx_network/crypto/csprng"
-	"gitlab.com/xx_network/crypto/large"
+	"git.xx.network/xx_network/crypto/csprng"
+	"git.xx.network/xx_network/crypto/large"
 	"testing"
 )
 

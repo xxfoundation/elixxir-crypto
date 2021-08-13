@@ -8,7 +8,7 @@
 // Operations include but are not limited to: key generation, ElGamal, multiplication, etc.
 package cryptops
 
-import "gitlab.com/elixxir/crypto/cyclic"
+import "git.xx.network/elixxir/crypto/cyclic"
 
 type ElGamalPrototype func(g *cyclic.Group, key, privatekey, publicCypherKey, ecrKeys, cypher *cyclic.Int)
 

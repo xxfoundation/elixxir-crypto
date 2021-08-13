@@ -8,7 +8,7 @@ package e2e
 
 import (
 	"encoding/base64"
-	"gitlab.com/elixxir/primitives/format"
+	"git.xx.network/elixxir/primitives/format"
 	"math/rand"
 	"reflect"
 	"testing"

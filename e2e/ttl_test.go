@@ -7,7 +7,7 @@
 package e2e
 
 import (
-	"gitlab.com/xx_network/crypto/large"
+	"git.xx.network/xx_network/crypto/large"
 	"testing"
 )
 

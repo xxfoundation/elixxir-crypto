@@ -6,7 +6,7 @@
 package auth
 
 import (
-	"gitlab.com/elixxir/crypto/cyclic"
+	"git.xx.network/elixxir/crypto/cyclic"
 )
 
 // Encrypts the payload for use in authenticated channels and provides a MAC

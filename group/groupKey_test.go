@@ -10,7 +10,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	"gitlab.com/xx_network/primitives/id"
+	"git.xx.network/xx_network/primitives/id"
 	"math/rand"
 	"strings"
 	"testing"

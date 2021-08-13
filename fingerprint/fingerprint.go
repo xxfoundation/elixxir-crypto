@@ -10,7 +10,7 @@ package fingerprint
 import (
 	"bytes"
 	"crypto"
-	"gitlab.com/xx_network/primitives/id"
+	"git.xx.network/xx_network/primitives/id"
 	_ "golang.org/x/crypto/blake2b"
 )
 

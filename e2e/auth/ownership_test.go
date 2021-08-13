@@ -7,9 +7,9 @@ package auth
 
 import (
 	"encoding/base64"
-	"gitlab.com/elixxir/crypto/cyclic"
-	"gitlab.com/elixxir/crypto/diffieHellman"
-	"gitlab.com/xx_network/crypto/large"
+	"git.xx.network/elixxir/crypto/cyclic"
+	"git.xx.network/elixxir/crypto/diffieHellman"
+	"git.xx.network/xx_network/crypto/large"
 	"math/rand"
 	"testing"
 )

@@ -7,8 +7,8 @@
 package factID
 
 import (
-	"gitlab.com/elixxir/primitives/fact"
-	"gitlab.com/xx_network/crypto/hasher"
+	"git.xx.network/elixxir/primitives/fact"
+	"git.xx.network/xx_network/crypto/hasher"
 )
 
 // Salt used for fact hashing to prevent rainbow table attacks

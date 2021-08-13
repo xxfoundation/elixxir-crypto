@@ -16,8 +16,8 @@ package cmix
 
 import (
 	jww "github.com/spf13/jwalterweatherman"
-	"gitlab.com/elixxir/crypto/cyclic"
-	"gitlab.com/elixxir/crypto/hash"
+	"git.xx.network/elixxir/crypto/cyclic"
+	"git.xx.network/elixxir/crypto/hash"
 )
 
 // GenerateClientGatewayKey hashes the symmetric key between client and the node

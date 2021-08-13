@@ -10,7 +10,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"errors"
-	"gitlab.com/xx_network/crypto/large"
+	"git.xx.network/xx_network/crypto/large"
 	"math/rand"
 	"reflect"
 	"testing"

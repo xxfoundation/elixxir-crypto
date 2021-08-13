@@ -16,9 +16,9 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"github.com/pkg/errors"
-	"gitlab.com/elixxir/crypto/cyclic"
-	"gitlab.com/elixxir/primitives/fact"
-	"gitlab.com/xx_network/primitives/id"
+	"git.xx.network/elixxir/crypto/cyclic"
+	"git.xx.network/elixxir/primitives/fact"
+	"git.xx.network/xx_network/primitives/id"
 )
 
 // unmarshalVer2 unmarshalers Contact encoding for version "2" using the

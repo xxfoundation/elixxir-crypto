@@ -18,8 +18,8 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	jww "github.com/spf13/jwalterweatherman"
-	"gitlab.com/xx_network/crypto/csprng"
-	"gitlab.com/xx_network/crypto/large"
+	"git.xx.network/xx_network/crypto/csprng"
+	"git.xx.network/xx_network/crypto/large"
 )
 
 // Groups provide cyclic int operations that keep the return values confined to

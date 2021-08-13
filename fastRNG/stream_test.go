@@ -9,7 +9,7 @@ package fastRNG
 import (
 	"bytes"
 	"crypto/rand"
-	"gitlab.com/xx_network/crypto/csprng"
+	"git.xx.network/xx_network/crypto/csprng"
 	"io"
 	"testing"
 )

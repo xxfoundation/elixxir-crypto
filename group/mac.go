@@ -11,7 +11,7 @@ package group
 
 import (
 	"bytes"
-	"gitlab.com/elixxir/crypto/cyclic"
+	"git.xx.network/elixxir/crypto/cyclic"
 	"golang.org/x/crypto/blake2b"
 )
 

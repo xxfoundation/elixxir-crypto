@@ -6,7 +6,7 @@
 package cmix
 
 import (
-	"gitlab.com/xx_network/crypto/csprng"
+	"git.xx.network/xx_network/crypto/csprng"
 	"math/rand"
 	"reflect"
 	"testing"

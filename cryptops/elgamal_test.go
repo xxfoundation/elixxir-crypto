@@ -7,8 +7,8 @@
 package cryptops
 
 import (
-	"gitlab.com/elixxir/crypto/cyclic"
-	"gitlab.com/xx_network/crypto/large"
+	"git.xx.network/elixxir/crypto/cyclic"
+	"git.xx.network/xx_network/crypto/large"
 	"testing"
 )
 

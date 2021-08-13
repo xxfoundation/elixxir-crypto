@@ -7,8 +7,8 @@ package auth
 
 import (
 	"encoding/base64"
-	"gitlab.com/elixxir/crypto/diffieHellman"
-	"gitlab.com/elixxir/primitives/format"
+	"git.xx.network/elixxir/crypto/diffieHellman"
+	"git.xx.network/elixxir/primitives/format"
 	"math/rand"
 	"testing"
 )
