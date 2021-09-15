@@ -17,6 +17,7 @@ import (
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/primitives/fact"
 	"gitlab.com/xx_network/primitives/id"
+	"golang.org/x/crypto/blake2b"
 	"strings"
 )
 
@@ -58,12 +59,13 @@ const (
 )
 
 // Current version of the Contact marshal encoding
-const currentVersion = "1"
+const currentVersion = "2"
 
 // map of Contact encoding version numbers to their unmarshal functions.
 var unmarshalVersions = map[string]func([]byte) (Contact, error){
 	"0":            unmarshalVer0,
-	currentVersion: unmarshalVer1,
+	"1":            unmarshalVer1,
+	currentVersion: unmarshalVer2,
 }
 
 // Contact implements the Contact interface defined in interface/contact.go,
@@ -184,9 +186,9 @@ func Unmarshal(b []byte) (Contact, error) {
 	return c, errors.Errorf(wrongVersionErr, version, currentVersion)
 }
 
-// GetChecksum generates a 16-byte MD5 checksum of the Contact.
+// GetChecksum generates a 16-byte checksum of the Contact.
 func (c Contact) GetChecksum() []byte {
-	h := crypto.MD5.New()
+	h, _ := blake2b.New256(nil)
 
 	// Hash data
 	if c.ID != nil {

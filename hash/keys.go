@@ -18,16 +18,15 @@ import (
 	"hash"
 )
 
+type NewHash interface {
+	New() hash.Hash
+}
+
 // ExpandKey is a function that receives a key and expands such key to the size
 // of the prime group
-func ExpandKey(h hash.Hash, g *cyclic.Group, key []byte,
+func ExpandKey(h func() hash.Hash, g *cyclic.Group, key []byte,
 	output *cyclic.Int) *cyclic.Int {
-	// The Hash will be created outside the function, so need to wrap
-	// it into a function to pass to HKDF.Expand
-	var foo = func() hash.Hash {
-		return h
-	}
-	keyGen := hkdf.Expand(foo, key, nil)
+	keyGen := hkdf.Expand(h, key, nil)
 
 	pBytes := g.GetPBytes()
 	expandedKey, err := csprng.GenerateInGroup(pBytes, len(pBytes), keyGen)
