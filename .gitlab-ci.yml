@@ -56,12 +56,10 @@ build:
       - testdata/
       - release/
 
-trigger_integration:
+trigger-integration:
   stage: trigger_integration
-  script:
-    # Server
-    - "curl -X POST -F token=$SERVER_TRIGGER_KEY -F ref=master https://gitlab.com/api/v4/projects/5014439/trigger/pipeline"
-    # Client
-    - "curl -X POST -F token=$CLIENT_TRIGGER_KEY -F ref=master https://gitlab.com/api/v4/projects/5454785/trigger/pipeline"
+  trigger:
+    project: elixxir/integration
+    branch: $CI_COMMIT_REF_NAME
   only:
     - master
