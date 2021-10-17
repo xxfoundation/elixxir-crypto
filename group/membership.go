@@ -42,7 +42,7 @@ const (
 
 const (
 	// MinMembers is the minimum number of members allowed in a Membership list.
-	MinMembers = 3
+	MinMembers = 2
 
 	// MaxMembers is the minimum number of members allowed in a Membership list.
 	MaxMembers = 11
