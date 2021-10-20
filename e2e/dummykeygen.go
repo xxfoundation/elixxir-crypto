@@ -13,13 +13,12 @@ import (
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/hash"
 	"gitlab.com/xx_network/primitives/id"
+	goHash "hash"
 )
 
 // combinedHash generates a key from two user ids by appending hashes
 // ordered by the larger user id
 func combinedHash(userA, userB *id.ID, grp *cyclic.Group) *cyclic.Int {
-
-	h, _ := hash.NewCMixHash()
 
 	// Create combined key by appending the smaller slice
 	var combKey []byte
@@ -31,7 +30,11 @@ func combinedHash(userA, userB *id.ID, grp *cyclic.Group) *cyclic.Int {
 		combKey = append(userB.Bytes(), userA.Bytes()...)
 	}
 
-	expKey := hash.ExpandKey(h, grp, combKey, grp.NewInt(1))
+	hashFunc := func() goHash.Hash {
+		h, _ := hash.NewCMixHash()
+		return h
+	}
+	expKey := hash.ExpandKey(hashFunc, grp, combKey, grp.NewInt(1))
 
 	return expKey
 

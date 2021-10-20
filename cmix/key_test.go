@@ -10,6 +10,7 @@ import (
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/xx_network/crypto/large"
 	"gitlab.com/xx_network/primitives/id"
+	"testing"
 )
 
 var base = 16
@@ -45,14 +46,11 @@ var primeLength = len(grp.GetPBytes())
 var baseKey = grp.NewIntFromString("a906df88f30d6afbfa6165a50cc9e208d16b34e70b367068dc5d6bd6e155b2c3", 16)
 var rid = id.Round(42)
 var salt = []byte("fdecfa52a8ad1688dbfa7d16df74ebf27e535903c469cefc007ebbe1ee895064")
-var expectStr = "5e2dea50eb3422571384debaea7fef4e97f8ece160ffc50ccd7ebfe6d4" +
-	"f4ec56e4b756f95193b6b8dccf5d68a9abb5a8f0c5cec1a37f2b1ff531827c864f408a25" +
-	"cd026540f7d32e419dcbe5d675c611bdbf544925fe1cdf579df0ecfcc58e152ac27c31b0" +
-	"05b0d5cdfb46192c91f6db4c745ec1cb94747d566ac408f76a2951930f13f30226d9493c" +
-	"0842e6d4d8349cb777e354eb75de8325f85c2c6eaf6cfc04b7dfd32167b963b8812f30df" +
-	"ce95510212d872964bad9bd59d9673ad13461bbe023193b0708099e8804762e527bb3652" +
-	"8dcce0af4f6fd0fa09cffaf220a4031e90ad9bacab3f57998415a1e178274da666e8946e" +
-	"b81d88e71f12537f44cc78"
+var expectStr = "44fdc38782c759d9fefb90edbb70dd24df9d09ae542bfc113f0ae1ddba23424e5b671f8aeb56502ea3e6960e9dd7e54b2f7" +
+	"db3590d963604dc701ee58e16953f75aa1e49d6a830f5f0e9b39c146cd74001a25c5165d699b8a2eaf0a5a6516ca2c8d6bb8d176be32d8a" +
+	"76aeba4f30dceeceece2a51dc1f97b8d3edd8be5f12128430e1137dd8300b0956eeb85bcf5a239a0a1d297d19d507bcca132dcf11afef1c" +
+	"4ca11a2710cc2c5100c3423dc76e59d63b05a17e939f16650159b4c04157eee40379c601dc8c0a3b0222788465eaad0f327e3c35bf57cd2" +
+	"7ba1edfb61a03aadc1a2f41dc422a6a728157d219c8b92f1ed56b2e920fd8aed7e0fe7f4325406d8"
 
 func makeBaseKeys(size int) []*cyclic.Int {
 	keys := make([]*cyclic.Int, 0)
@@ -64,57 +62,56 @@ func makeBaseKeys(size int) []*cyclic.Int {
 	return keys
 }
 
-// FIXME: commented out to work with go 1.16.4
-// // Test that keyGen() produces the correct key.
-// func TestKeyGen(t *testing.T) {
-// 	key := grp.NewInt(1)
-// 	keyGen(grp, salt, rid, baseKey, key)
-//
-// 	expected := grp.NewIntFromString(expectStr, 16)
-//
-// 	if key.Cmp(expected) != 0 {
-// 		t.Errorf("keyGen() generated an incorrect key"+
-// 			"\n\treceived: %v\n\texpected: %v",
-// 			key.TextVerbose(16, 0),
-// 			expected.TextVerbose(16, 0))
-// 	}
-// }
-//
-// // Test that NodeKeyGen() produces the correct key. This is the same test as
-// // TestKeyGen() because NodeKeyGen() is a wrapper of keyGen().
-// func TestNodeKeyGen(t *testing.T) {
-// 	key := grp.NewInt(1)
-// 	NodeKeyGen(grp, salt, rid, baseKey, key)
-//
-// 	expected := grp.NewIntFromString(expectStr, 16)
-//
-// 	if key.Cmp(expected) != 0 {
-// 		t.Errorf("NodeKeyGen() generated an incorrect key"+
-// 			"\n\treceived: %v\n\texpected: %v",
-// 			key.TextVerbose(16, 0),
-// 			expected.TextVerbose(16, 0))
-// 	}
-// }
-//
-// // Test that multiple baseKeys return a slice of same size with correct results
-// func TestClientKeyGen(t *testing.T) {
-// 	size := 10
-// 	key := ClientKeyGen(grp, salt, rid, makeBaseKeys(size))
-//
-// 	expected := grp.NewInt(1)
-// 	tmpKey := grp.NewInt(1)
-//
-// 	for i := 0; i < size; i++ {
-// 		tmpKey = grp.NewIntFromString(expectStr, 16)
-// 		keyGen(grp, salt, rid, baseKey, tmpKey)
-// 		grp.Mul(tmpKey, expected, expected)
-// 	}
-// 	grp.Inverse(expected, expected)
-//
-// 	if key.Cmp(expected) != 0 {
-// 		t.Errorf("ClientKeyGen() generated an incorrect key"+
-// 			"\n\treceived: %v\n\texpected: %v",
-// 			key.TextVerbose(10, 35),
-// 			expected.TextVerbose(10, 35))
-// 	}
-// }
+// Test that keyGen() produces the correct key.
+func TestKeyGen(t *testing.T) {
+	key := grp.NewInt(1)
+	keyGen(grp, salt, rid, baseKey, key)
+
+	expected := grp.NewIntFromString(expectStr, 16)
+
+	if key.Cmp(expected) != 0 {
+		t.Errorf("keyGen() generated an incorrect key"+
+			"\n\treceived: %v\n\texpected: %v",
+			key.TextVerbose(16, 0),
+			expected.TextVerbose(16, 0))
+	}
+}
+
+// Test that NodeKeyGen() produces the correct key. This is the same test as
+// TestKeyGen() because NodeKeyGen() is a wrapper of keyGen().
+func TestNodeKeyGen(t *testing.T) {
+	key := grp.NewInt(1)
+	NodeKeyGen(grp, salt, rid, baseKey, key)
+
+	expected := grp.NewIntFromString(expectStr, 16)
+
+	if key.Cmp(expected) != 0 {
+		t.Errorf("NodeKeyGen() generated an incorrect key"+
+			"\n\treceived: %v\n\texpected: %v",
+			key.TextVerbose(16, 0),
+			expected.TextVerbose(16, 0))
+	}
+}
+
+// Test that multiple baseKeys return a slice of same size with correct results
+func TestClientKeyGen(t *testing.T) {
+	size := 10
+	key := ClientKeyGen(grp, salt, rid, makeBaseKeys(size))
+
+	expected := grp.NewInt(1)
+	tmpKey := grp.NewInt(1)
+
+	for i := 0; i < size; i++ {
+		tmpKey = grp.NewIntFromString(expectStr, 16)
+		keyGen(grp, salt, rid, baseKey, tmpKey)
+		grp.Mul(tmpKey, expected, expected)
+	}
+	grp.Inverse(expected, expected)
+
+	if key.Cmp(expected) != 0 {
+		t.Errorf("ClientKeyGen() generated an incorrect key"+
+			"\n\treceived: %v\n\texpected: %v",
+			key.TextVerbose(10, 35),
+			expected.TextVerbose(10, 35))
+	}
+}
