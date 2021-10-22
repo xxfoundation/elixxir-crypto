@@ -16,29 +16,29 @@ func TestIdentityFP(t *testing.T) {
 	user2 := id.NewIdFromString("zez1ma", id.User, t)
 
 	// Check that two fingerprints created from the same data are identical
-	fp1 := IdentityFP(message1, user1)
-	fp2 := IdentityFP(message1, user1)
+	fp1 := IdentityFP(message1, user1[:])
+	fp2 := IdentityFP(message1, user1[:])
 	if !bytes.Equal(fp1, fp2) {
 		t.Errorf("ID1 [%+v] and ID2 [%+v] were composed from the same data, "+
 			"should have been identical", fp1, fp2)
 	}
 
 	// Ensure that changing the message data alters the fingerprint
-	fp3 := IdentityFP(message2, user1)
+	fp3 := IdentityFP(message2, user1[:])
 	if bytes.Equal(fp1, fp3) {
 		t.Errorf("ID1 [%+v] and ID3 [%+v] had different messages, should have "+
 			"been different", fp1, fp3)
 	}
 
 	// Ensure that changing the user data alters the fingerprint
-	fp4 := IdentityFP(message1, user2)
+	fp4 := IdentityFP(message1, user2[:])
 	if bytes.Equal(fp1, fp4) {
 		t.Errorf("ID1 [%+v] and ID4[%+v] had different users, should have "+
 			"been different", fp1, fp4)
 	}
 
 	// Extra test case
-	fp5 := IdentityFP(message2, user2)
+	fp5 := IdentityFP(message2, user2[:])
 	if bytes.Equal(fp5, fp1) || bytes.Equal(fp5, fp3) || bytes.Equal(fp5, fp4) {
 		t.Errorf("Something went wrong: IDs generated with different data "+
 			"should not be identical.\n\tID1 [%+v]\n\tID2 [%+v]\n\tID3 [%+v]"+
@@ -67,7 +67,7 @@ func TestIdentityFP_Consistency(t *testing.T) {
 		msg := make([]byte, 255)
 		prng.Read(msg)
 		rid, _ := id.NewRandomID(prng, id.User)
-		fp := IdentityFP(msg, rid)
+		fp := IdentityFP(msg, rid[:])
 		expectedFp, err := base64.StdEncoding.DecodeString(expected)
 		if err != nil {
 			t.Errorf("Failed to base 64 decode fingerprint %d: %+v", i, err)
@@ -87,8 +87,8 @@ func TestCheckIdentityFP(t *testing.T) {
 	user := id.NewIdFromString("zezima", id.User, t)
 
 	// Check that two fingerprints created from the same data are identical
-	fp := IdentityFP(message, user)
-	ok := CheckIdentityFP(fp, message, user)
+	fp := IdentityFP(message, user[:])
+	ok := CheckIdentityFP(fp, message, user[:])
 	if !ok {
 		t.Errorf("Should have gotten ok from CheckIdentityFP. Instead got %v", ok)
 	}
@@ -135,8 +135,8 @@ func TestCheckIdentityFpFromMessageHash(t *testing.T) {
 	user := id.NewIdFromString("zezima", id.User, t)
 
 	// Check that two fingerprints created from the same data are identical
-	fp := IdentityFP(message, user)
-	ok := CheckIdentityFpFromMessageHash(fp, GetMessageHash(message), user)
+	fp := IdentityFP(message, user[:])
+	ok := CheckIdentityFpFromMessageHash(fp, GetMessageHash(message), user[:])
 	if !ok {
 		t.Error("CheckIdentityFpFromMessageHash() did not correctly determine " +
 			"the fingerprint to match the hashed message and user ID.")
