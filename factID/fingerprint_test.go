@@ -14,8 +14,13 @@ import (
 )
 
 func TestFingerprint(t *testing.T) {
-	expected := []byte("\xdb\x10\x1e\xed\x0eAi\xb4\x13?[6\x0e\x154\xbd\x1a\xa8\x19\xb5\xaa\x1c\xfe\xb9\xd2\xe3\xfc\xfc\xa4\xbb\xd7\x01")
+	expected := []byte("#\xdd\rC\xe0\u078f\u07a4j\xb4\xc36P\x85?\xfb\xe2dkRl\x06\x9fR1V\xe2\xf0\x94\u007f\r")
 	testVal, err := fact.NewFact(fact.Email, "marie@elixxir.io")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testVal2, err := fact.NewFact(fact.Email, "MARie@elixxir.io")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -24,5 +29,11 @@ func TestFingerprint(t *testing.T) {
 	if !bytes.Equal(retVal, expected) {
 		fmt.Println(retVal)
 		t.Errorf("Fingerprint failed, Expected: %+q, Got: %+q", expected, retVal)
+	}
+
+	retVal2 := Fingerprint(testVal2)
+	if !bytes.Equal(retVal2, retVal) {
+		t.Errorf("Fingerprint case checking failed, first in [%+v] out [%+v], second in [%+v] out [%+v]",
+			testVal.Fact, retVal, testVal2.Fact, retVal2)
 	}
 }
