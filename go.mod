@@ -7,8 +7,8 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/jwalterweatherman v1.1.0
-	gitlab.com/elixxir/primitives v0.0.3-0.20211208211148-752546cf2e46
-	gitlab.com/xx_network/crypto v0.0.5-0.20211014163843-57b345890686
-	gitlab.com/xx_network/primitives v0.0.4-0.20211014163031-53405cf191fb
+	gitlab.com/elixxir/primitives v0.0.3-0.20211215175956-d65c3202c661
+	gitlab.com/xx_network/crypto v0.0.5-0.20211215175916-ef89afff7ea2
+	gitlab.com/xx_network/primitives v0.0.4-0.20211215010517-1917372c5ecc
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
 )
