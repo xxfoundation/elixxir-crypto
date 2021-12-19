@@ -16,9 +16,6 @@ import (
 // TestMakeAuthKey_Smoke tests basic functionality of MakeAuth s.t. it
 // produces the same auth key on both sides of a connection
 func TestMakeAuthKey_Smoke(t *testing.T) {
-	// Initialize a mock salt
-	salt := []byte("salt")
-
 	// Generate a group
 	grp := getGrp()
 
@@ -33,8 +30,8 @@ func TestMakeAuthKey_Smoke(t *testing.T) {
 	pubKey2 := diffieHellman.GeneratePublicKey(privKey2, grp)
 
 	// Create the auth keys
-	key1, vector1 := MakeAuthKey(privKey1, pubKey2, salt, grp)
-	key2, vector2 := MakeAuthKey(privKey2, pubKey1, salt, grp)
+	key1, vector1 := MakeAuthKey(privKey1, pubKey2, grp)
+	key2, vector2 := MakeAuthKey(privKey2, pubKey1, grp)
 
 	for i := 0; i < len(key1); i++ {
 		if key1[i] == key2[i] {
@@ -58,24 +55,21 @@ func TestMakeAuthKey_Smoke(t *testing.T) {
 func TestMakeAuthKey_Consistency(t *testing.T) {
 	// Hardcoded expected values for auth keys
 	expectedKeys := []string{
-		"0PSG0GR6/QCcQ+P5+HfGbYyZYrX04SnVuk37tHnFvu0=",
-		"8CSvWeTn5CujIO07prc1MA1WXueC7FXBP/35JoePyuY=",
-		"7Wv51EGdOagD8KJNPIZ8Khp3+WHRfyQ3VZHABvnXlRM=",
-		"QLe72xIwNkiDWZfVW0tuxEode+ZotkZNj9vSPzM0rKQ=",
-		"GUSK/PWHEmur0eNzMzmAzjLDEXRm3e8qna1XfopmUyo=",
+		"lGzqWPllJvh6m+3P3l1pIaMsOWCkL/2BDlfPO/shgUY=",
+		"kWq8gs9lS7Fshmu7U52k1AAtdUtgsu/RelYAZK4U5Ho=",
+		"vauhaqhUB8KLUzKlhOgaL/qPVNGJP1e6BOGbtuCcbK0=",
+		"ta8FsTUN7JhYd+lTSwEA20t1TWo3SnrMaJvQifxdpYA=",
+		"9K14uzjAxgR1uQzQ8OYgLkUM7tCx8lB0oemYEZ5l62w=",
 	}
 
 	// Hardcoded expected values for vectors
 	expectedVectors := []string{
-		"tPA6P5FVlXT/k+g52POlo8D9GFtSbaGRDHHKYBtfzu0=",
-		"ns/XQvCsecnOnbv/rUKWM9lpzhHzvuqmxNEcn7b3rkM=",
-		"8OzaFjLJlGTqKV4k562I3cl0U9jzQ6BoDxS64X2V9iI=",
-		"dI7l2aXYbMATqsf7RRb1H+06AUO8dOB+kNAmzWMJoGg=",
-		"PFrcY1rjHHehkPK++chBSbT9+SPUIfLMn1ZkRzX0Z18=",
+		"ixUnc8qSvWrMzq5ziYq945wB2ZTL0ASqJ/5g68WU9+c=",
+		"wSDtNuv/ilJS4KX5cNrLx912TIKr0pBtEjg3u/UgIuk=",
+		"xKuplHpcK/02UtuAp5RnZufy57+yySmlma0TtAksW9M=",
+		"0/TajGR6qVtfe7KroMnbB5/mkD7K2MKhpgDMzeM9YpE=",
+		"Um9x38pJ2Q/TRUvzO9+1d0E1WQN8OAiPVssMTMbKdgc=",
 	}
-
-	// Initialize a mock salt
-	salt := []byte("salt")
 
 	// Generate a group
 	grp := getGrp()
@@ -91,7 +85,7 @@ func TestMakeAuthKey_Consistency(t *testing.T) {
 		partnerPubKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(512, grp, prng), grp)
 
 		// Create the auth key
-		key, vector := MakeAuthKey(myPrivKey, partnerPubKey, salt, grp)
+		key, vector := MakeAuthKey(myPrivKey, partnerPubKey, grp)
 
 		// Encode the auth key for comparison
 		key64Encoded := base64.StdEncoding.EncodeToString(key)
@@ -116,9 +110,6 @@ func TestMakeAuthKey_Consistency(t *testing.T) {
 
 // Check that for every input varied in MakeAuthKey, outputs vary
 func TestMakeAuthKey_InputVariance(t *testing.T) {
-	// Initialize a mock salt
-	salt := []byte("salt")
-
 	// Generate a group
 	grp := getGrp()
 
@@ -130,30 +121,21 @@ func TestMakeAuthKey_InputVariance(t *testing.T) {
 	partnerPubKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(512, grp, prng), grp)
 
 	// Create the auth key
-	key, vector := MakeAuthKey(myPrivKey, partnerPubKey, salt, grp)
+	key, vector := MakeAuthKey(myPrivKey, partnerPubKey, grp)
 
 	// Generate 'bad' (ie different) input values
 	badPrng := rand.New(rand.NewSource(69))
 	badPrivKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, grp, badPrng)
 	badPartnerPubKey := diffieHellman.GeneratePublicKey(diffieHellman.GeneratePrivateKey(512, grp, badPrng), grp)
-	badSalt := []byte("BadSalt")
-
 	// Vary the private key inputted, check the outputs
-	badKey, badVector := MakeAuthKey(badPrivKey, partnerPubKey, salt, grp)
+	badKey, badVector := MakeAuthKey(badPrivKey, partnerPubKey, grp)
 	if bytes.Equal(key, badKey) || bytes.Equal(vector, badVector) {
 		t.Errorf("Outputs generated were identical when our private key varied")
 	}
 
 	// Vary the public key inputted, check the outputs
-	badKey, badVector = MakeAuthKey(myPrivKey, badPartnerPubKey, salt, grp)
+	badKey, badVector = MakeAuthKey(myPrivKey, badPartnerPubKey, grp)
 	if bytes.Equal(key, badKey) || bytes.Equal(vector, badVector) {
 		t.Errorf("Outputs generated were identical when the parner public key varied")
 	}
-
-	// Vary the salt inputted, check the outputs
-	badKey, badVector = MakeAuthKey(badPrivKey, badPartnerPubKey, badSalt, grp)
-	if bytes.Equal(key, badKey) || bytes.Equal(vector, badVector) {
-		t.Errorf("Outputs generated were identical when the salt varied")
-	}
-
 }
