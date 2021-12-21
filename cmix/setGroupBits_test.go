@@ -1,7 +1,8 @@
 package cmix
 
 import (
-	//"gitlab.com/xx_network/crypto/csprng"
+	"gitlab.com/xx_network/crypto/csprng"
+	"gitlab.com/xx_network/crypto/large"
 
 	"testing"
 )
@@ -59,6 +60,22 @@ func TestSelectGroupBit_ByteMask(t *testing.T) {
 
 	if trues != 128 || falses != 128 {
 		t.Fatal("fail")
+	}
+}
+
+func TestSelectGroupBit_InGroup(t *testing.T) {
+	prime := large.NewIntFromString(pString, base)
+	payload := prime.Add(prime, prime)
+	c := csprng.Source(&csprng.SystemRNG{})
+	ret := SelectGroupBit(payload.Bytes(), prime.Bytes(), c)
+	if ret {
+		t.Fatal("fail, not in group")
+	}
+
+	payload = prime.Add(large.NewInt(int64(0)), large.NewInt(int64(1)))
+	ret = SelectGroupBit(payload.Bytes(), prime.Bytes(), c)
+	if ret {
+		t.Fatal("fail, not in group")
 	}
 }
 
