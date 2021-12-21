@@ -30,6 +30,8 @@ func SetGroupBits(msg format.Message, grp *cyclic.Group, rng csprng.Source)forma
 	return msg
 }
 
+// value where half of all numbers in an 8 bit space are
+// larger than it
 const byteMask = 0b01111111
 
 // selectGroupBit selects what the "group bit" (the highest
