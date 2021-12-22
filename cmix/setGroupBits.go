@@ -22,12 +22,11 @@ import (
 // both leading bits flip to 1) identity a message they made multiplied
 // garbage into for a tagging attack. This fix makes the leading its
 // random in order to thwart that attack
-func SetGroupBits(msg format.Message, grp *cyclic.Group, rng csprng.Source)format.Message{
+func SetGroupBits(msg format.Message, grp *cyclic.Group, rng csprng.Source) {
 	primeBytes := grp.GetP().Bytes()
 	groupBitA := SelectGroupBit(msg.GetPayloadA(), primeBytes, rng)
 	groupBitB := SelectGroupBit(msg.GetPayloadB(), primeBytes, rng)
-	msg.SetGroupBits(groupBitA,groupBitB)
-	return msg
+	msg.SetGroupBits(groupBitA, groupBitB)
 }
 
 // value where half of all numbers in an 8 bit space are
@@ -40,26 +39,26 @@ const byteMask = 0b01111111
 // in the group, otherwise it will default to 0.
 // true  - set the bit to 1
 // false - set the bit to 0
-func SelectGroupBit(payload, prime []byte, rng csprng.Source)bool{
+func SelectGroupBit(payload, prime []byte, rng csprng.Source) bool {
 	//set the first bit so we can see if when the first bit is 1, if it is in the group
 	payload[0] |= 0b10000000
-	defer func (){
+	defer func() {
 		// revert the chage on return. slices are passed by reference, so the
 		// edit impacts the caller
 		payload[0] &= 0b01111111
 	}()
 
 	//check if it is in the group
-	if csprng.InGroup(payload, prime){
+	if csprng.InGroup(payload, prime) {
 		//if it is, randomly set the first bit
 		b := []byte{0}
 		i, err := rng.Read(b)
-		if i!=1 || err!=nil{
+		if i != 1 || err != nil {
 			jww.FATAL.Panicf("Failed to read from rng in selectGroupBit")
 		}
-		return b[0]>byteMask
+		return b[0] > byteMask
 
-	}else{
+	} else {
 		//if it isnt,
 		return false
 	}
