@@ -1,8 +1,11 @@
 package cmix
 
 import (
+	"bytes"
+	"gitlab.com/elixxir/primitives/format"
 	"gitlab.com/xx_network/crypto/csprng"
 	"gitlab.com/xx_network/crypto/large"
+	"math/rand"
 
 	"testing"
 )
@@ -30,6 +33,7 @@ func (s *fakeRNG) SetSeed(seed []byte) error {
 	return nil
 }
 
+//tests that the byte mask value resulst sin 50% 1s and 50% 0s
 func TestSelectGroupBit_ByteMask(t *testing.T) {
 	//c := csprng.Source(&csprng.SystemRNG{})
 	c := newFakeRNG()
@@ -63,20 +67,44 @@ func TestSelectGroupBit_ByteMask(t *testing.T) {
 	}
 }
 
-func TestSelectGroupBit_InGroup(t *testing.T) {
-	prime := large.NewIntFromString(pString, base)
-	payload := prime.Add(prime, prime)
-	c := csprng.Source(&csprng.SystemRNG{})
-	ret := SelectGroupBit(payload.Bytes(), prime.Bytes(), c)
-	if ret {
-		t.Fatal("fail, not in group")
+type all1RNG struct {
+}
+
+func newAll1RNG() *all1RNG {
+	return &all1RNG{}
+}
+
+func (s *all1RNG) Read(b []byte) (int, error) {
+	for i:=0;i<len(b);i++{
+		b[i] = 0b11111111
 	}
 
-	payload = prime.Add(large.NewInt(int64(0)), large.NewInt(int64(1)))
-	ret = SelectGroupBit(payload.Bytes(), prime.Bytes(), c)
-	if ret {
-		t.Fatal("fail, not in group")
-	}
+	return len(b), nil
+}
+
+func (s *all1RNG) SetSeed(seed []byte) error {
+	return nil
+}
+
+
+//tests that when the payload is outside the group with a leading 1, it makes the leading value a 0
+func TestSelectGroupBit_InGroup(t *testing.T) {
+		prime := large.NewIntFromString(pString, base)
+		payload := prime.Add(prime, prime)
+		// use an RNG that always returns 1 to ensure that in the event that
+		// the in group test fails, the return will always be 1
+		c := &all1RNG{}
+		ret := SelectGroupBit(payload.Bytes(), prime.Bytes(), c)
+		if ret {
+			t.Fatal("fail, not in group")
+		}
+
+		payload = prime.Add(large.NewInt(int64(0)), large.NewInt(int64(1)))
+		ret = SelectGroupBit(payload.Bytes(), prime.Bytes(), c)
+		if ret {
+			t.Fatal("fail, not in group")
+		}
+
 }
 
 func abs(a int) int {
@@ -84,4 +112,40 @@ func abs(a int) int {
 		return -a
 	}
 	return a
+}
+
+func TestSetGroupBits(t *testing.T) {
+
+	firstZero := false
+	firstOne := false
+	secondZero := false
+	secondOne := false
+
+
+	rnd := csprng.NewSystemRNG()
+
+	prime := grp.GetP()
+	for i:=0;i<1000;i++{
+		msg := format.Message{}
+
+		payloadA := make([]byte,prime.ByteLen())
+		rnd.Read(payloadA)
+		payloadB := make([]byte,prime.ByteLen())
+		rnd.Read(payloadB)
+
+		msg.SetPayloadA(payloadA)
+		msg.SetPayloadB(payloadB)
+
+		editedMsg := SetGroupBits(msg,grp,rnd)
+		editedPayloadA
+
+		if !bytes.Equal(editedMsg.GetPayloadA(),msg.GetPayloadA()){
+			if
+		}
+
+
+
+	}
+
+
 }
