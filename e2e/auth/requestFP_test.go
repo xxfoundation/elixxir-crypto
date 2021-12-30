@@ -64,10 +64,10 @@ func TestMakeRequestFingerprint_FirstBitZero(t *testing.T) {
 func TestSetRequestFingerprint_Consistency(t *testing.T) {
 	expected := []string{
 		"MY/pv2UmD7nvcsU6hmcly72humiiqOWIspbiGw4pHr4=",
-		"FFx68poO2W+DyF3gR306HHjHUSXv/7/y4PlivQTC01k=",
-		"bKe4HoHyxyr4kZ06JqDG6VMwbHJj7XP1cU/or7l5nYY=",
-		"PLh2LmE18XPLw9J1bvkDpYEBlYS+J8TF1PaOLenRX8A=",
-		"PGeHBikffOe3Z8fEnT0YGy2zk4giC8UoK9drmIJt/vk=",
+		"FT9Me9dXBKq3ZgbalumlDpBK8/KsgOZukFbDih03wro=",
+		"U+C5q0c2SmYzteqVlMLWnlB5BycOwja8p7Ttfw6EVNQ=",
+		"A1VhcJrrQswb4nFu7GrzoJLKZWySYZAxG+4NHUzfJuE=",
+		"FhuLR6vRFoy0kAC8ow1G82D4Ofu1ddAmAKKDvqlWf+M=",
 	}
 
 	grp := getGrp()
