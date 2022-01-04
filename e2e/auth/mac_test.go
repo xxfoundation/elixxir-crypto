@@ -18,11 +18,11 @@ import (
 func TestMakeMac_Consistency(t *testing.T) {
 
 	expected := []string{
-		"Q81/bnOcvEdzC2YF3P/ZE2gnLuwcjRPN3IyuQPqVscc=",
-		"LnKQHfU/YqjB/HbKMFlK+QIhdyEHuU8e9Yj0l287Tms=",
-		"EEdYuEezQbqP71kibU/Wpos7U/IiqhUpGPfBKJ/303k=",
-		"Idsa5BtyYLwepCNwzqZPuLBDgMu0vAVrgeP6t1djAFc=",
-		"FJyj0Uf7DDhxyNH2InYbPbRdI9UrRoQgM3hlmAgi17k=",
+		"V0/c2vPAzwypqyVmlq5y28InATGkiBbkLbzrUIFHntE=",
+		"NkZ/F91nRrL5O9kZ3dse74k0hWZ7iFXVW7zyrupaj2U=",
+		"F8+59YYSpgFwrqjNhxGdUcudYPQiY4VVhEVhcueY09g=",
+		"fZ4iPmfjFgwfdkOiHFaMTo+bPguKMXsNyD+QJtnKg3M=",
+		"T+blUgM7MtX+VpUinOeT9txhCRJEfFZDBBhGF1lAuhk=",
 	}
 
 	grp := getGrp()
@@ -32,11 +32,9 @@ func TestMakeMac_Consistency(t *testing.T) {
 		privKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, grp, prng)
 		pubkey := diffieHellman.GeneratePublicKey(privKey, grp)
 		baseKey := diffieHellman.GenerateSessionKey(privKey, pubkey, grp)
-		salt := make([]byte, 32)
-		prng.Read(salt)
 		encryptedPayload := make([]byte, 128)
 		prng.Read(encryptedPayload)
-		mac := MakeMac(baseKey.Bytes(), salt, encryptedPayload)
+		mac := MakeMac(baseKey.Bytes(), encryptedPayload)
 		mac64 := base64.StdEncoding.EncodeToString(mac)
 
 		if expected[i] != mac64 {
@@ -57,13 +55,11 @@ func TestVerifyMac(t *testing.T) {
 		privKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, grp, prng)
 		pubkey := diffieHellman.GeneratePublicKey(privKey, grp)
 		baseKey := diffieHellman.GenerateSessionKey(privKey, pubkey, grp)
-		salt := make([]byte, 32)
-		prng.Read(salt)
 		encryptedPayload := make([]byte, 128)
 		prng.Read(encryptedPayload)
-		mac := MakeMac(baseKey.Bytes(), salt, encryptedPayload)
+		mac := MakeMac(baseKey.Bytes(), encryptedPayload)
 
-		if !VerifyMac(baseKey.Bytes(), salt, encryptedPayload, mac) {
+		if !VerifyMac(baseKey.Bytes(), encryptedPayload, mac) {
 			t.Errorf("MAC could not be verified at index %v", i)
 		}
 	}
@@ -80,14 +76,12 @@ func TestVerifyMac_Bad(t *testing.T) {
 		privKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, grp, prng)
 		pubkey := diffieHellman.GeneratePublicKey(privKey, grp)
 		baseKey := diffieHellman.GenerateSessionKey(privKey, pubkey, grp)
-		salt := make([]byte, 32)
-		prng.Read(salt)
 		encryptedPayload := make([]byte, 128)
 		prng.Read(encryptedPayload)
 		mac := make([]byte, 32)
 		prng.Read(mac)
 
-		if VerifyMac(baseKey.Bytes(), salt, encryptedPayload, mac) {
+		if VerifyMac(baseKey.Bytes(), encryptedPayload, mac) {
 			t.Errorf("MAC was verified at index %v when it is bad", i)
 		}
 	}
@@ -111,11 +105,10 @@ func TestMacInputProof(t *testing.T) {
 					privKey2 := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength+j, grp, prng)
 					pubkey := diffieHellman.GeneratePublicKey(privKey1, grp)
 					baseKey := diffieHellman.GenerateSessionKey(privKey2, pubkey, grp)
-					salt := make([]byte, 32+k)
-					prng.Read(salt)
 					encryptedPayload := make([]byte, 128+l)
 					prng.Read(encryptedPayload)
-					mac := MakeMac(baseKey.Bytes(), salt, encryptedPayload)
+					mac := MakeMac(baseKey.Bytes(),
+						encryptedPayload)
 
 					macList = append(macList, mac)
 				}

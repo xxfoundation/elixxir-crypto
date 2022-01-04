@@ -11,30 +11,30 @@ import (
 
 // Encrypts the payload for use in authenticated channels and provides a MAC
 // on this encrypted payload
-func Encrypt(myPrivKey, partnerPubKey *cyclic.Int, salt, payload []byte,
+func Encrypt(myPrivKey, partnerPubKey *cyclic.Int, payload []byte,
 	grp *cyclic.Group) (ecrPayload, mac []byte) {
 
 	// Generate the base key
-	authKey, vec := MakeAuthKey(myPrivKey, partnerPubKey, salt, grp)
+	authKey, vec := MakeAuthKey(myPrivKey, partnerPubKey,grp)
 
 	// Encrypt the payload
 	ecrPayload = Crypt(authKey, vec, payload)
 
 	// Generate the MAC
-	mac = MakeMac(authKey, salt, ecrPayload)
+	mac = MakeMac(authKey, ecrPayload)
 	return ecrPayload, mac
 }
 
 // Decrypts the payload for use in authenticated channels and provides a MAC
 // on this encrypted payload
-func Decrypt(myPrivKey, partnerPubKey *cyclic.Int, salt, ecrPayload, MAC []byte,
+func Decrypt(myPrivKey, partnerPubKey *cyclic.Int, ecrPayload, MAC []byte,
 	grp *cyclic.Group) (success bool, payload []byte) {
 
 	// Generate the base key
-	authKey, vec := MakeAuthKey(myPrivKey, partnerPubKey, salt, grp)
+	authKey, vec := MakeAuthKey(myPrivKey, partnerPubKey, grp)
 
 	// Check if the mac if valid
-	if !VerifyMac(authKey, salt, ecrPayload, MAC) {
+	if !VerifyMac(authKey, ecrPayload, MAC) {
 		return false, nil
 	}
 

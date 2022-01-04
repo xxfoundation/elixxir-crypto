@@ -16,7 +16,7 @@ import (
 )
 
 // MakeMac returns the MAC for the given payload.
-func MakeMac(baseKey, salt, encryptedPayload []byte) []byte {
+func MakeMac(baseKey, encryptedPayload []byte) []byte {
 	//suppress because we just panic and a nil hash will panic anyhow
 	h, _ := hash.NewCMixHash()
 	// This will panic if we got an error in the line above, but does nothing
@@ -24,7 +24,6 @@ func MakeMac(baseKey, salt, encryptedPayload []byte) []byte {
 	h.Reset()
 
 	h.Write(baseKey)
-	h.Write(salt)
 	h.Write(encryptedPayload)
 
 	sum := h.Sum(nil)
@@ -36,7 +35,7 @@ func MakeMac(baseKey, salt, encryptedPayload []byte) []byte {
 
 // VerifyMac ensures that the provided MAC matches the provided payload
 // information. Returns true if they match.
-func VerifyMac(baseKey, salt, encryptedPayload, mac []byte) bool {
-	testMAC := MakeMac(baseKey, salt, encryptedPayload)
+func VerifyMac(baseKey, encryptedPayload, mac []byte) bool {
+	testMAC := MakeMac(baseKey, encryptedPayload)
 	return bytes.Equal(mac, testMAC)
 }

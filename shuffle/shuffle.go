@@ -97,3 +97,48 @@ func Shuffle32(shufflee *[]uint32) {
 	}
 	shuffleCore32(shufflee, csprng.NewSystemRNG())
 }
+
+// 16-bit shuffle implementation
+
+// shuffleCore16 used in test to guarantee 100% coverage
+func shuffleCore16(shufflee *[]uint16, rng csprng.Source) {
+	if uint64(len(*shufflee)) > math.MaxUint16 {
+		jww.ERROR.Panic("Too many items in the shuffled batch")
+	}
+	size := uint16(len(*shufflee))
+	// use 2 times the required bytes to reduce modulo bias to be more acceptable
+	bufLen := 2 * (bits.Len(uint(size)) + 7) >> 3
+
+	for curPos := uint16(0); curPos < size-1; curPos++ {
+		buf := make([]byte, bufLen)
+		// Shuffle should be able to swap with any element that hasn't
+		// already been shuffled
+		n, err := rng.Read(buf)
+		if err != nil || n != len(buf) {
+			jww.FATAL.Panicf("Could not generate random "+
+				"number in Shuffle: %v", err.Error())
+		}
+
+		// Left pad buf to make it the right length for binary.BigEndian.Uint64
+		buf = append(make([]byte, 8-len(buf)), buf...)
+
+		// Generate a number between curPos and size-1
+		// FIXME We should generate the numbers in a way that isn't biased
+		// See XX-1036 for a ticket about the RNG redesign
+		// https://privategrity.atlassian.net/browse/XX-1036
+		randPos := binary.BigEndian.Uint64(buf)
+		randPos %= uint64(size - curPos)
+		randPos += uint64(curPos)
+		(*shufflee)[randPos], (*shufflee)[curPos] = (*shufflee)[curPos],
+			(*shufflee)[randPos]
+	}
+}
+
+// Shuffle16 shuffles a uint16 array using a Fisher-Yates shuffle
+func Shuffle16(shufflee *[]uint16) {
+	// Skip empty lists or lists of only 1 element, they cannot be shuffled
+	if len(*shufflee) <= 1 {
+		return
+	}
+	shuffleCore16(shufflee, csprng.NewSystemRNG())
+}
