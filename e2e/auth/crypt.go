@@ -12,7 +12,7 @@ import (
 )
 
 // Required length of the nonce within XChaCha20
-const NonceLength = chacha20.NonceSize
+const NonceLength = chacha20.NonceSizeX
 
 // Crypt XChaCha20 encrypts or decrypts a message with the passed key and vector
 func Crypt(key, vector, msg []byte) (crypt []byte) {

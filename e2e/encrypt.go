@@ -17,7 +17,7 @@ import (
 // fingerprint as a nonce
 func Crypt(key Key, fingerprint format.Fingerprint, msg []byte) []byte {
 	out := make([]byte, len(msg))
-	nonce := fingerprint[:chacha20.NonceSize]
+	nonce := fingerprint[:chacha20.NonceSizeX]
 	cipher, err := chacha20.NewUnauthenticatedCipher(key[:], nonce)
 	if err != nil {
 		panic(err)
