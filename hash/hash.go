@@ -24,6 +24,15 @@ func NewCMixHash() (hash.Hash, error) {
 	return blake2b.New256(nil)
 }
 
+// DefaultHash returns a CMIX hash or panics
+func DefaultHash() hash.Hash {
+	h, err := blake2b.New256(nil)
+	if err != nil {
+		panic(fmt.Sprintf("Could not initialize blake2b: %+v", err))
+	}
+	return h
+}
+
 // CMixHash type is currently BLAKE2b_256
 var CMixHash = crypto.BLAKE2b_256
 
