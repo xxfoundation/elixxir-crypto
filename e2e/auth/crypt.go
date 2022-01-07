@@ -8,11 +8,11 @@ package auth
 
 import (
 	jww "github.com/spf13/jwalterweatherman"
-	"golang.org/x/crypto/salsa20"
+	"golang.org/x/crypto/chacha20"
 )
 
 // Required length of the nonce within Salsa20
-const NonceLength = 24
+const NonceLength = chacha20.NonceSize
 
 // Crypt Salsa20 encrypts or decrypts a message with the passed key and vector
 func Crypt(key, vector, msg []byte) (crypt []byte) {
@@ -22,9 +22,13 @@ func Crypt(key, vector, msg []byte) (crypt []byte) {
 	}
 
 	out := make([]byte, len(msg))
-	var keyArray [32]byte
-	copy(keyArray[:], key)
-	salsa20.XORKeyStream(out, msg, vector[:NonceLength], &keyArray)
+	nonce := vector[:NonceLength]
+
+	cipher, err := chacha20.NewUnauthenticatedCipher(key[:], nonce)
+	if err != nil {
+		panic(err)
+	}
+	cipher.XORKeyStream(out, msg)
 
 	// Return the result
 	return out
