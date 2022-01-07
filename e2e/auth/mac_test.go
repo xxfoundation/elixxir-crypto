@@ -18,11 +18,11 @@ import (
 func TestMakeMac_Consistency(t *testing.T) {
 
 	expected := []string{
-		"V0/c2vPAzwypqyVmlq5y28InATGkiBbkLbzrUIFHntE=",
-		"NkZ/F91nRrL5O9kZ3dse74k0hWZ7iFXVW7zyrupaj2U=",
-		"F8+59YYSpgFwrqjNhxGdUcudYPQiY4VVhEVhcueY09g=",
-		"fZ4iPmfjFgwfdkOiHFaMTo+bPguKMXsNyD+QJtnKg3M=",
-		"T+blUgM7MtX+VpUinOeT9txhCRJEfFZDBBhGF1lAuhk=",
+		"XNc4xg5johaQAwOAU25kTGPnFJWwdizyp1R8QO0bXos=",
+		"FOxMuD6rLUL4KZdtq87uTrJk7ul2roTMqAFNvp6F6NY=",
+		"IaJMMU+N06DHXWdrmjmh09mUwZtJKZgjmh1BG7awX9g=",
+		"J9Epes8QZ33f2ZXYnhCo74Wisej3MdntuNLeeC8JDSM=",
+		"dBGm2a7tVKOk0t9c9dnS2cERGi89j0dWXJMDlFmK9hQ=",
 	}
 
 	grp := getGrp()
