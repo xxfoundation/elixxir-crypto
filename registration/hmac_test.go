@@ -14,10 +14,9 @@ import (
 
 // Consistency test for CreateClientHMAC.
 func TestCreateClientHMAC(t *testing.T) {
-	expected := []byte{85, 5, 248, 79, 205, 253, 57, 75,
-		103, 156, 80, 145, 94, 152, 74, 133, 29, 36,
-		208, 143, 109, 214, 0, 4, 150, 124, 49, 88,
-		168, 191, 178, 115}
+	expected := []byte{209, 150, 187, 64, 160, 199, 29, 145, 153, 142, 9, 16,
+		136, 3, 153, 120, 154, 199, 131, 163, 153, 213, 140, 135, 155, 220,
+		15, 127, 247, 84, 125, 12}
 
 	h, err := hash.NewCMixHash()
 	if err != nil {
@@ -26,7 +25,7 @@ func TestCreateClientHMAC(t *testing.T) {
 
 	data := h.Sum([]byte("Hello, World!"))
 
-	received := CreateClientHMAC(data, data, hash.DefaultHash)
+	received := CreateClientHMAC(data, data, h)
 
 	if !bytes.Equal(received, expected) {
 		t.Errorf("Failed, expected: '%v', got: '%v'",
@@ -36,16 +35,19 @@ func TestCreateClientHMAC(t *testing.T) {
 }
 
 func TestVerifyClientHMAC(t *testing.T) {
+	h, err := hash.NewCMixHash()
+	if err != nil {
+		t.Errorf("NewCMixHash failed: %v", err)
+	}
+
 	data := []byte("Hello, World!")
 
-	if !VerifyClientHMAC(data, data, hash.DefaultHash,
-		CreateClientHMAC(data, data, hash.DefaultHash)) {
+	if !VerifyClientHMAC(data, data, h, CreateClientHMAC(data, data, h)) {
 		t.Fatalf("VerifyClientHMAC failed with same data")
 	}
 
 	badData := []byte("I am Iron Man")
-	if VerifyClientHMAC(badData, badData, hash.DefaultHash,
-		CreateClientHMAC(data, data, hash.DefaultHash)) {
+	if VerifyClientHMAC(badData, badData, h, CreateClientHMAC(data, data, h)) {
 		t.Fatalf("VerifyClientHMAC passed with differed data")
 	}
 
