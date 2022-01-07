@@ -15,15 +15,14 @@
 package fileTransfer
 
 import (
-	"gitlab.com/xx_network/crypto/csprng"
-
 	"github.com/pkg/errors"
-	"golang.org/x/crypto/chacha20"
+	"gitlab.com/xx_network/crypto/csprng"
+	"golang.org/x/crypto/salsa20"
 )
 
 // NonceSize is the size of the nonce in bytes.
 const (
-	NonceSize = chacha20.NonceSizeX
+	NonceSize = 8
 )
 
 // Error messages
@@ -52,11 +51,8 @@ func EncryptPart(transferKey TransferKey, partBytes []byte, fpNum uint16,
 	ciphertextLen := len(partBytes)
 	ciphertext = make([]byte, ciphertextLen)
 
-	cipher, err := chacha20.NewUnauthenticatedCipher(partKeyArray[:], nonce)
-	if err != nil {
-		panic(err)
-	}
-	cipher.XORKeyStream(ciphertext, partBytes)
+	// Salsa20 encrypt file part bytes
+	salsa20.XORKeyStream(ciphertext, partBytes, nonce, &partKeyArray)
 
 	// Create file part MAC
 	mac = createPartMAC(nonce, partBytes, partKey)
@@ -77,11 +73,8 @@ func DecryptPart(transferKey TransferKey, ciphertext, nonce, mac []byte,
 	// Create byte slice to store decrypted data
 	filePartBytes = make([]byte, len(ciphertext))
 
-	cipher, err := chacha20.NewUnauthenticatedCipher(partKeyArray[:], nonce)
-	if err != nil {
-		panic(err)
-	}
-	cipher.XORKeyStream(filePartBytes, ciphertext)
+	// Salsa20 decrypt encrypted file part bytes
+	salsa20.XORKeyStream(filePartBytes, ciphertext, nonce, &partKeyArray)
 
 	// Return an error if the MAC cannot be validated
 	if !verifyPartMAC(nonce, filePartBytes, mac, partKey) {
