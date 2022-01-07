@@ -15,6 +15,7 @@ import (
 	"crypto/sha256"
 	"golang.org/x/crypto/blake2b"
 	"hash"
+	"fmt"
 )
 
 // NewCMixHash returns the current cMix hash implementation
