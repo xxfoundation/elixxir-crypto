@@ -28,11 +28,11 @@ func TestPayloadEncryptDecrypt_Consistency(t *testing.T) {
 		"/q/m4sI3ImXrw6mBGu4C",
 	}
 	expectedMac := []string{
-		"SIaOcC2qec+e2ow3Vxw4gFp/MikAhS3otVxj00TCYII=",
-		"e8UN1yfN4Zs2ws2xFWKnZQ3TQUn0zkwmr7p1Ofa5h/0=",
-		"B914VCyWYyGGK2yX55BNBRDko468GxN1gqVXVglHIco=",
-		"Wl99M0Dx/65/lx8yQ9RDLSKPEqq0H37nNmBtewo3zFc=",
-		"Fb4oIsCZjXHpvxIdzFfo70HsSGR2Pn/ysuA2RLvG3hc=",
+		"V4JC4zQZBnPBIzyC1IoS58lYX2tS9QEVFIjrgA81+aw=",
+		"R7RiQzwGB9iTOQCCva9tYe4aZ9yzFccrwsDaNEhIT1I=",
+		"CLTp36+CqhtAj5fKTv1DPaXle7bXQ1tyqr7ggatBR4g=",
+		"NA8QZN2JGQ2Dpy2NK7m2fWr0cwom0ZxZU+DaIcMPIw0=",
+		"I60lnZBb+EqJrZu8idgGF2olJFPMp5oZdIJONwLhcmI=",
 	}
 	expectedFingerprints := []string{
 		"4juO1SAC6IG67PVQvuf+t1CtLP7r752Ul6hPk0J4jyM=",
