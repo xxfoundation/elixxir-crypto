@@ -10,7 +10,7 @@ package e2e
 
 import (
 	"gitlab.com/elixxir/primitives/format"
-	"golang.org/x/crypto/salsa20"
+	"golang.org/x/crypto/chacha20"
 )
 
 // CryptUnsafe Salsa20 encrypts or decrypts a message with the passed key using the
@@ -18,8 +18,12 @@ import (
 // fingerprint as a nonce
 func Crypt(key Key, fingerprint format.Fingerprint, msg []byte) []byte {
 	out := make([]byte, len(msg))
-	keyArray := [32]byte(key)
-	salsa20.XORKeyStream(out, msg, fingerprint[:24], &keyArray)
+	nonce := fingerprint[:chacha20.NonceSize]
+	cipher, err := chacha20.NewUnauthenticatedCipher(key[:], nonce)
+	if err != nil {
+		panic(err)
+	}
+	cipher.XORKeyStream(out, msg)
 	// Return the result
 	return out
 }
