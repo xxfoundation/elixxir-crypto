@@ -11,12 +11,12 @@ import (
 	"golang.org/x/crypto/chacha20"
 )
 
-// Required length of the nonce within Salsa20
+// Required length of the nonce within XChaCha20
 const NonceLength = chacha20.NonceSize
 
-// Crypt Salsa20 encrypts or decrypts a message with the passed key and vector
+// Crypt XChaCha20 encrypts or decrypts a message with the passed key and vector
 func Crypt(key, vector, msg []byte) (crypt []byte) {
-	// Bound check that the vector is long enough for Salsa20 encryption/decryption
+	// Bound check that the vector is long enough for XChaCha20 encryption/decryption
 	if len(vector) < NonceLength {
 		jww.ERROR.Panicf("Vector is not of sufficient length for encryption/decryption")
 	}

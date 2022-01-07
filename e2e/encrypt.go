@@ -13,8 +13,7 @@ import (
 	"golang.org/x/crypto/chacha20"
 )
 
-// CryptUnsafe Salsa20 encrypts or decrypts a message with the passed key using the
-// Crypt Salsa20 encrypts or decrypts a message with the passed key using the
+// Crypt uses XChaCha20 to encrypt or decrypt a message with the passed key using the
 // fingerprint as a nonce
 func Crypt(key Key, fingerprint format.Fingerprint, msg []byte) []byte {
 	out := make([]byte, len(msg))
