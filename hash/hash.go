@@ -15,6 +15,7 @@ import (
 	"crypto/sha256"
 	"golang.org/x/crypto/blake2b"
 	"hash"
+	"fmt"
 )
 
 // NewCMixHash returns the current cMix hash implementation
@@ -22,6 +23,15 @@ import (
 func NewCMixHash() (hash.Hash, error) {
 
 	return blake2b.New256(nil)
+}
+
+// DefaultHash returns a CMIX hash or panics
+func DefaultHash() hash.Hash {
+	h, err := blake2b.New256(nil)
+	if err != nil {
+		panic(fmt.Sprintf("Could not initialize blake2b: %+v", err))
+	}
+	return h
 }
 
 // CMixHash type is currently BLAKE2b_256
