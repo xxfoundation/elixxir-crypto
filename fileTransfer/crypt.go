@@ -16,13 +16,8 @@ package fileTransfer
 
 import (
 	"github.com/pkg/errors"
-	"gitlab.com/xx_network/crypto/csprng"
-	"golang.org/x/crypto/salsa20"
-)
-
-// NonceSize is the size of the nonce in bytes.
-const (
-	NonceSize = 8
+	"gitlab.com/elixxir/primitives/format"
+	"golang.org/x/crypto/chacha20"
 )
 
 // Error messages
@@ -34,50 +29,49 @@ const (
 // part key is generated from the transfer key and the fingerprint number. A
 // random nonce is generated as padding for the ciphertext and used as part of
 // the encryption.
-func EncryptPart(transferKey TransferKey, partBytes []byte, fpNum uint16,
-	rng csprng.Source) (ciphertext, mac, nonce []byte,
-	err error) {
-
-	nonce, err = csprng.Generate(NonceSize, rng)
-	if err != nil {
-		return nil, nil, nil, err
-	}
+func EncryptPart(transferKey TransferKey, partBytes []byte, fpNum uint16, fp format.Fingerprint) (ciphertext, mac []byte, err error) {
 
 	// Generate the part key and redefine as array
 	partKey := getPartKey(transferKey, fpNum)
-	partKeyArray := [32]byte(partKey)
 
 	// Create byte slice to store encrypted data
 	ciphertextLen := len(partBytes)
 	ciphertext = make([]byte, ciphertextLen)
 
-	// Salsa20 encrypt file part bytes
-	salsa20.XORKeyStream(ciphertext, partBytes, nonce, &partKeyArray)
+	// ChaCha20 encrypt file part bytes
+	cipher, err := chacha20.NewUnauthenticatedCipher(partKey[:], fp[:chacha20.NonceSizeX])
+	if err != nil {
+		panic(err)
+	}
+	cipher.XORKeyStream(ciphertext, partBytes)
 
 	// Create file part MAC
-	mac = createPartMAC(nonce, partBytes, partKey)
+	mac = createPartMAC(fp[:], partBytes, partKey)
 
 	// The nonce and ciphertext are returned separately
-	return ciphertext, mac, nonce, nil
+	return ciphertext, mac,  nil
 }
 
 // DecryptPart decrypts an individual file part. The part key and nonce are used
 // to decrypt the ciphertext.
-func DecryptPart(transferKey TransferKey, ciphertext, nonce, mac []byte,
-	fpNum uint16) (filePartBytes []byte, err error) {
+func DecryptPart(transferKey TransferKey, ciphertext, mac []byte,
+	fpNum uint16, fp format.Fingerprint) (filePartBytes []byte, err error) {
 
 	// Generate the part key and redefine as array
 	partKey := getPartKey(transferKey, fpNum)
-	partKeyArray := [32]byte(partKey)
 
 	// Create byte slice to store decrypted data
 	filePartBytes = make([]byte, len(ciphertext))
 
-	// Salsa20 decrypt encrypted file part bytes
-	salsa20.XORKeyStream(filePartBytes, ciphertext, nonce, &partKeyArray)
+	// ChaCha20 encrypt file part bytes
+	cipher, err := chacha20.NewUnauthenticatedCipher(partKey[:], fp[:chacha20.NonceSizeX])
+	if err != nil {
+		panic(err)
+	}
+	cipher.XORKeyStream(ciphertext, filePartBytes)
 
 	// Return an error if the MAC cannot be validated
-	if !verifyPartMAC(nonce, filePartBytes, mac, partKey) {
+	if !verifyPartMAC(fp[:], filePartBytes, mac, partKey) {
 		return nil, errors.New(macMismatchErr)
 	}
 
