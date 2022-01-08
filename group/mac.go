@@ -12,18 +12,16 @@ package group
 import (
 	"bytes"
 	"gitlab.com/elixxir/crypto/cyclic"
-	"golang.org/x/crypto/blake2b"
+	"crypto/hmac"
+	"gitlab.com/elixxir/crypto/hash"
 )
 
 // NewMAC generates a MAC for the encrypted internal message and the recipient's
 // Diffie–Hellman key.
 func NewMAC(key CryptKey, encryptedInternalMsg []byte, recipientDhKey *cyclic.Int) []byte {
-	// Hash the key, the encrypted message, and DH key
-	h, _ := blake2b.New256(nil)
-	h.Write(key[:])
+	h := hmac.New(hash.DefaultHash, key[:])
 	h.Write(encryptedInternalMsg)
 	h.Write(recipientDhKey.Bytes())
-
 	mac := h.Sum(nil)
 
 	// Set the first bit to be 0 to comply with the group requirements in the

@@ -18,16 +18,16 @@ import (
 // Tests that the generated MACs do not change.
 func TestMAC_Consistency(t *testing.T) {
 	expectedMacs := []string{
-		"P5Arek8yIlKVmM4IHJTOycUph0RLeiP0emA0DCx4z90=",
-		"P9LcMFLn+q8/6SOSb9rrYpLyn3X5MMuephBSOtIF4M0=",
-		"UOPiUuATfn9C/KjmFZdA4zTfIykMb0HIgELKLbixrtk=",
-		"UYUHQLjbyDBdZn/MTNQBgrvUQPN0MnVpdYEI0iB/Q68=",
-		"fArOwzcunIaDYoIgtViaoBOkL2/v95Hm+6KRTEE6F9A=",
-		"XMhNPEyxy8q0p+bsjGHPQL5vzA+HyqUoooHXrTBEYF4=",
-		"IDJ4iTo9IcNB/oR5RP45de53SxuWsSSKlYcmGInQtoU=",
-		"Z4QqQfBp0ezUzAU2MHBUR9K0Bdl9Z3WF5Rcy553fb+8=",
-		"HthTNmjJ78iCdjMX+zSyhabsiCEE8QmH/AsDFfH8yUA=",
-		"GnE0KJAwk594cKLt6i2kHAqMJZ8DnXv7XyrByU27F/g=",
+		"MS9siixMT9/wskcdoQhmuLXCD7wK3h6yf0cWF3ZodTQ=",
+		"XLCWSXRdRlDyBZ8Wy0soO0MB0XgOUdhRX9HAd5RDUVk=",
+		"fM67dZ5G4ce2CF2MneYH29izP4OsKv5k0wQuyjLlLuk=",
+		"LBK5gesIs8sOUU9slTh8VGOZKKrTHXtXLmmLgKP25J0=",
+		"G5Nm5GbKiLT0tfJkYWYkgFEY8IxVQHJATj0TfVi9i0k=",
+		"PPvlpHWQN5Ear436vPcgpbjLNkH9ZK/ZgrW6xwbNbvM=",
+		"CnlszFIGBZnuHfipIAvQa5aprg2bUD27EkmI2wzJ9G4=",
+		"XanqEhRX6MMmFNyJA8qGiOzn4pvof72uQE5NoM096OM=",
+		"XqK6aJspygyh6z4e5wXQo/TkSvBy1rJtMVlv+OAFUm4=",
+		"TqiTyffLDLclCmRiCH2TeKQk5Lx/Z8SSdAU9s+sHl2g=",
 	}
 	prng := rand.New(rand.NewSource(42))
 
@@ -113,16 +113,16 @@ func TestMAC_Unique(t *testing.T) {
 // Happy path.
 func TestVerifyMAC(t *testing.T) {
 	expectedMACs := []string{
-		"P5Arek8yIlKVmM4IHJTOycUph0RLeiP0emA0DCx4z90=",
-		"P9LcMFLn+q8/6SOSb9rrYpLyn3X5MMuephBSOtIF4M0=",
-		"UOPiUuATfn9C/KjmFZdA4zTfIykMb0HIgELKLbixrtk=",
-		"UYUHQLjbyDBdZn/MTNQBgrvUQPN0MnVpdYEI0iB/Q68=",
-		"fArOwzcunIaDYoIgtViaoBOkL2/v95Hm+6KRTEE6F9A=",
-		"XMhNPEyxy8q0p+bsjGHPQL5vzA+HyqUoooHXrTBEYF4=",
-		"IDJ4iTo9IcNB/oR5RP45de53SxuWsSSKlYcmGInQtoU=",
-		"Z4QqQfBp0ezUzAU2MHBUR9K0Bdl9Z3WF5Rcy553fb+8=",
-		"HthTNmjJ78iCdjMX+zSyhabsiCEE8QmH/AsDFfH8yUA=",
-		"GnE0KJAwk594cKLt6i2kHAqMJZ8DnXv7XyrByU27F/g=",
+		"MS9siixMT9/wskcdoQhmuLXCD7wK3h6yf0cWF3ZodTQ=",
+		"XLCWSXRdRlDyBZ8Wy0soO0MB0XgOUdhRX9HAd5RDUVk=",
+		"fM67dZ5G4ce2CF2MneYH29izP4OsKv5k0wQuyjLlLuk=",
+		"LBK5gesIs8sOUU9slTh8VGOZKKrTHXtXLmmLgKP25J0=",
+		"G5Nm5GbKiLT0tfJkYWYkgFEY8IxVQHJATj0TfVi9i0k=",
+		"PPvlpHWQN5Ear436vPcgpbjLNkH9ZK/ZgrW6xwbNbvM=",
+		"CnlszFIGBZnuHfipIAvQa5aprg2bUD27EkmI2wzJ9G4=",
+		"XanqEhRX6MMmFNyJA8qGiOzn4pvof72uQE5NoM096OM=",
+		"XqK6aJspygyh6z4e5wXQo/TkSvBy1rJtMVlv+OAFUm4=",
+		"TqiTyffLDLclCmRiCH2TeKQk5Lx/Z8SSdAU9s+sHl2g=",
 	}
 	prng := rand.New(rand.NewSource(42))
 
