@@ -68,7 +68,7 @@ func DecryptPart(transferKey TransferKey, ciphertext, mac []byte,
 	if err != nil {
 		panic(err)
 	}
-	cipher.XORKeyStream(ciphertext, filePartBytes)
+	cipher.XORKeyStream(filePartBytes, ciphertext)
 
 	// Return an error if the MAC cannot be validated
 	if !verifyPartMAC(fp[:], filePartBytes, mac, partKey) {
