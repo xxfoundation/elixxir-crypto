@@ -21,18 +21,18 @@ func TestPayloadEncryptDecrypt_Consistency(t *testing.T) {
 
 	// The expected values for encrypted messages, MACs and fingerprints
 	expectedEncrypted := []string{
-		"99KCYpcHb7O2RsVF/zRz",
-		"O5eNOVs9BAcEi4leA5P9",
-		"zXrMJJ1fHxO9i0zKHv9a",
-		"aRTXHn0au6WM+nypLSrq",
-		"/q/m4sI3ImXrw6mBGu4C",
+		"+3MVB9C4Du0ZhxtWvmNj",
+		"3Ojy0GrTUMvS6UhLpPPJ",
+		"Yu28P6zSrS7Oi9N2nBlW",
+		"ZOhelsMi43Pwy30SYgts",
+		"urmsCpmQke9zRJ/1t66x",
 	}
 	expectedMac := []string{
-		"SIaOcC2qec+e2ow3Vxw4gFp/MikAhS3otVxj00TCYII=",
-		"e8UN1yfN4Zs2ws2xFWKnZQ3TQUn0zkwmr7p1Ofa5h/0=",
-		"B914VCyWYyGGK2yX55BNBRDko468GxN1gqVXVglHIco=",
-		"Wl99M0Dx/65/lx8yQ9RDLSKPEqq0H37nNmBtewo3zFc=",
-		"Fb4oIsCZjXHpvxIdzFfo70HsSGR2Pn/ysuA2RLvG3hc=",
+		"CIkL2e6ZpFP5Yk8ympIC3n4+Qd0EGx6/Wy6zYjjRg90=",
+		"PAaVjhHDLGy5/4OvULyXLVTa9S1JBAVBSH9zD+kiVpI=",
+		"BrvjAbi1kv/iu8vn14Tx229QDOCT081tN4x7qJGdlAE=",
+		"UEBsO/joTw7hNllvuZA+1V1pHF7GCaUtVKapKXveRmw=",
+		"SIyXgRpBul6fNyV/jq6CN/hrFIY4X3+Pht7LIyUSzBc=",
 	}
 	expectedFingerprints := []string{
 		"4juO1SAC6IG67PVQvuf+t1CtLP7r752Ul6hPk0J4jyM=",

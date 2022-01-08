@@ -21,16 +21,16 @@ func TestEncryptPart_Consistency(t *testing.T) {
 	prng := NewPrng(42)
 	// The expected values for encrypted messages and MACs
 	expectedValues := []struct{ encrPart, mac string }{
-		{"/pJCVL8FzUpxaWI=", "T02QGQlg36ko8FH26IgxCyKsuLrS7KqkU/3DJlNOfAs="},
-		{"AFyk+pU2+maQNkA=", "O3V8fAsI3Tmrau81b3rn7/vUD2HMrWFlCljZNUtokro="},
-		{"z9aOLbSwqkn/XDI=", "NijSEkNo/Czzw7zeNR+3lfyBZtOQRBVQcrEIEmjD3ls="},
-		{"fY/a+Jc8lzjNioM=", "PzRQ9X5BpvTWvUTNBtiuLqOhB2MjR7Wqh5aU4eGX2bg="},
-		{"4sXWEZ5D+AXXZB8=", "KPdq2Hx8dyySNzZ5rhQUEquJjVP2KKF1WaN0orTunD0="},
-		{"sHBfFDPrs2Q9CGg=", "ZEPZRdZWyxP0VMHeXA9o/tjd4R2QPEG1j1jA/Uk1DWU="},
-		{"NrVAkRa5fwcczXs=", "GlIoH7jZ/pAJ2LfzpWNQKbM9nJaDxouvpWX6CgueSjk="},
-		{"ffyeHJpZwYBpsWg=", "B9oDoFSeF1j4Bs414nFUixcfawZ+kTIwFNhXXNT3vMc="},
-		{"4WdM4SAE43ybQIU=", "CtRmKeXVfs6jNnDvQOreM9H4G+iCEO/PE7eTATIkhRE="},
-		{"fvbi3mt2Ui1POVA=", "RoXczfWjqZpnOGqRdZoZNVL4g/uZcH/HeMvQNIE0Vsk="},
+		{"/pJCVL8FzUpxaWI=", "IK4ltPy0f+BsyemuuzVFBTTG48KNP7WBOsSXQqDTAj4="},
+		{"AFyk+pU2+maQNkA=", "GgofPySwOttT5OJUXYXc+wIuYT3Fk9VciAm1ZOsEbxw="},
+		{"z9aOLbSwqkn/XDI=", "BAsmIF+BIi01HGbDP8WGlw0Sc5/t+KoSRVKhyDPX0sk="},
+		{"fY/a+Jc8lzjNioM=", "fnJ3m2+R06AF6puy2aQN7G83Qna4r3qe3DykQHM9iWQ="},
+		{"4sXWEZ5D+AXXZB8=", "WKkpvkCh4zFjoOKDXsV1CP0CHGPov+3G+0utjFqiDTQ="},
+		{"sHBfFDPrs2Q9CGg=", "cQLsapOLs97ryW1ugBiZY+pQQY7tUcbEslit5J+PTk4="},
+		{"NrVAkRa5fwcczXs=", "YhJhEZ5fdZ+hiUYmS/QsU0DxVJsuv1yfNHXiGdHnhpM="},
+		{"ffyeHJpZwYBpsWg=", "O3VUbq2Qs77NSw+7gKjzGVxZNT+V6oVB6azeyeP+5w4="},
+		{"4WdM4SAE43ybQIU=", "cqTCWfJq6IcAzzIIxuqfekGa/SPF0J1SLz5cUMeh8VQ="},
+		{"fvbi3mt2Ui1POVA=", "fp3v/SR//DZJN07kTpDmxC9WICoBIOV3S1qFqWM2kt4="},
 	}
 
 	kwy, err := NewTransferKey(prng)

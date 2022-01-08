@@ -17,6 +17,7 @@ package fileTransfer
 import (
 	"bytes"
 	"gitlab.com/elixxir/crypto/hash"
+	"crypto/hmac"
 )
 
 // CreateTransferMAC creates a MAC for the entire file. This is for consistency
@@ -35,14 +36,9 @@ func VerifyTransferMAC(fileData []byte, key TransferKey, mac []byte) bool {
 // createPartMAC creates the MAC for the given file part, its padding, and the
 // part key.
 func createPartMAC(nonce, partData []byte, partKey partKey) []byte {
-	h, _ := hash.NewCMixHash()
-
-	h.Reset()
-
+	h := hmac.New(hash.DefaultHash, partKey.Bytes())
 	h.Write(nonce)
 	h.Write(partData)
-	h.Write(partKey.Bytes())
-
 	mac := h.Sum(nil)
 
 	// Set the first bit to be 0 to comply with the group requirements in the
