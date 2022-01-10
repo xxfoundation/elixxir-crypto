@@ -116,10 +116,10 @@ func TestVerifyTransferMAC_BadMacError(t *testing.T) {
 // a potentially breaking change.
 func Test_createPartMAC_Consistency(t *testing.T) {
 	expectedMessageMACs := []string{
-		"B/2L77dMU5QmoSEyhz9/JIjSezj1bmjb9b6d5iQPt0E=",
-		"YYrFtOitkyaf1sIYHf5zlBR/kpKS2HPPP6azWdriwgE=",
-		"IDwozKX8l/eZkkEDHGrWDvlUaVTQaoNFy9f1u7KlYHM=",
-		"eXlpn2e1By/q/pxWtW5jMJNNvjAQ+gxC2YI38hCvo3g=",
+		"ISRt4iNQz+F6X4scQO4uW80ZbiWLGTkS43y3r+ZN5/w=",
+		"DK0IMW8yyeG7SeKNEAPVsEhY5WV4SnAniRlc2s2CVOk=",
+		"NEUP552b77A2tSSNCE8z1n+RBjM7MgM/GVpzsnGHmY8=",
+		"PTQS8MpHxl69fwBpZjbikQBGf9I7g/WDQYN0nm3Uejg=",
 	}
 
 	// Construct a deterministic prng for testing

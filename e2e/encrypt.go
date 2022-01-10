@@ -10,19 +10,16 @@ package e2e
 
 import (
 	"gitlab.com/elixxir/primitives/format"
-	"golang.org/x/crypto/chacha20"
+	"golang.org/x/crypto/salsa20"
 )
 
-// Crypt uses XChaCha20 to encrypt or decrypt a message with the passed key using the
+// CryptUnsafe Salsa20 encrypts or decrypts a message with the passed key using the
+// Crypt Salsa20 encrypts or decrypts a message with the passed key using the
 // fingerprint as a nonce
 func Crypt(key Key, fingerprint format.Fingerprint, msg []byte) []byte {
 	out := make([]byte, len(msg))
-	nonce := fingerprint[:chacha20.NonceSizeX]
-	cipher, err := chacha20.NewUnauthenticatedCipher(key[:], nonce)
-	if err != nil {
-		panic(err)
-	}
-	cipher.XORKeyStream(out, msg)
+	keyArray := [32]byte(key)
+	salsa20.XORKeyStream(out, msg, fingerprint[:24], &keyArray)
 	// Return the result
 	return out
 }

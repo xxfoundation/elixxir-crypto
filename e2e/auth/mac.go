@@ -13,15 +13,20 @@ package auth
 import (
 	"bytes"
 	"gitlab.com/elixxir/crypto/hash"
-	"crypto/hmac"
 )
 
 // MakeMac returns the MAC for the given payload.
 func MakeMac(baseKey, encryptedPayload []byte) []byte {
-	h := hmac.New(hash.DefaultHash, baseKey)
-	h.Write(encryptedPayload)
-	sum := h.Sum(nil)
+	//suppress because we just panic and a nil hash will panic anyhow
+	h, _ := hash.NewCMixHash()
+	// This will panic if we got an error in the line above, but does nothing
+	// if it worked.
+	h.Reset()
 
+	h.Write(baseKey)
+	h.Write(encryptedPayload)
+
+	sum := h.Sum(nil)
 	// The first bit must be 0.
 	sum[0] &= 0x7F
 

@@ -14,7 +14,6 @@ import (
 	"math/rand"
 	"strconv"
 	"testing"
-	"gitlab.com/elixxir/primitives/format"
 )
 
 // Consistency test for EncryptPart.
@@ -22,16 +21,16 @@ func TestEncryptPart_Consistency(t *testing.T) {
 	prng := NewPrng(42)
 	// The expected values for encrypted messages and MACs
 	expectedValues := []struct{ encrPart, mac string }{
-		{"P5aImOP0c5OhG2g=", "Z8cPIX3zOOhqRGas2fODIozwxKuX0Gv9NdTmAwDPB9E="},
-		{"zBfS1Jh3M+5IJ6s=", "Gu4DYQT7Y2cQ/6xOCgukAPUzL7ezy5ywuw3gbuzpmt0="},
-		{"H7WWNFGtYZr/bmo=", "baDwObK6aukr1egK0R8/U3Zicsx5PvHFdCwaC5c19UY="},
-		{"MSLjaczLmqrm8AE=", "UiqMNzA8oNowFx/91ne5G8lWs/Pr3Un/sP180W2HP0k="},
-		{"moiunm7hg6Wyag4=", "XSpK/MKKTC2kZQXKPiWmthpQOiOcgCdzfjvTO3+NECQ="},
-		{"wHmh9im367tJ9yQ=", "MIdJibyECF1veMZmql62xCNQEaKzgcuJtOBjhewExNA="},
-		{"lJ1IKBOeo6Q/mrI=", "GK/0dPDvHj7VmWzveLDcsk12Wj4JY+JZkZjyP7GGT/4="},
-		{"ylcp4jK3CxeqerQ=", "NB+iYXJVU5uX1BikekC62OtM48QllxyHAscdcEiFbAs="},
-		{"k9hB2wqt7P6NrY0=", "KobYc8cu7WHL+uxAenvijFe1fdecCwTx4/OBzTSCvM4="},
-		{"fmK35rHs7Nj8wfc=", "SFT2NuDirNGWLiG5K22mF4+7ONcnSb7U4nj2X/OG2MY="},
+		{"/pJCVL8FzUpxaWI=", "T02QGQlg36ko8FH26IgxCyKsuLrS7KqkU/3DJlNOfAs="},
+		{"AFyk+pU2+maQNkA=", "O3V8fAsI3Tmrau81b3rn7/vUD2HMrWFlCljZNUtokro="},
+		{"z9aOLbSwqkn/XDI=", "NijSEkNo/Czzw7zeNR+3lfyBZtOQRBVQcrEIEmjD3ls="},
+		{"fY/a+Jc8lzjNioM=", "PzRQ9X5BpvTWvUTNBtiuLqOhB2MjR7Wqh5aU4eGX2bg="},
+		{"4sXWEZ5D+AXXZB8=", "KPdq2Hx8dyySNzZ5rhQUEquJjVP2KKF1WaN0orTunD0="},
+		{"sHBfFDPrs2Q9CGg=", "ZEPZRdZWyxP0VMHeXA9o/tjd4R2QPEG1j1jA/Uk1DWU="},
+		{"NrVAkRa5fwcczXs=", "GlIoH7jZ/pAJ2LfzpWNQKbM9nJaDxouvpWX6CgueSjk="},
+		{"ffyeHJpZwYBpsWg=", "B9oDoFSeF1j4Bs414nFUixcfawZ+kTIwFNhXXNT3vMc="},
+		{"4WdM4SAE43ybQIU=", "CtRmKeXVfs6jNnDvQOreM9H4G+iCEO/PE7eTATIkhRE="},
+		{"fvbi3mt2Ui1POVA=", "RoXczfWjqZpnOGqRdZoZNVL4g/uZcH/HeMvQNIE0Vsk="},
 	}
 
 	kwy, err := NewTransferKey(prng)
@@ -39,12 +38,11 @@ func TestEncryptPart_Consistency(t *testing.T) {
 		t.Fatalf("Failed to generate transfer key: %+v", err)
 	}
 
+	nonceMap := make(map[string]bool, len(expectedValues))
+
 	for i, expected := range expectedValues {
 		payload := []byte("payloadMsg" + strconv.Itoa(i))
-		fpBytes := make([]byte, format.KeyFPLen)
-		prng.Read(fpBytes)
-		fp := format.NewFingerprint(fpBytes)
-		ecr, mac, err := EncryptPart(kwy, payload, uint16(i), fp)
+		ecr, mac, nonce, err := EncryptPart(kwy, payload, uint16(i), prng)
 		if err != nil {
 			t.Errorf("EncryptPart returned an error (%d): %+v", i, err)
 		}
@@ -62,6 +60,14 @@ func TestEncryptPart_Consistency(t *testing.T) {
 			t.Errorf("MAC does not match expected (%d)"+
 				"\nexpected: %s\nreceived: %s", i, expected.mac, mac64)
 		}
+
+		// Verify the nonce is unique
+		nonce64 := base64.StdEncoding.EncodeToString(nonce)
+		if nonceMap[nonce64] {
+			t.Errorf("Padding not unique (%d): %s", i, nonce64)
+		} else {
+			nonceMap[nonce64] = true
+		}
 	}
 }
 
@@ -77,15 +83,12 @@ func TestEncryptPart_DecryptPart(t *testing.T) {
 	for i := uint16(0); i < 25; i++ {
 		message := make([]byte, 32)
 		_, _ = prng.Read(message)
-		fpBytes := make([]byte, format.KeyFPLen)
-		prng.Read(fpBytes)
-		fp := format.NewFingerprint(fpBytes)
-		ecr, mac, err := EncryptPart(key, message, uint16(i), fp)
+		ecr, mac, nonce, err := EncryptPart(key, message, i, prng)
 		if err != nil {
 			t.Errorf("Failed to encrypt part %d: %+v", i, err)
 		}
 
-		dec, err := DecryptPart(key, ecr, mac, uint16(i), fp)
+		dec, err := DecryptPart(key, ecr, nonce, mac, i)
 		if err != nil {
 			t.Errorf("Failed to decrypt part: %+v", err)
 		}
@@ -109,10 +112,7 @@ func TestEncryptPart_DecryptPart_InvalidMacError(t *testing.T) {
 	for i := uint16(0); i < 25; i++ {
 		message := make([]byte, 32)
 		_, _ = prng.Read(message)
-		fpBytes := make([]byte, format.KeyFPLen)
-		prng.Read(fpBytes)
-		fp := format.NewFingerprint(fpBytes)
-		ecr, mac, err := EncryptPart(key, message, i, fp)
+		ecr, mac, nonce, err := EncryptPart(key, message, i, prng)
 		if err != nil {
 			t.Errorf("Failed to encrypt part %d: %+v", i, err)
 		}
@@ -120,7 +120,7 @@ func TestEncryptPart_DecryptPart_InvalidMacError(t *testing.T) {
 		// Generate invalid MAC
 		_, _ = prng.Read(mac)
 
-		_, err = DecryptPart(key, ecr, mac, i, fp)
+		_, err = DecryptPart(key, ecr, nonce, mac, i)
 		if err == nil || err.Error() != macMismatchErr {
 			t.Errorf("DecryptPart did not return the expected error when the "+
 				"MAC is invalid.\nexpected: %s\nreceived: %+v",

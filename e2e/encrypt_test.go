@@ -40,18 +40,18 @@ func TestEncrypt_Consistency(t *testing.T) {
 	const messageSize = 100
 	// Set up expected values with base64 encoding
 	expectedMsgs := []string{
-		"+gueVocoCTzjwQ4x2kYHR+otKpon0T7NIvUgrC4WTB34sVJv2msD+fsp509zVZxCk9R4" +
-			"l8HWxSbxQXy7xvzNjp4c1U1G/p0J9xzIVTPxdaYo5NIDS7kd4brTSDFWv3GhmAae" +
-			"1A==",
-		"SDy5LnQuKrmnM53BxHFkL+NOvj8bGWm5j2iJVoRoZVkrJqahrjlG4E3zbCiI/uXqqna6" +
-			"Q1nBZWhv1YmW1Leh3t0lBIfirj/0xJOwm2Bm8Cb3tvMXrZ6+m5b+l7oqrR2hjCyZ" +
-			"Xg==",
-		"L7vuk4rtDZYu+YzcCEch62j07LM8cAxN9/Tq9rRuVKhptrxO+97iwcWnqC/kjKciP5hR" +
-			"kj7IFTo5bUJBi1yGWA5x1mp1TyQuHwcvHUsDEjXppokZrEW1wnsGXx9omIBvqca+" +
-			"8w==",
-		"D5WfKGLBkgA8Sg8VWhVUeFm2RjIArxOS5luwcCxkQkTO2ULh/9MqL7MvJ/rEPcryX9vO" +
-			"NaCgY9wn1V6aYpZkSFzFvIsDKJDnfE/rz6hrDBm6X2x6EmDDb2MCAXYrmvHdQaa/" +
-			"/A==",
+		"UGVCeJkjdpZ4iVHs4DaJCZSHMS0bs5fpF9mb8ZBkat+o/mUXe1JCRBbgF0Z6whcy3m3z" +
+			"eBYp4/Tgdt3hhSssxONndKrel/Xkfi08/lfTZNLqbzDw/42SCss1Sq5S/QT6D3os" +
+			"iA==",
+		"aDW1HLOxKC0eFOjFGwj4AGyvnumbrXzA9axxu9sVGzcbvWb7ar04+IHS4IA/K2QXgLW+" +
+			"RofNVjZHICha4HT3aI3sbY2ZYScsqhdJBUH5ivx/uUlwh7Pt2d6qtPwhyO1ZwFFA" +
+			"FA==",
+		"HqKPDP9Hvai61hFc5UKCq84ryjWI4WdMih5WZP+Kj4jbVYuG5ckbEzN75sO6jYOZGIzg" +
+			"2M3Kjo4lUDIu9QUx7UCbyiLcCiqGK9OuQ89PtxhNR6aCHm374LD78AUtrEkMlcTy" +
+			"Og==",
+		"PPYCnDivI7m8xwctIVeslg/KYnbl3BLWiOOpcniiAezg+KDQ7iWARvpk5TFy7PaLIlFn" +
+			"4fSYK7cb1hZt1KdHKJvXoVICR5a3SbzVQ2RN1XPzbFvlf6A8nvVR2NXrBWBr8a7K" +
+			"Lg==",
 	}
 	// Generate keys, fingerprints and messages
 	var keys []Key
