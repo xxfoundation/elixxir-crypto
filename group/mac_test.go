@@ -16,16 +16,16 @@ import (
 func TestNewMAC_Consistency(t *testing.T) {
 	prng := rand.New(rand.NewSource(42))
 	expectedMACs := []string{
-		"VoY325mBeeAUPNI3XSEVB6wHSsoLvOaXSW8rXIzQBDY=",
-		"W1enM94zLJ3naWmHCWyLcSO38kGmvWmlefG0aII7FZM=",
-		"OtvHUpfQd6Vi5Kyqs5n1jPKOqXJ3zn0MUMP97QT8em0=",
-		"KhCFLBeGlleZKL+UbW3+rV7m7LwGZuZonLX0R2ENWfE=",
-		"e5835g9L19Un9wYG82g8xnIc1bFgIwaETgyOTrAl17I=",
-		"K4H7lpOmW22BuiqRudCO52Ex2ZL42XH313lZgPX2Vio=",
-		"KK6bwNzGbRD33GvSwozRDKojTj1L41vWSEbbY9UebxA=",
-		"VpmSedjVhSGQGBgcazCicITYyRj6n9B0qPGAQh23c+Q=",
-		"Twt2/HrO0fWxW8bmSTGOlT4NCbNmQQSauyOA1iqN4SQ=",
-		"ZlNetJzIkiQpUEpFOMGYthhcmXbkMFuYDrXJPUpB0fs=",
+		"ZhmxYgs565joaUDPAqTwaoGxT4sVrdbla8rGvfdbmlo=",
+		"cz5qdjK4AnaVkxXTHNurMDBwEan0ngNnFNYIeDwaN74=",
+		"SK141v83ahxHoGdLbSoEfLR81k3grUsc5HCWbebdF/0=",
+		"csIMTmjxuunP9dm3YbG4+l0KsVfoIa0k5hjZKzEHNd0=",
+		"VFyFNBHhGD8unpYwIXb00k6jsVnfhJY2oq+659n1jhw=",
+		"TFXdUjisQ2SMmANoM/nx8ZXzjgee3G5UYpa8KJ72++s=",
+		"W8edrqCRGcnVgVVzPguE4zWarJ7UMqofcwNsvah8mD0=",
+		"NkcOGXJ95HOkq5okfgQ4h5VY4eCcDl2FPdFSPzhpLdw=",
+		"WkFMHOaZ+kDTIBF3DKpjzXSgcNqMLxXHsnhMcKafqT4=",
+		"aHmhf4l6IIntsbZW0fp2dq6nq2MWWjisBktHSMkhyRA=",
 	}
 
 	for i, expected := range expectedMACs {
