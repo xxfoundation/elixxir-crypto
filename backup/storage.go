@@ -9,11 +9,8 @@ package backup
 
 import (
 	"encoding/json"
-	"errors"
 	"io/ioutil"
 	"os"
-
-	"golang.org/x/crypto/chacha20poly1305"
 
 	"gitlab.com/xx_network/primitives/id"
 )
@@ -41,7 +38,7 @@ type UserDiscoveryRegistration struct {
 }
 
 type Contacts struct {
-	UserIdentities []id.ID
+	Identities []id.ID
 }
 
 type Backup struct {
@@ -53,60 +50,30 @@ type Backup struct {
 
 func (b *Backup) Load(filepath string, key []byte) error {
 
-	if len(key) != chacha20poly1305.KeySize {
-		return errors.New("Backup.Store: incorrect key size")
-	}
-
 	blob, err := ioutil.ReadFile(filepath)
 	if err != nil {
 		return err
 	}
 
-	if len(blob) < chacha20poly1305.NonceSize+chacha20poly1305.Overhead+1 {
-		return errors.New("ciphertext size is too small")
-	}
-
-	offset := chacha20poly1305.NonceSizeX
-	nonce := blob[:offset]
-	ciphertext := blob[offset:]
-
-	cipher, err := chacha20poly1305.NewX(key)
+	plaintext, err := Decrypt(blob, key)
 	if err != nil {
 		return err
 	}
 
-	plaintext, err := cipher.Open(nil, nonce, ciphertext, nil)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(plaintext, b)
-
-	return err
+	return json.Unmarshal(plaintext, b)
 }
 
 func (b *Backup) Store(filepath string, key []byte, nonce []byte) error {
-
-	if len(key) != chacha20poly1305.KeySize {
-		return errors.New("Backup.Store: incorrect key size")
-	}
-
-	if len(nonce) != chacha20poly1305.NonceSizeX {
-		return errors.New("Backup.Store: incorrect nonce size")
-	}
 
 	blob, err := json.Marshal(b)
 	if err != nil {
 		return err
 	}
 
-	cipher, err := chacha20poly1305.NewX(key)
+	ciphertext, err := Encrypt(blob, key, nonce)
 	if err != nil {
 		return err
 	}
-
-	ciphertext := cipher.Seal(nil, nonce, blob, nil)
-	content := append(nonce, ciphertext...)
 
 	tmpfile, err := ioutil.TempFile("", "state")
 	if err != nil {
@@ -115,7 +82,7 @@ func (b *Backup) Store(filepath string, key []byte, nonce []byte) error {
 
 	tmpPath := tmpfile.Name()
 
-	_, err = tmpfile.Write(content)
+	_, err = tmpfile.Write(ciphertext)
 	if err != nil {
 		return err
 	}
