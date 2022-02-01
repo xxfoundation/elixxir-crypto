@@ -7,6 +7,8 @@ import (
 	"gitlab.com/elixxir/crypto/hash"
 )
 
+const NegotiationFingerprintLen = 32
+
 // CreateNegotiationFingerprint creates a fingerprint for a re-authentication
 // negotiation from the partner's DH public key and SIDH public key.
 func CreateNegotiationFingerprint(partnerDhPubKey *cyclic.Int,
@@ -24,5 +26,5 @@ func CreateNegotiationFingerprint(partnerDhPubKey *cyclic.Int,
 	partnerSidhPubKey.Export(partnerSidhPubkeyBytes[1:])
 	h.Write(partnerSidhPubkeyBytes)
 
-	return h.Sum(nil)
+	return h.Sum(nil)[:NegotiationFingerprintLen]
 }
