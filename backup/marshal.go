@@ -8,7 +8,7 @@
 package backup
 
 import (
-	"encoding/binary"
+	"bytes"
 	"encoding/json"
 	"errors"
 
@@ -20,8 +20,8 @@ import (
 )
 
 const (
-	tag     = 12345
-	tagSize = 2
+	tag     = "XXACCTBK"
+	tagSize = 8
 
 	version     = 0
 	versionSize = 1
@@ -29,17 +29,17 @@ const (
 
 func MarshalTagVersion() []byte {
 	out := make([]byte, tagSize+versionSize)
-	binary.BigEndian.PutUint16(out[:2], tag)
-	out[2] = byte(version)
+	copy(out[:tagSize], tag)
+	out[tagSize] = byte(version)
 	return out
 }
 
 func CheckMarshalledTagVersion(b []byte) error {
-	acquiredTag := binary.BigEndian.Uint16(b[:2])
-	if acquiredTag != tag {
+	acquiredTag := b[:tagSize]
+	if !bytes.Equal(acquiredTag, []byte(tag)) {
 		return errors.New("tag mismatch")
 	}
-	acquiredVersion := int(b[2])
+	acquiredVersion := int(b[tagSize])
 	if acquiredVersion != version {
 		return errors.New("version mismatch")
 	}
@@ -84,7 +84,7 @@ func (b *Backup) Unmarshal(key, blob []byte) error {
 	if err := CheckMarshalledTagVersion(blob); err != nil {
 		return err
 	}
-	blob = blob[3:]
+	blob = blob[tagSize+versionSize:]
 
 	plaintext, err := Decrypt(blob, key)
 	if err != nil {

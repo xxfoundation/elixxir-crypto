@@ -34,9 +34,9 @@ func Encrypt(rand csprng.Source, plaintext, key []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	ciphertext := cipher.Seal(nil, nonce, plaintext, nil)
+	ciphertext := cipher.Seal(nonce, nonce, plaintext, nil)
 
-	return append(nonce, ciphertext...), nil
+	return ciphertext, nil
 }
 
 func Decrypt(blob, key []byte) ([]byte, error) {
@@ -49,9 +49,8 @@ func Decrypt(blob, key []byte) ([]byte, error) {
 		return nil, errors.New("ciphertext size is too small")
 	}
 
-	offset := chacha20poly1305.NonceSizeX
-	nonce := blob[:offset]
-	ciphertext := blob[offset:]
+	nonceLen := chacha20poly1305.NonceSizeX
+	nonce, ciphertext := blob[:nonceLen], blob[nonceLen:]
 
 	cipher, err := chacha20poly1305.NewX(key)
 	if err != nil {
