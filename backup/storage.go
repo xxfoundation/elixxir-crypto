@@ -14,7 +14,10 @@ import (
 	"io/ioutil"
 	"os"
 
+	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/elixxir/primitives/fact"
 	"gitlab.com/xx_network/crypto/csprng"
+	"gitlab.com/xx_network/crypto/signature/rsa"
 	"gitlab.com/xx_network/primitives/id"
 )
 
@@ -46,29 +49,29 @@ func CheckMarshalledTagVersion(b []byte) error {
 }
 
 type TransmissionIdentity struct {
-	RSASigningPrivateKey []byte
+	RSASigningPrivateKey *rsa.PrivateKey
 	RegistrarSignature   []byte
 	Salt                 []byte
 	ComputedID           []byte
 }
 
 type ReceptionIdentity struct {
-	RSASigningPrivateKey []byte
+	RSASigningPrivateKey *rsa.PrivateKey
 	RegistrarSignature   []byte
 	Salt                 []byte
-	ComputedID           []byte
-	DHPrivateKey         []byte
-	DHPublicKey          []byte
+	ComputedID           *id.ID
+	DHPrivateKey         *cyclic.Int
+	DHPublicKey          *cyclic.Int
 }
 
 type UserDiscoveryRegistration struct {
-	Username string
-	Email    string
-	Phone    string
+	Username *fact.Fact
+	Email    *fact.Fact
+	Phone    *fact.Fact
 }
 
 type Contacts struct {
-	Identities []id.ID
+	Identities []*id.ID
 }
 
 type Backup struct {

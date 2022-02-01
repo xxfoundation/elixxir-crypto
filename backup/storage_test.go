@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/xx_network/crypto/csprng"
+	"gitlab.com/xx_network/crypto/signature/rsa"
 )
 
 func TestTagVersion(t *testing.T) {
@@ -26,13 +27,12 @@ func TestTagVersion(t *testing.T) {
 
 func TestStoreAndLoad(t *testing.T) {
 
-	fakeRSAKay := make([]byte, 4096/8)
-	_, err := rand.Read(fakeRSAKay)
+	rsaPrivKey, err := rsa.GenerateKey(csprng.NewSystemRNG(), 4096)
 	require.NoError(t, err)
 
 	backup := &Backup{
 		TransmissionIdentity: TransmissionIdentity{
-			RSASigningPrivateKey: fakeRSAKay,
+			RSASigningPrivateKey: rsaPrivKey,
 		},
 	}
 
