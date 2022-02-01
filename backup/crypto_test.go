@@ -18,6 +18,37 @@ import (
 	"gitlab.com/xx_network/crypto/csprng"
 )
 
+func TestDecryptWithBadKeySize(t *testing.T) {
+
+	plaintext := make([]byte, chacha20poly1305.NonceSize+chacha20poly1305.Overhead+123)
+	_, err := rand.Read(plaintext)
+	require.NoError(t, err)
+
+	key := make([]byte, 32)
+	_, err = rand.Read(key)
+	require.NoError(t, err)
+
+	ciphertext, err := Encrypt(csprng.NewSystemRNG(), plaintext, key)
+	require.NoError(t, err)
+
+	_, err = Decrypt(ciphertext, key[:len(key)-2])
+	require.Error(t, err)
+}
+
+func TestEncryptWithBadKeySize(t *testing.T) {
+
+	plaintext := make([]byte, chacha20poly1305.NonceSize+chacha20poly1305.Overhead+123)
+	_, err := rand.Read(plaintext)
+	require.NoError(t, err)
+
+	key := make([]byte, 32)
+	_, err = rand.Read(key)
+	require.NoError(t, err)
+
+	_, err = Encrypt(csprng.NewSystemRNG(), plaintext, key[:len(key)-2])
+	require.Error(t, err)
+}
+
 func TestEncryptAndDecrypt(t *testing.T) {
 
 	plaintext := make([]byte, chacha20poly1305.NonceSize+chacha20poly1305.Overhead+123)
