@@ -27,14 +27,14 @@ const (
 	versionSize = 1
 )
 
-func MarshalTagVersion() []byte {
+func marshalTagVersion() []byte {
 	out := make([]byte, tagSize+versionSize)
 	copy(out[:tagSize], tag)
 	out[tagSize] = byte(version)
 	return out
 }
 
-func CheckMarshalledTagVersion(b []byte) error {
+func checkMarshalledTagVersion(b []byte) error {
 	acquiredTag := b[:tagSize]
 	if !bytes.Equal(acquiredTag, []byte(tag)) {
 		return errors.New("tag mismatch")
@@ -81,7 +81,7 @@ type Backup struct {
 
 func (b *Backup) Unmarshal(key, blob []byte) error {
 
-	if err := CheckMarshalledTagVersion(blob); err != nil {
+	if err := checkMarshalledTagVersion(blob); err != nil {
 		return err
 	}
 	blob = blob[tagSize+versionSize:]
@@ -94,6 +94,8 @@ func (b *Backup) Unmarshal(key, blob []byte) error {
 	return json.Unmarshal(plaintext, b)
 }
 
+// Marshal returns the serialized backup with the format for account backups:
+//   "XXACCTBAK" | [VERSION as 1 byte] | [DATA]
 func (b Backup) Marshal(rand csprng.Source, key []byte) ([]byte, error) {
 
 	blob, err := json.Marshal(b)
@@ -106,6 +108,6 @@ func (b Backup) Marshal(rand csprng.Source, key []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	tagVersion := MarshalTagVersion()
+	tagVersion := marshalTagVersion()
 	return append(tagVersion, ciphertext...), nil
 }
