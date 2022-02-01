@@ -21,9 +21,12 @@ func Encrypt(rand csprng.Source, plaintext, key []byte) ([]byte, error) {
 	}
 
 	nonce := make([]byte, chacha20poly1305.NonceSizeX)
-	_, err := rand.Read(nonce)
+	size, err := rand.Read(nonce)
 	if err != nil {
 		return nil, err
+	}
+	if size != chacha20poly1305.NonceSizeX {
+		return nil, errors.New("csprng returned wrong number of bytes")
 	}
 
 	cipher, err := chacha20poly1305.NewX(key)
