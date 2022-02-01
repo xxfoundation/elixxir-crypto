@@ -16,6 +16,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestTagVersion(t *testing.T) {
+	blob := MarshalTagVersion()
+	err := CheckMarshalledTagVersion(blob)
+	require.NoError(t, err)
+}
+
 func TestStoreAndLoad(t *testing.T) {
 
 	fakeRSAKay := make([]byte, 4096/8)

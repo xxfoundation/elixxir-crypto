@@ -8,12 +8,41 @@
 package backup
 
 import (
+	"encoding/binary"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"os"
 
 	"gitlab.com/xx_network/primitives/id"
 )
+
+const (
+	tag     = 12345
+	tagSize = 2
+
+	version     = 0
+	versionSize = 1
+)
+
+func MarshalTagVersion() []byte {
+	out := make([]byte, tagSize+versionSize)
+	binary.BigEndian.PutUint16(out[:2], tag)
+	out[2] = byte(version)
+	return out
+}
+
+func CheckMarshalledTagVersion(b []byte) error {
+	acquiredTag := binary.BigEndian.Uint16(b[:2])
+	if acquiredTag != tag {
+		return errors.New("tag mismatch")
+	}
+	acquiredVersion := int(b[2])
+	if acquiredVersion != version {
+		return errors.New("version mismatch")
+	}
+	return nil
+}
 
 type TransmissionIdentity struct {
 	RSASigningPrivateKey []byte
@@ -55,6 +84,11 @@ func (b *Backup) Load(filepath string, key []byte) error {
 		return err
 	}
 
+	if err = CheckMarshalledTagVersion(blob); err != nil {
+		return err
+	}
+	blob = blob[3:]
+
 	plaintext, err := Decrypt(blob, key)
 	if err != nil {
 		return err
@@ -74,6 +108,9 @@ func (b *Backup) Store(filepath string, key []byte) error {
 	if err != nil {
 		return err
 	}
+
+	tagVersion := MarshalTagVersion()
+	ciphertext = append(tagVersion, ciphertext...)
 
 	tmpfile, err := ioutil.TempFile("", "state")
 	if err != nil {
