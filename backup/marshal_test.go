@@ -19,8 +19,8 @@ import (
 )
 
 func TestTagVersion(t *testing.T) {
-	blob := MarshalTagVersion()
-	err := CheckMarshalledTagVersion(blob)
+	blob := marshalTagVersion()
+	err := checkMarshalledTagVersion(blob)
 	require.NoError(t, err)
 }
 
