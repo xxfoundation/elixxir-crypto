@@ -94,7 +94,7 @@ func (b *Backup) Unmarshal(key, blob []byte) error {
 	return json.Unmarshal(plaintext, b)
 }
 
-func (b *Backup) Marshal(rand csprng.Source, key []byte) ([]byte, error) {
+func (b Backup) Marshal(rand csprng.Source, key []byte) ([]byte, error) {
 
 	blob, err := json.Marshal(b)
 	if err != nil {
