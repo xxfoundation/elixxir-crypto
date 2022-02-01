@@ -8,18 +8,21 @@
 package backup
 
 import (
+	"crypto/rand"
 	"errors"
 
 	"golang.org/x/crypto/chacha20poly1305"
 )
 
-func Encrypt(plaintext, key, nonce []byte) ([]byte, error) {
+func Encrypt(plaintext, key []byte) ([]byte, error) {
 	if len(key) != chacha20poly1305.KeySize {
 		return nil, errors.New("Backup.Store: incorrect key size")
 	}
 
-	if len(nonce) != chacha20poly1305.NonceSizeX {
-		return nil, errors.New("Backup.Store: incorrect nonce size")
+	nonce := make([]byte, chacha20poly1305.NonceSizeX)
+	_, err := rand.Read(nonce)
+	if err != nil {
+		return nil, err
 	}
 
 	cipher, err := chacha20poly1305.NewX(key)

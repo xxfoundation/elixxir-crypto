@@ -26,11 +26,7 @@ func TestEncryptAndDecrypt(t *testing.T) {
 	_, err = rand.Read(key)
 	require.NoError(t, err)
 
-	nonce := make([]byte, 24)
-	_, err = rand.Read(nonce)
-	require.NoError(t, err)
-
-	ciphertext, err := Encrypt(plaintext, key, nonce)
+	ciphertext, err := Encrypt(plaintext, key)
 	require.NoError(t, err)
 
 	plaintext2, err := Decrypt(ciphertext, key)

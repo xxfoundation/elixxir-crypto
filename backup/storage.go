@@ -8,7 +8,6 @@
 package backup
 
 import (
-	"crypto/rand"
 	"encoding/json"
 	"io/ioutil"
 	"os"
@@ -71,13 +70,7 @@ func (b *Backup) Store(filepath string, key []byte) error {
 		return err
 	}
 
-	nonce := make([]byte, 24)
-	_, err = rand.Read(nonce)
-	if err != nil {
-		return err
-	}
-
-	ciphertext, err := Encrypt(blob, key, nonce)
+	ciphertext, err := Encrypt(blob, key)
 	if err != nil {
 		return err
 	}
