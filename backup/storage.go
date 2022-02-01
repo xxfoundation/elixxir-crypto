@@ -11,8 +11,6 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
-	"os"
 
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/primitives/fact"
@@ -81,14 +79,9 @@ type Backup struct {
 	Contacts                  Contacts
 }
 
-func (b *Backup) Load(filepath string, key []byte) error {
+func (b *Backup) Unmarshal(key, blob []byte) error {
 
-	blob, err := ioutil.ReadFile(filepath)
-	if err != nil {
-		return err
-	}
-
-	if err = CheckMarshalledTagVersion(blob); err != nil {
+	if err := CheckMarshalledTagVersion(blob); err != nil {
 		return err
 	}
 	blob = blob[3:]
@@ -101,38 +94,18 @@ func (b *Backup) Load(filepath string, key []byte) error {
 	return json.Unmarshal(plaintext, b)
 }
 
-func (b *Backup) Store(rand csprng.Source, filepath string, key []byte) error {
+func (b *Backup) Marshal(rand csprng.Source, key []byte) ([]byte, error) {
 
 	blob, err := json.Marshal(b)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	ciphertext, err := Encrypt(rand, blob, key)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	tagVersion := MarshalTagVersion()
-	ciphertext = append(tagVersion, ciphertext...)
-
-	tmpfile, err := ioutil.TempFile("", "state")
-	if err != nil {
-		return err
-	}
-
-	tmpPath := tmpfile.Name()
-
-	_, err = tmpfile.Write(ciphertext)
-	if err != nil {
-		return err
-	}
-
-	err = tmpfile.Close()
-	if err != nil {
-		return err
-	}
-
-	err = os.Rename(tmpPath, filepath)
-	return err
+	return append(tagVersion, ciphertext...), nil
 }
