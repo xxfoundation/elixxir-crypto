@@ -50,7 +50,7 @@ type TransmissionIdentity struct {
 	RSASigningPrivateKey *rsa.PrivateKey
 	RegistrarSignature   []byte
 	Salt                 []byte
-	ComputedID           []byte
+	ComputedID           *id.ID
 }
 
 type ReceptionIdentity struct {
