@@ -9,8 +9,6 @@ package backup
 
 import (
 	"crypto/rand"
-	"io/ioutil"
-	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -40,16 +38,11 @@ func TestStoreAndLoad(t *testing.T) {
 	_, err = rand.Read(key)
 	require.NoError(t, err)
 
-	dir, err := ioutil.TempDir("", "backup_state_test")
-	require.NoError(t, err)
-
-	filepath := filepath.Join(dir, "tmpfile")
-
-	err = backup.Store(csprng.NewSystemRNG(), filepath, key)
+	ciphertext, err := backup.Marshal(csprng.NewSystemRNG(), key)
 	require.NoError(t, err)
 
 	newbackup := &Backup{}
-	err = newbackup.Load(filepath, key)
+	err = newbackup.Unmarshal(key, ciphertext)
 	require.NoError(t, err)
 
 	require.Equal(t, newbackup.TransmissionIdentity.RSASigningPrivateKey, backup.TransmissionIdentity.RSASigningPrivateKey)
