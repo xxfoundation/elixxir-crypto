@@ -32,16 +32,12 @@ func TestStoreAndLoad(t *testing.T) {
 	_, err = rand.Read(key)
 	require.NoError(t, err)
 
-	nonce := make([]byte, 24)
-	_, err = rand.Read(nonce)
-	require.NoError(t, err)
-
 	dir, err := ioutil.TempDir("", "backup_state_test")
 	require.NoError(t, err)
 
 	filepath := filepath.Join(dir, "tmpfile")
 
-	err = backup.Store(filepath, key, nonce)
+	err = backup.Store(filepath, key)
 	require.NoError(t, err)
 
 	newbackup := &Backup{}

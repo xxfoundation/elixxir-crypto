@@ -8,6 +8,7 @@
 package backup
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"io/ioutil"
 	"os"
@@ -63,9 +64,15 @@ func (b *Backup) Load(filepath string, key []byte) error {
 	return json.Unmarshal(plaintext, b)
 }
 
-func (b *Backup) Store(filepath string, key []byte, nonce []byte) error {
+func (b *Backup) Store(filepath string, key []byte) error {
 
 	blob, err := json.Marshal(b)
+	if err != nil {
+		return err
+	}
+
+	nonce := make([]byte, 24)
+	_, err = rand.Read(nonce)
 	if err != nil {
 		return err
 	}
