@@ -14,6 +14,8 @@ import (
 	"golang.org/x/crypto/chacha20poly1305"
 
 	"github.com/stretchr/testify/require"
+
+	"gitlab.com/xx_network/crypto/csprng"
 )
 
 func TestEncryptAndDecrypt(t *testing.T) {
@@ -26,7 +28,7 @@ func TestEncryptAndDecrypt(t *testing.T) {
 	_, err = rand.Read(key)
 	require.NoError(t, err)
 
-	ciphertext, err := Encrypt(plaintext, key)
+	ciphertext, err := Encrypt(csprng.NewSystemRNG(), plaintext, key)
 	require.NoError(t, err)
 
 	plaintext2, err := Decrypt(ciphertext, key)

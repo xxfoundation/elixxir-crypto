@@ -8,13 +8,14 @@
 package backup
 
 import (
-	"crypto/rand"
 	"errors"
 
 	"golang.org/x/crypto/chacha20poly1305"
+
+	"gitlab.com/xx_network/crypto/csprng"
 )
 
-func Encrypt(plaintext, key []byte) ([]byte, error) {
+func Encrypt(rand csprng.Source, plaintext, key []byte) ([]byte, error) {
 	if len(key) != chacha20poly1305.KeySize {
 		return nil, errors.New("Backup.Store: incorrect key size")
 	}

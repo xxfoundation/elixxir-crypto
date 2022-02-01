@@ -14,6 +14,7 @@ import (
 	"io/ioutil"
 	"os"
 
+	"gitlab.com/xx_network/crypto/csprng"
 	"gitlab.com/xx_network/primitives/id"
 )
 
@@ -97,14 +98,14 @@ func (b *Backup) Load(filepath string, key []byte) error {
 	return json.Unmarshal(plaintext, b)
 }
 
-func (b *Backup) Store(filepath string, key []byte) error {
+func (b *Backup) Store(rand csprng.Source, filepath string, key []byte) error {
 
 	blob, err := json.Marshal(b)
 	if err != nil {
 		return err
 	}
 
-	ciphertext, err := Encrypt(blob, key)
+	ciphertext, err := Encrypt(rand, blob, key)
 	if err != nil {
 		return err
 	}

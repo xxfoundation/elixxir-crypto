@@ -14,6 +14,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"gitlab.com/xx_network/crypto/csprng"
 )
 
 func TestTagVersion(t *testing.T) {
@@ -43,7 +45,7 @@ func TestStoreAndLoad(t *testing.T) {
 
 	filepath := filepath.Join(dir, "tmpfile")
 
-	err = backup.Store(filepath, key)
+	err = backup.Store(csprng.NewSystemRNG(), filepath, key)
 	require.NoError(t, err)
 
 	newbackup := &Backup{}
