@@ -47,19 +47,21 @@ func checkMarshalledTagVersion(b []byte) error {
 }
 
 type TransmissionIdentity struct {
-	RSASigningPrivateKey *rsa.PrivateKey
-	RegistrarSignature   []byte
-	Salt                 []byte
-	ComputedID           *id.ID
+	RSASigningPrivateKey  *rsa.PrivateKey
+	RegistrarSignature    []byte
+	Salt                  []byte
+	ComputedID            *id.ID
+	RegistrationTimestamp int64
 }
 
 type ReceptionIdentity struct {
-	RSASigningPrivateKey *rsa.PrivateKey
-	RegistrarSignature   []byte
-	Salt                 []byte
-	ComputedID           *id.ID
-	DHPrivateKey         *cyclic.Int
-	DHPublicKey          *cyclic.Int
+	RSASigningPrivateKey  *rsa.PrivateKey
+	RegistrarSignature    []byte
+	Salt                  []byte
+	ComputedID            *id.ID
+	DHPrivateKey          *cyclic.Int
+	DHPublicKey           *cyclic.Int
+	RegistrationTimestamp int64
 }
 
 type UserDiscoveryRegistration struct {
