@@ -80,7 +80,9 @@ type Backup struct {
 	Contacts                  Contacts
 }
 
-func (b *Backup) Unmarshal(key, blob []byte) error {
+// Decrypt decrypts the encrypted serialized backup. Returns an error for
+// invalid version or invalid tag.
+func (b *Backup) Decrypt(key, blob []byte) error {
 
 	if err := checkMarshalledTagVersion(blob); err != nil {
 		return err
@@ -95,9 +97,10 @@ func (b *Backup) Unmarshal(key, blob []byte) error {
 	return json.Unmarshal(plaintext, b)
 }
 
-// Marshal returns the serialized backup with the format for account backups:
+// Encrypt returns the encrypted serialized backup with the format for account
+// backups:
 //   "XXACCTBAK" | [VERSION as 1 byte] | [DATA]
-func (b Backup) Marshal(rand csprng.Source, key []byte) ([]byte, error) {
+func (b *Backup) Encrypt(rand csprng.Source, key []byte) ([]byte, error) {
 
 	blob, err := json.Marshal(b)
 	if err != nil {
