@@ -81,7 +81,7 @@ type Contact struct {
 
 // ReadContact reads and unmarshal the contact from file and returns the
 // marshaled ID and DH public key.
-func ReadContact(contactFileData []byte) ([]byte, []byte) {
+func ReadContactFromFile(contactFileData []byte) ([]byte, []byte) {
 
 	c, err := Unmarshal(contactFileData)
 	if err != nil {
