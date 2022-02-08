@@ -14,6 +14,7 @@ import (
 	"encoding/binary"
 	"github.com/pkg/errors"
 	"github.com/skip2/go-qrcode"
+	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/primitives/fact"
 	"gitlab.com/xx_network/primitives/id"
@@ -76,6 +77,23 @@ type Contact struct {
 	DhPubKey       *cyclic.Int
 	OwnershipProof []byte
 	Facts          fact.FactList
+}
+
+// ReadContact reads and unmarshal the contact from file and returns the
+// marshaled ID and DH public key.
+func ReadContact(contactFileData []byte) ([]byte, []byte) {
+
+	c, err := Unmarshal(contactFileData)
+	if err != nil {
+		jww.FATAL.Panicf("Failed to unmarshal contact: %+v", err)
+	}
+
+	dhPubKeyJson, err := c.DhPubKey.MarshalJSON()
+	if err != nil {
+		jww.FATAL.Panicf("Failed to marshal contact DH public key: %+v", err)
+	}
+
+	return c.ID.Marshal(), dhPubKeyJson
 }
 
 // Marshal saves the Contact in a compact binary format with base 64 encoding.
