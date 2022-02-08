@@ -14,7 +14,6 @@ import (
 	"encoding/binary"
 	"github.com/pkg/errors"
 	"github.com/skip2/go-qrcode"
-	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/primitives/fact"
 	"gitlab.com/xx_network/primitives/id"
@@ -81,19 +80,19 @@ type Contact struct {
 
 // ReadContact reads and unmarshal the contact from file and returns the
 // marshaled ID and DH public key.
-func ReadContactFromFile(contactFileData []byte) ([]byte, []byte) {
+func ReadContactFromFile(contactFileData []byte) ([]byte, []byte, error) {
 
 	c, err := Unmarshal(contactFileData)
 	if err != nil {
-		jww.FATAL.Panicf("Failed to unmarshal contact: %+v", err)
+		return nil, nil, errors.Errorf("Failed to unmarshal contact: %+v", err)
 	}
 
 	dhPubKeyJson, err := c.DhPubKey.MarshalJSON()
 	if err != nil {
-		jww.FATAL.Panicf("Failed to marshal contact DH public key: %+v", err)
+		return nil, nil, errors.Errorf("Failed to marshal contact DH public key: %+v", err)
 	}
 
-	return c.ID.Marshal(), dhPubKeyJson
+	return c.ID.Marshal(), dhPubKeyJson, nil
 }
 
 // Marshal saves the Contact in a compact binary format with base 64 encoding.
