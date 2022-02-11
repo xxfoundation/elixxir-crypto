@@ -78,6 +78,23 @@ type Contact struct {
 	Facts          fact.FactList
 }
 
+// ReadContact reads and unmarshal the contact from file and returns the
+// marshaled ID and DH public key.
+func ReadContactFromFile(contactFileData []byte) ([]byte, []byte, error) {
+
+	c, err := Unmarshal(contactFileData)
+	if err != nil {
+		return nil, nil, errors.Errorf("Failed to unmarshal contact: %+v", err)
+	}
+
+	dhPubKeyJson, err := c.DhPubKey.MarshalJSON()
+	if err != nil {
+		return nil, nil, errors.Errorf("Failed to marshal contact DH public key: %+v", err)
+	}
+
+	return c.ID.Marshal(), dhPubKeyJson, nil
+}
+
 // Marshal saves the Contact in a compact binary format with base 64 encoding.
 // The data has a header and footer that specify the format version and allow
 // the data to be recognized in a stream of data. The format has the following
