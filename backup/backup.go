@@ -10,8 +10,8 @@ package backup
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 
+	"github.com/pkg/errors"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/primitives/fact"
 	"gitlab.com/xx_network/crypto/csprng"
@@ -46,6 +46,41 @@ func checkMarshalledTagVersion(b []byte) error {
 	return nil
 }
 
+// marshalSaltParams marshals the salt and Params object into a byte slice.
+func marshalSaltParams(salt []byte, params Params) []byte {
+	buff := bytes.NewBuffer(nil)
+	buff.Grow(SaltLen + ParamsLen)
+
+	// Write salt to buffer
+	buff.Write(salt)
+
+	// Write marshalled params to buffer
+	buff.Write(params.Marshal())
+
+	return buff.Bytes()
+}
+
+// unmarshalSaltParams decodes the byte slice into a salt and Params.
+func unmarshalSaltParams(data []byte) ([]byte, Params, error) {
+	buff := bytes.NewBuffer(data)
+
+	// Get salt from buffer
+	salt := make([]byte, SaltLen)
+	n, err := buff.Read(salt)
+	if err != nil || n != SaltLen {
+		return nil, Params{}, errors.Errorf("read salt failed: %+v", err)
+	}
+
+	// Unmarshal params from remaining bytes
+	var params Params
+	err = params.Unmarshal(buff.Bytes())
+	if err != nil {
+		return nil, Params{}, err
+	}
+
+	return salt, params, nil
+}
+
 type TransmissionIdentity struct {
 	RSASigningPrivateKey *rsa.PrivateKey
 	RegistrarSignature   []byte
@@ -63,9 +98,7 @@ type ReceptionIdentity struct {
 }
 
 type UserDiscoveryRegistration struct {
-	Username *fact.Fact
-	Email    *fact.Fact
-	Phone    *fact.Fact
+	fact.FactList
 }
 
 type Contacts struct {
@@ -73,18 +106,31 @@ type Contacts struct {
 }
 
 type Backup struct {
+	RegistrationTimestamp     int64
+	RegistrationCode          string
 	TransmissionIdentity      TransmissionIdentity
 	ReceptionIdentity         ReceptionIdentity
 	UserDiscoveryRegistration UserDiscoveryRegistration
 	Contacts                  Contacts
 }
 
-func (b *Backup) Unmarshal(key, blob []byte) error {
+// Decrypt decrypts the encrypted serialized backup. Returns an error for
+// invalid version or invalid tag.
+func (b *Backup) Decrypt(password string, blob []byte) error {
 
 	if err := checkMarshalledTagVersion(blob); err != nil {
 		return err
 	}
-	blob = blob[tagSize+versionSize:]
+
+	saltParams := blob[tagSize+versionSize : tagSize+versionSize+SaltLen+ParamsLen]
+	salt, params, err := unmarshalSaltParams(saltParams)
+	if err != nil {
+		return err
+	}
+
+	key := DeriveKey(password, salt, params)
+
+	blob = blob[tagSize+versionSize+SaltLen+ParamsLen:]
 
 	plaintext, err := Decrypt(blob, key)
 	if err != nil {
@@ -94,9 +140,14 @@ func (b *Backup) Unmarshal(key, blob []byte) error {
 	return json.Unmarshal(plaintext, b)
 }
 
-// Marshal returns the serialized backup with the format for account backups:
-//   "XXACCTBAK" | [VERSION as 1 byte] | [DATA]
-func (b Backup) Marshal(rand csprng.Source, key []byte) ([]byte, error) {
+// Encrypt returns the encrypted serialized backup with the format for account
+// backups:
+//   "XXACCTBAK" | [VERSION as 1 byte] | [salt and params] | [DATA]
+// The key passed in must be derived via DeriveKey and the salt must be the same
+// used to derive the key. Key derivation happens outside the encryption because
+// it is slow, so that the key can be stored and reused.
+func (b *Backup) Encrypt(rand csprng.Source, key, salt []byte, params Params) (
+	[]byte, error) {
 
 	blob, err := json.Marshal(b)
 	if err != nil {
@@ -108,6 +159,7 @@ func (b Backup) Marshal(rand csprng.Source, key []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	tagVersion := marshalTagVersion()
-	return append(tagVersion, ciphertext...), nil
+	saltParams := marshalSaltParams(salt, params)
+	tagVersionSaltParams := append(marshalTagVersion(), saltParams...)
+	return append(tagVersionSaltParams, ciphertext...), nil
 }
