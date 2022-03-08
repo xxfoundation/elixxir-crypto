@@ -108,6 +108,7 @@ type Contacts struct {
 type Backup struct {
 	RegistrationTimestamp     int64
 	RegistrationCode          string
+	JSONParams                string
 	TransmissionIdentity      TransmissionIdentity
 	ReceptionIdentity         ReceptionIdentity
 	UserDiscoveryRegistration UserDiscoveryRegistration
