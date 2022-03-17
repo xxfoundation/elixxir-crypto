@@ -1,32 +1,16 @@
 module gitlab.com/elixxir/crypto
 
-go 1.17
+go 1.13
 
 require (
+	github.com/cloudflare/circl v1.1.0
 	github.com/liyue201/goqr v0.0.0-20200803022322-df443203d4ea
 	github.com/pkg/errors v0.9.1
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/jwalterweatherman v1.1.0
-	github.com/stretchr/testify v1.7.0
-	gitlab.com/elixxir/primitives v0.0.3-0.20220209225643-ae03845af237
-	gitlab.com/xx_network/crypto v0.0.5-0.20220209220237-f1e27faab497
-	gitlab.com/xx_network/primitives v0.0.4-0.20220209215928-ebad9b1d4f04
-	golang.org/x/crypto v0.0.0-20220209195652-db638375bc3a
-)
-
-require (
-	github.com/badoux/checkmail v1.2.1 // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/kr/text v0.2.0 // indirect
-	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
-	github.com/ttacon/libphonenumber v1.2.1 // indirect
-	github.com/zeebo/blake3 v0.1.1 // indirect
-	golang.org/x/sys v0.0.0-20220209214540-3681064d5158 // indirect
-	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
-	google.golang.org/protobuf v1.27.1 // indirect
-	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
-	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
+	github.com/stretchr/testify v1.6.1
+	gitlab.com/elixxir/primitives v0.0.3-0.20220222212109-d412a6e46623
+	gitlab.com/xx_network/crypto v0.0.5-0.20220222212031-750f7e8a01f4
+	gitlab.com/xx_network/primitives v0.0.4-0.20220222211843-901fa4a2d72b
+	golang.org/x/crypto v0.0.0-20220128200615-198e4374d7ed
 )
