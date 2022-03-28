@@ -19,55 +19,48 @@ type ServiceIdentification struct{
 	preimage *Preimage
 }
 
-func (si ServiceIdentification)Hash(contents []byte)[]byte{
-	preimage := si.Preimage()
+
+func Hash(preimage Preimage, contents []byte)[]byte{
 	b2b := hasher()
 	b2b.Write(GetMessageHash(contents))
 	b2b.Write(preimage[:])
 	return b2b.Sum(nil)[:format.SIHLen]
 }
 
-func (si ServiceIdentification)HashFromMessageHash(messageHash []byte)[]byte{
-	preimage := si.Preimage()
+func HashFromMessageHash(preimage Preimage, messageHash []byte)[]byte{
 	b2b := hasher()
 	b2b.Write(messageHash)
 	b2b.Write(preimage[:])
 	return b2b.Sum(nil)[:format.SIHLen]
 }
 
-func (si ServiceIdentification)Preimage()Preimage{
-	// dont recalculate if calculated before
-	if si.preimage!=nil{
-		return *si.preimage
-	}
+func MakePreimage(identifier []byte, tag string)Preimage{
 
 	var p Preimage
-	si.preimage = &p
 
-	if si.ServiceTag == Default {
-		copy(p[:],si.Identifier)
-		return *si.preimage
+	if tag == Default {
+		copy(p[:],identifier)
+		return p
 	}
 
 	// Hash fingerprints
 	h := hasher()
-	h.Write(si.Identifier)
-	h.Write([]byte(si.ServiceTag))
+	h.Write(identifier)
+	h.Write([]byte(tag))
 
 	pSlice := h.Sum(nil)
 
 	copy(p[:],pSlice)
 
-	// Base 64 encode hash and truncate
 	return p
 }
 
-func (si ServiceIdentification)ForMe(contents, hash []byte)bool{
-	return bytes.Equal(si.Hash(contents), hash)
+func ForMe(preimage Preimage, contents, hash []byte)bool{
+	return bytes.Equal(Hash(preimage, contents), hash)
 }
 
-func (si ServiceIdentification)ForMeFromMessageHash(messageHash, hash []byte)bool{
-	return bytes.Equal(si.HashFromMessageHash(messageHash), hash)
+func ForMeFromMessageHash(preimage Preimage, messageHash, hash []byte)bool{
+	return bytes.Equal(HashFromMessageHash(preimage, messageHash), hash)
 }
 
 func GetMessageHash(messagePayload []byte) []byte {
