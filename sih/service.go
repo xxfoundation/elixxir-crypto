@@ -10,16 +10,6 @@ var hasher = crypto.BLAKE2b_256.New
 
 type Preimage [32]byte
 
-type ServiceIdentification struct{
-	Identifier []byte
-	ServiceTag   string
-	Source []byte //optional metadata field, only used on reception
-
-	//private field for lazy evaluation of preimage
-	preimage *Preimage
-}
-
-
 func Hash(preimage Preimage, contents []byte)[]byte{
 	b2b := hasher()
 	b2b.Write(GetMessageHash(contents))
