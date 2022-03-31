@@ -26,7 +26,7 @@ const macMask = 0b00111111
 // type
 func IsUnencrypted(m format.Message) (bool, *id.ID) {
 
-	expectedMac := MakeUnencryptedMAC(m.GetContents())
+	expectedMac := makeUnencryptedMAC(m.GetContents())
 	receivedMac := m.GetMac()
 	idHighBit := (receivedMac[0] & 0b01000000) << 1
 	receivedMac[0] &= macMask
@@ -49,14 +49,11 @@ func IsUnencrypted(m format.Message) (bool, *id.ID) {
 
 // SetUnencrypted sets up the condition where the message would be determined to
 // be unencrypted by setting the MAC to the hash of the message payload.
-func SetUnencrypted(m format.Message, uid *id.ID) {
-	mac := MakeUnencryptedMAC(m.GetContents())
+func SetUnencrypted(payload []byte, uid *id.ID) ([]byte, format.Fingerprint){
+	mac := makeUnencryptedMAC(payload)
 
 	//copy in the high bit of the userID for storage
 	mac[0] |= (uid[0] & 0b10000000) >> 1
-
-	// Set the MAC
-	m.SetMac(mac)
 
 	//remove the type byte off of the userID and clear the highest bit so
 	//it can be stored in the fingerprint
@@ -64,11 +61,10 @@ func SetUnencrypted(m format.Message, uid *id.ID) {
 	copy(fp[:], uid[:format.KeyFPLen])
 	fp[0] &= 0b01111111
 
-	m.SetKeyFP(fp)
+	return mac, fp
 }
 
-// MakeUnencryptedMAC returns the mac, fingerprint, and the highest byte
-func MakeUnencryptedMAC(payload []byte) []byte {
+func makeUnencryptedMAC(payload []byte) []byte {
 	// Create new hash
 	h, err := hash.NewCMixHash()
 
