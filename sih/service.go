@@ -28,7 +28,7 @@ func HashFromMessageHash(preimage Preimage, messageHash []byte) []byte {
 func MakePreimage(identifier []byte, tag string) Preimage {
 	var p Preimage
 
-	if tag == Default {
+	if tag == Default || tag == Group {
 		copy(p[:], identifier)
 		return p
 	}
