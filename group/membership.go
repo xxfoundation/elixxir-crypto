@@ -162,6 +162,10 @@ func DeserializeMembership(b []byte) (Membership, error) {
 	return membership, nil
 }
 
+func (gm Membership) Leader() *id.ID {
+	return gm[0].ID
+}
+
 // String returns a list of members as text. This functions satisfies the
 // fmt.Stringer interface.
 func (gm Membership) String() string {
