@@ -32,7 +32,8 @@ func TestNewTransmitKey_Consistency(t *testing.T) {
 	prng := rand.New(rand.NewSource(42))
 
 	for i, expectedKey := range expectedKeys {
-		privKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, getGrp(), prng)
+		privKey := diffieHellman.GeneratePrivateKey(
+			diffieHellman.DefaultPrivateKeyLength, getGrp(), prng)
 		pubKey := diffieHellman.GeneratePublicKey(privKey, getGrp())
 		dhKey := diffieHellman.GenerateSessionKey(privKey, pubKey, getGrp())
 
@@ -40,7 +41,7 @@ func TestNewTransmitKey_Consistency(t *testing.T) {
 		testKeyBase64 := base64.StdEncoding.EncodeToString(testKey)
 
 		if expectedKey != testKeyBase64 {
-			t.Errorf("NewTransmitKey() did not return the expected key (%d)."+
+			t.Errorf("NewTransmitKey did not return the expected key (%d)."+
 				"\nexpected: %s\nreceived: %s", i, expectedKey, testKeyBase64)
 		}
 	}
@@ -53,7 +54,8 @@ func TestNewTransmitKey_Unique(t *testing.T) {
 	keys := make(map[string]*cyclic.Int, 100)
 
 	for i := 0; i < testRuns; i++ {
-		privKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, getGrp(), prng)
+		privKey := diffieHellman.GeneratePrivateKey(
+			diffieHellman.DefaultPrivateKeyLength, getGrp(), prng)
 		pubKey := diffieHellman.GeneratePublicKey(privKey, getGrp())
 		dhKey := diffieHellman.GenerateSessionKey(privKey, pubKey, getGrp())
 

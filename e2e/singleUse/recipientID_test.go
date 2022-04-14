@@ -25,7 +25,8 @@ func TestNewRecipientID_Consistency(t *testing.T) {
 	prng := rand.New(rand.NewSource(42))
 
 	for i, expectedRID := range expectedRIDs {
-		privKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, getGrp(), prng)
+		privKey := diffieHellman.GeneratePrivateKey(
+			diffieHellman.DefaultPrivateKeyLength, getGrp(), prng)
 		pubKey := diffieHellman.GeneratePublicKey(privKey, getGrp())
 		unencryptedPayload := make([]byte, prng.Intn(500))
 		prng.Read(unencryptedPayload)
@@ -33,12 +34,12 @@ func TestNewRecipientID_Consistency(t *testing.T) {
 		testRID := NewRecipientID(pubKey, unencryptedPayload)
 
 		if expectedRID != testRID.String() {
-			t.Errorf("NewRecipientID() did not return the expected ID (%d)."+
+			t.Errorf("NewRecipientID did not return the expected ID (%d)."+
 				"\nexpected: %s\nreceived: %s", i, expectedRID, testRID)
 		}
 
 		if testRID.GetType() != id.User {
-			t.Errorf("NewRecipientID() did not return expected ID type (%d)."+
+			t.Errorf("NewRecipientID did not return expected ID type (%d)."+
 				"\nexpected: %s\nreceived: %s", i, id.User, testRID.GetType())
 		}
 	}
@@ -55,7 +56,8 @@ func TestNewRecipientID_Unique(t *testing.T) {
 
 	// Test with same public key but differing payloads
 	for i := 0; i < testRuns; i++ {
-		privKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength+i, getGrp(), prng)
+		privKey := diffieHellman.GeneratePrivateKey(
+			diffieHellman.DefaultPrivateKeyLength+i, getGrp(), prng)
 		pubKey := diffieHellman.GeneratePublicKey(privKey, getGrp())
 		for j := 0; j < testRuns; j++ {
 			unencryptedPayload := make([]byte, prng.Intn(500)+j)
@@ -64,12 +66,16 @@ func TestNewRecipientID_Unique(t *testing.T) {
 			testID := NewRecipientID(pubKey, unencryptedPayload)
 
 			if _, exists := IDs[testID]; exists {
-				t.Errorf("Generated ID collides with previously generated ID (%d, %d)."+
+				t.Errorf("Generated ID collides with previously generated "+
+					"ID (%d, %d)."+
 					"\ncurrent ID:   key: %s  unencryptedPayload: %+v"+
 					"\npreviouse ID: key: %s  unencryptedPayload: %+v"+
 					"\nID:           %s", i, j,
-					pubKey.Text(10), unencryptedPayload, IDs[testID].pubKey.Text(10),
-					IDs[testID].encryptedPayload, testID)
+					pubKey.Text(10),
+					unencryptedPayload,
+					IDs[testID].pubKey.Text(10),
+					IDs[testID].encryptedPayload,
+					testID)
 			} else {
 				IDs[testID] = struct {
 					pubKey           *cyclic.Int
@@ -84,18 +90,23 @@ func TestNewRecipientID_Unique(t *testing.T) {
 		unencryptedPayload := make([]byte, prng.Intn(500)+i)
 		prng.Read(unencryptedPayload)
 		for j := 0; j < testRuns; j++ {
-			privKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength+j, getGrp(), prng)
+			privKey := diffieHellman.GeneratePrivateKey(
+				diffieHellman.DefaultPrivateKeyLength+j, getGrp(), prng)
 			pubKey := diffieHellman.GeneratePublicKey(privKey, getGrp())
 
 			testID := NewRecipientID(pubKey, unencryptedPayload)
 
 			if _, exists := IDs[testID]; exists {
-				t.Errorf("Generated ID collides with previously generated ID (%d, %d)."+
+				t.Errorf("Generated ID collides with previously generated "+
+					"ID (%d, %d)."+
 					"\ncurrent ID:   key: %s  unencryptedPayload: %+v"+
 					"\npreviouse ID: key: %s  unencryptedPayload: %+v"+
 					"\nID:           %s", i, j,
-					pubKey.Text(10), unencryptedPayload, IDs[testID].pubKey.Text(10),
-					IDs[testID].encryptedPayload, testID)
+					pubKey.Text(10),
+					unencryptedPayload,
+					IDs[testID].pubKey.Text(10),
+					IDs[testID].encryptedPayload,
+					testID)
 			} else {
 				IDs[testID] = struct {
 					pubKey           *cyclic.Int

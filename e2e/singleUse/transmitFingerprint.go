@@ -22,8 +22,8 @@ func NewTransmitFingerprint(pubKey *cyclic.Int) format.Fingerprint {
 	// Create new hash
 	h, err := hash.NewCMixHash()
 	if err != nil {
-		jww.ERROR.Panicf("Failed to create new hash for single-use "+
-			"transmission fingerprint: %v", err)
+		jww.FATAL.Panicf("[SU] Failed to create new hash for single-use "+
+			"transmission fingerprint: %+v", err)
 	}
 
 	// Hash the public key and salt

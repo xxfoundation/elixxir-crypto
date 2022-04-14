@@ -23,8 +23,8 @@ func NewResponseFingerprint(dhKey *cyclic.Int, keyNum uint64) format.Fingerprint
 	// Create new hash
 	h, err := hash.NewCMixHash()
 	if err != nil {
-		jww.ERROR.Panicf("Failed to create new hash for single-use response "+
-			"fingerprint: %v", err)
+		jww.FATAL.Panicf("[SU] Failed to create new hash for single-use "+
+			"response fingerprint: %+v", err)
 	}
 
 	keyNumBytes := make([]byte, binary.MaxVarintLen64)

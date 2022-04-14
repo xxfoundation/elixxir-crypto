@@ -25,8 +25,8 @@ func NewTagFP(tag string) TagFP {
 	// Create new hash
 	h, err := hash.NewCMixHash()
 	if err != nil {
-		jww.ERROR.Panicf("Failed to create new hash for single-use "+
-			"communication tag fingerprint: %v", err)
+		jww.FATAL.Panicf("[SU] Failed to create new hash for single-use "+
+			"communication tag fingerprint: %+v", err)
 	}
 
 	// Hash tag and salt

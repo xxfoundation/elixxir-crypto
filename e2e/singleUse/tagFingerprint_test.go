@@ -37,7 +37,7 @@ func TestNewTagFP_Consistency(t *testing.T) {
 		testFP := NewTagFP(string(tag))
 
 		if expectedFP != testFP.String() {
-			t.Errorf("NewTagFP() did not return the expected fingerprint (%d)."+
+			t.Errorf("NewTagFP did not return the expected fingerprint (%d)."+
 				"\nexpected: %s\nreceived: %s", i, expectedFP, testFP)
 		}
 	}
@@ -74,14 +74,14 @@ func TestUnmarshalTagFP(t *testing.T) {
 
 	fp := UnmarshalTagFP(fpBytes)
 	if !bytes.Equal(fpBytes, fp[:]) {
-		t.Errorf("UnmarshalTagFP() failed to copy the correct bytes into the tag "+
-			"fingerprint.\nexpected: %+v\nreceived: %+v", fpBytes, fp)
+		t.Errorf("UnmarshalTagFP failed to copy the correct bytes into the "+
+			"tag fingerprint.\nexpected: %+v\nreceived: %+v", fpBytes, fp)
 	}
 
 	// Ensure that the data is copied
 	fpBytes[2]++
 	if fp[2] == fpBytes[2] {
-		t.Errorf("UnmarshalTagFP() failed to create a copy of the data.")
+		t.Errorf("UnmarshalTagFP failed to create a copy of the data.")
 	}
 }
 
@@ -94,14 +94,14 @@ func TestTagFP_Bytes(t *testing.T) {
 	fp := UnmarshalTagFP(fpBytes)
 	testFpBytes := fp.Bytes()
 	if !bytes.Equal(fpBytes, testFpBytes) {
-		t.Errorf("Bytes() failed to return the expected bytes."+
+		t.Errorf("Bytes failed to return the expected bytes."+
 			"\nexpected: %+v\nreceived: %+v", fpBytes, testFpBytes)
 	}
 
 	// Ensure that the data is copied
 	testFpBytes[2]++
 	if fp[2] == testFpBytes[2] {
-		t.Errorf("Bytes() failed to create a copy of the data.")
+		t.Errorf("Bytes failed to create a copy of the data.")
 	}
 }
 
@@ -114,7 +114,7 @@ func TestTagFP_String(t *testing.T) {
 
 	expectedString := base64.StdEncoding.EncodeToString(fpBytes)
 	if expectedString != fp.String() {
-		t.Errorf("String() failed to return the expected string."+
+		t.Errorf("String failed to return the expected string."+
 			"\nexpected: %s\nreceived: %s", expectedString, fp.String())
 	}
 }

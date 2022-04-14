@@ -22,8 +22,8 @@ func NewRecipientID(pubKey *cyclic.Int, unencryptedPayload []byte) *id.ID {
 	// Create new hash
 	h, err := hash.NewCMixHash()
 	if err != nil {
-		jww.ERROR.Panicf("Failed to create new hash for single-use "+
-			"communication recipient ID: %v", err)
+		jww.FATAL.Panicf("[SU] Failed to create new hash for single-use "+
+			"communication recipient ID: %+v", err)
 	}
 
 	// Hash the public key and unencrypted payload
