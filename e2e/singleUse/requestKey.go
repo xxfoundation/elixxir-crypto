@@ -13,20 +13,20 @@ import (
 	"gitlab.com/elixxir/crypto/hash"
 )
 
-const transmitKeySalt = "singleUseTransmitKeySalt"
+const requestKeySalt = "singleUseTransmitKeySalt"
 
-// NewTransmitKey generates the key used for the transmission message.
-func NewTransmitKey(dhKey *cyclic.Int) []byte {
+// NewRequestKey generates the key used for the request message.
+func NewRequestKey(dhKey *cyclic.Int) []byte {
 	// Create new hash
 	h, err := hash.NewCMixHash()
 	if err != nil {
 		jww.FATAL.Panicf("[SU] Failed to create new hash for single-use "+
-			"communication transmission key: %+v", err)
+			"request key: %+v", err)
 	}
 
 	// Hash the DH key and salt
 	h.Write(dhKey.Bytes())
-	h.Write([]byte(transmitKeySalt))
+	h.Write([]byte(requestKeySalt))
 
 	// Get hash bytes
 	return h.Sum(nil)

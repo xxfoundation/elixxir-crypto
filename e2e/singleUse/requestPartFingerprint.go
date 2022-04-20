@@ -8,34 +8,39 @@
 package singleUse
 
 import (
+	"encoding/binary"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/hash"
-	"gitlab.com/xx_network/primitives/id"
+	"gitlab.com/elixxir/primitives/format"
 )
 
-// NewRecipientID generates the recipient ID for a single-use sender. The ID is
-// generated from the hash of the unencrypted request payload. The
-// unencryptedPayload must contain a nonce to prevent collision on the same
-// message being sent multiple times.
-func NewRecipientID(pubKey *cyclic.Int, unencryptedPayload []byte) *id.ID {
+const requestPartFpSalt = "singleUseRequestFingerprintSalt"
+
+// NewRequestPartFingerprint generates the fingerprint for the request message
+// for the given key number.
+func NewRequestPartFingerprint(dhKey *cyclic.Int, keyNum uint64) format.Fingerprint {
 	// Create new hash
 	h, err := hash.NewCMixHash()
 	if err != nil {
 		jww.FATAL.Panicf("[SU] Failed to create new hash for single-use "+
-			"recipient ID: %+v", err)
+			"request fingerprint: %+v", err)
 	}
 
-	// Hash the public key and unencrypted payload
-	h.Write(pubKey.Bytes())
-	h.Write(unencryptedPayload)
+	keyNumBytes := make([]byte, binary.MaxVarintLen64)
+	binary.BigEndian.PutUint64(keyNumBytes, keyNum)
+
+	// Hash the DH key, key number, and salt
+	h.Write(dhKey.Bytes())
+	h.Write(keyNumBytes)
+	h.Write([]byte(requestPartFpSalt))
 
 	// Get hash bytes
-	rid := &id.ID{}
-	copy(rid[:], h.Sum(nil))
+	fp := format.Fingerprint{}
+	copy(fp[:], h.Sum(nil))
 
-	// Set the ID type to user
-	rid.SetType(id.User)
+	// Set the first bit as zero to ensure everything stays in the group
+	fp[0] &= 0b01111111
 
-	return rid
+	return fp
 }

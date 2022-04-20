@@ -14,19 +14,21 @@ import (
 )
 
 const tagFpSalt = "singleUseTagFingerprintSalt"
+
+// TagFpSize is the size of the TagFP type.
 const TagFpSize = 16
 
+// TagFP uniquely identifies the module that the request message belongs to.
 type TagFP [TagFpSize]byte
 
-// NewTagFP generates the tag fingerprint used to identify the module that the
-// transmission message belongs to. The tag can be anything, but should be long
-// enough so that it is unique.
+// NewTagFP generates a new tag fingerprint with the given tag. The tag can be
+// anything, but should be long enough so that it is unique.
 func NewTagFP(tag string) TagFP {
 	// Create new hash
 	h, err := hash.NewCMixHash()
 	if err != nil {
 		jww.FATAL.Panicf("[SU] Failed to create new hash for single-use "+
-			"communication tag fingerprint: %+v", err)
+			"tag fingerprint: %+v", err)
 	}
 
 	// Hash tag and salt

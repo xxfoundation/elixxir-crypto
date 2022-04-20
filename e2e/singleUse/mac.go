@@ -15,7 +15,7 @@ import (
 
 const macSalt = "singleUseMacSalt"
 
-// MakeMAC generates the MAC used in both the transmission and response cMix
+// MakeMAC generates the MAC used in both the request and response cMix
 // messages.
 func MakeMAC(key []byte, encryptedPayload []byte) []byte {
 	h := hmac.New(hash.DefaultHash, key)
