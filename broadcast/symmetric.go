@@ -96,3 +96,32 @@ func NewSymmetricKey(receptionID *id.ID) []byte {
 
 	return h.Sum(nil)
 }
+
+// NewSymmetricID creates a new symmetric channel ID based on name, description, salt and RSA public key
+func NewSymmetricID(name, description string, salt, rsaPub []byte) (*id.ID, error) {
+	h, err := hash.NewCMixHash()
+	if err != nil {
+		return nil, err
+	}
+	_, err = h.Write([]byte(name))
+	if err != nil {
+		return nil, err
+	}
+	_, err = h.Write([]byte(description))
+	if err != nil {
+		return nil, err
+	}
+	_, err = h.Write(salt)
+	if err != nil {
+		return nil, err
+	}
+	_, err = h.Write(rsaPub)
+	if err != nil {
+		return nil, err
+	}
+
+	sid := &id.ID{}
+	copy(sid[:], h.Sum(nil))
+	sid.SetType(id.User)
+	return sid, nil
+}
