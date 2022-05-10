@@ -16,7 +16,7 @@ const (
 )
 
 // newMessageKey generates a new key for a broadcast cMix message using HKDF.
-func newMessageKey(nonce format.Fingerprint, symKey []byte) []byte {
+func newMessageKey(nonce format.Fingerprint, pk []byte) []byte {
 	// Underlying hash function
 	h := func() hash.Hash {
 		h, _ := blake2b.New256(nil)
@@ -24,7 +24,7 @@ func newMessageKey(nonce format.Fingerprint, symKey []byte) []byte {
 	}
 
 	key := make([]byte, 32)
-	n, err := hkdf.New(h, symKey, nonce[:], nil).Read(key[:])
+	n, err := hkdf.New(h, pk, nonce[:], nil).Read(key[:])
 	if err != nil || n != len(key) {
 		jww.FATAL.Panicf(errNewMessageKeyHash, err)
 	}
