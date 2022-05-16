@@ -33,3 +33,7 @@ func (c *Channel) DecryptAsymmetric(payload []byte) ([]byte, error) {
 	}
 	return decrypted, nil
 }
+
+func (c *Channel) MaxAsymmetricPayloadSize() int {
+	return multicastRSA.GetMaxPayloadSize(sha256.New(), c.RsaPubKey)
+}
