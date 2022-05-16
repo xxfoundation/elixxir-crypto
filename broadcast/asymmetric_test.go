@@ -18,8 +18,8 @@ func TestAsymmetric_Encrypt_Decrypt(t *testing.T) {
 	name := "Asymmetric channel"
 	desc := "Asymmetric channel description"
 	salt := cmix.NewSalt(rng, 512)
-	rid, err := NewAsymmetricID(name, desc, salt, pk.GetPublic().GetN().Bytes())
-	ac := Asymmetric{
+	rid, err := NewChannelID(name, desc, salt, pk.GetPublic().GetN().Bytes())
+	ac := Channel{
 		ReceptionID: rid,
 		Name:        name,
 		Description: desc,
@@ -32,12 +32,12 @@ func TestAsymmetric_Encrypt_Decrypt(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to read random data to payload: %+v", err)
 	}
-	encrypted, _, _, err := ac.Encrypt(payload, pk, rng)
+	encrypted, _, _, err := ac.EncryptAsymmetric(payload, pk, rng)
 	if err != nil {
 		t.Fatalf("Failed to encrypt payload: %+v", err)
 	}
 
-	decrypted, err := ac.Decrypt(encrypted)
+	decrypted, err := ac.DecryptAsymmetric(encrypted)
 	if err != nil {
 		t.Fatalf("Failed to decrypt payload: %+v", err)
 	}
@@ -56,8 +56,8 @@ func TestAsymmetric_Marshal_Unmarshal(t *testing.T) {
 	name := "Asymmetric channel"
 	desc := "Asymmetric channel description"
 	salt := cmix.NewSalt(rng, 512)
-	rid, err := NewAsymmetricID(name, desc, salt, pk.GetPublic().GetN().Bytes())
-	ac := &Asymmetric{
+	rid, err := NewChannelID(name, desc, salt, pk.GetPublic().GetN().Bytes())
+	ac := &Channel{
 		ReceptionID: rid,
 		Name:        name,
 		Description: desc,
@@ -70,7 +70,7 @@ func TestAsymmetric_Marshal_Unmarshal(t *testing.T) {
 		t.Fatalf("Failed to marshall asymmetric channel: %+v", err)
 	}
 
-	unmarshalled, err := UnmarshalAsymmetric(marshalled)
+	unmarshalled, err := UnmarshalChannel(marshalled)
 	if err != nil {
 		t.Fatalf("Failed to unmarshal data into asymmetric object: %+v", err)
 	}

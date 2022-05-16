@@ -14,16 +14,16 @@ import (
 // Tests that a payload encrypted with Symmetric.Encrypt and decrypted with
 // Symmetric.Decrypt matches the original.
 func TestSymmetric_Encrypt_Decrypt(t *testing.T) {
-	s := &Symmetric{
+	s := &Channel{
 		ReceptionID: id.NewIdFromString("channel", id.User, t),
 	}
 
 	payload := make([]byte, 256)
 	rand.New(rand.NewSource(42)).Read(payload)
 
-	encryptedPayload, mac, fp := s.Encrypt(payload, csprng.NewSystemRNG())
+	encryptedPayload, mac, fp := s.EncryptSymmetric(payload, csprng.NewSystemRNG())
 
-	decryptedPayload, err := s.Decrypt(encryptedPayload, mac, fp)
+	decryptedPayload, err := s.DecryptSymmetric(encryptedPayload, mac, fp)
 	if err != nil {
 		t.Errorf("Failed to decrypt payload: %+v", err)
 	}
@@ -37,19 +37,19 @@ func TestSymmetric_Encrypt_Decrypt(t *testing.T) {
 // Tests that Symmetric.Decrypt returns an error when the MAC is invalid.
 func TestSymmetric_Decrypt(t *testing.T) {
 	prng := rand.New(rand.NewSource(42))
-	s := &Symmetric{
+	s := &Channel{
 		ReceptionID: id.NewIdFromString("channel", id.User, t),
 	}
 
 	payload := make([]byte, 256)
 	prng.Read(payload)
 
-	encryptedPayload, mac, fp := s.Encrypt(payload, csprng.NewSystemRNG())
+	encryptedPayload, mac, fp := s.EncryptSymmetric(payload, csprng.NewSystemRNG())
 
 	// Create bad MAC
 	prng.Read(mac)
 
-	_, err := s.Decrypt(encryptedPayload, mac, fp)
+	_, err := s.DecryptSymmetric(encryptedPayload, mac, fp)
 	if err == nil || err.Error() != errVerifyMAC {
 		t.Errorf("decyption should have failed with invalid MAC."+
 			"\nexpected: %s\nreceived: %+v", errVerifyMAC, err)
@@ -59,7 +59,7 @@ func TestSymmetric_Decrypt(t *testing.T) {
 // Tests that a Symmetric marshalled by Symmetric.Marshal and unmarshalled via
 // UnmarshalSymmetric matches the original.
 func TestSymmetric_Marshal_UnmarshalSymmetric(t *testing.T) {
-	s := &Symmetric{
+	s := &Channel{
 		ReceptionID: id.NewIdFromString("ChannelID", id.User, t),
 		Name:        "MyChannel",
 		Description: "Channel for channel stuff.",
@@ -72,7 +72,7 @@ func TestSymmetric_Marshal_UnmarshalSymmetric(t *testing.T) {
 		t.Errorf("Failed to marshal Symmetric: %+v", err)
 	}
 
-	newSymmetric, err := UnmarshalSymmetric(data)
+	newSymmetric, err := UnmarshalChannel(data)
 	if err != nil {
 		t.Errorf("Failed to ummarshal Symmetric: %+v", err)
 	}
