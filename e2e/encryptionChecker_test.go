@@ -130,7 +130,9 @@ func TestSetUnencrypted(t *testing.T) {
 	rand.Read(uid[:32])
 	uid.SetType(id.User)
 
-	SetUnencrypted(m, &uid)
+	mac, fp := SetUnencrypted(m.GetContents(), &uid)
+	m.SetKeyFP(fp)
+	m.SetMac(mac)
 
 	encrypted, rtnUid := IsUnencrypted(m)
 
@@ -200,6 +202,9 @@ func TestIsUnencrypted(t *testing.T) {
 	}
 	m := format.NewMessage(512)
 	m.SetRawContents(data)
+	// Sets appropriate mac for success case in IsUnencrypted
+	m.SetMac([]byte{0x38, 0x18, 0xd2, 0x77, 0x71, 0x2, 0xba, 0x6c, 0x87, 0xe1, 0x99, 0xe5, 0x79, 0xd6, 0x7b, 0x93,
+		0x3c, 0x7d, 0xfe, 0x6a, 0xd5, 0xf2, 0xeb, 0x99, 0xa2, 0xa1, 0x9b, 0xaf, 0xb5, 0xe6, 0x67, 0xf9})
 	encrypted, rtnUid := IsUnencrypted(m)
 	if rtnUid == nil {
 		t.Errorf("This should not be nil")
