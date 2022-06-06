@@ -1,14 +1,12 @@
 package broadcast
 
 import (
-	"encoding/json"
 	"github.com/pkg/errors"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/e2e/auth"
 	"gitlab.com/elixxir/crypto/hash"
 	"gitlab.com/elixxir/primitives/format"
 	"gitlab.com/xx_network/crypto/csprng"
-	"gitlab.com/xx_network/crypto/signature/rsa"
 	"gitlab.com/xx_network/primitives/id"
 	"golang.org/x/crypto/chacha20"
 )
@@ -25,44 +23,26 @@ const (
 
 const symmetricKeyConst = "symmetricBroadcastChannelKey"
 
-// Symmetric uniquely identifies a symmetric broadcast channel.
-type Symmetric struct {
-	ReceptionID *id.ID // ReceptionID = H(Name, Description, Salt, RsaPubKey)
-	Name        string
-	Description string
-	Salt        []byte
-	RsaPubKey   *rsa.PublicKey
-
-	// Only appears in memory, is not contained in the marshalled version.
-	// Lazily evaluated on first use.
-	// key = H(ReceptionID)
-	key []byte
-}
-
-// Encrypt encrypts the given payload and returns it with a MAC and fingerprint.
-func (s *Symmetric) Encrypt(payload []byte, csprng csprng.Source) (
+func (c *Channel) EncryptSymmetric(payload []byte, csprng csprng.Source) (
 	encryptedPayload, mac []byte, nonce format.Fingerprint) {
 	nonce = newNonce(csprng)
-	if s.key == nil {
-		s.key = NewSymmetricKey(s.ReceptionID)
+	if c.key == nil {
+		c.key = NewSymmetricKey(c.ReceptionID)
 	}
 
-	key := newMessageKey(nonce, s.key)
+	key := newMessageKey(nonce, c.key)
 	encryptedPayload = auth.Crypt(key, nonce[:chacha20.NonceSizeX], payload)
 	mac = makeMAC(key, encryptedPayload)
 
 	return encryptedPayload, mac, nonce
 }
 
-// Decrypt decrypts the given encrypted payload and returns it. Returns an error
-// if the MAC cannot be verified.
-func (s *Symmetric) Decrypt(
-	encryptedPayload, mac []byte, nonce format.Fingerprint) ([]byte, error) {
-	if s.key == nil {
-		s.key = NewSymmetricKey(s.ReceptionID)
+func (c *Channel) DecryptSymmetric(encryptedPayload, mac []byte, nonce format.Fingerprint) ([]byte, error) {
+	if c.key == nil {
+		c.key = NewSymmetricKey(c.ReceptionID)
 	}
 
-	key := newMessageKey(nonce, s.key)
+	key := newMessageKey(nonce, c.key)
 	payload := auth.Crypt(key, nonce[:chacha20.NonceSizeX], encryptedPayload)
 
 	if !verifyMAC(key, encryptedPayload, mac) {
@@ -70,17 +50,6 @@ func (s *Symmetric) Decrypt(
 	}
 
 	return payload, nil
-}
-
-// Marshal serialises the Symmetric object into JSON.
-func (s *Symmetric) Marshal() ([]byte, error) {
-	return json.Marshal(s)
-}
-
-// UnmarshalSymmetric deserializes the JSON into a new Symmetric.
-func UnmarshalSymmetric(data []byte) (*Symmetric, error) {
-	var s Symmetric
-	return &s, json.Unmarshal(data, &s)
 }
 
 // NewSymmetricKey generates a new symmetric channel key from its reception ID.
