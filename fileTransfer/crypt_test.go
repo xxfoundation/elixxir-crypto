@@ -9,12 +9,12 @@ package fileTransfer
 import (
 	"bytes"
 	"encoding/base64"
+	"gitlab.com/elixxir/primitives/format"
 	"gitlab.com/xx_network/crypto/csprng"
 	"io"
 	"math/rand"
 	"strconv"
 	"testing"
-	"gitlab.com/elixxir/primitives/format"
 )
 
 // Consistency test for EncryptPart.
@@ -44,10 +44,7 @@ func TestEncryptPart_Consistency(t *testing.T) {
 		fpBytes := make([]byte, format.KeyFPLen)
 		prng.Read(fpBytes)
 		fp := format.NewFingerprint(fpBytes)
-		ecr, mac, err := EncryptPart(kwy, payload, uint16(i), fp)
-		if err != nil {
-			t.Errorf("EncryptPart returned an error (%d): %+v", i, err)
-		}
+		ecr, mac := EncryptPart(kwy, payload, uint16(i), fp)
 
 		// Verify the encrypted part
 		ecr64 := base64.StdEncoding.EncodeToString(ecr)
@@ -80,12 +77,9 @@ func TestEncryptPart_DecryptPart(t *testing.T) {
 		fpBytes := make([]byte, format.KeyFPLen)
 		prng.Read(fpBytes)
 		fp := format.NewFingerprint(fpBytes)
-		ecr, mac, err := EncryptPart(key, message, uint16(i), fp)
-		if err != nil {
-			t.Errorf("Failed to encrypt part %d: %+v", i, err)
-		}
+		ecr, mac := EncryptPart(key, message, i, fp)
 
-		dec, err := DecryptPart(key, ecr, mac, uint16(i), fp)
+		dec, err := DecryptPart(key, ecr, mac, i, fp)
 		if err != nil {
 			t.Errorf("Failed to decrypt part: %+v", err)
 		}
@@ -112,10 +106,7 @@ func TestEncryptPart_DecryptPart_InvalidMacError(t *testing.T) {
 		fpBytes := make([]byte, format.KeyFPLen)
 		prng.Read(fpBytes)
 		fp := format.NewFingerprint(fpBytes)
-		ecr, mac, err := EncryptPart(key, message, i, fp)
-		if err != nil {
-			t.Errorf("Failed to encrypt part %d: %+v", i, err)
-		}
+		ecr, mac := EncryptPart(key, message, i, fp)
 
 		// Generate invalid MAC
 		_, _ = prng.Read(mac)

@@ -21,7 +21,7 @@ const macMask = 0b00111111
 // IsUnencrypted determines if the message is unencrypted by comparing the hash
 // of the message payload to the MAC. Returns true if the message is unencrypted
 // and false otherwise.
-// the highest bit of the recpient ID is stored in the highest bit of the MAC
+// the highest bit of the recipient ID is stored in the highest bit of the MAC
 // field. This is accounted for and the id is reassembled, with a presumed user
 // type
 func IsUnencrypted(m format.Message) (bool, *id.ID) {
@@ -49,7 +49,7 @@ func IsUnencrypted(m format.Message) (bool, *id.ID) {
 
 // SetUnencrypted sets up the condition where the message would be determined to
 // be unencrypted by setting the MAC to the hash of the message payload.
-func SetUnencrypted(payload []byte, uid *id.ID) ([]byte, format.Fingerprint){
+func SetUnencrypted(payload []byte, uid *id.ID) ([]byte, format.Fingerprint) {
 	mac := makeUnencryptedMAC(payload)
 
 	//copy in the high bit of the userID for storage
