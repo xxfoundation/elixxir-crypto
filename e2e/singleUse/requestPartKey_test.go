@@ -16,18 +16,18 @@ import (
 )
 
 // Tests that the generated key does not change.
-func TestNewResponseKey_Consistency(t *testing.T) {
+func TestNewRequestPartKey_Consistency(t *testing.T) {
 	expectedKeys := []string{
-		"gMv3mjIgCpTgqx/1d0+k3jYlfkPTM2DtOGYzUKGHwK4=",
-		"k5E9tfudE5W8APDNvZ9XfHuxuivsefcP3IhOBACh7Mg=",
-		"iqQrsHI7bmJGxqHC6bUqXgt03VeGSHHSRBGZ0RrEvP8=",
-		"+taXBcQ+4IB00gvkjQXia6Y6BJJ05vYaO2Ou+8yTd+M=",
-		"PiaH5qrVUdRCKwyf2Kic/M8rqm+q4UNvoVmFFI51k8Y=",
-		"jpKUMoteRvQVJnDsTi4pjw0XL5P4U5rhWaK+0RaKVVw=",
-		"2zx20KGB9xBObQ8cwF3FzpCwApiV8Du/FL2+Ykmh/ck=",
-		"hVYAGYQtd3x0FgXuavULI8saisTjs4rJamebd5aNzQ8=",
-		"zN+Cl7h5KvFGcGPLUVZ0Qjiws5LNUXXhuDUUw6osSfU=",
-		"MVzZoMffLm7Bi7XAuOZxYFxAzeNqxUAG6kZCSCKJuDE=",
+		"8XtqywBq3DkBgaNaMKL+kOlRtvqIbrVM/uqNR9RzOXY=",
+		"GbjOauzOwLkRmfXf20tzS8lI2SDB2axUpeTwm5cuZ+I=",
+		"+dD0KPb1mXqa3PwC1lKnl3CpFtBd8pkue+Rc8ldNUHo=",
+		"C+iAEWU9+UEN9qlPddc2N/Y+tz1j4+ESy6j69kdhvbU=",
+		"X0SKzdhUTprC7I7QhbHO/sfK29fPHoRyGnKv2TQtCzE=",
+		"g71Vjy5LyyHmC2d2rIqtQdACmUlmh2QB/sifsJn+xxg=",
+		"pXbguTkf+8xQ5u3Vv8PsG492HX+SloxbYmyarJZf9cY=",
+		"/4vreuoOfvFQXKCD+23MuZHuiwHUvpqua5F07Hwa6zw=",
+		"YuDVXt+BiBOBnLSLAgKytGLkdXrR6zMlJ+CWQ+b2lg0=",
+		"F/TNYF1lPR9uxk4TIHVzSOzFbizautINZmzUKb43P3k=",
 	}
 	prng := rand.New(rand.NewSource(42))
 
@@ -37,18 +37,18 @@ func TestNewResponseKey_Consistency(t *testing.T) {
 		pubKey := diffieHellman.GeneratePublicKey(privKey, getGrp())
 		dhKey := diffieHellman.GenerateSessionKey(privKey, pubKey, getGrp())
 
-		testKey := NewResponseKey(dhKey, uint64(i))
+		testKey := NewRequestPartKey(dhKey, uint64(i))
 		testKeyBase64 := base64.StdEncoding.EncodeToString(testKey)
 
 		if expectedKey != testKeyBase64 {
-			t.Errorf("NewResponseKey did not return the expected key (%d)."+
+			t.Errorf("NewRequestPartKey did not return the expected key (%d)."+
 				"\nexpected: %s\nreceived: %s", i, expectedKey, testKeyBase64)
 		}
 	}
 }
 
 // Tests that all generated keys are unique.
-func TestNewResponseKey_Unique(t *testing.T) {
+func TestNewRequestPartKey_Unique(t *testing.T) {
 	testRuns := 20
 	prng := rand.New(rand.NewSource(42))
 	keys := make(map[string]struct {
@@ -63,7 +63,7 @@ func TestNewResponseKey_Unique(t *testing.T) {
 		pubKey := diffieHellman.GeneratePublicKey(privKey, getGrp())
 		dhKey := diffieHellman.GenerateSessionKey(privKey, pubKey, getGrp())
 		for j := 0; j < testRuns; j++ {
-			testKey := NewResponseKey(dhKey, uint64(j))
+			testKey := NewRequestPartKey(dhKey, uint64(j))
 			testKeyBase64 := base64.StdEncoding.EncodeToString(testKey)
 
 			if _, exists := keys[testKeyBase64]; exists {
@@ -90,7 +90,7 @@ func TestNewResponseKey_Unique(t *testing.T) {
 				diffieHellman.DefaultPrivateKeyLength+j, getGrp(), prng)
 			pubKey := diffieHellman.GeneratePublicKey(privKey, getGrp())
 			dhKey := diffieHellman.GenerateSessionKey(privKey, pubKey, getGrp())
-			testKey := NewResponseKey(dhKey, uint64(i))
+			testKey := NewRequestPartKey(dhKey, uint64(i))
 			testKeyBase64 := base64.StdEncoding.EncodeToString(testKey)
 
 			if _, exists := keys[testKeyBase64]; exists {

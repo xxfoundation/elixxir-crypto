@@ -40,7 +40,7 @@ func TestMAC_Consistency(t *testing.T) {
 		testMacBase64 := base64.StdEncoding.EncodeToString(testMAC)
 
 		if expectedMac != testMacBase64 {
-			t.Errorf("MakeMAC() did not return the expected MAC (%d)."+
+			t.Errorf("MakeMAC did not return the expected MAC (%d)."+
 				"\nexpected: %s\nreceived: %s", i, expectedMac, testMacBase64)
 		}
 	}
@@ -67,7 +67,8 @@ func TestMAC_Unique(t *testing.T) {
 			testMACBase64 := base64.StdEncoding.EncodeToString(testMAC)
 
 			if _, exists := MACs[testMACBase64]; exists {
-				t.Errorf("Generated MAC collides with previously generated MAC (%d, %d)."+
+				t.Errorf("Generated MAC collides with previously generated "+
+					"MAC (%d, %d)."+
 					"\ncurrent MAC:   key: %+v  encryptedPayload: %+v"+
 					"\npreviouse MAC: key: %+v  encryptedPayload: %+v"+
 					"\nMAC:           %s", i, j,
@@ -94,7 +95,8 @@ func TestMAC_Unique(t *testing.T) {
 			testMACBase64 := base64.StdEncoding.EncodeToString(testMAC)
 
 			if _, exists := MACs[testMACBase64]; exists {
-				t.Errorf("Generated MAC collides with previously generated MAC (%d, %d)."+
+				t.Errorf("Generated MAC collides with previously generated "+
+					"MAC (%d, %d)."+
 					"\ncurrent MAC:   key: %+v  encryptedPayload: %+v"+
 					"\npreviouse MAC: key: %+v  encryptedPayload: %+v"+
 					"\nMAC:           %s", i, j,
@@ -137,7 +139,7 @@ func TestVerifyMAC(t *testing.T) {
 		receivedMac, _ := base64.StdEncoding.DecodeString(expected)
 
 		if !VerifyMAC(key, encryptedPayload, receivedMac) {
-			t.Errorf("VerifyMAC() failed for a correct MAC (%d)."+
+			t.Errorf("VerifyMAC failed for a correct MAC (%d)."+
 				"\nkey: %+v\nexpected: %s\nreceived: %s",
 				i, key, expected, testMACBase64)
 		}
@@ -161,7 +163,7 @@ func TestVerifyMAC_InvalidMacError(t *testing.T) {
 		expectedMACBase64 := base64.StdEncoding.EncodeToString(expectedMac)
 
 		if VerifyMAC(key, encryptedPayload, expectedMac) {
-			t.Errorf("VerifyMAC() verified invalid MAC (%d)."+
+			t.Errorf("VerifyMAC verified invalid MAC (%d)."+
 				"\nkey: %+v\nexpected: %s\nreceived: %s",
 				i, key, expectedMACBase64, testMACBase64)
 		}

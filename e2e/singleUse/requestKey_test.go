@@ -16,7 +16,7 @@ import (
 )
 
 // Tests that the generated keys do not change.
-func TestNewTransmitKey_Consistency(t *testing.T) {
+func TestNewRequestKey_Consistency(t *testing.T) {
 	expectedKeys := []string{
 		"4/q8XevjJmz2ectxCr/NseWS9cSzVD/SUW36m/gk5iA=",
 		"zdF5z3ouPBE1LX8HGuKmlif9QXoURoB8SYvJ/hmrD78=",
@@ -32,32 +32,34 @@ func TestNewTransmitKey_Consistency(t *testing.T) {
 	prng := rand.New(rand.NewSource(42))
 
 	for i, expectedKey := range expectedKeys {
-		privKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, getGrp(), prng)
+		privKey := diffieHellman.GeneratePrivateKey(
+			diffieHellman.DefaultPrivateKeyLength, getGrp(), prng)
 		pubKey := diffieHellman.GeneratePublicKey(privKey, getGrp())
 		dhKey := diffieHellman.GenerateSessionKey(privKey, pubKey, getGrp())
 
-		testKey := NewTransmitKey(dhKey)
+		testKey := NewRequestKey(dhKey)
 		testKeyBase64 := base64.StdEncoding.EncodeToString(testKey)
 
 		if expectedKey != testKeyBase64 {
-			t.Errorf("NewTransmitKey() did not return the expected key (%d)."+
+			t.Errorf("NewRequestKey did not return the expected key (%d)."+
 				"\nexpected: %s\nreceived: %s", i, expectedKey, testKeyBase64)
 		}
 	}
 }
 
 // Tests that all generated keys are unique.
-func TestNewTransmitKey_Unique(t *testing.T) {
+func TestNewRequestKey_Unique(t *testing.T) {
 	testRuns := 20
 	prng := rand.New(rand.NewSource(42))
 	keys := make(map[string]*cyclic.Int, 100)
 
 	for i := 0; i < testRuns; i++ {
-		privKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, getGrp(), prng)
+		privKey := diffieHellman.GeneratePrivateKey(
+			diffieHellman.DefaultPrivateKeyLength, getGrp(), prng)
 		pubKey := diffieHellman.GeneratePublicKey(privKey, getGrp())
 		dhKey := diffieHellman.GenerateSessionKey(privKey, pubKey, getGrp())
 
-		testKey := base64.StdEncoding.EncodeToString(NewTransmitKey(dhKey))
+		testKey := base64.StdEncoding.EncodeToString(NewRequestKey(dhKey))
 
 		if keys[testKey] != nil {
 			t.Errorf("Generated fingerprint from key %s collides with "+

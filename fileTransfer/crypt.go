@@ -16,6 +16,7 @@ package fileTransfer
 
 import (
 	"github.com/pkg/errors"
+	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/primitives/format"
 	"golang.org/x/crypto/chacha20"
 )
@@ -29,7 +30,8 @@ const (
 // part key is generated from the transfer key and the fingerprint number. A
 // random nonce is generated as padding for the ciphertext and used as part of
 // the encryption.
-func EncryptPart(transferKey TransferKey, partBytes []byte, fpNum uint16, fp format.Fingerprint) (ciphertext, mac []byte, err error) {
+func EncryptPart(transferKey TransferKey, partBytes []byte, fpNum uint16,
+	fp format.Fingerprint) (ciphertext, mac []byte) {
 
 	// Generate the part key and redefine as array
 	partKey := getPartKey(transferKey, fpNum)
@@ -39,9 +41,10 @@ func EncryptPart(transferKey TransferKey, partBytes []byte, fpNum uint16, fp for
 	ciphertext = make([]byte, ciphertextLen)
 
 	// ChaCha20 encrypt file part bytes
-	cipher, err := chacha20.NewUnauthenticatedCipher(partKey[:], fp[:chacha20.NonceSizeX])
+	cipher, err := chacha20.NewUnauthenticatedCipher(
+		partKey[:], fp[:chacha20.NonceSizeX])
 	if err != nil {
-		panic(err)
+		jww.FATAL.Panic(err)
 	}
 	cipher.XORKeyStream(ciphertext, partBytes)
 
@@ -49,7 +52,7 @@ func EncryptPart(transferKey TransferKey, partBytes []byte, fpNum uint16, fp for
 	mac = createPartMAC(fp[:], partBytes, partKey)
 
 	// The nonce and ciphertext are returned separately
-	return ciphertext, mac,  nil
+	return ciphertext, mac
 }
 
 // DecryptPart decrypts an individual file part. The part key and nonce are used
@@ -64,9 +67,10 @@ func DecryptPart(transferKey TransferKey, ciphertext, mac []byte,
 	filePartBytes = make([]byte, len(ciphertext))
 
 	// ChaCha20 encrypt file part bytes
-	cipher, err := chacha20.NewUnauthenticatedCipher(partKey[:], fp[:chacha20.NonceSizeX])
+	cipher, err := chacha20.NewUnauthenticatedCipher(
+		partKey[:], fp[:chacha20.NonceSizeX])
 	if err != nil {
-		panic(err)
+		jww.FATAL.Panic(err)
 	}
 	cipher.XORKeyStream(filePartBytes, ciphertext)
 

@@ -22,8 +22,8 @@ func NewResponseKey(dhKey *cyclic.Int, keyNum uint64) []byte {
 	// Create new hash
 	h, err := hash.NewCMixHash()
 	if err != nil {
-		jww.ERROR.Panicf("Failed to create new hash for single-use response "+
-			"key: %v", err)
+		jww.FATAL.Panicf(
+			"[SU] Failed to create new hash for single-use response key: %+v", err)
 	}
 
 	keyNumBytes := make([]byte, binary.MaxVarintLen64)

@@ -17,7 +17,7 @@ import (
 )
 
 // Tests that the generated fingerprints do not change.
-func TestNewTransmitFingerprint_Consistency(t *testing.T) {
+func TestNewRequestFingerprint_Consistency(t *testing.T) {
 	expectedFPs := []string{
 		"Esl9VY4LNOmXqmmEpZfu0Koo/++Zqx/vDSqBFFpdvjI=",
 		"ASz49SEnYLLW7KkVLbHJiYOAlkkY1r/AJBHaR2s1UDk=",
@@ -33,14 +33,15 @@ func TestNewTransmitFingerprint_Consistency(t *testing.T) {
 	prng := rand.New(rand.NewSource(42))
 
 	for i, expectedFP := range expectedFPs {
-		privKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, getGrp(), prng)
+		privKey := diffieHellman.GeneratePrivateKey(
+			diffieHellman.DefaultPrivateKeyLength, getGrp(), prng)
 		pubKey := diffieHellman.GeneratePublicKey(privKey, getGrp())
 
-		testFP := NewTransmitFingerprint(pubKey)
+		testFP := NewRequestFingerprint(pubKey)
 		testFpBase64 := base64.StdEncoding.EncodeToString(testFP[:])
 
 		if expectedFP != testFpBase64 {
-			t.Errorf("NewTransmitFingerprint() did not return the expected "+
+			t.Errorf("NewRequestFingerprint did not return the expected "+
 				"fingerprint (%d).\nexpected: %s\nreceived: %s",
 				i, expectedFP, testFpBase64)
 		}
@@ -48,18 +49,19 @@ func TestNewTransmitFingerprint_Consistency(t *testing.T) {
 }
 
 // Tests that all generated fingerprints are unique.
-func TestNewTransmitFingerprint_Unique(t *testing.T) {
+func TestNewRequestFingerprint_Unique(t *testing.T) {
 	testRuns := 20
 	prng := rand.New(rand.NewSource(42))
 	FPs := make(map[format.Fingerprint]*cyclic.Int)
 
 	for i := 0; i < testRuns; i++ {
-		privKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, getGrp(), prng)
+		privKey := diffieHellman.GeneratePrivateKey(
+			diffieHellman.DefaultPrivateKeyLength, getGrp(), prng)
 		pubKey := diffieHellman.GeneratePublicKey(privKey, getGrp())
-		testFP := NewTransmitFingerprint(pubKey)
+		testFP := NewRequestFingerprint(pubKey)
 
 		if FPs[testFP] != nil {
-			t.Errorf("Generated fingerprint from key %s collides with "+
+			t.Errorf("generated fingerprint from key %s collides with "+
 				"previously generated fingerprint from key %s."+
 				"\nfingerprint: %s", pubKey.Text(10), FPs[testFP].Text(10),
 				testFP)

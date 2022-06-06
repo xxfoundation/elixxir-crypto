@@ -17,18 +17,18 @@ import (
 )
 
 // Tests that the generated fingerprints do not change.
-func TestNewResponseFingerprint_Consistency(t *testing.T) {
+func TestNewRequestPartFingerprint_Consistency(t *testing.T) {
 	expectedFPs := []string{
-		"OrMBolBbKdrbOYgzErZekpk4EZkoJ+rnM1NDq86aPVs=",
-		"KO7Ri01TBy45IQY2P21R4BAe6GAYQu86tP5JYIlkkeU=",
-		"KgSF7wk/VBx506dgR2DygKoCXLCErjxWHc6WoGqe5eQ=",
-		"OXP6eKBx/pvU6WEZW9vQPq8IcaYHBzLow8zUDtXaJGQ=",
-		"c/E2DCT3iCnOVDV2kBTe2BwbxsiR9dH6ImB8oPS3nFo=",
-		"NS/WmbI3gdwBY0qfoNt+OKavi+TFYy0GKcAXtV0gIuo=",
-		"fuJQu0DiFIImUYYILEtw3Jw5iFs9z/L+32RujfTVoRo=",
-		"LvMcRLC2XTPaV5PuRJ2RTJrQTy6L0I+FwboSLiRYnfM=",
-		"ZUpBiFwcfM/Geae5nyoDVvb3fgkIbZD1HlfTfN19PYI=",
-		"SW7r5m5FuOY/hkEr/d4ze+0RJa9iXf3xRzvyUtyL6yY=",
+		"PaTmC4OhL7KbVlkNIJicM4Sn9GU3bMKCPzJSlkxjG5w=",
+		"RwI/482PG2ACCCBkxLB7+F7C/ACoZV+7fCWOlGiCDug=",
+		"NHLoiQv/Yk/0n/yhkE2qoSrFd/xbLJHoLMZ4mObR7Bs=",
+		"QfA79KzBVFpK7fwpZ4+47qoNTmDysqgRI+20DMaGAxU=",
+		"Zw+9I09LbCth9V1MQtrfv0JyzJvi8ofTfzH77CLTRpg=",
+		"cYBGtTn2H72Iw/5L6uHuvx92f328cmx2WPMo1r80o5s=",
+		"f4dYVtCFDYg4b7CVShUFOQxDeZvENdBttQG1MuXmWL8=",
+		"NiJ9VBoQcex8kYj+1nZHmN/zo4TxcVtCA6ZDPB2jV88=",
+		"DK1W7deW13Es2tRwOvCx8W9anMvghj1ciXriKMfZyJk=",
+		"CK5iflM/XDHfhtRjYam3itcdqOnmyonAntJQyF4z4IY=",
 	}
 	prng := rand.New(rand.NewSource(42))
 
@@ -38,11 +38,11 @@ func TestNewResponseFingerprint_Consistency(t *testing.T) {
 		pubKey := diffieHellman.GeneratePublicKey(privKey, getGrp())
 		dhKey := diffieHellman.GenerateSessionKey(privKey, pubKey, getGrp())
 
-		testFP := NewResponseFingerprint(dhKey, uint64(i))
+		testFP := NewRequestPartFingerprint(dhKey, uint64(i))
 		testFpBase64 := base64.StdEncoding.EncodeToString(testFP[:])
 
 		if expectedFP != testFpBase64 {
-			t.Errorf("NewResponseFingerprint did not return the expected "+
+			t.Errorf("NewRequestPartFingerprint did not return the expected "+
 				"fingerprint (%d).\nexpected: %s\nreceived: %s",
 				i, expectedFP, testFpBase64)
 		}
@@ -50,7 +50,7 @@ func TestNewResponseFingerprint_Consistency(t *testing.T) {
 }
 
 // Tests that all generated fingerprints are unique.
-func TestNewResponseFingerprint_Unique(t *testing.T) {
+func TestNewRequestPartFingerprint_Unique(t *testing.T) {
 	testRuns := 20
 	prng := rand.New(rand.NewSource(42))
 	FPs := make(map[format.Fingerprint]struct {
@@ -65,16 +65,15 @@ func TestNewResponseFingerprint_Unique(t *testing.T) {
 		pubKey := diffieHellman.GeneratePublicKey(privKey, getGrp())
 		dhKey := diffieHellman.GenerateSessionKey(privKey, pubKey, getGrp())
 		for j := 0; j < testRuns; j++ {
-			testFP := NewResponseFingerprint(dhKey, uint64(j))
+			testFP := NewRequestPartFingerprint(dhKey, uint64(j))
 
 			if _, exists := FPs[testFP]; exists {
 				t.Errorf("Generated fingerprint collides with previously "+
 					"generated fingerprint (%d, %d)."+
 					"\ncurrent FP:   dhKey: %s  keyNum: %d"+
 					"\npreviouse FP: dhKey: %s  keyNum: %d"+
-					"\nFP:           %s", i, j,
-					dhKey.Text(10), j, FPs[testFP].dhKey.Text(10),
-					FPs[testFP].keyNum, testFP)
+					"\nfingerprint:  %s", i, j, dhKey.Text(10), j,
+					FPs[testFP].dhKey.Text(10), FPs[testFP].keyNum, testFP)
 			} else {
 				FPs[testFP] = struct {
 					dhKey  *cyclic.Int
@@ -91,7 +90,7 @@ func TestNewResponseFingerprint_Unique(t *testing.T) {
 				diffieHellman.DefaultPrivateKeyLength+j, getGrp(), prng)
 			pubKey := diffieHellman.GeneratePublicKey(privKey, getGrp())
 			dhKey := diffieHellman.GenerateSessionKey(privKey, pubKey, getGrp())
-			testFP := NewResponseFingerprint(dhKey, uint64(i))
+			testFP := NewRequestPartFingerprint(dhKey, uint64(i))
 
 			if _, exists := FPs[testFP]; exists {
 				t.Errorf("Generated fingerprint collides with previously "+
