@@ -24,6 +24,6 @@ update_master:
 	GOFLAGS="" go get gitlab.com/elixxir/primitives@master
 	GOFLAGS="" go get gitlab.com/xx_network/crypto@master
 
-master: clean update_master build
+master: update_master clean build
 
-release: clean update_release build
+release: update_release clean build
