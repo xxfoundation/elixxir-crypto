@@ -10,18 +10,23 @@ package diffieHellman
 
 import (
 	"fmt"
+	"io"
+
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/xx_network/crypto/csprng"
-	"io"
 )
 
 const DefaultPrivateKeyLengthBits = 256
 const DefaultPrivateKeyLength = DefaultPrivateKeyLengthBits / 8
 
-// Creates a private key of the passed length in bits in the given group using
-// the passed csprng. The length of the key must be within the prime of the
-// group. It is recommended to use the "DefaultPrivateKeyLength"
-// for most use cases.
+// GeneratePrivateKey creates a private key of the passed length in
+// bits in the given group using the passed csprng. The length of the
+// key must be within the prime of the group. It is recommended to use
+// the size of the prime for most use cases, but it is possible to use
+// key private key sizes as small as DefaultPrivateKeyLength safely so
+// long as the prime group size is over 3072 bits. See RFC 3766 (pg
+// 19) and/or ECRYPT CSA "Algorithms, Key Size and Protocols Report
+// (2018)" (pg 48) for more details.
 // key size must be divisible by 8
 func GeneratePrivateKey(size int, group *cyclic.Group, source io.Reader) *cyclic.Int {
 
