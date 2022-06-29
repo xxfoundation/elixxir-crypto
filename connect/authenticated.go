@@ -1,16 +1,22 @@
-package connection
+////////////////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx network SEZC                                                       //
+//                                                                                        //
+// Use of this source code is governed by a license that can be found in the LICENSE file //
+////////////////////////////////////////////////////////////////////////////////////////////
+
+package connect
 
 import (
 	"github.com/pkg/errors"
-	"gitlab.com/elixxir/crypto/fastRNG"
 	"gitlab.com/xx_network/crypto/signature/rsa"
 	"gitlab.com/xx_network/crypto/xx"
 	"gitlab.com/xx_network/primitives/id"
+	"io"
 )
 
 // Sign creates a signature authenticating an identity for a connection.
-func Sign(rng *fastRNG.StreamGenerator, rsaPrivKey *rsa.PrivateKey,
-	connectionFp, salt []byte) ([]byte, error) {
+func Sign(rng io.Reader, rsaPrivKey *rsa.PrivateKey,
+	connectionFp []byte) ([]byte, error) {
 	// The connection fingerprint (hashed) will be used as a nonce
 	opts := rsa.NewDefaultOptions()
 	h := opts.Hash.New()
@@ -18,9 +24,7 @@ func Sign(rng *fastRNG.StreamGenerator, rsaPrivKey *rsa.PrivateKey,
 	nonce := h.Sum(nil)
 
 	// Sign the connection fingerprint
-	stream := rng.GetStream()
-	defer stream.Close()
-	return rsa.Sign(stream, rsaPrivKey,
+	return rsa.Sign(rng, rsaPrivKey,
 		opts.Hash, nonce, opts)
 
 }
@@ -28,9 +32,9 @@ func Sign(rng *fastRNG.StreamGenerator, rsaPrivKey *rsa.PrivateKey,
 // Verify takes a signature for an authentication attempt
 // and verifies the information.
 func Verify(partnerId *id.ID,
-	connectionFp, signature, rsaPubKey, salt []byte) error {
+	signature, connectionFp, rsaPubKeyPem, salt []byte) error {
 	// Process the PEM encoded public key to an rsa.PublicKey object
-	partnerPubKey, err := rsa.LoadPublicKeyFromPem(rsaPubKey)
+	partnerPubKey, err := rsa.LoadPublicKeyFromPem(rsaPubKeyPem)
 	if err != nil {
 		return err
 	}
