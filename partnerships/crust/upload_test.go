@@ -8,9 +8,11 @@ package crust
 
 import (
 	"encoding/base64"
+	"encoding/binary"
 	"gitlab.com/xx_network/crypto/signature/rsa"
 	"reflect"
 	"testing"
+	"time"
 )
 
 // Unit test: Tests that the signature from SignUpload
@@ -31,12 +33,14 @@ func TestSignVerifyUpload(t *testing.T) {
 	}
 
 	// Generate timestamps
-	timestamps := make([][]byte, numTests)
+	timestamps := make([]time.Time, numTests)
+	now := time.Now()
 	for i := 0; i < numTests; i++ {
-		ts := make([]byte, 8)
-		notRand.Read(ts)
+		duration := make([]byte, 8)
+		notRand.Read(duration)
 
-		timestamps[i] = ts
+		randDuration := binary.BigEndian.Uint64(duration)
+		timestamps[i] = now.Add(time.Duration(randDuration))
 	}
 
 	// Generate a private key
@@ -54,7 +58,7 @@ func TestSignVerifyUpload(t *testing.T) {
 		}
 
 		// Use signature provided above and verify
-		err = VerifyUpload(privKey.GetPublic(), files[i], timestamps[i], sig)
+		err = VerifyUpload(privKey.GetPublic(), timestamps[i], files[i], sig)
 		if err != nil {
 			t.Fatalf("Failed to verify signature for test %d/%v: %v", i, numTests, err)
 		}
@@ -77,13 +81,20 @@ func TestSignUpload_Consistency(t *testing.T) {
 		files[i] = file
 	}
 
-	// Generate timestamps
-	timestamps := make([][]byte, numTests)
+	// Generate timestamps. use hardcoded time instead of time.Now for consistency.
+	timestamps := make([]time.Time, numTests)
+	testTime, err := time.Parse(time.RFC3339,
+		"2012-12-21T22:08:41+00:00")
+	if err != nil {
+		t.Fatalf("SignVerify error: "+
+			"Could not parse precanned time: %v", err.Error())
+	}
 	for i := 0; i < numTests; i++ {
-		ts := make([]byte, 8)
-		notRand.Read(ts)
+		duration := make([]byte, 8)
+		notRand.Read(duration)
 
-		timestamps[i] = ts
+		randDuration := binary.BigEndian.Uint64(duration)
+		timestamps[i] = testTime.Add(time.Duration(randDuration))
 	}
 
 	// Generate a private key
@@ -107,9 +118,9 @@ func TestSignUpload_Consistency(t *testing.T) {
 
 	// Expected (pre-canned) output
 	expectedSignatures := []string{
-		"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",
+		"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",
 	}
 
 	// Check generated output is consisted with pre-canned output

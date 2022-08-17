@@ -18,10 +18,10 @@ import (
 
 // SignUpload returns a signature that proves that the user
 // wants to upload a new file. The timestamp indicates the time
-// the user wanted to upload the file. Use SerializeTimestamp
+// the user wanted to upload the file. Use serializeTimestamp
 // to serialize the timestamp.
 func SignUpload(rand io.Reader, userPrivKey *rsa.PrivateKey,
-	file, timestamp []byte) ([]byte, error) {
+	file []byte, timestamp time.Time) ([]byte, error) {
 	fileHash, err := hashFile(file)
 	if err != nil {
 		return nil, errors.Errorf("Failed to hash file: %v", err)
@@ -29,7 +29,7 @@ func SignUpload(rand io.Reader, userPrivKey *rsa.PrivateKey,
 
 	opts := rsa.NewDefaultOptions()
 	opts.Hash = crypto.SHA256
-	hashed := makeUploadHash(fileHash, timestamp,
+	hashed := makeUploadHash(fileHash, serializeTimestamp(timestamp),
 		opts.Hash.New())
 
 	return rsa.Sign(rand, userPrivKey, opts.Hash, hashed, opts)
@@ -37,8 +37,8 @@ func SignUpload(rand io.Reader, userPrivKey *rsa.PrivateKey,
 
 // VerifyUpload verifies the user's upload signature. The signature
 // should be from SignUpload.
-func VerifyUpload(userPublicKey *rsa.PublicKey,
-	file, timestamp, signature []byte) error {
+func VerifyUpload(userPublicKey *rsa.PublicKey, timestamp time.Time,
+	file, signature []byte) error {
 	// Hash file
 	fileHash, err := hashFile(file)
 	if err != nil {
@@ -48,21 +48,24 @@ func VerifyUpload(userPublicKey *rsa.PublicKey,
 	// Hash together timestamp and
 	opts := rsa.NewDefaultOptions()
 	opts.Hash = crypto.SHA256
-	hashed := makeUploadHash(fileHash, timestamp,
+	hashed := makeUploadHash(fileHash, serializeTimestamp(timestamp),
 		opts.Hash.New())
 
 	return rsa.Verify(userPublicKey, opts.Hash, hashed, signature, opts)
 }
 
-// todo: docstring
-func SerializeTimestamp(timestamp time.Time) []byte {
+// serializeTimestamp is a helper function which will serialize a
+// [time.Time] to a byte slice. This will grab use time.Time's
+// UnixNano function and serialize it using [binary.BigEndian].
+func serializeTimestamp(timestamp time.Time) []byte {
 	tsUnix := timestamp.UnixNano()
 	tsSerialize := make([]byte, 8)
 	binary.BigEndian.PutUint64(tsSerialize, uint64(tsUnix))
 	return tsSerialize
 }
 
-// todo: docstring
+// makeUploadHash is a helper function which hashes together the
+// timestamp and file hash. This hashed will be what is signed.
 func makeUploadHash(fileHash []byte, ts []byte, h hash.Hash) []byte {
 	h.Write(fileHash)
 	h.Write(ts)
