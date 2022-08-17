@@ -8,11 +8,31 @@ package crust
 
 import (
 	"encoding/base64"
-	"encoding/binary"
 	"gitlab.com/xx_network/crypto/signature/rsa"
 	"reflect"
 	"testing"
 	"time"
+)
+
+var (
+	Files = []string{
+		"AQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyAhIiMkJSYnKCkqKywtLi8wMTIzNDU2Nzg5Ojs8PT4/QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaW1xdXl9gYWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXp7fH1+f4CBgoOEhYaHiImKi4yNjo+QkZKTlJWWl5iZmpucnZ6foKGio6SlpqeoqaqrrK2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHS09TV1tfY2drb3N3e3+Dh4uPk5ebn6Onq6+zt7u/w8fLz9PX29/j5+vv8/f4AAQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyAhIiMkJSYnKCkqKywtLi8wMTIzNDU2Nzg5Ojs8PT4/QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaW1xdXl9gYWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXp7fH1+f4CBgoOEhYaHiImKi4yNjo+QkZKTlJWWl5iZmpucnZ6foKGio6SlpqeoqaqrrK2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHS09TV1tfY2drb3N3e3+Dh4uPk5ebn6Onq6+zt7u/w8fLz9PX29/j5+vv8/f4AAQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyAhIiMkJSYnKCkqKywtLi8wMTIzNDU2Nzg5Ojs8PT4/QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaW1xdXl9gYWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXp7fH1+f4CBgoOEhYaHiImKi4yNjo+QkZKTlJWWl5iZmpucnZ6foKGio6SlpqeoqaqrrK2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHS09TV1tfY2drb3N3e3+Dh4uPk5ebn6Onq6+zt7u/w8fLz9PX29/j5+vv8/f4AAQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyAhIiMkJSYnKCkqKywtLi8wMTIzNDU2Nzg5Ojs8PT4/QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaW1xdXl9gYWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXp7fH1+f4CBgoOEhYaHiImKi4yNjo+QkZKTlJWWl5iZmpucnZ6foKGio6SlpqeoqaqrrK2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHS09TV1tfY2drb3N3e3+Dh4uPk5ebn6Onq6+zt7u/w8fLz9PX29/j5+vv8/f4AAQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyAhIiMkJSYnKCkqKywtLi8wMTIzNDU2Nzg5Ojs8PT4/QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaW1xdXl9gYWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXp7fH1+f4CBgoOEhYaHiImKi4yNjo+QkZKTlJWWl5iZmpucnZ6foKGio6SlpqeoqaqrrK2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHS09TV1tfY2drb3N3e3+Dh4uPk5ebn6Onq6+zt7u/w8fLz9PX29/j5+vv8/f4AAQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyAhIiMkJSYnKCkqKywtLi8wMTIzNDU2Nzg5Ojs8PT4/QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaW1xdXl9gYWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXp7fH1+f4CBgoOEhYaHiImKi4yNjo+QkZKTlJWWl5iZmpucnZ6foKGio6SlpqeoqaqrrK2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHS09TV1tfY2drb3N3e3+Dh4uPk5ebn6Onq6+zt7u/w8fLz9PX29/j5+vv8/f4AAQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyAhIiMkJSYnKCkqKywtLi8wMTIzNDU2Nzg5Ojs8PT4/QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaW1xdXl9gYWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXp7fH1+f4CBgoOEhYaHiImKi4yNjo+QkZKTlJWWl5iZmpucnZ6foKGio6SlpqeoqaqrrK2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHS09TV1tfY2drb3N3e3+Dh4uPk5ebn6Onq6+zt7u/w8fLz9PX29/j5+vv8/f4AAQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyAhIiMkJSYnKCkqKywtLi8wMTIzNDU2Nzg5Ojs8PT4/QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaW1xdXl9gYWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXp7fH1+f4CBgoOEhYaHiImKi4yNjo+QkZKTlJWWl5iZmpucnZ6foKGio6SlpqeoqaqrrK2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHS09TV1tfY2drb3N3e3+Dh4uPk5ebn6Onq6+zt7u/w8fLz9PX29/j5+vv8/f4AAQIDBAUGBwg=",
+		"CQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn+AgYKDhIWGh4iJiouMjY6PkJGSk5SVlpeYmZqbnJ2en6ChoqOkpaanqKmqq6ytrq+wsbKztLW2t7i5uru8vb6/wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn+AgYKDhIWGh4iJiouMjY6PkJGSk5SVlpeYmZqbnJ2en6ChoqOkpaanqKmqq6ytrq+wsbKztLW2t7i5uru8vb6/wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn+AgYKDhIWGh4iJiouMjY6PkJGSk5SVlpeYmZqbnJ2en6ChoqOkpaanqKmqq6ytrq+wsbKztLW2t7i5uru8vb6/wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn+AgYKDhIWGh4iJiouMjY6PkJGSk5SVlpeYmZqbnJ2en6ChoqOkpaanqKmqq6ytrq+wsbKztLW2t7i5uru8vb6/wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn+AgYKDhIWGh4iJiouMjY6PkJGSk5SVlpeYmZqbnJ2en6ChoqOkpaanqKmqq6ytrq+wsbKztLW2t7i5uru8vb6/wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn+AgYKDhIWGh4iJiouMjY6PkJGSk5SVlpeYmZqbnJ2en6ChoqOkpaanqKmqq6ytrq+wsbKztLW2t7i5uru8vb6/wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn+AgYKDhIWGh4iJiouMjY6PkJGSk5SVlpeYmZqbnJ2en6ChoqOkpaanqKmqq6ytrq+wsbKztLW2t7i5uru8vb6/wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn+AgYKDhIWGh4iJiouMjY6PkJGSk5SVlpeYmZqbnJ2en6ChoqOkpaanqKmqq6ytrq+wsbKztLW2t7i5uru8vb6/wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+AAECAwQFBgcICQoLDA0ODxA=",
+		"ERITFBUWFxgZGhscHR4fICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj9AQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVpbXF1eX2BhYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ent8fX5/gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXmJmam5ydnp+goaKjpKWmp6ipqqusra6vsLGys7S1tre4ubq7vL2+v8DBwsPExcbHyMnKy8zNzs/Q0dLT1NXW19jZ2tvc3d7f4OHi4+Tl5ufo6err7O3u7/Dx8vP09fb3+Pn6+/z9/gABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4fICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj9AQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVpbXF1eX2BhYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ent8fX5/gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXmJmam5ydnp+goaKjpKWmp6ipqqusra6vsLGys7S1tre4ubq7vL2+v8DBwsPExcbHyMnKy8zNzs/Q0dLT1NXW19jZ2tvc3d7f4OHi4+Tl5ufo6err7O3u7/Dx8vP09fb3+Pn6+/z9/gABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4fICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj9AQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVpbXF1eX2BhYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ent8fX5/gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXmJmam5ydnp+goaKjpKWmp6ipqqusra6vsLGys7S1tre4ubq7vL2+v8DBwsPExcbHyMnKy8zNzs/Q0dLT1NXW19jZ2tvc3d7f4OHi4+Tl5ufo6err7O3u7/Dx8vP09fb3+Pn6+/z9/gABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4fICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj9AQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVpbXF1eX2BhYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ent8fX5/gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXmJmam5ydnp+goaKjpKWmp6ipqqusra6vsLGys7S1tre4ubq7vL2+v8DBwsPExcbHyMnKy8zNzs/Q0dLT1NXW19jZ2tvc3d7f4OHi4+Tl5ufo6err7O3u7/Dx8vP09fb3+Pn6+/z9/gABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4fICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj9AQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVpbXF1eX2BhYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ent8fX5/gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXmJmam5ydnp+goaKjpKWmp6ipqqusra6vsLGys7S1tre4ubq7vL2+v8DBwsPExcbHyMnKy8zNzs/Q0dLT1NXW19jZ2tvc3d7f4OHi4+Tl5ufo6err7O3u7/Dx8vP09fb3+Pn6+/z9/gABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4fICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj9AQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVpbXF1eX2BhYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ent8fX5/gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXmJmam5ydnp+goaKjpKWmp6ipqqusra6vsLGys7S1tre4ubq7vL2+v8DBwsPExcbHyMnKy8zNzs/Q0dLT1NXW19jZ2tvc3d7f4OHi4+Tl5ufo6err7O3u7/Dx8vP09fb3+Pn6+/z9/gABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4fICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj9AQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVpbXF1eX2BhYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ent8fX5/gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXmJmam5ydnp+goaKjpKWmp6ipqqusra6vsLGys7S1tre4ubq7vL2+v8DBwsPExcbHyMnKy8zNzs/Q0dLT1NXW19jZ2tvc3d7f4OHi4+Tl5ufo6err7O3u7/Dx8vP09fb3+Pn6+/z9/gABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4fICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj9AQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVpbXF1eX2BhYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ent8fX5/gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXmJmam5ydnp+goaKjpKWmp6ipqqusra6vsLGys7S1tre4ubq7vL2+v8DBwsPExcbHyMnKy8zNzs/Q0dLT1NXW19jZ2tvc3d7f4OHi4+Tl5ufo6err7O3u7/Dx8vP09fb3+Pn6+/z9/gABAgMEBQYHCAkKCwwNDg8QERITFBUWFxg=",
+	}
+	UnixNanoTimestamps = []int64{
+		1660777707027403466,
+		1660777707027403476,
+		1660777707027403486,
+	}
+
+	Now = int64(1660777707027403496)
+
+	ExpectedSignatures = []string{
+		"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",
+	}
 )
 
 // Unit test: Tests that the signature from SignUpload
@@ -20,34 +40,30 @@ import (
 // same data passed in.
 func TestSignVerifyUpload(t *testing.T) {
 
-	// use insecure seeded rng to ensure repeatability
-	notRand := &CountingReader{count: uint8(0)}
+	// Load private key
+	privKey, err := rsa.LoadPrivateKeyFromPem([]byte(PrivKeyPemEncoded))
+	if err != nil {
+		t.Fatalf("Failed to load private key: %v", err)
+	}
 
-	// Generate files
+	// Process timestamps
+	now := time.Unix(0, Now)
+	timestamps := make([]time.Time, numTests)
+	for i := 0; i < numTests; i++ {
+		timestamps[i] = time.Unix(0, UnixNanoTimestamps[i])
+	}
+
+	// Process files
 	files := make([][]byte, numTests)
 	for i := 0; i < numTests; i++ {
-		file := make([]byte, 2048)
-		notRand.Read(file)
-
-		files[i] = file
+		files[i], err = base64.StdEncoding.DecodeString(Files[i])
+		if err != nil {
+			t.Fatalf("Failed to parse file: %v", err)
+		}
 	}
 
-	// Generate timestamps
-	timestamps := make([]time.Time, numTests)
-	now := time.Now()
-	for i := 0; i < numTests; i++ {
-		duration := make([]byte, 8)
-		notRand.Read(duration)
-
-		randDuration := binary.BigEndian.Uint64(duration)
-		timestamps[i] = now.Add(time.Duration(randDuration))
-	}
-
-	// Generate a private key
-	privKey, err := rsa.GenerateKey(notRand, 4096)
-	if err != nil {
-		t.Fatalf("Failed to generate private key: %v", err)
-	}
+	// use insecure seeded rng to ensure repeatability
+	notRand := &CountingReader{count: uint8(0)}
 
 	// Sign and verify
 	for i := 0; i < numTests; i++ {
@@ -58,7 +74,7 @@ func TestSignVerifyUpload(t *testing.T) {
 		}
 
 		// Use signature provided above and verify
-		err = VerifyUpload(privKey.GetPublic(), timestamps[i], files[i], sig)
+		err = VerifyUpload(privKey.GetPublic(), now, timestamps[i], files[i], sig)
 		if err != nil {
 			t.Fatalf("Failed to verify signature for test %d/%v: %v", i, numTests, err)
 		}
@@ -66,41 +82,31 @@ func TestSignVerifyUpload(t *testing.T) {
 
 }
 
-// Unit test: Generate signatures using pre-canned data
-// and compare it against the expected pre-canned data.
+//Unit test: Generate signatures using pre-canned data
+//and compare it against the expected pre-canned data.
 func TestSignUpload_Consistency(t *testing.T) {
 	// use insecure seeded rng to ensure repeatability
 	notRand := &CountingReader{count: uint8(0)}
 
-	// Generate files
+	// Load private key
+	privKey, err := rsa.LoadPrivateKeyFromPem([]byte(PrivKeyPemEncoded))
+	if err != nil {
+		t.Fatalf("Failed to load private key: %v", err)
+	}
+
+	// Process timestamps
+	timestamps := make([]time.Time, numTests)
+	for i := 0; i < numTests; i++ {
+		timestamps[i] = time.Unix(0, UnixNanoTimestamps[i])
+	}
+
+	// Process files
 	files := make([][]byte, numTests)
 	for i := 0; i < numTests; i++ {
-		file := make([]byte, 2048)
-		notRand.Read(file)
-
-		files[i] = file
-	}
-
-	// Generate timestamps. use hardcoded time instead of time.Now for consistency.
-	timestamps := make([]time.Time, numTests)
-	testTime, err := time.Parse(time.RFC3339,
-		"2012-12-21T22:08:41+00:00")
-	if err != nil {
-		t.Fatalf("SignVerify error: "+
-			"Could not parse precanned time: %v", err.Error())
-	}
-	for i := 0; i < numTests; i++ {
-		duration := make([]byte, 8)
-		notRand.Read(duration)
-
-		randDuration := binary.BigEndian.Uint64(duration)
-		timestamps[i] = testTime.Add(time.Duration(randDuration))
-	}
-
-	// Generate a private key
-	privKey, err := rsa.GenerateKey(notRand, 4096)
-	if err != nil {
-		t.Fatalf("Failed to generate private key: %v", err)
+		files[i], err = base64.StdEncoding.DecodeString(Files[i])
+		if err != nil {
+			t.Fatalf("Failed to parse file: %v", err)
+		}
 	}
 
 	// Generate signatures
@@ -116,18 +122,11 @@ func TestSignUpload_Consistency(t *testing.T) {
 		signatures[i] = base64.StdEncoding.EncodeToString(sig)
 	}
 
-	// Expected (pre-canned) output
-	expectedSignatures := []string{
-		"PdEYGQT9N02QDrOqy5GOOndGql8CNXGt0fbVdppLX6DUCNRxYOdc4sq3q9uRrhVqB9Q012eQwDpJLbSAlrWsu+PnBBzMJztYl9p+8UqPXvOa1VY9M/Y2uFrTPCyjiIq/UP7dJCSHkgM3W6aDLoQxPweqH8H6obcUSrWuG/4vNMTr3kw7Afg4fRqW7+uuwd2X/v4+ZLaUsp9hXI1kavPB1qroStbUHfER0d7280utT4gMswouf8c5Ok9lFUz208P5G7uAEuPN3mQhxqKa8IU7zzAvhi5/qw7lF7Ogs96nc7Jqx35yJv3BxK6l3DdZv1GN1dfTEtaWc+ETW36HCHPd0PS1vUDLf6d2GC37s9W1BLzTxexvLyCJuE/rn8nmLytpguTQk+WA45XlnYgXs/ylTg99r+sVeAbA+JMNuD+3f5n4+xIo+6Ys0n0TnIo/tN/UEfJL8CMzSIL9tmvLdgOwlL5hGk9EuqtoxqnTCYAfIRjz1mTGihK4SME1APnukJglu+OG+Cjl2CovPvTffqr4gDDaztCjXa3LpmeB6tldkwHqDnnSCs+nccblFVHTbii2FL8cTabT3868pk8hd5luRgtryOlvLRCeqNiSssVoprXjqGXteiTYnQdtEqIlJe0JyG3eLtzS96dcx6fZMtGgGcBIQiJrbEMe0hG5U1K/q3E=",
-		"tD1RZ4GFkLyTYF1o6ZMtxV6lzHYYHl6SXSfs7zFwwBA6PjHyhvdql1EHtkoeh77GoV3ptATvL0DmqkrGny+ZZ0YZ9tZbGo76NUjlDngk6MZVY4y0T6ZDRgXtMvU+EpBr0wZpTYjUmJl5Ybx+Z7UhfEmoPIGbxDGmKiFc7THAtmcF/pysiu1Eg5P0+WTVAhkGmiMjbth4JdANtIRn0B42VDy+zFpze4jhcC91vxnHUlezOasOVWLw+QiADv+LkDDqiDFcocIRKb9+kIe8DCsSrjANNpq6ro6jodJLfTz1fkaYVpPhPi8Tbrfarvdie1T65m6cNlepIvDyuoeeeIJ7W7z58+OgC5A6UGybz4sgT1avJ6koPmdLk5SZ/8Fz+O7hkwXB9IyeajAWJvgDh6Kkupg6+zyPVkdxHfqucwaXanXTPyutGSjt4FLRFXICKX91CAHjGUKyRE01CNplv/JQj5gelqdWH3LzbLOc9PsSfmT8MGCaj0hBNaZBhGufwi/RuTg/jEL1mdYGDTRhbQ9SPcrp73nrKHig4YAz5dGJalHbpAiPJjmLMq5ArL7FkGtWUf0/QAxXeEfuNkHJl/D3zq/HSgTk27XocM3UQhfZanslkLIkGdyBoIDbZXevvpo1/skzGCy4PQhkskiUcM5eSWw5AmGWCJSpj0TsFfin7co=",
-		"AvBswet82Az51POcNZAt/EQ7Bv8xl1igUzUrtJR9BVBr4QWfrKJtpVd6umfC/eIMcr31SH8IXxkBRu1fhxwBEDsCIpquzpw0ex/FnUy4quwkJ4uO3LdbQlAifb4o4pImtdLFICgcJN2/sa+L6Mp9pu7UKIBcG0Hmohb07zXi7rrLpjqerjVPWKmQ1LqpOqeVT3KD/9QdShETHI3R2MtMs3ZLAiXxlIbZDYnfPaPTZgahhxPr903DJ8mJl+TSqGip9moUYtHYccTHFCEeqykzM2HSS8M7J7VITNrECUuw7ZIZE9f2j80tFLuW6RNGJSz0KuoIiKr1OnzcmEVT8G+C2ECsqjnOGZHjYusoCl5BjjbrBYDmtXAioIyoZ3huaAahjsTzxuCAH+GmObt60lR+OC2Iin5A6wR1eIx9Z407jXZVJwKCI93ttEvkuGBo1562zoGF+UXSgc3Y8XzkZAnqzdcz6Ylcl06JKib5WXvo8lvy/CxHfOwyjypT70okwuadmSDo6oxtRTwqpkZncw2KGp7PT38nZrHG1bQd+9+ByQvnxRcW9YnAz60hSOo2TumcmJ6aPlMy46oBCW1erHQRzCvK6PnxFBGsfNJGsCs5ur+VEZbSNdVwTuSd9SuYeVVn8UAr9eKmvPuceexcQrsbscikOQMeXQPf4JQLHKlPxFA=",
-	}
-
 	// Check generated output is consisted with pre-canned output
-	if !reflect.DeepEqual(expectedSignatures, signatures) {
+	if !reflect.DeepEqual(ExpectedSignatures, signatures) {
 		t.Fatalf("Generated data does not match pre-canned data."+
 			"\nExpected: %v"+
-			"\nReceived: %v", expectedSignatures, signatures)
+			"\nReceived: %v", ExpectedSignatures, signatures)
 	}
 
 }

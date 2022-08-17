@@ -16,6 +16,10 @@ import (
 	"time"
 )
 
+const (
+	uploadGracePeriod = 1 * time.Minute
+)
+
 // SignUpload returns a signature that proves that the user
 // wants to upload a new file. The timestamp indicates the time
 // the user wanted to upload the file. Use serializeTimestamp
@@ -36,9 +40,21 @@ func SignUpload(rand io.Reader, userPrivKey *rsa.PrivateKey,
 }
 
 // VerifyUpload verifies the user's upload signature. The signature
-// should be from SignUpload.
-func VerifyUpload(userPublicKey *rsa.PublicKey, timestamp time.Time,
+// should be from SignUpload. The timestamp provided must be +-1 minute
+// from the current time passed in as "now".
+func VerifyUpload(userPublicKey *rsa.PublicKey,
+	now, timestamp time.Time,
 	file, signature []byte) error {
+
+	// Check if timestamp is within the grace period
+	startOfPeriod := now.Add(-uploadGracePeriod)
+	endOfPeriod := now.Add(uploadGracePeriod)
+	if now.After(endOfPeriod) || now.Before(startOfPeriod) {
+		return errors.Errorf("Timestamp %s is not in between "+
+			"the grace period (%s, %s)",
+			timestamp, startOfPeriod.String(), endOfPeriod.String())
+	}
+
 	// Hash file
 	fileHash, err := hashFile(file)
 	if err != nil {
