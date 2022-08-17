@@ -19,7 +19,7 @@ const (
 	multiHashSha     = multiHash.SHA2_256
 )
 
-// hashUsername hashes the passed in username according to spec.
+// hashUsername hashes the passed in username using the sha256 hashing algorithm.
 func hashUsername(username string) []byte {
 	h := sha256.New()
 	h.Write([]byte(username))
