@@ -16,10 +16,11 @@ import (
 const (
 	UsernameHashSalt = "CrustXXBackupUsernameSalt"
 	multiHashSize    = 32
+	multiHashSha     = multiHash.SHA2_256
 )
 
-// todo: docstring
-func HashUsername(username string) []byte {
+// hashUsername hashes the passed in username according to spec.
+func hashUsername(username string) []byte {
 	h := sha256.New()
 	h.Write([]byte(username))
 	h.Write([]byte(UsernameHashSalt))
@@ -27,9 +28,9 @@ func HashUsername(username string) []byte {
 	return h.Sum(nil)
 }
 
-// todo: docstring
-func HashFile(file []byte) ([]byte, error) {
-	h, err := multiHash.GetVariableHasher(multiHash.SHA2_256, multiHashSize)
+// hashFile hashes the file using the go-multihash library.
+func hashFile(file []byte) ([]byte, error) {
+	h, err := multiHash.GetVariableHasher(multiHashSha, multiHashSize)
 	if err != nil {
 		return nil, err
 	}

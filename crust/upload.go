@@ -1,27 +1,53 @@
+////////////////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2020 xx network SEZC                                                       //
+//                                                                                        //
+// Use of this source code is governed by a license that can be found in the LICENSE file //
+////////////////////////////////////////////////////////////////////////////////////////////
+
 package crust
 
 import (
+	"crypto"
 	"encoding/binary"
+	"github.com/pkg/errors"
 	"gitlab.com/xx_network/crypto/signature/rsa"
 	"hash"
 	"io"
 	"time"
 )
 
-// todo: docstring
+// SignUpload returns a signature that proves that the user
+// wants to upload a new file. The timestamp indicates the time
+// the user wanted to upload the file. Use SerializeTimestamp
+// to serialize the timestamp.
 func SignUpload(rand io.Reader, userPrivKey *rsa.PrivateKey,
-	fileHash, timestamp []byte) ([]byte, error) {
+	file, timestamp []byte) ([]byte, error) {
+	fileHash, err := hashFile(file)
+	if err != nil {
+		return nil, errors.Errorf("Failed to hash file: %v", err)
+	}
+
 	opts := rsa.NewDefaultOptions()
+	opts.Hash = crypto.SHA256
 	hashed := makeUploadHash(fileHash, timestamp,
 		opts.Hash.New())
 
 	return rsa.Sign(rand, userPrivKey, opts.Hash, hashed, opts)
 }
 
-// todo: docstring
+// VerifyUpload verifies the user's upload signature. The signature
+// should be from SignUpload.
 func VerifyUpload(userPublicKey *rsa.PublicKey,
-	fileHash, timestamp, signature []byte) error {
+	file, timestamp, signature []byte) error {
+	// Hash file
+	fileHash, err := hashFile(file)
+	if err != nil {
+		return errors.Errorf("Failed to hash file: %v", err)
+	}
+
+	// Hash together timestamp and
 	opts := rsa.NewDefaultOptions()
+	opts.Hash = crypto.SHA256
 	hashed := makeUploadHash(fileHash, timestamp,
 		opts.Hash.New())
 
