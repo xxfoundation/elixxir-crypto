@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	UsernameHashSalt = "CrustXXBackupUsernameSalt"
+	usernameHashSalt = "CrustXXBackupUsernameSalt"
 	multiHashSize    = 32
 	multiHashSha     = multiHash.SHA2_256
 )
@@ -23,7 +23,7 @@ const (
 func hashUsername(username string) []byte {
 	h := sha256.New()
 	h.Write([]byte(username))
-	h.Write([]byte(UsernameHashSalt))
+	h.Write([]byte(usernameHashSalt))
 
 	return h.Sum(nil)
 }
