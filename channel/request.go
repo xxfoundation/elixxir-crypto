@@ -18,7 +18,7 @@ var (
 
 // hashRequestInfo is a helper which handles hashing info for channel requests
 func hashRequestInfo(userEdPub ed25519.PublicKey, ts time.Time) []byte {
-	tsBytes := make([]byte, 8)
+	tsBytes := make([]byte, binary.MaxVarintLen64)
 	binary.PutVarint(tsBytes, ts.UnixNano())
 	h := crypto.BLAKE2b_256.New()
 	h.Write([]byte(userEdPub))

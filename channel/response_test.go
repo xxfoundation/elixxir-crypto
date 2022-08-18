@@ -24,11 +24,13 @@ func TestSignResponse_VerifyResponse(t *testing.T) {
 		t.Fatalf("Failed to generate ed25519 key: %+v", err)
 	}
 
-	lease := uint64(time.Now().UnixNano())
+	lease := time.Now()
 
-	sig := SignChannelLease(edPub1, lease, edPriv2)
+	username := "zezima"
 
-	ok := VerifyChannelLease(sig, edPub1, lease, edPub2)
+	sig := SignChannelLease(edPub1, username, lease, edPriv2)
+
+	ok := VerifyChannelLease(sig, edPub1, username, lease, edPub2)
 	if !ok {
 		t.Fatal("Failed to verify signature")
 	}
@@ -40,19 +42,20 @@ func TestSignVerify_Consistency(t *testing.T) {
 	edPub2 := []byte{123, 118, 86, 100, 82, 92, 47, 197, 45, 158, 10, 162, 28, 221, 135, 87, 113, 251, 44, 232, 59, 160, 119, 134, 104, 113, 104, 218, 101, 161, 12, 197}
 	edPriv2 := []byte{232, 76, 88, 197, 38, 8, 204, 108, 64, 45, 54, 199, 10, 70, 31, 48, 45, 193, 136, 154, 233, 71, 219, 211, 16, 81, 147, 20, 149, 139, 62, 119, 123, 118, 86, 100, 82, 92, 47, 197, 45, 158, 10, 162, 28, 221, 135, 87, 113, 251, 44, 232, 59, 160, 119, 134, 104, 113, 104, 218, 101, 161, 12, 197}
 
-	lease := uint64(1659978469802846000)
+	lease := time.Unix(0, 1659978469802846000)
 
-	expected := "J8eeoX2ffWbr81Ch2a9vmVbIvwowN/6tjOAIMZvHd/9NyIuuxSTaToXDggyCbD8Gma+2v6olg0BJ3m3Z3bluDw=="
+	expected := "9T/4HMO4uKlIB70FXaJqxYo7FylqCMVFuIYUxODPtpp1BSfcO7+6RtpdgbU2AMIok1P1GS6TPlFPDReMaRKEAA=="
 	expectedBytes, err := base64.StdEncoding.DecodeString(expected)
 	if err != nil {
 		t.Fatalf("Failed to decode expected sig: %+v", err)
 	}
-	sig := SignChannelLease(edPub1, lease, edPriv2)
+	username := "zezima"
+	sig := SignChannelLease(edPub1, username, lease, edPriv2)
 	if !bytes.Equal(sig, expectedBytes) {
 		t.Errorf("Did not get expected signature\n\tExpected: %+v\n\tReceived: %+v\n", expected, base64.StdEncoding.EncodeToString(sig))
 	}
 
-	ok := VerifyChannelLease(sig, edPub1, lease, edPub2)
+	ok := VerifyChannelLease(sig, edPub1, username, lease, edPub2)
 	if !ok {
 		t.Fatal("Failed to verify signature")
 	}

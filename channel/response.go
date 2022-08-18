@@ -10,7 +10,7 @@ import (
 // hashRequestInfo is a helper to handles hashing channel lease response info
 func hashResponseInfo(username string, userPublicKey ed25519.PublicKey,
 	lease time.Time) []byte {
-	leaseBytes := make([]byte, 8)
+	leaseBytes := make([]byte, binary.MaxVarintLen64)
 	binary.PutVarint(leaseBytes, lease.UnixNano())
 	h := crypto.BLAKE2b_256.New()
 	h.Write(leaseBytes)

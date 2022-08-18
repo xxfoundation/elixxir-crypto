@@ -22,14 +22,14 @@ func TestSignVerify(t *testing.T) {
 		t.Fatalf("Failed to generate ed25519 key: %+v", err)
 	}
 
-	ts := time.Now().UnixNano()
+	ts := time.Now()
 
 	sig, err := SignChannelIdentityRequest(edPub, ts, rsaPriv, rng)
 	if err != nil {
 		t.Fatalf("Failed to sign request: %+v", err)
 	}
 
-	err = VerifyChannelIdentityRequest(sig, edPub, ts, rsaPriv.GetPublic())
+	err = VerifyChannelIdentityRequest(sig, edPub, time.Now(), ts, rsaPriv.GetPublic())
 	if err != nil {
 		t.Fatalf("Failed to verify request: %+v", err)
 	}
