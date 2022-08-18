@@ -2,6 +2,8 @@ package broadcast
 
 import (
 	"bytes"
+	"encoding/json"
+	"fmt"
 	"gitlab.com/elixxir/crypto/cmix"
 	"gitlab.com/xx_network/crypto/csprng"
 	"gitlab.com/xx_network/crypto/signature/rsa"
@@ -26,6 +28,16 @@ func TestAsymmetric_Encrypt_Decrypt(t *testing.T) {
 		Salt:        salt,
 		RsaPubKey:   pk.GetPublic(),
 	}
+
+	marshaled, _ := json.Marshal(pk.GetPublic())
+	fmt.Printf("%s\n\n", marshaled)
+
+	marshalled, _ := json.Marshal(ac)
+	if err != nil {
+		t.Fatalf("Failed to marshal pub key: %v", err)
+	}
+
+	fmt.Printf("%s\n", marshalled)
 
 	payload := make([]byte, 128)
 	_, err = rng.Read(payload)
