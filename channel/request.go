@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	tsBound        = 60 * time.Nanosecond
+	tsBound        = 60 * time.Second
 	timestampError = errors.New("error timestamp is not within 60 seconds of current time")
 )
 
