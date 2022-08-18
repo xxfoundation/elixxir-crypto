@@ -34,8 +34,8 @@ func SignChannelLease(userPublicKey ed25519.PublicKey, username string,
 // It is meant to be used in channel logic to authenticate channel identities.
 // It proves that a user with a given username is authorized by user discovery
 // to use this username until lease time using the given public key.
-func VerifyChannelLease(sig, userPublicKey ed25519.PublicKey, username string,
-	lease time.Time, pub ed25519.PublicKey) bool {
+func VerifyChannelLease(sig []byte, userPublicKey ed25519.PublicKey,
+	username string, lease time.Time, signerPubKey ed25519.PublicKey) bool {
 	hashed := hashResponseInfo(username, userPublicKey, lease)
-	return ed25519.Verify(pub, hashed, sig)
+	return ed25519.Verify(signerPubKey, hashed, sig)
 }

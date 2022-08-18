@@ -42,7 +42,7 @@ func SignChannelIdentityRequest(userEdPub ed25519.PublicKey,
 // corresponding public key.  It is used by User Discovery to verify the
 // authenticity of channel identity requests from users.  It also ensures that
 // the received timestamp is fresh based on passed in current timestamp.
-func VerifyChannelIdentityRequest(sig,
+func VerifyChannelIdentityRequest(sig []byte,
 	userEdPub ed25519.PublicKey, now, ts time.Time,
 	userRsaPub *rsa.PublicKey) error {
 	// Check that the message is recently signed, ensuring freshness
