@@ -10,7 +10,10 @@ import "gitlab.com/elixxir/crypto/hash"
 
 const (
 	residueSalt = `e2eKeyResidueSalt`
+	residueLen  = 32
 )
+
+type KeyResidue [residueLen]byte
 
 // MakeKeyResidue returns a residue of a Key. The
 // residue is the hash of the key with the residueSalt.
