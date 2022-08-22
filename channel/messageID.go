@@ -24,7 +24,7 @@ type MessageID [MessageIDLen]byte
 func MakeMessageID(message []byte)MessageID{
 	h, err := blake2b.New256(nil)
 	if err!=nil{
-		jww.FATAL.Panicf("Failed to get ")
+		jww.FATAL.Panicf("Failed to get Hash: %+v", err)
 	}
 	h.Write(message)
 	h.Write([]byte(messageIDSalt))
