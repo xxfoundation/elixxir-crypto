@@ -21,6 +21,9 @@ type MessageID [MessageIDLen]byte
 // they are replay resistant. This property, when combined with the collision
 // resistance of the hash function, ensures that an adversary will not be able
 // to cause multiple messages to have the same ID
+//
+// The MessageID is defined as the H(message|salt) before the message has been
+// encrypted but after padding has been added.
 func MakeMessageID(message []byte)MessageID{
 	h, err := blake2b.New256(nil)
 	if err!=nil{
@@ -36,13 +39,25 @@ func MakeMessageID(message []byte)MessageID{
 }
 
 // Equals checks if two message IDs which are the same
-//Not constant time
+// Not constant time
 func (mid MessageID)Equals(mid2 MessageID)bool{
 	return bytes.Equal(mid[:],mid2[:])
 }
 
-// String prints a base64 encoded message ID for debugging
+// String returns a base64 encoded message ID for debugging
 // Adheres to the go stringer interface
 func (mid MessageID)String()string{
 	return "ChMsgID-" + base64.StdEncoding.EncodeToString(mid[:])
+}
+
+// Bytes returns a copy of the bytes in the message
+func (mid MessageID)Bytes()[]byte{
+	bytesCopy := make([]byte, len(mid))
+	copy(bytesCopy, mid[:])
+	return bytesCopy
+}
+
+// DeepCopy returns a copy Message ID
+func (mid MessageID)DeepCopy()MessageID{
+	return mid
 }

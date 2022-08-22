@@ -71,15 +71,15 @@ func TestMakeMessageID_Constancy(t *testing.T) {
 	}
 }
 
-// TestMakeMessageID_Equals makes sure the equals function works
-func TestMakeMessageID_Equals(t *testing.T) {
+// TestMessageID_Equals makes sure the equals function works
+func TestMessageID_Equals(t *testing.T) {
 
 	numTests := 100
 	results := make([]MessageID, 0, numTests)
 	inputs := make([][]byte, 0, numTests)
 	prng := rand.New(rand.NewSource(420))
 
-	// generate results
+	// generate message IDs
 	for i :=0;i<numTests;i++{
 		contents := make([]byte, 1000)
 		prng.Read(contents)
@@ -87,7 +87,8 @@ func TestMakeMessageID_Equals(t *testing.T) {
 		results = append(results, MakeMessageID(contents))
 	}
 
-	//Check the results are different
+	// Check that equals is equal when it shouldn't be, and is equal when it
+	// should be
 	for i:=0;i<numTests; i++{
 		for j:=0;j<numTests;j++{
 			if i!=j{
@@ -101,6 +102,72 @@ func TestMakeMessageID_Equals(t *testing.T) {
 						"with %s, inputs: %v vs %v", i, j, results[i], inputs[i], inputs[j])
 				}
 			}
+		}
+	}
+}
+
+// TestMakeMessageID_Bytes makes sure the bytes function returns the same data
+// and that it is a copy
+func TestMessageID_Bytes(t *testing.T) {
+
+	numTests := 100
+	results := make([]MessageID, 0, numTests)
+	prng := rand.New(rand.NewSource(9001))
+
+	// generate message IDs
+	for i :=0;i<numTests;i++{
+		contents := make([]byte, 1000)
+		prng.Read(contents)
+		results = append(results, MakeMessageID(contents))
+	}
+
+	// Check the bytes are the same and that modifying them doesnt modify the ID
+	for i:=0;i<numTests; i++{
+		b := results[i].Bytes()
+		//check that the bytes and messageID are the same
+		if !bytes.Equal(results[i][:],b){
+			t.Errorf("Result %d bytes is not the same as the source, " +
+				"'%v' vs '%v' ", i, results[i][:], b)
+		}
+		//fill the bytes with random data
+		prng.Read(b)
+		//check that the bytes and the message ID are different
+		if bytes.Equal(results[i][:],b){
+			t.Errorf("Result %d bytes is the same as the source after " +
+				"editing, '%v' vs '%v' ", i, results[i][:], b)
+		}
+	}
+}
+
+// TestMakeMessageID_Bytes makes sure the bytes function returns the same data
+// and that it is a copy
+func TestMessageID_DeepCopy(t *testing.T) {
+
+	numTests := 100
+	results := make([]MessageID, 0, numTests)
+	prng := rand.New(rand.NewSource(1337))
+
+	// generate message IDs
+	for i :=0;i<numTests;i++{
+		contents := make([]byte, 1000)
+		prng.Read(contents)
+		results = append(results, MakeMessageID(contents))
+	}
+
+	// Check the bytes are the same and that modifying them doesnt modify the ID
+	for i:=0;i<numTests; i++{
+		dc := results[i].DeepCopy()
+		//check that the deep copy and messageID are the same
+		if !results[i].Equals(dc){
+			t.Errorf("Result %d deep copy is not the same as the " +
+				"source, '%s' vs '%s' ", i, results[i], dc)
+		}
+		//fill the bytes with random data
+		prng.Read(dc[:])
+		//check that the bytes and the message ID are different
+		if results[i].Equals(dc){
+			t.Errorf("Result %d deep copy is the same as the source " +
+				"after editing, '%s' vs '%s' ", i, results[i], dc)
 		}
 	}
 }
