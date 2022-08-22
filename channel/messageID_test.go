@@ -20,7 +20,7 @@ func TestMakeMessageID_Unique(t *testing.T) {
 	prng := rand.New(rand.NewSource(42))
 
 	// generate results
-	for i :=0;i<numTests;i++{
+	for i := 0; i < numTests; i++ {
 		contents := make([]byte, 1000)
 		prng.Read(contents)
 		inputs = append(inputs, contents)
@@ -28,11 +28,11 @@ func TestMakeMessageID_Unique(t *testing.T) {
 	}
 
 	//Check the results are different
-	for i:=0;i<numTests; i++{
-		for j:=0;j<numTests;j++{
-			if i!=j{
-				if bytes.Equal(results[i][:],results[j][:]){
-					t.Fatalf("Result %d and %d are the same " +
+	for i := 0; i < numTests; i++ {
+		for j := 0; j < numTests; j++ {
+			if i != j {
+				if bytes.Equal(results[i][:], results[j][:]) {
+					t.Fatalf("Result %d and %d are the same "+
 						"with %s, inputs: %v vs %v", i, j, results[i], inputs[i], inputs[j])
 				}
 			}
@@ -56,16 +56,16 @@ func TestMakeMessageID_Constancy(t *testing.T) {
 	}
 
 	// generate results
-	for i :=0;i<numTests;i++{
+	for i := 0; i < numTests; i++ {
 		contents := make([]byte, 1000)
 		prng.Read(contents)
 		results = append(results, MakeMessageID(contents))
 	}
 
 	//Check the results are different
-	for i:=0;i<numTests; i++{
-		if results[i].String()!=expectedResults[i]{
-			t.Errorf("Result %d did not match expected results, '%s' " +
+	for i := 0; i < numTests; i++ {
+		if results[i].String() != expectedResults[i] {
+			t.Errorf("Result %d did not match expected results, '%s' "+
 				"vs '%s' ", i, results[i], expectedResults[i])
 		}
 	}
@@ -80,7 +80,7 @@ func TestMessageID_Equals(t *testing.T) {
 	prng := rand.New(rand.NewSource(420))
 
 	// generate message IDs
-	for i :=0;i<numTests;i++{
+	for i := 0; i < numTests; i++ {
 		contents := make([]byte, 1000)
 		prng.Read(contents)
 		inputs = append(inputs, contents)
@@ -89,16 +89,16 @@ func TestMessageID_Equals(t *testing.T) {
 
 	// Check that equals is equal when it shouldn't be, and is equal when it
 	// should be
-	for i:=0;i<numTests; i++{
-		for j:=0;j<numTests;j++{
-			if i!=j{
-				if results[i].Equals(results[j]){
-					t.Fatalf("Result %d and %d are not the same when they should be" +
+	for i := 0; i < numTests; i++ {
+		for j := 0; j < numTests; j++ {
+			if i != j {
+				if results[i].Equals(results[j]) {
+					t.Fatalf("Result %d and %d are not the same when they should be"+
 						"with %s, inputs: %v vs %v", i, j, results[i], inputs[i], inputs[j])
 				}
-			}else{
-				if !bytes.Equal(results[i][:],results[j][:]){
-					t.Fatalf("Result %d and %d are the same when they should not be" +
+			} else {
+				if !bytes.Equal(results[i][:], results[j][:]) {
+					t.Fatalf("Result %d and %d are the same when they should not be"+
 						"with %s, inputs: %v vs %v", i, j, results[i], inputs[i], inputs[j])
 				}
 			}
@@ -115,25 +115,25 @@ func TestMessageID_Bytes(t *testing.T) {
 	prng := rand.New(rand.NewSource(9001))
 
 	// generate message IDs
-	for i :=0;i<numTests;i++{
+	for i := 0; i < numTests; i++ {
 		contents := make([]byte, 1000)
 		prng.Read(contents)
 		results = append(results, MakeMessageID(contents))
 	}
 
 	// Check the bytes are the same and that modifying them doesnt modify the ID
-	for i:=0;i<numTests; i++{
+	for i := 0; i < numTests; i++ {
 		b := results[i].Bytes()
 		//check that the bytes and messageID are the same
-		if !bytes.Equal(results[i][:],b){
-			t.Errorf("Result %d bytes is not the same as the source, " +
+		if !bytes.Equal(results[i][:], b) {
+			t.Errorf("Result %d bytes is not the same as the source, "+
 				"'%v' vs '%v' ", i, results[i][:], b)
 		}
 		//fill the bytes with random data
 		prng.Read(b)
 		//check that the bytes and the message ID are different
-		if bytes.Equal(results[i][:],b){
-			t.Errorf("Result %d bytes is the same as the source after " +
+		if bytes.Equal(results[i][:], b) {
+			t.Errorf("Result %d bytes is the same as the source after "+
 				"editing, '%v' vs '%v' ", i, results[i][:], b)
 		}
 	}
@@ -148,25 +148,25 @@ func TestMessageID_DeepCopy(t *testing.T) {
 	prng := rand.New(rand.NewSource(1337))
 
 	// generate message IDs
-	for i :=0;i<numTests;i++{
+	for i := 0; i < numTests; i++ {
 		contents := make([]byte, 1000)
 		prng.Read(contents)
 		results = append(results, MakeMessageID(contents))
 	}
 
 	// Check the bytes are the same and that modifying them doesnt modify the ID
-	for i:=0;i<numTests; i++{
+	for i := 0; i < numTests; i++ {
 		dc := results[i].DeepCopy()
 		//check that the deep copy and messageID are the same
-		if !results[i].Equals(dc){
-			t.Errorf("Result %d deep copy is not the same as the " +
+		if !results[i].Equals(dc) {
+			t.Errorf("Result %d deep copy is not the same as the "+
 				"source, '%s' vs '%s' ", i, results[i], dc)
 		}
 		//fill the bytes with random data
 		prng.Read(dc[:])
 		//check that the bytes and the message ID are different
-		if results[i].Equals(dc){
-			t.Errorf("Result %d deep copy is the same as the source " +
+		if results[i].Equals(dc) {
+			t.Errorf("Result %d deep copy is the same as the source "+
 				"after editing, '%s' vs '%s' ", i, results[i], dc)
 		}
 	}

@@ -6,7 +6,6 @@ import (
 	"golang.org/x/crypto/blake2b"
 
 	jww "github.com/spf13/jwalterweatherman"
-
 )
 
 const (
@@ -24,9 +23,9 @@ type MessageID [MessageIDLen]byte
 //
 // The MessageID is defined as the H(message|salt) before the message has been
 // encrypted but after padding has been added.
-func MakeMessageID(message []byte)MessageID{
+func MakeMessageID(message []byte) MessageID {
 	h, err := blake2b.New256(nil)
-	if err!=nil{
+	if err != nil {
 		jww.FATAL.Panicf("Failed to get Hash: %+v", err)
 	}
 	h.Write(message)
@@ -34,30 +33,30 @@ func MakeMessageID(message []byte)MessageID{
 	midBytes := h.Sum(nil)
 
 	mid := MessageID{}
-	copy(mid[:],midBytes)
+	copy(mid[:], midBytes)
 	return mid
 }
 
 // Equals checks if two message IDs which are the same
 // Not constant time
-func (mid MessageID)Equals(mid2 MessageID)bool{
-	return bytes.Equal(mid[:],mid2[:])
+func (mid MessageID) Equals(mid2 MessageID) bool {
+	return bytes.Equal(mid[:], mid2[:])
 }
 
 // String returns a base64 encoded message ID for debugging
 // Adheres to the go stringer interface
-func (mid MessageID)String()string{
+func (mid MessageID) String() string {
 	return "ChMsgID-" + base64.StdEncoding.EncodeToString(mid[:])
 }
 
 // Bytes returns a copy of the bytes in the message
-func (mid MessageID)Bytes()[]byte{
+func (mid MessageID) Bytes() []byte {
 	bytesCopy := make([]byte, len(mid))
 	copy(bytesCopy, mid[:])
 	return bytesCopy
 }
 
 // DeepCopy returns a copy Message ID
-func (mid MessageID)DeepCopy()MessageID{
+func (mid MessageID) DeepCopy() MessageID {
 	return mid
 }
