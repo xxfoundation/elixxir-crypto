@@ -17,10 +17,12 @@ type KeyResidue [residueLen]byte
 
 // MakeKeyResidue returns a residue of a Key. The
 // residue is the hash of the key with the residueSalt.
-func MakeKeyResidue(key Key) []byte {
+func MakeKeyResidue(key Key) KeyResidue {
 	h := hash.DefaultHash()
 	h.Write(key[:])
 	h.Write([]byte(residueSalt))
 	h.Write(nil)
-	return h.Sum(nil)
+	kr := KeyResidue{}
+	copy(kr[:], h.Sum(nil))
+	return kr
 }
