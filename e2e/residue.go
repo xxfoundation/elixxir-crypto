@@ -6,18 +6,28 @@
 
 package e2e
 
-import "gitlab.com/elixxir/crypto/hash"
-
-const (
-	residueSalt = `e2eKeyResidueSalt`
-	residueLen  = 32
+import (
+	"encoding/base64"
+	"github.com/pkg/errors"
+	"gitlab.com/elixxir/crypto/hash"
 )
 
-type KeyResidue [residueLen]byte
+// KeyResidue generation constants.
+const (
+	residueSalt      = `e2eKeyResidueSalt`
+	KeyResidueLength = 32
+)
 
-// MakeKeyResidue returns a residue of a Key. The
+// Error constants for KeyResidue.
+const (
+	keyResidueIncorrectLenErr = "binary key residue is the wrong length"
+)
+
+type KeyResidue [KeyResidueLength]byte
+
+// NewKeyResidue returns a residue of a Key. The
 // residue is the hash of the key with the residueSalt.
-func MakeKeyResidue(key Key) KeyResidue {
+func NewKeyResidue(key Key) KeyResidue {
 	h := hash.DefaultHash()
 	h.Write(key[:])
 	h.Write([]byte(residueSalt))
@@ -25,4 +35,33 @@ func MakeKeyResidue(key Key) KeyResidue {
 	kr := KeyResidue{}
 	copy(kr[:], h.Sum(nil))
 	return kr
+}
+
+// UnmarshalKeyResidue a KeyResidue from a byte slice binary format.
+// Returns an error if the passed byte slice is the wrong length.
+func UnmarshalKeyResidue(b []byte) (KeyResidue, error) {
+	if len(b) != KeyResidueLength {
+		return KeyResidue{}, errors.New(keyResidueIncorrectLenErr)
+	}
+
+	kr := KeyResidue{}
+	copy(kr[:], b)
+	return kr, nil
+}
+
+// Marshal returns the serialized KeyResidue into a binary format.
+func (kr KeyResidue) Marshal() []byte {
+	return kr[:]
+}
+
+// String adheres to the stringer interface to return a truncated
+// base64 encoded string of the KeyResidue.
+func (kr KeyResidue) String() string {
+	return kr.StringVerbose()[:8] + "..."
+}
+
+// StringVerbose returns an un-truncated base64 encoding of the message iD.
+func (kr KeyResidue) StringVerbose() string {
+	s := base64.StdEncoding.EncodeToString(kr[:])
+	return s
 }
