@@ -31,7 +31,6 @@ func NewKeyResidue(key Key) KeyResidue {
 	h := hash.DefaultHash()
 	h.Write(key[:])
 	h.Write([]byte(residueSalt))
-	h.Write(nil)
 	kr := KeyResidue{}
 	copy(kr[:], h.Sum(nil))
 	return kr
@@ -51,7 +50,9 @@ func UnmarshalKeyResidue(b []byte) (KeyResidue, error) {
 
 // Marshal returns the serialized KeyResidue into a binary format.
 func (kr KeyResidue) Marshal() []byte {
-	return kr[:]
+	res := make([]byte, 0)
+	copy(res, kr[:])
+	return res
 }
 
 // String adheres to the stringer interface to return a truncated
