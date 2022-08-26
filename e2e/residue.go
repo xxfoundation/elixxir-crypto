@@ -52,9 +52,9 @@ func UnmarshalKeyResidue(b []byte) (KeyResidue, error) {
 
 // Marshal returns the serialized KeyResidue into a binary format.
 func (kr KeyResidue) Marshal() []byte {
-	res := make([]byte, 0)
-	copy(res, kr[:])
-	return res
+	krCopy := kr
+	copy(krCopy[:], kr[:])
+	return krCopy[:]
 }
 
 // String adheres to the stringer interface to return a truncated
