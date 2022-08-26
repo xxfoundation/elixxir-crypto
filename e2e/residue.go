@@ -23,6 +23,8 @@ const (
 	keyResidueIncorrectLenErr = "binary key residue is the wrong length"
 )
 
+// KeyResidue is the residue of a Key. It represents a hash of the
+// Key and a residue salt.
 type KeyResidue [KeyResidueLength]byte
 
 // NewKeyResidue returns a residue of a Key. The
