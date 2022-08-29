@@ -17,6 +17,7 @@ import (
 	"encoding/binary"
 	"encoding/gob"
 	"encoding/json"
+	"github.com/pkg/errors"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/xx_network/crypto/csprng"
 	"gitlab.com/xx_network/crypto/large"
@@ -165,9 +166,12 @@ func (g *Group) NewIntFromBits(b large.Bits) *Int {
 func (g *Group) checkInts(ints ...*Int) {
 	for _, i := range ints {
 		if i.GetGroupFingerprint() != g.fingerprint {
-			jww.FATAL.Panicf("cyclicInt being used in wrong group! "+
+			// The error is created separately to ensure that the stack trace is
+			// printed on panic
+			err := errors.Errorf("cyclicInt being used in wrong group! "+
 				"Group fingerprint is %d and cyclicInt has %d",
 				g.fingerprint, i.GetGroupFingerprint())
+			jww.FATAL.Panicf("%+v", err)
 		}
 	}
 }
@@ -495,7 +499,7 @@ func (g Group) FindSmallCoprimeInverse(z *Int, bitLen uint32) *Int {
 			continue
 		}
 
-		//Modulo inverse zinv and check that the inverse exists
+		// Modulo inverse zinv and check that the inverse exists
 		if z.value.ModInverse(zinv, g.psub1) == nil {
 			continue
 		}
