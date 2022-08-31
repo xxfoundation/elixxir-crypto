@@ -82,3 +82,44 @@ func NewChannelID(name, description string, salt, rsaPub []byte) (*id.ID, error)
 	sid.SetType(id.User)
 	return sid, nil
 }
+
+type channelDisk struct {
+	ReceptionID *id.ID
+	Name        string
+	Description string
+	Salt        []byte
+	RsaPubKey   *rsa.PublicKey
+	key         []byte
+}
+
+func (c *Channel) MarshalJson() ([]byte, error) {
+	return json.Marshal(channelDisk{
+		ReceptionID: c.ReceptionID,
+		Name:        c.Name,
+		Description: c.Description,
+		Salt:        c.Salt,
+		RsaPubKey:   c.RsaPubKey,
+		key:         c.key,
+	})
+
+}
+
+func (c *Channel) UnmarshalJson(b []byte) error {
+	cDisk := &channelDisk{}
+	err := json.Unmarshal(b, cDisk)
+	if err != nil {
+		return err
+	}
+
+	*c = Channel{
+		ReceptionID: cDisk.ReceptionID,
+		Name:        cDisk.Name,
+		Description: cDisk.Description,
+		Salt:        cDisk.Salt,
+		RsaPubKey:   cDisk.RsaPubKey,
+		key:         cDisk.key,
+	}
+
+	return nil
+
+}
