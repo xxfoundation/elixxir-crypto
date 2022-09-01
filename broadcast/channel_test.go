@@ -8,10 +8,18 @@ package broadcast
 
 import (
 	"bytes"
-	"gitlab.com/elixxir/crypto/cmix"
+	"hash"
+	"io"
+	"testing"
+
+	"golang.org/x/crypto/blake2b"
+	"golang.org/x/crypto/hkdf"
+
 	"gitlab.com/xx_network/crypto/csprng"
 	"gitlab.com/xx_network/crypto/signature/rsa"
-	"testing"
+	"gitlab.com/xx_network/primitives/id"
+
+	"gitlab.com/elixxir/crypto/cmix"
 )
 
 func TestChannel_MarshalJson(t *testing.T) {
@@ -24,7 +32,13 @@ func TestChannel_MarshalJson(t *testing.T) {
 	name := "Asymmetric channel"
 	desc := "Asymmetric channel description"
 	salt := cmix.NewSalt(rng, 512)
-	rid, err := NewChannelID(name, desc, salt, pk.GetPublic().GetN().Bytes())
+	secret := make([]byte, 32)
+	_, err = rng.Read(secret)
+	if err != nil {
+		panic(err)
+	}
+
+	rid, _, err := NewChannelID(name, desc, secret, salt, pk.GetPublic().GetN().Bytes())
 	channel := Channel{
 		ReceptionID: rid,
 		Name:        name,
@@ -76,4 +90,55 @@ func TestChannel_MarshalJson(t *testing.T) {
 			"\nReceived: %+v", channel.Description, newChannel.Description)
 	}
 
+}
+
+func TestChannel_deriveIntermediary(t *testing.T) {
+	name := "mychannelname"
+	description := "my channel description"
+	rng := csprng.NewSystemRNG()
+	salt := make([]byte, 24)
+	_, err := rng.Read(salt)
+	if err != nil {
+		panic(err)
+	}
+
+	privateKey, err := rsa.GenerateKey(rng, 4096)
+	if err != nil {
+		panic(err)
+	}
+
+	secret := make([]byte, 32)
+	_, err = rng.Read(secret)
+	if err != nil {
+		panic(err)
+	}
+
+	intermediary := deriveIntermediary(name, description, salt, privateKey.GetPublic().GetN().Bytes(), secret)
+
+	hkdfHash := func() hash.Hash {
+		hash, err := blake2b.New256(nil)
+		if err != nil {
+			panic(err)
+		}
+		return hash
+	}
+
+	hkdf1 := hkdf.New(hkdfHash, intermediary, salt, []byte(hkdfInfo))
+	identityBytes := make([]byte, 32)
+	_, err = io.ReadFull(hkdf1, identityBytes)
+	if err != nil {
+		panic(err)
+	}
+	sid := &id.ID{}
+	copy(sid[:], identityBytes)
+	sid.SetType(id.User)
+
+	rid, _, err := NewChannelID(name, description, salt, privateKey.GetPublic().GetN().Bytes(), secret)
+	if err != nil {
+		panic(err)
+	}
+
+	if !bytes.Equal(rid[:], sid[:]) {
+		t.Fatal()
+	}
 }
