@@ -94,6 +94,9 @@ func deriveIntermediary(name, description string, salt, rsaPub, secret []byte) [
 	if err != nil {
 		panic(err)
 	}
+	// secret is hashed first so that
+	// we can share all the inputs to the
+	// hkdf without giving out the secret.
 	secretHash := blake2b.Sum256(secret)
 	_, err = h.Write(secretHash[:])
 	if err != nil {
