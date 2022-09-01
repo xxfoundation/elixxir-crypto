@@ -92,6 +92,7 @@ func TestAsymmetric_Marshal_Unmarshal(t *testing.T) {
 		Description: desc,
 		Salt:        salt,
 		RsaPubKey:   pk.GetPublic(),
+		Secret:      secret,
 	}
 
 	marshalled, err := ac.Marshal()
