@@ -1,3 +1,9 @@
+////////////////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx foundation                                                         //
+//                                                                                        //
+// Use of this source code is governed by a license that can be found in the LICENSE file //
+////////////////////////////////////////////////////////////////////////////////////////////
+
 package crust
 
 import (
@@ -190,7 +196,6 @@ func TestJointVerify_BadUploadSig(t *testing.T) {
 		// Sign upload signatures
 		uploadSig := make([]byte, 32)
 		notRand.Read(uploadSig)
-
 
 		//try to verify the signature
 		fileHash, err := hashFile(files[i])
