@@ -47,7 +47,7 @@ func NewChannel(name, description string, rng csprng.Source) (*Channel, *rsa.Pri
 		panic(err)
 	}
 
-	channelID, key, err := NewChannelID(name, description, secret, salt, rsa.CreatePublicKeyPem(pk.GetPublic()))
+	channelID, key, err := NewChannelID(name, description, salt, rsa.CreatePublicKeyPem(pk.GetPublic()), secret)
 	if err != nil {
 		return nil, nil, err
 	}

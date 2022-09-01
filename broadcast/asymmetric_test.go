@@ -20,13 +20,14 @@ func TestAsymmetric_Encrypt_Decrypt(t *testing.T) {
 	name := "Asymmetric channel"
 	desc := "Asymmetric channel description"
 	salt := cmix.NewSalt(rng, 512)
+
 	secret := make([]byte, 32)
 	_, err = rng.Read(secret)
 	if err != nil {
 		panic(err)
 	}
 
-	rid, _, err := NewChannelID(name, desc, secret, salt, pk.GetPublic().GetN().Bytes())
+	rid, _, err := NewChannelID(name, desc, salt, pk.GetPublic().GetN().Bytes(), secret)
 	if err != nil {
 		panic(err)
 	}
