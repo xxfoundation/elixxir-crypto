@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2020 xx network SEZC                                                       //
+// Copyright © 2022 xx foundation                                                         //
 //                                                                                        //
 // Use of this source code is governed by a license that can be found in the LICENSE file //
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -15,15 +15,15 @@ import (
 
 // SignVerification signs the user's username and reception public key, hashed together.
 func SignVerification(rand io.Reader, udPrivKey *rsa.PrivateKey,
-	username string, receptionPubKey []byte) ([]byte, error) {
+	username string, receptionPubKey *rsa.PublicKey) ([]byte, error) {
 	// Hash username
 	usernameHash := hashUsername(username)
 
 	// Create hash to sign on
 	opts := rsa.NewDefaultOptions()
 	opts.Hash = crypto.SHA256
-	hashed := makeVerificationSignatureHash(usernameHash, receptionPubKey,
-		opts.Hash.New())
+	hashed := makeVerificationSignatureHash(usernameHash,
+		receptionPubKey.N.Bytes(), opts.Hash.New())
 
 	// Return signature
 	return rsa.Sign(rand, udPrivKey, opts.Hash, hashed, opts)
@@ -31,16 +31,13 @@ func SignVerification(rand io.Reader, udPrivKey *rsa.PrivateKey,
 
 // VerifyVerificationSignature verifies the signature provided from SignVerification.
 func VerifyVerificationSignature(pubKey *rsa.PublicKey,
-	username string, receptionPubKey, signature []byte) error {
-
-	// Hash username
-	usernameHash := hashUsername(username)
+	usernameHash []byte, receptionPubKey *rsa.PublicKey, signature []byte) error {
 
 	// Create hash that was signed
 	opts := rsa.NewDefaultOptions()
 	opts.Hash = crypto.SHA256
-	hashed := makeVerificationSignatureHash(usernameHash, receptionPubKey,
-		opts.Hash.New())
+	hashed := makeVerificationSignatureHash(usernameHash,
+		receptionPubKey.N.Bytes(), opts.Hash.New())
 
 	// Verify signature
 	return rsa.Verify(pubKey, opts.Hash, hashed, signature, opts)

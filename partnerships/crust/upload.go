@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2020 xx network SEZC                                                       //
+// Copyright © 2022 xx foundation                                                         //
 //                                                                                        //
 // Use of this source code is governed by a license that can be found in the LICENSE file //
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -44,7 +44,7 @@ func SignUpload(rand io.Reader, userPrivKey *rsa.PrivateKey,
 // from the current time passed in as "now".
 func VerifyUpload(userPublicKey *rsa.PublicKey,
 	now, timestamp time.Time,
-	file, signature []byte) error {
+	fileHash, signature []byte) error {
 
 	// Check if timestamp is within the grace period
 	startOfPeriod := now.Add(-uploadGracePeriod)
@@ -53,12 +53,6 @@ func VerifyUpload(userPublicKey *rsa.PublicKey,
 		return errors.Errorf("Timestamp %s is not in between "+
 			"the grace period (%s, %s)",
 			timestamp, startOfPeriod.String(), endOfPeriod.String())
-	}
-
-	// Hash file
-	fileHash, err := hashFile(file)
-	if err != nil {
-		return errors.Errorf("Failed to hash file: %v", err)
 	}
 
 	// Hash together timestamp and
