@@ -21,21 +21,17 @@ const hkdfInfo = "XX_Network_Broadcast_Channel_HKDF_Blake2b"
 // Channel is a multicast communication channel that retains the
 // various privacy notions that this mix network provides.
 type Channel struct {
-
-	// ReceptionID is channel identity that can receive messages.
-	// It is derived from the other channel fields.
 	ReceptionID *id.ID
-
 	Name        string
 	Description string
 	Salt        []byte
 	RsaPubKey   *rsa.PublicKey
+	Secret      []byte
 
 	// Only appears in memory, is not contained in the marshalled version.
 	// Lazily evaluated on first use.
 	// key = H(ReceptionID)
-	key    []byte
-	secret []byte
+	key []byte
 }
 
 func NewChannel(name, description string, rng csprng.Source) (*Channel, *rsa.PrivateKey, error) {
@@ -63,7 +59,7 @@ func NewChannel(name, description string, rng csprng.Source) (*Channel, *rsa.Pri
 		Salt:        salt,
 		RsaPubKey:   pk.GetPublic(),
 		key:         key,
-		secret:      secret,
+		Secret:      secret,
 	}, pk, nil
 }
 
@@ -156,6 +152,7 @@ type channelDisk struct {
 	Description string
 	Salt        []byte
 	RsaPubKey   *rsa.PublicKey
+	Secret      []byte
 	key         []byte
 }
 
@@ -166,6 +163,7 @@ func (c *Channel) MarshalJson() ([]byte, error) {
 		Description: c.Description,
 		Salt:        c.Salt,
 		RsaPubKey:   c.RsaPubKey,
+		Secret:      c.Secret,
 		key:         c.key,
 	})
 
@@ -184,6 +182,7 @@ func (c *Channel) UnmarshalJson(b []byte) error {
 		Description: cDisk.Description,
 		Salt:        cDisk.Salt,
 		RsaPubKey:   cDisk.RsaPubKey,
+		Secret:      cDisk.Secret,
 		key:         cDisk.key,
 	}
 
