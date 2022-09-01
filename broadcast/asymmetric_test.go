@@ -2,13 +2,16 @@ package broadcast
 
 import (
 	"bytes"
+	cryptorsa "crypto/rsa"
 	"encoding/json"
 	"fmt"
-	"gitlab.com/elixxir/crypto/cmix"
-	"gitlab.com/xx_network/crypto/csprng"
-	"gitlab.com/xx_network/crypto/signature/rsa"
 	"reflect"
 	"testing"
+
+	"gitlab.com/xx_network/crypto/csprng"
+	"gitlab.com/xx_network/crypto/signature/rsa"
+
+	"gitlab.com/elixxir/crypto/cmix"
 )
 
 func TestAsymmetric_Encrypt_Decrypt(t *testing.T) {
@@ -89,5 +92,28 @@ func TestAsymmetric_Marshal_Unmarshal(t *testing.T) {
 
 	if !reflect.DeepEqual(ac, unmarshalled) {
 		t.Errorf("Did not receive expected asymmetric channel\n\tExpected: %+v\n\tReceived: %+v\n", ac, unmarshalled)
+	}
+}
+
+func TestRSAToPrivateEncryptDecrypt(t *testing.T) {
+	plaintext := []byte("hello world")
+	label := []byte("channel_messages")
+	rng := csprng.NewSystemRNG()
+
+	privateKey, err := cryptorsa.GenerateKey(rng, 4096)
+	if err != nil {
+		t.Fatalf("Failed to generate private key: %+v", err)
+	}
+	publicKey := privateKey.Public()
+	ciphertext, err := EncryptRSAToPrivate(plaintext, rng, publicKey.(*cryptorsa.PublicKey), label)
+	if err != nil {
+		t.Fatal()
+	}
+	plaintext2, err := DecryptRSAToPrivate(ciphertext, rng, privateKey, label)
+	if err != nil {
+		t.Fatal()
+	}
+	if !bytes.Equal(plaintext, plaintext2) {
+		t.Fatal()
 	}
 }
