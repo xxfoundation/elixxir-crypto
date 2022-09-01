@@ -1,11 +1,16 @@
 package broadcast
 
 import (
+	"crypto/rsa"
 	"crypto/sha256"
+
 	"github.com/pkg/errors"
-	"gitlab.com/elixxir/primitives/format"
+	"golang.org/x/crypto/blake2b"
+
 	"gitlab.com/xx_network/crypto/csprng"
 	"gitlab.com/xx_network/crypto/multicastRSA"
+
+	"gitlab.com/elixxir/primitives/format"
 )
 
 func (c *Channel) EncryptAsymmetric(payload []byte, pk multicastRSA.PrivateKey, csprng csprng.Source) (
@@ -36,4 +41,23 @@ func (c *Channel) DecryptAsymmetric(payload []byte) ([]byte, error) {
 
 func (c *Channel) MaxAsymmetricPayloadSize() int {
 	return multicastRSA.GetMaxPayloadSize(sha256.New(), c.RsaPubKey)
+}
+
+// EncryptRSAToPrivate encrypts the given plaintext with the given
+// RSA public key.
+func EncryptRSAToPrivate(rng csprng.Source, pub *rsa.PublicKey, plaintext, label []byte) ([]byte, error) {
+	h, err := blake2b.New256(nil)
+	if err != nil {
+		panic(err)
+	}
+	return rsa.EncryptOAEP(h, rng, pub, plaintext, label)
+}
+
+// DecryptRSAToPrivate decrypts the given ciphertext with the given RSA private key.
+func DecryptRSAToPrivate(rng csprng.Source, priv *rsa.PrivateKey, ciphertext, label []byte) ([]byte, error) {
+	h, err := blake2b.New256(nil)
+	if err != nil {
+		panic(err)
+	}
+	return rsa.DecryptOAEP(h, rng, priv, ciphertext, label)
 }
