@@ -45,7 +45,7 @@ func (c *Channel) MaxAsymmetricPayloadSize() int {
 
 // EncryptRSAToPrivate encrypts the given plaintext with the given
 // RSA public key.
-func EncryptRSAToPrivate(rng csprng.Source, pub *rsa.PublicKey, plaintext, label []byte) ([]byte, error) {
+func EncryptRSAToPrivate(plaintext []byte, rng csprng.Source, pub *rsa.PublicKey, label []byte) ([]byte, error) {
 	h, err := blake2b.New256(nil)
 	if err != nil {
 		panic(err)
@@ -54,7 +54,7 @@ func EncryptRSAToPrivate(rng csprng.Source, pub *rsa.PublicKey, plaintext, label
 }
 
 // DecryptRSAToPrivate decrypts the given ciphertext with the given RSA private key.
-func DecryptRSAToPrivate(rng csprng.Source, priv *rsa.PrivateKey, ciphertext, label []byte) ([]byte, error) {
+func DecryptRSAToPrivate(ciphertext []byte, rng csprng.Source, priv *rsa.PrivateKey, label []byte) ([]byte, error) {
 	h, err := blake2b.New256(nil)
 	if err != nil {
 		panic(err)
