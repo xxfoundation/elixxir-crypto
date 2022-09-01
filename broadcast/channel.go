@@ -116,8 +116,6 @@ func NewChannelID(name, description string, salt, rsaPub, secret []byte) (*id.ID
 		return nil, nil, errors.New("NewChannelID secret must be 32 bytes long.")
 	}
 
-	intermediary := deriveIntermediary(name, description, salt, rsaPub, secret)
-
 	hkdfHash := func() hash.Hash {
 		hash, err := blake2b.New256(nil)
 		if err != nil {
@@ -126,7 +124,10 @@ func NewChannelID(name, description string, salt, rsaPub, secret []byte) (*id.ID
 		return hash
 	}
 
-	hkdf1 := hkdf.New(hkdfHash, intermediary, salt, []byte(hkdfInfo))
+	hkdf1 := hkdf.New(hkdfHash,
+		deriveIntermediary(name, description, salt, rsaPub, secret),
+		salt,
+		[]byte(hkdfInfo))
 
 	identityBytes := make([]byte, 32)
 	_, err := io.ReadFull(hkdf1, identityBytes)
@@ -138,7 +139,10 @@ func NewChannelID(name, description string, salt, rsaPub, secret []byte) (*id.ID
 	copy(sid[:], identityBytes)
 	sid.SetType(id.User)
 
-	hkdf2 := hkdf.New(hkdfHash, secret, intermediary, []byte(hkdfInfo))
+	hkdf2 := hkdf.New(hkdfHash,
+		secret,
+		deriveIntermediary(name, description, salt, rsaPub, secret),
+		[]byte(hkdfInfo))
 
 	key := make([]byte, 32)
 	_, err = io.ReadFull(hkdf2, key)

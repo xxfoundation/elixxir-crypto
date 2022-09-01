@@ -92,6 +92,88 @@ func TestChannel_MarshalJson(t *testing.T) {
 
 }
 
+func TestChannel_NewChannelIDSecretDerivation(t *testing.T) {
+	name := "mychannelname"
+	description := "my channel description"
+	rng := csprng.NewSystemRNG()
+	salt := make([]byte, 24)
+	_, err := rng.Read(salt)
+	if err != nil {
+		panic(err)
+	}
+
+	privateKey, err := rsa.GenerateKey(rng, 4096)
+	if err != nil {
+		panic(err)
+	}
+
+	secret := make([]byte, 32)
+	_, err = rng.Read(secret)
+	if err != nil {
+		panic(err)
+	}
+
+	hkdfHash := func() hash.Hash {
+		hash, err := blake2b.New256(nil)
+		if err != nil {
+			panic(err)
+		}
+		return hash
+	}
+
+	hkdf2 := hkdf.New(hkdfHash,
+		secret,
+		deriveIntermediary(name, description, salt, privateKey.GetPublic().GetN().Bytes(), secret),
+		[]byte(hkdfInfo))
+
+	key1 := make([]byte, 32)
+	_, err = io.ReadFull(hkdf2, key1)
+	if err != nil {
+		panic(err)
+	}
+
+	_, key2, err := NewChannelID(name, description, salt, privateKey.GetPublic().GetN().Bytes(), secret)
+	if err != nil {
+		panic(err)
+	}
+
+	if !bytes.Equal(key1, key2) {
+		t.Fatal()
+	}
+}
+
+func TestChannel_NewChannelIDSecretLength(t *testing.T) {
+	name := "mychannelname"
+	description := "my channel description"
+	rng := csprng.NewSystemRNG()
+	salt := make([]byte, 24)
+	_, err := rng.Read(salt)
+	if err != nil {
+		panic(err)
+	}
+
+	privateKey, err := rsa.GenerateKey(rng, 4096)
+	if err != nil {
+		panic(err)
+	}
+
+	secret := make([]byte, 32)
+	_, err = rng.Read(secret)
+	if err != nil {
+		panic(err)
+	}
+
+	_, _, err = NewChannelID(name, description, salt, privateKey.GetPublic().GetN().Bytes(), secret)
+	if err != nil {
+		panic(err)
+	}
+
+	_, _, err = NewChannelID(name, description, salt, privateKey.GetPublic().GetN().Bytes(), []byte("1234567"))
+	if err == nil {
+		t.Fatal()
+	}
+}
+
 func TestChannel_deriveIntermediary(t *testing.T) {
 	name := "mychannelname"
 	description := "my channel description"
