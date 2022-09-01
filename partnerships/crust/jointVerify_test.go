@@ -191,7 +191,6 @@ func TestJointVerify_BadUploadSig(t *testing.T) {
 		uploadSig := make([]byte, 32)
 		notRand.Read(uploadSig)
 
-
 		//try to verify the signature
 		fileHash, err := hashFile(files[i])
 		if err != nil {
