@@ -74,8 +74,10 @@ func TestSignVerifyUpload(t *testing.T) {
 			t.Fatalf("Failed to generate sig %d/%d: %v", i, numTests, err)
 		}
 
+		fileHash, _ := hashFile(files[i])
+
 		// Use signature provided above and verify
-		err = VerifyUpload(privKey.GetPublic(), now, timestamps[i], files[i], sig)
+		err = VerifyUpload(privKey.GetPublic(), now, timestamps[i], fileHash, sig)
 		if err != nil {
 			t.Fatalf("Failed to verify signature for test %d/%v: %v", i, numTests, err)
 		}
