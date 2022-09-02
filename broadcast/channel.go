@@ -42,9 +42,12 @@ func NewChannel(name, description string, rng csprng.Source) (*Channel, *rsa.Pri
 	salt := cmix.NewSalt(rng, 512)
 
 	secret := make([]byte, 32)
-	_, err = rng.Read(secret)
+	n, err := rng.Read(secret)
 	if err != nil {
 		panic(err)
+	}
+	if n != 32 {
+		panic("failed to read from rng")
 	}
 
 	channelID, key, err := NewChannelID(name, description, salt, rsa.CreatePublicKeyPem(pk.GetPublic()), secret)
@@ -130,9 +133,12 @@ func NewChannelID(name, description string, salt, rsaPub, secret []byte) (*id.ID
 		[]byte(hkdfInfo))
 
 	identityBytes := make([]byte, 32)
-	_, err := io.ReadFull(hkdf1, identityBytes)
+	n, err := io.ReadFull(hkdf1, identityBytes)
 	if err != nil {
 		panic(err)
+	}
+	if n != 32 {
+		panic("failed to read from hkdf")
 	}
 
 	sid := &id.ID{}
@@ -145,9 +151,12 @@ func NewChannelID(name, description string, salt, rsaPub, secret []byte) (*id.ID
 		[]byte(hkdfInfo))
 
 	key := make([]byte, 32)
-	_, err = io.ReadFull(hkdf2, key)
+	n, err = io.ReadFull(hkdf2, key)
 	if err != nil {
 		panic(err)
+	}
+	if n != 32 {
+		panic("failed to read from hkdf")
 	}
 
 	return sid, key, nil
