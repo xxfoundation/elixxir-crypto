@@ -50,7 +50,7 @@ func NewChannel(name, description string, rng csprng.Source) (*Channel, *rsa.Pri
 		panic("failed to read from rng")
 	}
 
-	channelID, key, err := NewChannelID(name, description, salt, rsa.CreatePublicKeyPem(pk.GetPublic()), secret)
+	channelID, err := NewChannelID(name, description, salt, rsa.CreatePublicKeyPem(pk.GetPublic()), secret)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -61,7 +61,6 @@ func NewChannel(name, description string, rng csprng.Source) (*Channel, *rsa.Pri
 		Description: description,
 		Salt:        salt,
 		RsaPubKey:   pk.GetPublic(),
-		key:         key,
 		Secret:      secret,
 	}, pk, nil
 }
@@ -80,43 +79,11 @@ func (c *Channel) label() []byte {
 	return append([]byte(c.Name), []byte(c.Description)...)
 }
 
-func deriveIntermediary(name, description string, salt, rsaPub, secret []byte) []byte {
-	h, err := blake2b.New256(nil)
-	if err != nil {
-		panic(err)
-	}
-	_, err = h.Write([]byte(name))
-	if err != nil {
-		panic(err)
-	}
-	_, err = h.Write([]byte(description))
-	if err != nil {
-		panic(err)
-	}
-	_, err = h.Write(rsaPub)
-	if err != nil {
-		panic(err)
-	}
-	// secret is hashed first so that
-	// we can share all the inputs to the
-	// hkdf without giving out the secret.
-	secretHash := blake2b.Sum256(secret)
-	_, err = h.Write(secretHash[:])
-	if err != nil {
-		panic(err)
-	}
-	_, err = h.Write(salt)
-	if err != nil {
-		panic(err)
-	}
-	return h.Sum(nil)
-}
-
 // NewChannelID creates a new channel ID.
-func NewChannelID(name, description string, salt, rsaPub, secret []byte) (*id.ID, []byte, error) {
+func NewChannelID(name, description string, salt, rsaPub, secret []byte) (*id.ID, error) {
 
 	if len(secret) != 32 {
-		return nil, nil, errors.New("NewChannelID secret must be 32 bytes long.")
+		return nil, errors.New("NewChannelID secret must be 32 bytes long.")
 	}
 
 	hkdfHash := func() hash.Hash {
@@ -145,21 +112,7 @@ func NewChannelID(name, description string, salt, rsaPub, secret []byte) (*id.ID
 	copy(sid[:], identityBytes)
 	sid.SetType(id.User)
 
-	hkdf2 := hkdf.New(hkdfHash,
-		secret,
-		deriveIntermediary(name, description, salt, rsaPub, secret),
-		[]byte(hkdfInfo))
-
-	key := make([]byte, 32)
-	n, err = io.ReadFull(hkdf2, key)
-	if err != nil {
-		panic(err)
-	}
-	if n != 32 {
-		panic("failed to read from hkdf")
-	}
-
-	return sid, key, nil
+	return sid, nil
 }
 
 type channelDisk struct {

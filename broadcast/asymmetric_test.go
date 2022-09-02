@@ -27,7 +27,7 @@ func TestAsymmetric_Encrypt_Decrypt(t *testing.T) {
 		panic(err)
 	}
 
-	rid, secret, err := NewChannelID(name, desc, salt, pk.GetPublic().GetN().Bytes(), secret)
+	rid, err := NewChannelID(name, desc, salt, pk.GetPublic().GetN().Bytes(), secret)
 	if err != nil {
 		panic(err)
 	}
@@ -38,7 +38,6 @@ func TestAsymmetric_Encrypt_Decrypt(t *testing.T) {
 		Description: desc,
 		Salt:        salt,
 		RsaPubKey:   pk.GetPublic(),
-		Secret:      secret,
 	}
 
 	marshaled, _ := json.Marshal(pk.GetPublic())
@@ -86,14 +85,13 @@ func TestAsymmetric_Marshal_Unmarshal(t *testing.T) {
 		panic(err)
 	}
 
-	rid, _, err := NewChannelID(name, desc, secret, salt, pk.GetPublic().GetN().Bytes())
+	rid, err := NewChannelID(name, desc, secret, salt, pk.GetPublic().GetN().Bytes())
 	ac := &Channel{
 		ReceptionID: rid,
 		Name:        name,
 		Description: desc,
 		Salt:        salt,
 		RsaPubKey:   pk.GetPublic(),
-		Secret:      secret,
 	}
 
 	marshalled, err := ac.Marshal()
