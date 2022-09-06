@@ -1,6 +1,7 @@
 package broadcast
 
 import (
+	"fmt"
 	"hash"
 	"io"
 
@@ -68,6 +69,7 @@ func (c *Channel) DecryptSymmetric(encryptedPayload, mac []byte, nonce format.Fi
 // NewSymmetricKey generates a new symmetric channel key.
 func NewSymmetricKey(name, description string, salt, rsaPubHash, secret []byte) ([]byte, error) {
 	if len(secret) != 32 {
+		panic(fmt.Sprintf("secret len is %d", len(secret)))
 		return nil, ErrSecretSizeIncorrect
 	}
 

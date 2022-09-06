@@ -27,12 +27,13 @@ func TestAsymmetric_Encrypt_Decrypt(t *testing.T) {
 		panic(err)
 	}
 
-	rid, err := NewChannelID(name, desc, salt, pk.GetPublic().GetN().Bytes(), secret)
+	rid, err := NewChannelID(name, desc, salt, hashSecret(rsa.CreatePublicKeyPem(pk.GetPublic())), secret)
 	if err != nil {
 		panic(err)
 	}
 
 	ac := Channel{
+		Secret:        secret,
 		ReceptionID:   rid,
 		Name:          name,
 		Description:   desc,
@@ -55,12 +56,12 @@ func TestAsymmetric_Encrypt_Decrypt(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to read random data to payload: %+v", err)
 	}
-	encrypted, _, _, err := ac.EncryptAsymmetric(payload, pk, rng)
+	encrypted, mac, nonce, err := ac.EncryptAsymmetric(payload, pk, rng)
 	if err != nil {
 		t.Fatalf("Failed to encrypt payload: %+v", err)
 	}
 
-	decrypted, err := ac.DecryptAsymmetric(encrypted)
+	decrypted, err := ac.DecryptAsymmetric(encrypted, mac, nonce)
 	if err != nil {
 		t.Fatalf("Failed to decrypt payload: %+v", err)
 	}

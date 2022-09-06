@@ -24,7 +24,7 @@ func (c *Channel) EncryptAsymmetric(payload []byte, pk multicastRSA.PrivateKey, 
 		return nil, nil, format.Fingerprint{}, errors.WithMessage(err, "Failed to encrypt asymmetric broadcast message")
 	}
 
-	innerPayload := append(pk.GetN().Bytes(), innerCiphertext...)
+	innerPayload := append(rsa.CreatePublicKeyPem(pk), innerCiphertext...)
 	encryptedPayload, mac, nonce = c.EncryptSymmetric(innerPayload, csprng)
 
 	return
