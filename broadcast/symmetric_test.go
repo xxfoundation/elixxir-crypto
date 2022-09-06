@@ -3,12 +3,15 @@ package broadcast
 import (
 	"bytes"
 	"encoding/base64"
-	"gitlab.com/elixxir/crypto/cmix"
-	"gitlab.com/xx_network/crypto/csprng"
-	"gitlab.com/xx_network/primitives/id"
 	"math/rand"
 	"reflect"
 	"testing"
+
+	"gitlab.com/xx_network/crypto/csprng"
+	"gitlab.com/xx_network/crypto/signature/rsa"
+	"gitlab.com/xx_network/primitives/id"
+
+	"gitlab.com/elixxir/crypto/cmix"
 )
 
 // Tests that a payload encrypted with Symmetric.Encrypt and decrypted with
@@ -64,11 +67,11 @@ func TestSymmetric_Decrypt(t *testing.T) {
 // UnmarshalSymmetric matches the original.
 func TestSymmetric_Marshal_UnmarshalSymmetric(t *testing.T) {
 	s := &Channel{
-		ReceptionID: id.NewIdFromString("ChannelID", id.User, t),
-		Name:        "MyChannel",
-		Description: "Channel for channel stuff.",
-		Salt:        cmix.NewSalt(csprng.Source(&csprng.SystemRNG{}), 32),
-		RsaPubKey:   newRsaPubKey(rand.New(rand.NewSource(42)), t),
+		ReceptionID:   id.NewIdFromString("ChannelID", id.User, t),
+		Name:          "MyChannel",
+		Description:   "Channel for channel stuff.",
+		Salt:          cmix.NewSalt(csprng.Source(&csprng.SystemRNG{}), 32),
+		RsaPubKeyHash: hashSecret(rsa.CreatePublicKeyPem(newRsaPubKey(rand.New(rand.NewSource(42)), t))),
 	}
 
 	data, err := s.Marshal()

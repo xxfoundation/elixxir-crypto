@@ -24,12 +24,13 @@ var ErrSecretSizeIncorrect = errors.New("NewChannelID secret must be 32 bytes lo
 // Channel is a multicast communication channel that retains the
 // various privacy notions that this mix network provides.
 type Channel struct {
-	ReceptionID *id.ID
-	Name        string
-	Description string
-	Salt        []byte
-	RsaPubKey   *rsa.PublicKey
-	Secret      []byte
+	ReceptionID     *id.ID
+	Name            string
+	Description     string
+	Salt            []byte
+	RsaPubKeyHash   []byte
+	RsaPubKeyLength int
+	Secret          []byte
 
 	// Only appears in memory, is not contained in the marshalled version.
 	// Lazily evaluated on first use.
@@ -53,18 +54,18 @@ func NewChannel(name, description string, rng csprng.Source) (*Channel, *rsa.Pri
 		jww.FATAL.Panic("failed to read from rng")
 	}
 
-	channelID, err := NewChannelID(name, description, salt, rsa.CreatePublicKeyPem(pk.GetPublic()), secret)
+	channelID, err := NewChannelID(name, description, salt, hashSecret(rsa.CreatePublicKeyPem(pk.GetPublic())), secret)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	return &Channel{
-		ReceptionID: channelID,
-		Name:        name,
-		Description: description,
-		Salt:        salt,
-		RsaPubKey:   pk.GetPublic(),
-		Secret:      secret,
+		ReceptionID:   channelID,
+		Name:          name,
+		Description:   description,
+		Salt:          salt,
+		RsaPubKeyHash: hashSecret(rsa.CreatePublicKeyPem(pk.GetPublic())),
+		Secret:        secret,
 	}, pk, nil
 }
 
@@ -83,7 +84,7 @@ func (c *Channel) label() []byte {
 }
 
 // NewChannelID creates a new channel ID.
-func NewChannelID(name, description string, salt, rsaPub, secret []byte) (*id.ID, error) {
+func NewChannelID(name, description string, salt, rsaPubHash, secret []byte) (*id.ID, error) {
 
 	if len(secret) != 32 {
 		return nil, ErrSecretSizeIncorrect
@@ -98,7 +99,7 @@ func NewChannelID(name, description string, salt, rsaPub, secret []byte) (*id.ID
 	}
 
 	hkdf1 := hkdf.New(hkdfHash,
-		deriveIntermediary(name, description, salt, rsaPub, hashSecret(secret)),
+		deriveIntermediary(name, description, salt, rsaPubHash, hashSecret(secret)),
 		salt,
 		[]byte(hkdfInfo))
 
@@ -119,24 +120,24 @@ func NewChannelID(name, description string, salt, rsaPub, secret []byte) (*id.ID
 }
 
 type channelDisk struct {
-	ReceptionID *id.ID
-	Name        string
-	Description string
-	Salt        []byte
-	RsaPubKey   *rsa.PublicKey
-	Secret      []byte
-	key         []byte
+	ReceptionID   *id.ID
+	Name          string
+	Description   string
+	Salt          []byte
+	RsaPubKeyHash []byte
+	Secret        []byte
+	key           []byte
 }
 
 func (c *Channel) MarshalJson() ([]byte, error) {
 	return json.Marshal(channelDisk{
-		ReceptionID: c.ReceptionID,
-		Name:        c.Name,
-		Description: c.Description,
-		Salt:        c.Salt,
-		RsaPubKey:   c.RsaPubKey,
-		Secret:      c.Secret,
-		key:         c.key,
+		ReceptionID:   c.ReceptionID,
+		Name:          c.Name,
+		Description:   c.Description,
+		Salt:          c.Salt,
+		RsaPubKeyHash: c.RsaPubKeyHash,
+		Secret:        c.Secret,
+		key:           c.key,
 	})
 
 }
@@ -149,13 +150,13 @@ func (c *Channel) UnmarshalJson(b []byte) error {
 	}
 
 	*c = Channel{
-		ReceptionID: cDisk.ReceptionID,
-		Name:        cDisk.Name,
-		Description: cDisk.Description,
-		Salt:        cDisk.Salt,
-		RsaPubKey:   cDisk.RsaPubKey,
-		Secret:      cDisk.Secret,
-		key:         cDisk.key,
+		ReceptionID:   cDisk.ReceptionID,
+		Name:          cDisk.Name,
+		Description:   cDisk.Description,
+		Salt:          cDisk.Salt,
+		RsaPubKeyHash: cDisk.RsaPubKeyHash,
+		Secret:        cDisk.Secret,
+		key:           cDisk.key,
 	}
 
 	return nil

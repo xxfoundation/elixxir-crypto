@@ -32,13 +32,13 @@ func TestChannel_MarshalJson(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rid, err := NewChannelID(name, desc, secret, salt, pk.GetPublic().GetN().Bytes())
+	rid, err := NewChannelID(name, desc, secret, salt, hashSecret(rsa.CreatePublicKeyPem(pk.GetPublic())))
 	channel := Channel{
-		ReceptionID: rid,
-		Name:        name,
-		Description: desc,
-		Salt:        salt,
-		RsaPubKey:   pk.GetPublic(),
+		ReceptionID:   rid,
+		Name:          name,
+		Description:   desc,
+		Salt:          salt,
+		RsaPubKeyHash: hashSecret(rsa.CreatePublicKeyPem(pk.GetPublic())),
 	}
 
 	// Marshal data
@@ -54,10 +54,10 @@ func TestChannel_MarshalJson(t *testing.T) {
 		t.Fatalf("UnmarshalJSON error: %+v", err)
 	}
 
-	if newChannel.RsaPubKey.E != channel.RsaPubKey.E {
-		t.Fatalf("Channel's RSA public key did not get unmarshaled properly."+
+	if !bytes.Equal(newChannel.RsaPubKeyHash, channel.RsaPubKeyHash) {
+		t.Fatalf("Channel's RSA public key hash did not get unmarshaled properly."+
 			"\nExpected: %+v"+
-			"\nReceived: %+v", channel.RsaPubKey, newChannel.RsaPubKey)
+			"\nReceived: %+v", channel.RsaPubKeyHash, newChannel.RsaPubKeyHash)
 	}
 
 	if !bytes.Equal(newChannel.key, channel.key) {

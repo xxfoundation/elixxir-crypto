@@ -33,7 +33,7 @@ func (c *Channel) EncryptSymmetric(payload []byte, csprng csprng.Source) (
 	nonce = newNonce(csprng)
 	var err error
 	if c.key == nil {
-		c.key, err = NewSymmetricKey(c.Name, c.Description, c.Salt, c.RsaPubKey.GetN().Bytes(), c.Secret)
+		c.key, err = NewSymmetricKey(c.Name, c.Description, c.Salt, c.RsaPubKeyHash, c.Secret)
 		if err != nil {
 			jww.FATAL.Panic(err)
 		}
@@ -49,7 +49,7 @@ func (c *Channel) EncryptSymmetric(payload []byte, csprng csprng.Source) (
 func (c *Channel) DecryptSymmetric(encryptedPayload, mac []byte, nonce format.Fingerprint) ([]byte, error) {
 	var err error
 	if c.key == nil {
-		c.key, err = NewSymmetricKey(c.Name, c.Description, c.Salt, c.RsaPubKey.GetN().Bytes(), c.Secret)
+		c.key, err = NewSymmetricKey(c.Name, c.Description, c.Salt, c.RsaPubKeyHash, c.Secret)
 		if err != nil {
 			jww.FATAL.Panic(err)
 		}
@@ -66,7 +66,7 @@ func (c *Channel) DecryptSymmetric(encryptedPayload, mac []byte, nonce format.Fi
 }
 
 // NewSymmetricKey generates a new symmetric channel key.
-func NewSymmetricKey(name, description string, salt, rsaPub, secret []byte) ([]byte, error) {
+func NewSymmetricKey(name, description string, salt, rsaPubHash, secret []byte) ([]byte, error) {
 	if len(secret) != 32 {
 		return nil, ErrSecretSizeIncorrect
 	}
@@ -81,7 +81,7 @@ func NewSymmetricKey(name, description string, salt, rsaPub, secret []byte) ([]b
 
 	hkdf := hkdf.New(hkdfHash,
 		secret,
-		deriveIntermediary(name, description, salt, rsaPub, hashSecret(secret)),
+		deriveIntermediary(name, description, salt, rsaPubHash, hashSecret(secret)),
 		[]byte(hkdfInfo))
 
 	// 256 bits of entropy

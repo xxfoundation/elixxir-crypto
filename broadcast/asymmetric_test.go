@@ -33,11 +33,11 @@ func TestAsymmetric_Encrypt_Decrypt(t *testing.T) {
 	}
 
 	ac := Channel{
-		ReceptionID: rid,
-		Name:        name,
-		Description: desc,
-		Salt:        salt,
-		RsaPubKey:   pk.GetPublic(),
+		ReceptionID:   rid,
+		Name:          name,
+		Description:   desc,
+		Salt:          salt,
+		RsaPubKeyHash: hashSecret(rsa.CreatePublicKeyPem(pk.GetPublic())),
 	}
 
 	marshaled, _ := json.Marshal(pk.GetPublic())
@@ -87,11 +87,11 @@ func TestAsymmetric_Marshal_Unmarshal(t *testing.T) {
 
 	rid, err := NewChannelID(name, desc, secret, salt, pk.GetPublic().GetN().Bytes())
 	ac := &Channel{
-		ReceptionID: rid,
-		Name:        name,
-		Description: desc,
-		Salt:        salt,
-		RsaPubKey:   pk.GetPublic(),
+		ReceptionID:   rid,
+		Name:          name,
+		Description:   desc,
+		Salt:          salt,
+		RsaPubKeyHash: hashSecret(rsa.CreatePublicKeyPem(pk.GetPublic())),
 	}
 
 	marshalled, err := ac.Marshal()
