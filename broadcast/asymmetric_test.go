@@ -2,13 +2,13 @@ package broadcast
 
 import (
 	"bytes"
-	"encoding/json"
-	"fmt"
-	"gitlab.com/elixxir/crypto/cmix"
-	"gitlab.com/xx_network/crypto/csprng"
-	"gitlab.com/xx_network/crypto/signature/rsa"
 	"reflect"
 	"testing"
+
+	"gitlab.com/xx_network/crypto/csprng"
+	"gitlab.com/xx_network/crypto/signature/rsa"
+
+	"gitlab.com/elixxir/crypto/cmix"
 )
 
 func TestAsymmetric_Encrypt_Decrypt(t *testing.T) {
@@ -33,30 +33,21 @@ func TestAsymmetric_Encrypt_Decrypt(t *testing.T) {
 	}
 
 	ac := Channel{
-		Secret:        secret,
-		ReceptionID:   rid,
-		Name:          name,
-		Description:   desc,
-		Salt:          salt,
-		RsaPubKeyHash: hashSecret(rsa.CreatePublicKeyPem(pk.GetPublic())),
+		RsaPubKeyLength: 528,
+		Secret:          secret,
+		ReceptionID:     rid,
+		Name:            name,
+		Description:     desc,
+		Salt:            salt,
+		RsaPubKeyHash:   hashSecret(rsa.CreatePublicKeyPem(pk.GetPublic())),
 	}
-
-	marshaled, _ := json.Marshal(pk.GetPublic())
-	fmt.Printf("%s\n\n", marshaled)
-
-	marshalled, _ := json.Marshal(ac)
-	if err != nil {
-		t.Fatalf("Failed to marshal pub key: %v", err)
-	}
-
-	fmt.Printf("%s\n", marshalled)
 
 	payload := make([]byte, 128)
 	_, err = rng.Read(payload)
 	if err != nil {
 		t.Fatalf("Failed to read random data to payload: %+v", err)
 	}
-	encrypted, mac, nonce, err := ac.EncryptAsymmetric(payload, pk, rng)
+	encrypted, mac, nonce, err := ac.EncryptAsymmetric(payload, pk, pk.GetPublic(), rng)
 	if err != nil {
 		t.Fatalf("Failed to encrypt payload: %+v", err)
 	}
@@ -88,11 +79,12 @@ func TestAsymmetric_Marshal_Unmarshal(t *testing.T) {
 
 	rid, err := NewChannelID(name, desc, secret, salt, pk.GetPublic().GetN().Bytes())
 	ac := &Channel{
-		ReceptionID:   rid,
-		Name:          name,
-		Description:   desc,
-		Salt:          salt,
-		RsaPubKeyHash: hashSecret(rsa.CreatePublicKeyPem(pk.GetPublic())),
+		RsaPubKeyLength: 528,
+		ReceptionID:     rid,
+		Name:            name,
+		Description:     desc,
+		Salt:            salt,
+		RsaPubKeyHash:   hashSecret(rsa.CreatePublicKeyPem(pk.GetPublic())),
 	}
 
 	marshalled, err := ac.Marshal()

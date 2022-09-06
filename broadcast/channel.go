@@ -38,8 +38,8 @@ type Channel struct {
 	key []byte
 }
 
-func NewChannel(name, description string, rng csprng.Source) (*Channel, *rsa.PrivateKey, error) {
-	pk, err := rsa.GenerateKey(rng, 4096)
+func NewChannel(name, description string, packetPayloadLength int, rng csprng.Source) (*Channel, *rsa.PrivateKey, error) {
+	pk, err := rsa.GenerateKey(rng, packetPayloadLength/2)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -83,7 +83,11 @@ func (c *Channel) label() []byte {
 	return append([]byte(c.Name), []byte(c.Description)...)
 }
 
-// NewChannelID creates a new channel ID.
+// NewChannelID creates a new channel ID, the resulting 32 byte
+// identity is derived like this:
+//
+// intermediary = H(name | description | rsaPubHash | hashedSecret | salt)
+// identityBytes = HKDF(intermediary, salt, hkdfInfo)
 func NewChannelID(name, description string, salt, rsaPubHash, secret []byte) (*id.ID, error) {
 
 	if len(secret) != 32 {

@@ -11,17 +11,10 @@ import (
 	"gitlab.com/elixxir/primitives/format"
 )
 
-func (c *Channel) EncryptAsymmetric(payload []byte, pk multicastRSA.PrivateKey, pubKey rsa.PublicKey, csprng csprng.Source) (
+func (c *Channel) EncryptAsymmetric(payload []byte, pk multicastRSA.PrivateKey, pubKey *rsa.PublicKey, csprng csprng.Source) (
 	encryptedPayload, mac []byte, nonce format.Fingerprint, err error) {
 
-	h := sha256.New()
-	// Note: this doesn't really do much
-	nonce = newNonce(csprng)
-	key := newMessageKey(nonce, pk.GetN().Bytes())
-	mac = makeMAC(key, payload)
-
-	// Encrypt payload using multicastRSA
-	innerCiphertext, err := multicastRSA.EncryptOAEP(h, csprng, pk, payload, c.label())
+	innerCiphertext, err := multicastRSA.EncryptOAEP(sha256.New(), csprng, pk, payload, c.label())
 	if err != nil {
 		return nil, nil, format.Fingerprint{}, errors.WithMessage(err, "Failed to encrypt asymmetric broadcast message")
 	}
@@ -33,20 +26,21 @@ func (c *Channel) EncryptAsymmetric(payload []byte, pk multicastRSA.PrivateKey, 
 }
 
 func (c *Channel) DecryptAsymmetric(payload []byte, mac []byte, nonce format.Fingerprint) ([]byte, error) {
-
-	rsaPubKeyBytes := payload[:c.RsaPubKeyLength]
-	outerCiphertext := payload[c.RsaPubKeyLength:]
-	innerCiphertext, err := c.DecryptSymmetric(outerCiphertext, mac, nonce)
+	innerCiphertext, err := c.DecryptSymmetric(payload, mac, nonce)
 	if err != nil {
 		return nil, err
 	}
+
+	rsaPubKeyBytes := innerCiphertext[:c.RsaPubKeyLength]
+	ciphertext := innerCiphertext[c.RsaPubKeyLength:]
 
 	h := sha256.New()
-	rsaPubKey, err := rsa.LoadPublicKeyFromPem(rsaPubKeyBytes)
+	rsaPubKey := new(rsa.PublicKey)
+	err = rsaPubKey.FromBytes(rsaPubKeyBytes)
 	if err != nil {
 		return nil, err
 	}
-	decrypted, err := multicastRSA.DecryptOAEP(h, rsaPubKey, innerCiphertext, c.label())
+	decrypted, err := multicastRSA.DecryptOAEP(h, rsaPubKey, ciphertext, c.label())
 	if err != nil {
 		return nil, err
 	}

@@ -66,7 +66,11 @@ func (c *Channel) DecryptSymmetric(encryptedPayload, mac []byte, nonce format.Fi
 	return payload, nil
 }
 
-// NewSymmetricKey generates a new symmetric channel key.
+// NewSymmetricKey generates a new symmetric channel key
+// which is derived like this:
+//
+// intermediary = H(name | description | rsaPubHash | hashedSecret | salt)
+// key = HKDF(secret, intermediary, hkdfInfo)
 func NewSymmetricKey(name, description string, salt, rsaPubHash, secret []byte) ([]byte, error) {
 	if len(secret) != 32 {
 		panic(fmt.Sprintf("secret len is %d", len(secret)))

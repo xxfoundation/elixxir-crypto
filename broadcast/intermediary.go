@@ -13,7 +13,9 @@ func hashSecret(secret []byte) []byte {
 	return b[:]
 }
 
-func deriveIntermediary(name, description string, salt, rsaPub, hashedSecret []byte) []byte {
+// returns the Blake2b hash of the given arguments:
+// H(name | description | rsaPubHash | hashedSecret | salt)
+func deriveIntermediary(name, description string, salt, rsaPubHash, hashedSecret []byte) []byte {
 	h, err := blake2b.New256(nil)
 	if err != nil {
 		jww.FATAL.Panic(err)
@@ -26,7 +28,7 @@ func deriveIntermediary(name, description string, salt, rsaPub, hashedSecret []b
 	if err != nil {
 		jww.FATAL.Panic(err)
 	}
-	_, err = h.Write(rsaPub)
+	_, err = h.Write(rsaPubHash)
 	if err != nil {
 		jww.FATAL.Panic(err)
 	}
