@@ -3,13 +3,15 @@ package broadcast
 import (
 	"crypto/sha256"
 	"github.com/pkg/errors"
-	"gitlab.com/elixxir/primitives/format"
+
 	"gitlab.com/xx_network/crypto/csprng"
 	"gitlab.com/xx_network/crypto/multicastRSA"
 	"gitlab.com/xx_network/crypto/signature/rsa"
+
+	"gitlab.com/elixxir/primitives/format"
 )
 
-func (c *Channel) EncryptAsymmetric(payload []byte, pk multicastRSA.PrivateKey, csprng csprng.Source) (
+func (c *Channel) EncryptAsymmetric(payload []byte, pk multicastRSA.PrivateKey, pubKey multicastRSA.PublicKey, csprng csprng.Source) (
 	encryptedPayload, mac []byte, nonce format.Fingerprint, err error) {
 
 	h := sha256.New()
@@ -24,7 +26,7 @@ func (c *Channel) EncryptAsymmetric(payload []byte, pk multicastRSA.PrivateKey, 
 		return nil, nil, format.Fingerprint{}, errors.WithMessage(err, "Failed to encrypt asymmetric broadcast message")
 	}
 
-	innerPayload := append(rsa.CreatePublicKeyPem(pk), innerCiphertext...)
+	innerPayload := append(pubKey.Bytes(), innerCiphertext...)
 	encryptedPayload, mac, nonce = c.EncryptSymmetric(innerPayload, csprng)
 
 	return
