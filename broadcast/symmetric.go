@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/pkg/errors"
+	jww "github.com/spf13/jwalterweatherman"
 	"golang.org/x/crypto/blake2b"
 	"golang.org/x/crypto/chacha20"
 	"golang.org/x/crypto/hkdf"
@@ -34,7 +35,7 @@ func (c *Channel) EncryptSymmetric(payload []byte, csprng csprng.Source) (
 	if c.key == nil {
 		c.key, err = NewSymmetricKey(c.Name, c.Description, c.Salt, c.RsaPubKey.GetN().Bytes(), c.Secret)
 		if err != nil {
-			panic(err)
+			jww.FATAL.Panic(err)
 		}
 	}
 
@@ -50,7 +51,7 @@ func (c *Channel) DecryptSymmetric(encryptedPayload, mac []byte, nonce format.Fi
 	if c.key == nil {
 		c.key, err = NewSymmetricKey(c.Name, c.Description, c.Salt, c.RsaPubKey.GetN().Bytes(), c.Secret)
 		if err != nil {
-			panic(err)
+			jww.FATAL.Panic(err)
 		}
 	}
 
@@ -67,29 +68,30 @@ func (c *Channel) DecryptSymmetric(encryptedPayload, mac []byte, nonce format.Fi
 // NewSymmetricKey generates a new symmetric channel key.
 func NewSymmetricKey(name, description string, salt, rsaPub, secret []byte) ([]byte, error) {
 	if len(secret) != 32 {
-		return nil, errors.New("NewChannelID secret must be 32 bytes long.")
+		return nil, ErrSecretSizeIncorrect
 	}
 
 	hkdfHash := func() hash.Hash {
 		hash, err := blake2b.New256(nil)
 		if err != nil {
-			panic(err)
+			jww.FATAL.Panic(err)
 		}
 		return hash
 	}
 
 	hkdf := hkdf.New(hkdfHash,
 		secret,
-		deriveIntermediary(name, description, salt, rsaPub, secret),
+		deriveIntermediary(name, description, salt, rsaPub, hashSecret(secret)),
 		[]byte(hkdfInfo))
 
+	// 256 bits of entropy
 	key := make([]byte, 32)
 	n, err := io.ReadFull(hkdf, key)
 	if err != nil {
-		panic(err)
+		jww.FATAL.Panic(err)
 	}
 	if n != 32 {
-		panic("failed to read from hkdf")
+		jww.FATAL.Panic("failed to read from hkdf")
 	}
 
 	return key, nil

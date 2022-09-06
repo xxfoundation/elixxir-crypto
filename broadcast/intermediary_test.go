@@ -35,7 +35,7 @@ func TestChannel_deriveIntermediary(t *testing.T) {
 		panic(err)
 	}
 
-	intermediary := deriveIntermediary(name, description, salt, privateKey.GetPublic().GetN().Bytes(), secret)
+	intermediary := deriveIntermediary(name, description, salt, privateKey.GetPublic().GetN().Bytes(), hashSecret(secret))
 
 	hkdfHash := func() hash.Hash {
 		hash, err := blake2b.New256(nil)

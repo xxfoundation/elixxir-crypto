@@ -29,7 +29,7 @@ func TestChannel_MarshalJson(t *testing.T) {
 	secret := make([]byte, 32)
 	_, err = rng.Read(secret)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 
 	rid, err := NewChannelID(name, desc, secret, salt, pk.GetPublic().GetN().Bytes())
@@ -93,23 +93,23 @@ func TestChannel_NewChannelIDSecretLength(t *testing.T) {
 	salt := make([]byte, 24)
 	_, err := rng.Read(salt)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 
 	privateKey, err := rsa.GenerateKey(rng, 4096)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 
 	secret := make([]byte, 32)
 	_, err = rng.Read(secret)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 
 	_, err = NewChannelID(name, description, salt, privateKey.GetPublic().GetN().Bytes(), secret)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 
 	_, err = NewChannelID(name, description, salt, privateKey.GetPublic().GetN().Bytes(), []byte("1234567"))

@@ -6,6 +6,7 @@ import (
 	"hash"
 	"io"
 
+	jww "github.com/spf13/jwalterweatherman"
 	"golang.org/x/crypto/blake2b"
 	"golang.org/x/crypto/hkdf"
 
@@ -17,6 +18,8 @@ import (
 )
 
 const hkdfInfo = "XX_Network_Broadcast_Channel_HKDF_Blake2b"
+
+var ErrSecretSizeIncorrect = errors.New("NewChannelID secret must be 32 bytes long.")
 
 // Channel is a multicast communication channel that retains the
 // various privacy notions that this mix network provides.
@@ -44,10 +47,10 @@ func NewChannel(name, description string, rng csprng.Source) (*Channel, *rsa.Pri
 	secret := make([]byte, 32)
 	n, err := rng.Read(secret)
 	if err != nil {
-		panic(err)
+		jww.FATAL.Panic(err)
 	}
 	if n != 32 {
-		panic("failed to read from rng")
+		jww.FATAL.Panic("failed to read from rng")
 	}
 
 	channelID, err := NewChannelID(name, description, salt, rsa.CreatePublicKeyPem(pk.GetPublic()), secret)
@@ -83,29 +86,29 @@ func (c *Channel) label() []byte {
 func NewChannelID(name, description string, salt, rsaPub, secret []byte) (*id.ID, error) {
 
 	if len(secret) != 32 {
-		return nil, errors.New("NewChannelID secret must be 32 bytes long.")
+		return nil, ErrSecretSizeIncorrect
 	}
 
 	hkdfHash := func() hash.Hash {
 		hash, err := blake2b.New256(nil)
 		if err != nil {
-			panic(err)
+			jww.FATAL.Panic(err)
 		}
 		return hash
 	}
 
 	hkdf1 := hkdf.New(hkdfHash,
-		deriveIntermediary(name, description, salt, rsaPub, secret),
+		deriveIntermediary(name, description, salt, rsaPub, hashSecret(secret)),
 		salt,
 		[]byte(hkdfInfo))
 
 	identityBytes := make([]byte, 32)
 	n, err := io.ReadFull(hkdf1, identityBytes)
 	if err != nil {
-		panic(err)
+		jww.FATAL.Panic(err)
 	}
 	if n != 32 {
-		panic("failed to read from hkdf")
+		jww.FATAL.Panic("failed to read from hkdf")
 	}
 
 	sid := &id.ID{}
