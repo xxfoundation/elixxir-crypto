@@ -11,7 +11,7 @@ import (
 	"gitlab.com/elixxir/primitives/format"
 )
 
-func (c *Channel) EncryptAsymmetric(payload []byte, pk multicastRSA.PrivateKey, pubKey multicastRSA.PublicKey, csprng csprng.Source) (
+func (c *Channel) EncryptAsymmetric(payload []byte, pk multicastRSA.PrivateKey, pubKey rsa.PublicKey, csprng csprng.Source) (
 	encryptedPayload, mac []byte, nonce format.Fingerprint, err error) {
 
 	h := sha256.New()
