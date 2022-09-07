@@ -1,10 +1,14 @@
 package broadcast
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"hash"
 	"io"
+	"strconv"
+	"strings"
 
 	jww "github.com/spf13/jwalterweatherman"
 	"golang.org/x/crypto/blake2b"
@@ -17,13 +21,19 @@ import (
 	"gitlab.com/elixxir/crypto/cmix"
 )
 
-const hkdfInfo = "XX_Network_Broadcast_Channel_HKDF_Blake2b"
+const (
+	version  = "v1"
+	hkdfInfo = "XX_Network_Broadcast_Channel_HKDF_Blake2b"
+)
 
 // ErrSecretSizeIncorrect indicates an incorrect sized secret.
 var ErrSecretSizeIncorrect = errors.New("NewChannelID secret must be 32 bytes long.")
 
 // ErrPayloadLengthIsOdd indicates an odd packet payload length.
 var ErrPayloadLengthIsOdd = errors.New("Packet payload length must be even.")
+
+// ErrMalformedPrettyPrintedChannel indicates the channel description blob was malformed.
+var ErrMalformedPrettyPrintedChannel = errors.New("Malformed pretty printed channel.")
 
 // Channel is a multicast communication channel that retains the
 // various privacy notions that this mix network provides.
@@ -178,4 +188,69 @@ func (c *Channel) UnmarshalJson(b []byte) error {
 
 	return nil
 
+}
+
+// PrettyPrint prints a human-pasteable serialization of this Channel type, like this:
+//
+// <XXChannel:v1:"name",description:"blah",math:"qw432432sdfserfwerewrwerewrewrwerewrwerewerwee","qw432432sdfserfwerewrwerewrewrwerewrw
+// erewerwee","qw432432sdfserfwerewrwerewrewrwerewrwerewerwee","qw432432sdfserfwerewrwerewrewrwerewrwerewerwee",>>
+func (c *Channel) PrettyPrint() string {
+	var b strings.Builder
+	fmt.Fprintf(&b, "<XXChannel,%s,%s,description,%s,math,%s,%s,%s,%d,%s>",
+		version,
+		c.Name,
+		c.Description,
+		base64.StdEncoding.EncodeToString(c.ReceptionID[:]),
+		base64.StdEncoding.EncodeToString(c.Salt),
+		base64.StdEncoding.EncodeToString(c.RsaPubKeyHash),
+		c.RsaPubKeyLength,
+		base64.StdEncoding.EncodeToString(c.Secret))
+	return b.String()
+}
+
+// NewChannelFromPrettyPrint creates a new Channel given
+// a valid pretty printed Channel serialization via the
+// PrettyPrint method.
+func NewChannelFromPrettyPrint(p string) (*Channel, error) {
+	fields := strings.Split(p, ",")
+	if len(fields) != 11 {
+		return nil, ErrMalformedPrettyPrintedChannel
+	}
+
+	id := new(id.ID)
+	rawId, err := base64.StdEncoding.DecodeString(string(fields[6]))
+	if err != nil {
+		return nil, ErrMalformedPrettyPrintedChannel
+	}
+	copy(id[:], rawId)
+
+	salt, err := base64.StdEncoding.DecodeString(string(fields[7]))
+	if err != nil {
+		return nil, ErrMalformedPrettyPrintedChannel
+	}
+
+	rsaPubKeyHash, err := base64.StdEncoding.DecodeString(string(fields[8]))
+	if err != nil {
+		return nil, ErrMalformedPrettyPrintedChannel
+	}
+
+	rsaPubKeyLength, err := strconv.Atoi(fields[9])
+	if err != nil {
+		return nil, ErrMalformedPrettyPrintedChannel
+	}
+
+	secret, err := base64.StdEncoding.DecodeString(string(fields[10]))
+	if err != nil {
+		return nil, ErrMalformedPrettyPrintedChannel
+	}
+
+	return &Channel{
+		Name:            fields[2],
+		Description:     fields[4],
+		ReceptionID:     id,
+		Salt:            salt,
+		RsaPubKeyHash:   rsaPubKeyHash,
+		RsaPubKeyLength: rsaPubKeyLength,
+		Secret:          secret,
+	}, nil
 }

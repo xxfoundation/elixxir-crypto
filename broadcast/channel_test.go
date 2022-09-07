@@ -16,6 +16,45 @@ import (
 	"gitlab.com/elixxir/crypto/cmix"
 )
 
+func TestChannel_PrettyPrint(t *testing.T) {
+	rng := csprng.NewSystemRNG()
+	pk, err := rsa.GenerateKey(rng, 4096)
+	if err != nil {
+		t.Fatalf("Failed to generate private key: %+v", err)
+	}
+	name := "Asymmetric channel"
+	desc := "Asymmetric channel description"
+	salt := cmix.NewSalt(rng, 512)
+	secret := make([]byte, 32)
+	_, err = rng.Read(secret)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rid, err := NewChannelID(name, desc, secret, salt, hashSecret(rsa.CreatePublicKeyPem(pk.GetPublic())))
+	channel1 := Channel{
+		Secret:        secret,
+		ReceptionID:   rid,
+		Name:          name,
+		Description:   desc,
+		Salt:          salt,
+		RsaPubKeyHash: hashSecret(rsa.CreatePublicKeyPem(pk.GetPublic())),
+	}
+
+	pretty1 := channel1.PrettyPrint()
+
+	channel2, err := NewChannelFromPrettyPrint(pretty1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	pretty2 := channel2.PrettyPrint()
+
+	if pretty1 != pretty2 {
+		t.Fatal("mismatch serializations")
+	}
+
+}
+
 func TestChannel_MarshalJson(t *testing.T) {
 	// Construct a channel
 	rng := csprng.NewSystemRNG()
