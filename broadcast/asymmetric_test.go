@@ -101,3 +101,25 @@ func TestAsymmetric_Marshal_Unmarshal(t *testing.T) {
 		t.Errorf("Did not receive expected asymmetric channel\n\tExpected: %+v\n\tReceived: %+v\n", ac, unmarshalled)
 	}
 }
+
+func TestRSAToPrivateEncryptDecrypt(t *testing.T) {
+	plaintext := []byte("hello world")
+	label := []byte("channel_messages")
+	rng := csprng.NewSystemRNG()
+
+	privateKey, err := rsa.GenerateKey(rng, 4096)
+	if err != nil {
+		t.Fatalf("Failed to generate private key: %+v", err)
+	}
+	ciphertext, err := EncryptRSAToPrivate(plaintext, rng, privateKey, label)
+	if err != nil {
+		t.Fatal()
+	}
+	plaintext2, err := DecryptRSAToPrivate(ciphertext, rng, privateKey, label)
+	if err != nil {
+		t.Fatal()
+	}
+	if !bytes.Equal(plaintext, plaintext2) {
+		t.Fatal()
+	}
+}
