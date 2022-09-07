@@ -19,7 +19,11 @@ import (
 
 const hkdfInfo = "XX_Network_Broadcast_Channel_HKDF_Blake2b"
 
+// ErrSecretSizeIncorrect indicates an incorrect sized secret.
 var ErrSecretSizeIncorrect = errors.New("NewChannelID secret must be 32 bytes long.")
+
+// ErrPayloadLengthIsOdd indicates an odd packet payload length.
+var ErrPayloadLengthIsOdd = errors.New("Packet payload length must be even.")
 
 // Channel is a multicast communication channel that retains the
 // various privacy notions that this mix network provides.
@@ -39,6 +43,11 @@ type Channel struct {
 }
 
 func NewChannel(name, description string, packetPayloadLength int, rng csprng.Source) (*Channel, *rsa.PrivateKey, error) {
+
+	if packetPayloadLength%2 != 0 {
+		return nil, nil, ErrPayloadLengthIsOdd
+	}
+
 	pk, err := rsa.GenerateKey(rng, packetPayloadLength/2)
 	if err != nil {
 		return nil, nil, err
@@ -60,12 +69,13 @@ func NewChannel(name, description string, packetPayloadLength int, rng csprng.So
 	}
 
 	return &Channel{
-		ReceptionID:   channelID,
-		Name:          name,
-		Description:   description,
-		Salt:          salt,
-		RsaPubKeyHash: hashSecret(rsa.CreatePublicKeyPem(pk.GetPublic())),
-		Secret:        secret,
+		ReceptionID:     channelID,
+		Name:            name,
+		Description:     description,
+		Salt:            salt,
+		RsaPubKeyHash:   hashSecret(rsa.CreatePublicKeyPem(pk.GetPublic())),
+		Secret:          secret,
+		RsaPubKeyLength: 4096 / 8,
 	}, pk, nil
 }
 
@@ -124,24 +134,26 @@ func NewChannelID(name, description string, salt, rsaPubHash, secret []byte) (*i
 }
 
 type channelDisk struct {
-	ReceptionID   *id.ID
-	Name          string
-	Description   string
-	Salt          []byte
-	RsaPubKeyHash []byte
-	Secret        []byte
-	key           []byte
+	ReceptionID     *id.ID
+	Name            string
+	Description     string
+	Salt            []byte
+	RsaPubKeyHash   []byte
+	RsaPubKeyLength int
+	Secret          []byte
+	key             []byte
 }
 
 func (c *Channel) MarshalJson() ([]byte, error) {
 	return json.Marshal(channelDisk{
-		ReceptionID:   c.ReceptionID,
-		Name:          c.Name,
-		Description:   c.Description,
-		Salt:          c.Salt,
-		RsaPubKeyHash: c.RsaPubKeyHash,
-		Secret:        c.Secret,
-		key:           c.key,
+		ReceptionID:     c.ReceptionID,
+		Name:            c.Name,
+		Description:     c.Description,
+		Salt:            c.Salt,
+		RsaPubKeyHash:   c.RsaPubKeyHash,
+		RsaPubKeyLength: c.RsaPubKeyLength,
+		Secret:          c.Secret,
+		key:             c.key,
 	})
 
 }
@@ -154,13 +166,14 @@ func (c *Channel) UnmarshalJson(b []byte) error {
 	}
 
 	*c = Channel{
-		ReceptionID:   cDisk.ReceptionID,
-		Name:          cDisk.Name,
-		Description:   cDisk.Description,
-		Salt:          cDisk.Salt,
-		RsaPubKeyHash: cDisk.RsaPubKeyHash,
-		Secret:        cDisk.Secret,
-		key:           cDisk.key,
+		ReceptionID:     cDisk.ReceptionID,
+		Name:            cDisk.Name,
+		Description:     cDisk.Description,
+		Salt:            cDisk.Salt,
+		RsaPubKeyHash:   cDisk.RsaPubKeyHash,
+		RsaPubKeyLength: cDisk.RsaPubKeyLength,
+		Secret:          cDisk.Secret,
+		key:             cDisk.key,
 	}
 
 	return nil
