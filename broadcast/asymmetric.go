@@ -13,15 +13,15 @@ import (
 	"gitlab.com/elixxir/primitives/format"
 )
 
-func (c *Channel) EncryptRSAToPublic(payload []byte, pk multicastRSA.PrivateKey, pubKey *rsa.PublicKey, csprng csprng.Source) (
+func (c *Channel) EncryptRSAToPublic(payload []byte, privkey *rsa.PrivateKey, csprng csprng.Source) (
 	encryptedPayload, mac []byte, nonce format.Fingerprint, err error) {
 
-	innerCiphertext, err := multicastRSA.EncryptOAEP(sha256.New(), csprng, pk, payload, c.label())
+	innerCiphertext, err := multicastRSA.EncryptOAEP(sha256.New(), csprng, privkey, payload, c.label())
 	if err != nil {
 		return nil, nil, format.Fingerprint{}, errors.WithMessage(err, "Failed to encrypt asymmetric broadcast message")
 	}
 
-	innerPayload := append(pubKey.Bytes(), innerCiphertext...)
+	innerPayload := append(privkey.GetPublic().Bytes(), innerCiphertext...)
 	encryptedPayload, mac, nonce = c.EncryptSymmetric(innerPayload, csprng)
 
 	return
