@@ -47,12 +47,12 @@ func TestAsymmetric_Encrypt_Decrypt(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to read random data to payload: %+v", err)
 	}
-	encrypted, mac, nonce, err := ac.EncryptAsymmetric(payload, pk, pk.GetPublic(), rng)
+	encrypted, mac, nonce, err := ac.EncryptRSAToPublic(payload, pk, pk.GetPublic(), rng)
 	if err != nil {
 		t.Fatalf("Failed to encrypt payload: %+v", err)
 	}
 
-	decrypted, err := ac.DecryptAsymmetric(encrypted, mac, nonce)
+	decrypted, err := ac.DecryptRSAToPublic(encrypted, mac, nonce)
 	if err != nil {
 		t.Fatalf("Failed to decrypt payload: %+v", err)
 	}

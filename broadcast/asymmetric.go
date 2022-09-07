@@ -13,7 +13,7 @@ import (
 	"gitlab.com/elixxir/primitives/format"
 )
 
-func (c *Channel) EncryptAsymmetric(payload []byte, pk multicastRSA.PrivateKey, pubKey *rsa.PublicKey, csprng csprng.Source) (
+func (c *Channel) EncryptRSAToPublic(payload []byte, pk multicastRSA.PrivateKey, pubKey *rsa.PublicKey, csprng csprng.Source) (
 	encryptedPayload, mac []byte, nonce format.Fingerprint, err error) {
 
 	innerCiphertext, err := multicastRSA.EncryptOAEP(sha256.New(), csprng, pk, payload, c.label())
@@ -27,7 +27,7 @@ func (c *Channel) EncryptAsymmetric(payload []byte, pk multicastRSA.PrivateKey, 
 	return
 }
 
-func (c *Channel) DecryptAsymmetric(payload []byte, mac []byte, nonce format.Fingerprint) ([]byte, error) {
+func (c *Channel) DecryptRSAToPublic(payload []byte, mac []byte, nonce format.Fingerprint) ([]byte, error) {
 	innerCiphertext, err := c.DecryptSymmetric(payload, mac, nonce)
 	if err != nil {
 		return nil, err
