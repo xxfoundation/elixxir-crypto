@@ -103,19 +103,41 @@ func TestAsymmetric_Marshal_Unmarshal(t *testing.T) {
 }
 
 func TestRSAToPrivateEncryptDecrypt(t *testing.T) {
-	plaintext := []byte("hello world")
-	label := []byte("channel_messages")
+	// Construct a channel
 	rng := csprng.NewSystemRNG()
+	pk, err := rsa.GenerateKey(rng, 4096)
+	if err != nil {
+		t.Fatalf("Failed to generate private key: %+v", err)
+	}
+	name := "Asymmetric channel"
+	desc := "Asymmetric channel description"
+	salt := cmix.NewSalt(rng, 512)
+	secret := make([]byte, 32)
+	_, err = rng.Read(secret)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rid, err := NewChannelID(name, desc, secret, salt, hashSecret(rsa.CreatePublicKeyPem(pk.GetPublic())))
+	channel := Channel{
+		ReceptionID:   rid,
+		Name:          name,
+		Description:   desc,
+		Salt:          salt,
+		RsaPubKeyHash: hashSecret(rsa.CreatePublicKeyPem(pk.GetPublic())),
+	}
+
+	plaintext := []byte("hello world")
 
 	privateKey, err := rsa.GenerateKey(rng, 4096)
 	if err != nil {
 		t.Fatalf("Failed to generate private key: %+v", err)
 	}
-	ciphertext, err := EncryptRSAToPrivate(plaintext, rng, privateKey, label)
+	ciphertext, err := channel.EncryptRSAToPrivate(plaintext, rng, privateKey)
 	if err != nil {
 		t.Fatal()
 	}
-	plaintext2, err := DecryptRSAToPrivate(ciphertext, rng, privateKey, label)
+	plaintext2, err := channel.DecryptRSAToPrivate(ciphertext, rng, privateKey.GetPublic())
 	if err != nil {
 		t.Fatal()
 	}
