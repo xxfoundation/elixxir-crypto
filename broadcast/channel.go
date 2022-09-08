@@ -239,7 +239,7 @@ func NewChannelFromPrettyPrint(p string) (*Channel, error) {
 		return nil, ErrMalformedPrettyPrintedChannel
 	}
 
-	secret, err := base64.StdEncoding.DecodeString(string(fields[10]))
+	secret, err := base64.StdEncoding.DecodeString(string(fields[10][:len(fields[10])-1]))
 	if err != nil {
 		return nil, ErrMalformedPrettyPrintedChannel
 	}
