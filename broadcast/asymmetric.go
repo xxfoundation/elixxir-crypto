@@ -68,19 +68,19 @@ func (c *Channel) MaxAsymmetricPayloadSize(pk multicastRSA.PublicKey) int {
 
 // EncryptRSAToPrivate encrypts the given plaintext with the given
 // RSA public key.
-func EncryptRSAToPrivate(plaintext []byte, rng csprng.Source, privkey multicastRSA.PrivateKey, label []byte) ([]byte, error) {
+func (c *Channel) EncryptRSAToPrivate(plaintext []byte, rng csprng.Source, privkey multicastRSA.PrivateKey) ([]byte, error) {
 	h, err := blake2b.New256(nil)
 	if err != nil {
 		jww.FATAL.Panic(err)
 	}
-	return multicastRSA.EncryptOAEP(h, rng, privkey, plaintext, label)
+	return multicastRSA.EncryptOAEP(h, rng, privkey, plaintext, c.label())
 }
 
 // DecryptRSAToPrivate decrypts the given ciphertext with the given RSA private key.
-func DecryptRSAToPrivate(ciphertext []byte, rng csprng.Source, priv multicastRSA.PrivateKey, label []byte) ([]byte, error) {
+func (c *Channel) DecryptRSAToPrivate(ciphertext []byte, rng csprng.Source, priv multicastRSA.PrivateKey) ([]byte, error) {
 	h, err := blake2b.New256(nil)
 	if err != nil {
 		jww.FATAL.Panic(err)
 	}
-	return multicastRSA.DecryptOAEP(h, priv, ciphertext, label)
+	return multicastRSA.DecryptOAEP(h, priv, ciphertext, c.label())
 }
