@@ -118,13 +118,13 @@ func TestRSAToPrivateEncryptDecrypt(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rid, err := NewChannelID(name, desc, secret, salt, hashSecret(rsa.CreatePublicKeyPem(pk.GetPublic())))
+	rid, err := NewChannelID(name, desc, secret, salt, hashSecret(pk.GetPublic().Bytes()))
 	channel := Channel{
 		ReceptionID:   rid,
 		Name:          name,
 		Description:   desc,
 		Salt:          salt,
-		RsaPubKeyHash: hashSecret(rsa.CreatePublicKeyPem(pk.GetPublic())),
+		RsaPubKeyHash: hashSecret(pk.GetPublic().Bytes()),
 	}
 
 	plaintext := []byte("hello world")
