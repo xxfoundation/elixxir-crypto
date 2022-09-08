@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 
 	"github.com/pkg/errors"
+	jww "github.com/spf13/jwalterweatherman"
 	"golang.org/x/crypto/blake2b"
 
 	"gitlab.com/xx_network/crypto/csprng"
@@ -70,7 +71,7 @@ func (c *Channel) MaxAsymmetricPayloadSize(pk multicastRSA.PublicKey) int {
 func EncryptRSAToPrivate(plaintext []byte, rng csprng.Source, privkey multicastRSA.PrivateKey, label []byte) ([]byte, error) {
 	h, err := blake2b.New256(nil)
 	if err != nil {
-		panic(err)
+		jww.FATAL.Panic(err)
 	}
 	return multicastRSA.EncryptOAEP(h, rng, privkey, plaintext, label)
 }
@@ -79,7 +80,7 @@ func EncryptRSAToPrivate(plaintext []byte, rng csprng.Source, privkey multicastR
 func DecryptRSAToPrivate(ciphertext []byte, rng csprng.Source, priv multicastRSA.PrivateKey, label []byte) ([]byte, error) {
 	h, err := blake2b.New256(nil)
 	if err != nil {
-		panic(err)
+		jww.FATAL.Panic(err)
 	}
 	return multicastRSA.DecryptOAEP(h, priv, ciphertext, label)
 }

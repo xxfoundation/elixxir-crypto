@@ -73,7 +73,7 @@ func (c *Channel) DecryptSymmetric(encryptedPayload, mac []byte, nonce format.Fi
 // key = HKDF(secret, intermediary, hkdfInfo)
 func NewSymmetricKey(name, description string, salt, rsaPubHash, secret []byte) ([]byte, error) {
 	if len(secret) != 32 {
-		panic(fmt.Sprintf("secret len is %d", len(secret)))
+		jww.FATAL.Panic(fmt.Sprintf("secret len is %d", len(secret)))
 		return nil, ErrSecretSizeIncorrect
 	}
 

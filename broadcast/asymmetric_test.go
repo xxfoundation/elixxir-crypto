@@ -24,12 +24,12 @@ func TestAsymmetric_Encrypt_Decrypt(t *testing.T) {
 	secret := make([]byte, 32)
 	_, err = rng.Read(secret)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 
 	rid, err := NewChannelID(name, desc, salt, hashSecret(pk.GetPublic().Bytes()), secret)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 
 	ac := Channel{
@@ -74,7 +74,7 @@ func TestAsymmetric_Marshal_Unmarshal(t *testing.T) {
 	secret := make([]byte, 32)
 	_, err = rng.Read(secret)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 
 	rid, err := NewChannelID(name, desc, secret, salt, pk.GetPublic().GetN().Bytes())
