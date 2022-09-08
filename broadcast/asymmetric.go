@@ -1,6 +1,7 @@
 package broadcast
 
 import (
+	"bytes"
 	"crypto/sha256"
 
 	"github.com/pkg/errors"
@@ -13,8 +14,19 @@ import (
 	"gitlab.com/elixxir/primitives/format"
 )
 
+func (c *Channel) IsPublicKeyHashMatch(publicKey *rsa.PublicKey) bool {
+	if bytes.Equal(c.RsaPubKeyHash, hashSecret(publicKey.Bytes())) {
+		return true
+	}
+	return false
+}
+
 func (c *Channel) EncryptRSAToPublic(payload []byte, privkey *rsa.PrivateKey, csprng csprng.Source) (
 	encryptedPayload, mac []byte, nonce format.Fingerprint, err error) {
+
+	if !c.IsPublicKeyHashMatch(privkey.GetPublic()) {
+		return nil, nil, nonce, errors.New("private key does not derive a public key whose hash matches our public key hash")
+	}
 
 	innerCiphertext, err := multicastRSA.EncryptOAEP(sha256.New(), csprng, privkey, payload, c.label())
 	if err != nil {

@@ -27,7 +27,7 @@ func TestAsymmetric_Encrypt_Decrypt(t *testing.T) {
 		panic(err)
 	}
 
-	rid, err := NewChannelID(name, desc, salt, hashSecret(rsa.CreatePublicKeyPem(pk.GetPublic())), secret)
+	rid, err := NewChannelID(name, desc, salt, hashSecret(pk.GetPublic().Bytes()), secret)
 	if err != nil {
 		panic(err)
 	}
@@ -39,7 +39,7 @@ func TestAsymmetric_Encrypt_Decrypt(t *testing.T) {
 		Name:            name,
 		Description:     desc,
 		Salt:            salt,
-		RsaPubKeyHash:   hashSecret(rsa.CreatePublicKeyPem(pk.GetPublic())),
+		RsaPubKeyHash:   hashSecret(pk.GetPublic().Bytes()),
 	}
 
 	payload := make([]byte, 128)
