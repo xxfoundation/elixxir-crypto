@@ -25,7 +25,7 @@ func TestJointVerify(t *testing.T) {
 	receptionKeys := make([]*rsa.PrivateKey, numTests)
 	for i := 0; i < numTests; i++ {
 		receptionKeys[i], err = rsa.LoadPrivateKeyFromPem([]byte(ReceptionKeys[i]))
-		if err!=nil{
+		if err != nil {
 			t.Fatalf("Failed to decode reception key %d/%d: %v",
 				i, numTests, err)
 		}
@@ -57,26 +57,26 @@ func TestJointVerify(t *testing.T) {
 		verifSig, err := SignVerification(notRand, UDPrivKey,
 			Usernames[i], receptionKeys[i].GetPublic())
 		if err != nil {
-			t.Fatalf("Failed to generate verification sig %d/%d: " +
+			t.Fatalf("Failed to generate verification sig %d/%d: "+
 				"%v", i, numTests, err)
 		}
 
 		// Sign upload signatures
 		uploadSig, err := SignUpload(notRand, receptionKeys[i], files[i], timestamps[i])
 		if err != nil {
-			t.Fatalf("Failed to generate upload sig " +
+			t.Fatalf("Failed to generate upload sig "+
 				"%d/%d: %v", i, numTests, err)
 		}
 
 		//try to verify the signature
-		fileHash, err := hashFile(files[i])
+		fileHash, err := HashFile(files[i])
 		if err != nil {
 			t.Fatalf("Failed to has file %d/%d: %v", i, numTests, err)
 		}
 
 		if err = JointVerify(UDPrivKey.GetPublic(), receptionKeys[i].GetPublic(),
-			hashUsername(Usernames[i]), fileHash, verifSig,uploadSig,
-			timestamps[i], now); err!=nil{
+			HashUsername(Usernames[i]), fileHash, verifSig, uploadSig,
+			timestamps[i], now); err != nil {
 			t.Fatalf("Joint Verification failed %d/%d: %v", i, numTests, err)
 		}
 	}
@@ -93,7 +93,7 @@ func TestJointVerify_BadVerificationSig(t *testing.T) {
 	receptionKeys := make([]*rsa.PrivateKey, numTests)
 	for i := 0; i < numTests; i++ {
 		receptionKeys[i], err = rsa.LoadPrivateKeyFromPem([]byte(ReceptionKeys[i]))
-		if err!=nil{
+		if err != nil {
 			t.Fatalf("Failed to decode reception key %d/%d: %v",
 				i, numTests, err)
 		}
@@ -128,20 +128,20 @@ func TestJointVerify_BadVerificationSig(t *testing.T) {
 		// Sign upload signatures
 		uploadSig, err := SignUpload(notRand, receptionKeys[i], files[i], timestamps[i])
 		if err != nil {
-			t.Fatalf("Failed to generate upload sig " +
+			t.Fatalf("Failed to generate upload sig "+
 				"%d/%d: %v", i, numTests, err)
 		}
 
 		//try to verify the signature
-		fileHash, err := hashFile(files[i])
+		fileHash, err := HashFile(files[i])
 		if err != nil {
 			t.Fatalf("Failed to has file %d/%d: %v", i, numTests, err)
 		}
 
 		if err = JointVerify(UDPrivKey.GetPublic(), receptionKeys[i].GetPublic(),
-			hashUsername(Usernames[i]), fileHash, verifSig,uploadSig,
-			timestamps[i], now); err==nil{
-			t.Fatalf("Joint Verification succeded with bad verification " +
+			HashUsername(Usernames[i]), fileHash, verifSig, uploadSig,
+			timestamps[i], now); err == nil {
+			t.Fatalf("Joint Verification succeded with bad verification "+
 				"signature %d/%d: %v", i, numTests, err)
 		}
 	}
@@ -158,7 +158,7 @@ func TestJointVerify_BadUploadSig(t *testing.T) {
 	receptionKeys := make([]*rsa.PrivateKey, numTests)
 	for i := 0; i < numTests; i++ {
 		receptionKeys[i], err = rsa.LoadPrivateKeyFromPem([]byte(ReceptionKeys[i]))
-		if err!=nil{
+		if err != nil {
 			t.Fatalf("Failed to decode reception key %d/%d: %v",
 				i, numTests, err)
 		}
@@ -190,7 +190,7 @@ func TestJointVerify_BadUploadSig(t *testing.T) {
 		verifSig, err := SignVerification(notRand, UDPrivKey,
 			Usernames[i], receptionKeys[i].GetPublic())
 		if err != nil {
-			t.Fatalf("Failed to generate verification sig %d/%d: " +
+			t.Fatalf("Failed to generate verification sig %d/%d: "+
 				"%v", i, numTests, err)
 		}
 
@@ -199,14 +199,14 @@ func TestJointVerify_BadUploadSig(t *testing.T) {
 		notRand.Read(uploadSig)
 
 		//try to verify the signature
-		fileHash, err := hashFile(files[i])
+		fileHash, err := HashFile(files[i])
 		if err != nil {
 			t.Fatalf("Failed to has file %d/%d: %v", i, numTests, err)
 		}
 
 		if err = JointVerify(UDPrivKey.GetPublic(), receptionKeys[i].GetPublic(),
-			hashUsername(Usernames[i]), fileHash, verifSig,uploadSig,
-			timestamps[i], now); err==nil{
+			HashUsername(Usernames[i]), fileHash, verifSig, uploadSig,
+			timestamps[i], now); err == nil {
 			t.Fatalf("Joint Verification failed %d/%d: %v", i, numTests, err)
 		}
 	}
