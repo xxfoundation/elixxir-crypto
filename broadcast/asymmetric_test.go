@@ -27,13 +27,14 @@ func TestAsymmetric_Encrypt_Decrypt(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rid, err := NewChannelID(name, desc, salt, hashSecret(pk.GetPublic().Bytes()), secret)
+	pubKeyBytes := pk.GetPublic().Bytes()
+	rid, err := NewChannelID(name, desc, salt, hashSecret(pubKeyBytes), secret)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	ac := Channel{
-		RsaPubKeyLength: 528,
+		RsaPubKeyLength: len(pubKeyBytes),
 		Secret:          secret,
 		ReceptionID:     rid,
 		Name:            name,
