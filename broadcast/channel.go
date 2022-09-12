@@ -193,10 +193,10 @@ func (c *Channel) UnmarshalJson(b []byte) error {
 // PrettyPrint prints a human-pasteable serialization of this Channel type, like this:
 //
 // <XXChannel:v1:"name",description:"blah",math:"qw432432sdfserfwerewrwerewrewrwerewrwerewerwee","qw432432sdfserfwerewrwerewrewrwerewrw
-// erewerwee","qw432432sdfserfwerewrwerewrewrwerewrwerewerwee","qw432432sdfserfwerewrwerewrewrwerewrwerewerwee",>>
+// erewerwee","qw432432sdfserfwerewrwerewrewrwerewrwerewerwee","qw432432sdfserfwerewrwerewrewrwerewrwerewerwee",>
 func (c *Channel) PrettyPrint() string {
 	var b strings.Builder
-	fmt.Fprintf(&b, "<XXChannel,%s,%s,description,%s,math,%s,%s,%s,%d,%s>",
+	fmt.Fprintf(&b, "<XXChannel,%s,%s,description,%s,secret,%s,%s,%s,%d,%s>",
 		version,
 		c.Name,
 		c.Description,
