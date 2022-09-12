@@ -73,7 +73,9 @@ func NewChannel(name, description string, packetPayloadLength int, rng csprng.So
 		jww.FATAL.Panic("failed to read from rng")
 	}
 
-	channelID, err := NewChannelID(name, description, salt, hashSecret(pk.GetPublic().Bytes()), secret)
+	pubKeyBytes := pk.GetPublic().Bytes()
+
+	channelID, err := NewChannelID(name, description, salt, hashSecret(pubKeyBytes), secret)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -83,9 +85,9 @@ func NewChannel(name, description string, packetPayloadLength int, rng csprng.So
 		Name:            name,
 		Description:     description,
 		Salt:            salt,
-		RsaPubKeyHash:   hashSecret(pk.GetPublic().Bytes()),
+		RsaPubKeyHash:   hashSecret(pubKeyBytes),
 		Secret:          secret,
-		RsaPubKeyLength: 4096 / 8,
+		RsaPubKeyLength: len(pubKeyBytes),
 	}, pk, nil
 }
 
