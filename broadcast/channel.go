@@ -38,13 +38,14 @@ var ErrMalformedPrettyPrintedChannel = errors.New("Malformed pretty printed chan
 // Channel is a multicast communication channel that retains the
 // various privacy notions that this mix network provides.
 type Channel struct {
-	ReceptionID     *id.ID
-	Name            string
-	Description     string
-	Salt            []byte
-	RsaPubKeyHash   []byte
-	RsaPubKeyLength int
-	Secret          []byte
+	ReceptionID         *id.ID
+	Name                string
+	Description         string
+	Salt                []byte
+	RsaPubKeyHash       []byte
+	RsaPubKeyLength     int
+	RsaCiphertextLength int
+	Secret              []byte
 
 	// Only appears in memory, is not contained in the marshalled version.
 	// Lazily evaluated on first use.
@@ -81,13 +82,14 @@ func NewChannel(name, description string, packetPayloadLength int, rng csprng.So
 	}
 
 	return &Channel{
-		ReceptionID:     channelID,
-		Name:            name,
-		Description:     description,
-		Salt:            salt,
-		RsaPubKeyHash:   hashSecret(pubKeyBytes),
-		Secret:          secret,
-		RsaPubKeyLength: len(pubKeyBytes),
+		ReceptionID:         channelID,
+		Name:                name,
+		Description:         description,
+		Salt:                salt,
+		RsaPubKeyHash:       hashSecret(pubKeyBytes),
+		Secret:              secret,
+		RsaCiphertextLength: len(pubKeyBytes) - rsa.ELength,
+		RsaPubKeyLength:     len(pubKeyBytes),
 	}, pk, nil
 }
 
@@ -146,26 +148,28 @@ func NewChannelID(name, description string, salt, rsaPubHash, secret []byte) (*i
 }
 
 type channelDisk struct {
-	ReceptionID     *id.ID
-	Name            string
-	Description     string
-	Salt            []byte
-	RsaPubKeyHash   []byte
-	RsaPubKeyLength int
-	Secret          []byte
-	key             []byte
+	ReceptionID         *id.ID
+	Name                string
+	Description         string
+	Salt                []byte
+	RsaPubKeyHash       []byte
+	RsaPubKeyLength     int
+	RsaCiphertextLength int
+	Secret              []byte
+	key                 []byte
 }
 
 func (c *Channel) MarshalJson() ([]byte, error) {
 	return json.Marshal(channelDisk{
-		ReceptionID:     c.ReceptionID,
-		Name:            c.Name,
-		Description:     c.Description,
-		Salt:            c.Salt,
-		RsaPubKeyHash:   c.RsaPubKeyHash,
-		RsaPubKeyLength: c.RsaPubKeyLength,
-		Secret:          c.Secret,
-		key:             c.key,
+		ReceptionID:         c.ReceptionID,
+		Name:                c.Name,
+		Description:         c.Description,
+		Salt:                c.Salt,
+		RsaPubKeyHash:       c.RsaPubKeyHash,
+		RsaPubKeyLength:     c.RsaPubKeyLength,
+		RsaCiphertextLength: c.RsaCiphertextLength,
+		Secret:              c.Secret,
+		key:                 c.key,
 	})
 
 }
@@ -178,14 +182,15 @@ func (c *Channel) UnmarshalJson(b []byte) error {
 	}
 
 	*c = Channel{
-		ReceptionID:     cDisk.ReceptionID,
-		Name:            cDisk.Name,
-		Description:     cDisk.Description,
-		Salt:            cDisk.Salt,
-		RsaPubKeyHash:   cDisk.RsaPubKeyHash,
-		RsaPubKeyLength: cDisk.RsaPubKeyLength,
-		Secret:          cDisk.Secret,
-		key:             cDisk.key,
+		ReceptionID:         cDisk.ReceptionID,
+		Name:                cDisk.Name,
+		Description:         cDisk.Description,
+		Salt:                cDisk.Salt,
+		RsaPubKeyHash:       cDisk.RsaPubKeyHash,
+		RsaPubKeyLength:     cDisk.RsaPubKeyLength,
+		RsaCiphertextLength: cDisk.RsaCiphertextLength,
+		Secret:              cDisk.Secret,
+		key:                 cDisk.key,
 	}
 
 	return nil
@@ -198,7 +203,7 @@ func (c *Channel) UnmarshalJson(b []byte) error {
 // erewerwee","qw432432sdfserfwerewrwerewrewrwerewrwerewerwee","qw432432sdfserfwerewrwerewrewrwerewrwerewerwee",>
 func (c *Channel) PrettyPrint() string {
 	var b strings.Builder
-	fmt.Fprintf(&b, "<XXChannel,%s,%s,description,%s,secret,%s,%s,%s,%d,%s>",
+	fmt.Fprintf(&b, "<XXChannel,%s,%s,description,%s,secret,%s,%s,%s,%d,%d,%s>",
 		version,
 		c.Name,
 		c.Description,
@@ -206,6 +211,7 @@ func (c *Channel) PrettyPrint() string {
 		base64.StdEncoding.EncodeToString(c.Salt),
 		base64.StdEncoding.EncodeToString(c.RsaPubKeyHash),
 		c.RsaPubKeyLength,
+		c.RsaCiphertextLength,
 		base64.StdEncoding.EncodeToString(c.Secret))
 	return b.String()
 }
@@ -215,7 +221,7 @@ func (c *Channel) PrettyPrint() string {
 // PrettyPrint method.
 func NewChannelFromPrettyPrint(p string) (*Channel, error) {
 	fields := strings.Split(p, ",")
-	if len(fields) != 11 {
+	if len(fields) != 12 {
 		return nil, ErrMalformedPrettyPrintedChannel
 	}
 
@@ -241,18 +247,24 @@ func NewChannelFromPrettyPrint(p string) (*Channel, error) {
 		return nil, ErrMalformedPrettyPrintedChannel
 	}
 
-	secret, err := base64.StdEncoding.DecodeString(string(fields[10][:len(fields[10])-1]))
+	rsaCiphertextLength, err := strconv.Atoi(fields[10])
+	if err != nil {
+		return nil, ErrMalformedPrettyPrintedChannel
+	}
+
+	secret, err := base64.StdEncoding.DecodeString(string(fields[11][:len(fields[11])-1]))
 	if err != nil {
 		return nil, ErrMalformedPrettyPrintedChannel
 	}
 
 	return &Channel{
-		Name:            fields[2],
-		Description:     fields[4],
-		ReceptionID:     id,
-		Salt:            salt,
-		RsaPubKeyHash:   rsaPubKeyHash,
-		RsaPubKeyLength: rsaPubKeyLength,
-		Secret:          secret,
+		Name:                fields[2],
+		Description:         fields[4],
+		ReceptionID:         id,
+		Salt:                salt,
+		RsaPubKeyHash:       rsaPubKeyHash,
+		RsaPubKeyLength:     rsaPubKeyLength,
+		RsaCiphertextLength: rsaCiphertextLength,
+		Secret:              secret,
 	}, nil
 }
