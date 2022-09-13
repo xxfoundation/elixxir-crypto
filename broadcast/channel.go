@@ -58,7 +58,7 @@ func NewChannel(name, description string, packetPayloadLength int, rng csprng.So
 		return nil, nil, ErrPayloadLengthIsOdd
 	}
 
-	pk, err := rsa.GenerateKey(rng, packetPayloadLength/2)
+	pk, err := rsa.GenerateKey(rng, (packetPayloadLength-rsa.ELength)/2)
 	if err != nil {
 		return nil, nil, err
 	}
