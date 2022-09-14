@@ -1,20 +1,32 @@
 package broadcast
 
 import (
-	"crypto/sha256"
 	"encoding/json"
-	"gitlab.com/elixxir/crypto/cmix"
+	"errors"
+	"hash"
+	"io"
+
+	"golang.org/x/crypto/blake2b"
+	"golang.org/x/crypto/hkdf"
+
 	"gitlab.com/xx_network/crypto/csprng"
 	"gitlab.com/xx_network/crypto/signature/rsa"
 	"gitlab.com/xx_network/primitives/id"
+
+	"gitlab.com/elixxir/crypto/cmix"
 )
 
+const hkdfInfo = "XX_Network_Broadcast_Channel_HKDF_Blake2b"
+
+// Channel is a multicast communication channel that retains the
+// various privacy notions that this mix network provides.
 type Channel struct {
-	ReceptionID *id.ID // ReceptionID = H(Name, Description, Salt, RsaPubKey)
+	ReceptionID *id.ID
 	Name        string
 	Description string
 	Salt        []byte
 	RsaPubKey   *rsa.PublicKey
+	Secret      []byte
 
 	// Only appears in memory, is not contained in the marshalled version.
 	// Lazily evaluated on first use.
@@ -29,7 +41,13 @@ func NewChannel(name, description string, rng csprng.Source) (*Channel, *rsa.Pri
 	}
 	salt := cmix.NewSalt(rng, 512)
 
-	channelID, err := NewChannelID(name, description, salt, rsa.CreatePublicKeyPem(pk.GetPublic()))
+	secret := make([]byte, 32)
+	_, err = rng.Read(secret)
+	if err != nil {
+		panic(err)
+	}
+
+	channelID, key, err := NewChannelID(name, description, secret, salt, rsa.CreatePublicKeyPem(pk.GetPublic()))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -40,6 +58,8 @@ func NewChannel(name, description string, rng csprng.Source) (*Channel, *rsa.Pri
 		Description: description,
 		Salt:        salt,
 		RsaPubKey:   pk.GetPublic(),
+		key:         key,
+		Secret:      secret,
 	}, pk, nil
 }
 
@@ -57,30 +77,76 @@ func (c *Channel) label() []byte {
 	return append([]byte(c.Name), []byte(c.Description)...)
 }
 
-// NewChannelID creates a new channel ID based on name, description, salt and RSA public key
-func NewChannelID(name, description string, salt, rsaPub []byte) (*id.ID, error) {
-	h := sha256.New()
-	_, err := h.Write([]byte(name))
+func deriveIntermediary(name, description string, salt, rsaPub, secret []byte) []byte {
+	h, err := blake2b.New256(nil)
 	if err != nil {
-		return nil, err
+		panic(err)
+	}
+	_, err = h.Write([]byte(name))
+	if err != nil {
+		panic(err)
 	}
 	_, err = h.Write([]byte(description))
 	if err != nil {
-		return nil, err
-	}
-	_, err = h.Write(salt)
-	if err != nil {
-		return nil, err
+		panic(err)
 	}
 	_, err = h.Write(rsaPub)
 	if err != nil {
-		return nil, err
+		panic(err)
+	}
+	// secret is hashed first so that
+	// we can share all the inputs to the
+	// hkdf without giving out the secret.
+	secretHash := blake2b.Sum256(secret)
+	_, err = h.Write(secretHash[:])
+	if err != nil {
+		panic(err)
+	}
+	_, err = h.Write(salt)
+	if err != nil {
+		panic(err)
+	}
+	return h.Sum(nil)
+}
+
+// NewChannelID creates a new channel ID.
+func NewChannelID(name, description string, salt, rsaPub, secret []byte) (*id.ID, []byte, error) {
+
+	if len(secret) != 32 {
+		return nil, nil, errors.New("NewChannelID secret must be 32 bytes long.")
+	}
+
+	intermediary := deriveIntermediary(name, description, salt, rsaPub, secret)
+
+	hkdfHash := func() hash.Hash {
+		hash, err := blake2b.New256(nil)
+		if err != nil {
+			panic(err)
+		}
+		return hash
+	}
+
+	hkdf1 := hkdf.New(hkdfHash, intermediary, salt, []byte(hkdfInfo))
+
+	identityBytes := make([]byte, 32)
+	_, err := io.ReadFull(hkdf1, identityBytes)
+	if err != nil {
+		panic(err)
 	}
 
 	sid := &id.ID{}
-	copy(sid[:], h.Sum(nil))
+	copy(sid[:], identityBytes)
 	sid.SetType(id.User)
-	return sid, nil
+
+	hkdf2 := hkdf.New(hkdfHash, secret, intermediary, []byte(hkdfInfo))
+
+	key := make([]byte, 32)
+	_, err = io.ReadFull(hkdf2, key)
+	if err != nil {
+		panic(err)
+	}
+
+	return sid, key, nil
 }
 
 type channelDisk struct {
@@ -89,6 +155,7 @@ type channelDisk struct {
 	Description string
 	Salt        []byte
 	RsaPubKey   *rsa.PublicKey
+	Secret      []byte
 	key         []byte
 }
 
@@ -99,6 +166,7 @@ func (c *Channel) MarshalJson() ([]byte, error) {
 		Description: c.Description,
 		Salt:        c.Salt,
 		RsaPubKey:   c.RsaPubKey,
+		Secret:      c.Secret,
 		key:         c.key,
 	})
 
@@ -117,6 +185,7 @@ func (c *Channel) UnmarshalJson(b []byte) error {
 		Description: cDisk.Description,
 		Salt:        cDisk.Salt,
 		RsaPubKey:   cDisk.RsaPubKey,
+		Secret:      cDisk.Secret,
 		key:         cDisk.key,
 	}
 
