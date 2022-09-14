@@ -2,9 +2,6 @@ package broadcast
 
 import (
 	"bytes"
-	cryptorsa "crypto/rsa"
-	"encoding/json"
-	"fmt"
 	"reflect"
 	"testing"
 
@@ -23,36 +20,40 @@ func TestAsymmetric_Encrypt_Decrypt(t *testing.T) {
 	name := "Asymmetric channel"
 	desc := "Asymmetric channel description"
 	salt := cmix.NewSalt(rng, 512)
-	rid, err := NewChannelID(name, desc, salt, pk.GetPublic().GetN().Bytes())
-	ac := Channel{
-		ReceptionID: rid,
-		Name:        name,
-		Description: desc,
-		Salt:        salt,
-		RsaPubKey:   pk.GetPublic(),
-	}
 
-	marshaled, _ := json.Marshal(pk.GetPublic())
-	fmt.Printf("%s\n\n", marshaled)
-
-	marshalled, _ := json.Marshal(ac)
+	secret := make([]byte, 32)
+	_, err = rng.Read(secret)
 	if err != nil {
-		t.Fatalf("Failed to marshal pub key: %v", err)
+		t.Fatal(err)
 	}
 
-	fmt.Printf("%s\n", marshalled)
+	pubKeyBytes := pk.GetPublic().Bytes()
+	rid, err := NewChannelID(name, desc, salt, hashSecret(pubKeyBytes), secret)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ac := Channel{
+		RsaPubKeyLength: len(pubKeyBytes),
+		Secret:          secret,
+		ReceptionID:     rid,
+		Name:            name,
+		Description:     desc,
+		Salt:            salt,
+		RsaPubKeyHash:   hashSecret(pk.GetPublic().Bytes()),
+	}
 
 	payload := make([]byte, 128)
 	_, err = rng.Read(payload)
 	if err != nil {
 		t.Fatalf("Failed to read random data to payload: %+v", err)
 	}
-	encrypted, _, _, err := ac.EncryptAsymmetric(payload, pk, rng)
+	encrypted, mac, nonce, err := ac.EncryptRSAToPublic(payload, pk, rng)
 	if err != nil {
 		t.Fatalf("Failed to encrypt payload: %+v", err)
 	}
 
-	decrypted, err := ac.DecryptAsymmetric(encrypted)
+	decrypted, err := ac.DecryptRSAToPublic(encrypted, mac, nonce)
 	if err != nil {
 		t.Fatalf("Failed to decrypt payload: %+v", err)
 	}
@@ -71,13 +72,20 @@ func TestAsymmetric_Marshal_Unmarshal(t *testing.T) {
 	name := "Asymmetric channel"
 	desc := "Asymmetric channel description"
 	salt := cmix.NewSalt(rng, 512)
-	rid, err := NewChannelID(name, desc, salt, pk.GetPublic().GetN().Bytes())
+	secret := make([]byte, 32)
+	_, err = rng.Read(secret)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rid, err := NewChannelID(name, desc, secret, salt, pk.GetPublic().GetN().Bytes())
 	ac := &Channel{
-		ReceptionID: rid,
-		Name:        name,
-		Description: desc,
-		Salt:        salt,
-		RsaPubKey:   pk.GetPublic(),
+		RsaPubKeyLength: 528,
+		ReceptionID:     rid,
+		Name:            name,
+		Description:     desc,
+		Salt:            salt,
+		RsaPubKeyHash:   hashSecret(rsa.CreatePublicKeyPem(pk.GetPublic())),
 	}
 
 	marshalled, err := ac.Marshal()
@@ -96,20 +104,41 @@ func TestAsymmetric_Marshal_Unmarshal(t *testing.T) {
 }
 
 func TestRSAToPrivateEncryptDecrypt(t *testing.T) {
-	plaintext := []byte("hello world")
-	label := []byte("channel_messages")
+	// Construct a channel
 	rng := csprng.NewSystemRNG()
-
-	privateKey, err := cryptorsa.GenerateKey(rng, 4096)
+	pk, err := rsa.GenerateKey(rng, 4096)
 	if err != nil {
 		t.Fatalf("Failed to generate private key: %+v", err)
 	}
-	publicKey := privateKey.Public()
-	ciphertext, err := EncryptRSAToPrivate(plaintext, rng, publicKey.(*cryptorsa.PublicKey), label)
+	name := "Asymmetric channel"
+	desc := "Asymmetric channel description"
+	salt := cmix.NewSalt(rng, 512)
+	secret := make([]byte, 32)
+	_, err = rng.Read(secret)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rid, err := NewChannelID(name, desc, secret, salt, hashSecret(pk.GetPublic().Bytes()))
+	channel := Channel{
+		ReceptionID:   rid,
+		Name:          name,
+		Description:   desc,
+		Salt:          salt,
+		RsaPubKeyHash: hashSecret(pk.GetPublic().Bytes()),
+	}
+
+	plaintext := []byte("hello world")
+
+	privateKey, err := rsa.GenerateKey(rng, 4096)
+	if err != nil {
+		t.Fatalf("Failed to generate private key: %+v", err)
+	}
+	ciphertext, err := channel.EncryptRSAToPrivate(plaintext, rng, privateKey)
 	if err != nil {
 		t.Fatal()
 	}
-	plaintext2, err := DecryptRSAToPrivate(ciphertext, rng, privateKey, label)
+	plaintext2, err := channel.DecryptRSAToPrivate(ciphertext, rng, privateKey.GetPublic())
 	if err != nil {
 		t.Fatal()
 	}

@@ -3,19 +3,24 @@ package broadcast
 import (
 	"bytes"
 	"encoding/base64"
-	"gitlab.com/elixxir/crypto/cmix"
-	"gitlab.com/xx_network/crypto/csprng"
-	"gitlab.com/xx_network/primitives/id"
 	"math/rand"
 	"reflect"
 	"testing"
+
+	"gitlab.com/xx_network/crypto/csprng"
+	"gitlab.com/xx_network/crypto/signature/rsa"
+	"gitlab.com/xx_network/primitives/id"
+
+	"gitlab.com/elixxir/crypto/cmix"
 )
 
 // Tests that a payload encrypted with Symmetric.Encrypt and decrypted with
 // Symmetric.Decrypt matches the original.
 func TestSymmetric_Encrypt_Decrypt(t *testing.T) {
-	s := &Channel{
-		ReceptionID: id.NewIdFromString("channel", id.User, t),
+
+	s, _, err := NewChannel("alice", "description", 528, csprng.NewSystemRNG())
+	if err != nil {
+		panic(err)
 	}
 
 	payload := make([]byte, 256)
@@ -37,8 +42,10 @@ func TestSymmetric_Encrypt_Decrypt(t *testing.T) {
 // Tests that Symmetric.Decrypt returns an error when the MAC is invalid.
 func TestSymmetric_Decrypt(t *testing.T) {
 	prng := rand.New(rand.NewSource(42))
-	s := &Channel{
-		ReceptionID: id.NewIdFromString("channel", id.User, t),
+
+	s, _, err := NewChannel("alice", "description", 528, csprng.NewSystemRNG())
+	if err != nil {
+		panic(err)
 	}
 
 	payload := make([]byte, 256)
@@ -49,7 +56,7 @@ func TestSymmetric_Decrypt(t *testing.T) {
 	// Create bad MAC
 	prng.Read(mac)
 
-	_, err := s.DecryptSymmetric(encryptedPayload, mac, fp)
+	_, err = s.DecryptSymmetric(encryptedPayload, mac, fp)
 	if err == nil || err.Error() != errVerifyMAC {
 		t.Errorf("decyption should have failed with invalid MAC."+
 			"\nexpected: %s\nreceived: %+v", errVerifyMAC, err)
@@ -60,11 +67,11 @@ func TestSymmetric_Decrypt(t *testing.T) {
 // UnmarshalSymmetric matches the original.
 func TestSymmetric_Marshal_UnmarshalSymmetric(t *testing.T) {
 	s := &Channel{
-		ReceptionID: id.NewIdFromString("ChannelID", id.User, t),
-		Name:        "MyChannel",
-		Description: "Channel for channel stuff.",
-		Salt:        cmix.NewSalt(csprng.Source(&csprng.SystemRNG{}), 32),
-		RsaPubKey:   newRsaPubKey(rand.New(rand.NewSource(42)), t),
+		ReceptionID:   id.NewIdFromString("ChannelID", id.User, t),
+		Name:          "MyChannel",
+		Description:   "Channel for channel stuff.",
+		Salt:          cmix.NewSalt(csprng.Source(&csprng.SystemRNG{}), 32),
+		RsaPubKeyHash: hashSecret(rsa.CreatePublicKeyPem(newRsaPubKey(rand.New(rand.NewSource(42)), t))),
 	}
 
 	data, err := s.Marshal()
@@ -87,22 +94,39 @@ func TestSymmetric_Marshal_UnmarshalSymmetric(t *testing.T) {
 func TestNewSymmetricKey_Consistency(t *testing.T) {
 	prng := rand.New(rand.NewSource(42))
 	expectedKeys := []string{
-		"NyqSwQy3bb2S27QAkDW5bYF0WZ/KU/U8QncYICVuPU4=",
-		"n/+Hppxdqdr0cDcytHpK/w1fPDjTWItf3JDOIVABQmQ=",
-		"lAMHSlqviugCOykF43mFU0EIS0R1D6ul6bl/8Xu84So=",
-		"ot/0LY7RPHj6yzqaIVpq+r/OoUdV8n+mqE8100SqLpE=",
-		"qYHUQlAKVaHQaW8HFdloP1Y+pyTh1m18v/ouMS1pSNc=",
-		"t7VgPknwXwwV8p2+j5FpGok7//DQkEelp/zCTa1u4c0=",
-		"IXa4sR/wl5rRmrG4ocOE6vDmsy/TisBHITu8W1lbXBI=",
-		"KWkrdtEPtBaaMQZtWmitu29zc3cH0omVyDrAf2X0u1U=",
-		"1+diai0aKi7l/7O7QjjmdA5i7BmyqpRzvMo0/Rxouh8=",
-		"5oONmqKbD6j8IdIBL62MKYmL57YjWXa+7zp/yTQydNg=",
+		"YFcaO/zEULS9vMUstPJSGgcD+4rs+wRMmQwirYAf4TY=",
+		"Kww9lMeLE5Ud+Z60Y3dL6rmbVbDYgGGoEjuetejAj6A=",
+		"IDlVxZaxNr3VMBpxEC7fe2mF/H3+0HNdqbfd11wN84Y=",
+		"sTsbdAAk9GNhAcHQo1f2DOBTKKVwbCPdKzujjSlcQag=",
+		"2zWuXh4Cq8TPc1ffXJ05fT6POmeYcNOF9PuSmYFhA+E=",
+		"e/xUE3UQKEVE85Z/AC2BfrwAGa9HVcZ3EacgSTZWF7s=",
+		"7RzVqo2HHUySxAdp/s9FyNCWpZ/d8xXwnVTamr8o5hI=",
+		"pfu9fs8TAALiuGB0qLCiWlkpMvvsKkSZRUPfoIwPq04=",
+		"DKqeBhgZcCjB6izXjtSNjpC1JebEmwHhPKtMSSSID5g=",
+		"4bfnVYIqKT1+JKbeRchmg7wTWbTV86IkQxc223lAD/c=",
 	}
 
-	for i, expected := range expectedKeys {
-		receptionID, _ := id.NewRandomID(prng, id.User)
+	secret := make([]byte, 32)
 
-		key := NewSymmetricKey(receptionID)
+	for i, expected := range expectedKeys {
+
+		n, err := prng.Read(secret)
+		if err != nil {
+			panic(err)
+		}
+		if n != 32 {
+			panic("failed to read from rng")
+		}
+
+		key, err := NewSymmetricKey("alice",
+			"chan description",
+			[]byte("salt"),
+			[]byte("my fake rsa key"),
+			secret)
+		if err != nil {
+			panic(err)
+		}
+
 		keyStr := base64.StdEncoding.EncodeToString(key)
 
 		if expected != keyStr {
@@ -118,16 +142,31 @@ func TestNewSymmetricKey_Unique(t *testing.T) {
 	prng := rand.New(rand.NewSource(42))
 	const n = 100
 	keys := make(map[string]bool, n)
+	secret := make([]byte, 32)
 
 	for i := 0; i < n; i++ {
-		receptionID, _ := id.NewRandomID(prng, id.User)
+		n, err := prng.Read(secret)
+		if err != nil {
+			panic(err)
+		}
+		if n != 32 {
+			panic("failed to read from rng")
+		}
 
-		key := NewSymmetricKey(receptionID)
+		key, err := NewSymmetricKey("alice",
+			"chan description",
+			[]byte("salt"),
+			[]byte("my fake rsa key"),
+			secret)
+		if err != nil {
+			panic(err)
+		}
+
 		keyStr := base64.StdEncoding.EncodeToString(key)
 
 		if keys[keyStr] {
 			t.Errorf("Key already exists in map (%d)."+
-				"\nkey: %v\nreception ID: %s", i, key, receptionID)
+				"\nkey: %v\n", i, key)
 		} else {
 			keys[keyStr] = true
 		}
