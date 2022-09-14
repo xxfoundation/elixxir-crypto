@@ -27,7 +27,7 @@ const (
 // to serialize the timestamp.
 func SignUpload(rand io.Reader, userPrivKey *rsa.PrivateKey,
 	file []byte, timestamp time.Time) ([]byte, error) {
-	fileHash, err := hashFile(file)
+	fileHash, err := HashFile(file)
 	if err != nil {
 		return nil, errors.Errorf("Failed to hash file: %v", err)
 	}

@@ -18,7 +18,7 @@ import (
 func SignVerification(rand io.Reader, udPrivKey *rsa.PrivateKey,
 	username string, receptionPubKey *rsa.PublicKey) ([]byte, error) {
 	// Hash username
-	usernameHash := hashUsername(username)
+	usernameHash := HashUsername(username)
 
 	// Create hash to sign on
 	opts := rsa.NewDefaultOptions()
@@ -46,7 +46,7 @@ func VerifyVerificationSignature(pubKey *rsa.PublicKey,
 
 // makeVerificationSignatureHash is a helper function shared between
 // SignVerification and VerifyVerificationSignature. This creates the concatenation of
-// the username hash (created using hashUsername) and the reception public key.
+// the username hash (created using HashUsername) and the reception public key.
 func makeVerificationSignatureHash(usernameHash, receptionPubKey []byte, h hash.Hash) []byte {
 	h.Write(receptionPubKey)
 	h.Write(usernameHash)

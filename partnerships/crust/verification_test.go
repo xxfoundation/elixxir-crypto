@@ -54,7 +54,7 @@ func TestSignVerifyVerification(t *testing.T) {
 	receptionKeys := make([]*rsa.PublicKey, numTests)
 	for i := 0; i < numTests; i++ {
 		priv, err := rsa.LoadPrivateKeyFromPem([]byte(ReceptionKeys[i]))
-		if err!=nil{
+		if err != nil {
 			t.Fatalf("Failed to decode reception key %d/%d: %v",
 				i, numTests, err)
 		}
@@ -72,14 +72,13 @@ func TestSignVerifyVerification(t *testing.T) {
 
 		// Use signature provided above and verify
 		err = VerifyVerificationSignature(privKey.GetPublic(),
-			hashUsername(Usernames[i]), receptionKeys[i], sig)
+			HashUsername(Usernames[i]), receptionKeys[i], sig)
 		if err != nil {
 			t.Fatalf("Failed to verify signature for test %d/%v: %v", i, numTests, err)
 		}
 	}
 
 }
-
 
 // Unit test: Generate signatures using pre-canned data
 // and compare it against the expected pre-canned data.
@@ -95,7 +94,7 @@ func TestSignVerification_Consistency(t *testing.T) {
 	receptionKeys := make([]*rsa.PublicKey, numTests)
 	for i := 0; i < numTests; i++ {
 		priv, err := rsa.LoadPrivateKeyFromPem([]byte(ReceptionKeys[i]))
-		if err!=nil{
+		if err != nil {
 			t.Fatalf("Failed to decode reception key %d/%d: %v",
 				i, numTests, err)
 		}
