@@ -49,6 +49,9 @@ type Scheme interface {
 	// allow to be generated without printing an error to the log
 	GetSoftMinKeySize()int
 
+	// GetMarshalWireLength returns the length of a Marshal Wire for a given key
+	// size
+	GetMarshalWireLength(size int) int
 }
 
 // PrivateKey is an interface for an RSA private key which implements the

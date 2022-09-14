@@ -113,8 +113,9 @@ func (*scheme)UnmarshalPrivateKeyPEM(pemBytes []byte) (PrivateKey, error){
 	}
 
 	// do edge checks
-	if err=edgeCheckKey(keyRSA.Size());err!=nil{
-		return nil, err
+	// check if the keying material has a size issue
+	if bits := keyRSA.Size()*8; bits< softMinRSABitLen {
+		jww.WARN.Printf(softMinRSABitLenWarn, bits, softMinRSABitLen)
 	}
 
 	return &private{*keyRSA}, nil
@@ -138,9 +139,9 @@ func (*scheme)UnmarshalPublicKeyPEM(pemBytes []byte) (PublicKey, error){
 		return nil, err
 	}
 
-	// do edge checks
-	if err=edgeCheckKey(key.Size());err!=nil{
-		return nil, err
+	// check if the keying material has a size issue
+	if bits := key.Size()*8; bits< softMinRSABitLen {
+		jww.WARN.Printf(softMinRSABitLenWarn, bits, softMinRSABitLen)
 	}
 
 	return &public{*key}, nil
@@ -155,8 +156,11 @@ func (*scheme)UnmarshalPublicKeyPEM(pemBytes []byte) (PublicKey, error){
 // secure
 func (*scheme)UnmarshalPublicKeyWire(b []byte) (PublicKey, error){
 	// do edge checks
-	if err:=edgeCheckKey(len(b)+ELength);err!=nil{
-		return nil, err
+	if len(b)+ELength<smallestPubkeyForUnmarshalBytes{
+		return nil, ErrTooShortToUnmarshal
+	}
+	if bits := len(b)*8; bits< softMinRSABitLen {
+		jww.WARN.Printf(softMinRSABitLenWarn, bits, softMinRSABitLen)
 	}
 
 	//unmarshal
@@ -181,12 +185,8 @@ func (*scheme)GetSoftMinKeySize()int{
 	return softMinRSABitLen
 }
 
-func edgeCheckKey(length int)error{
-	if length<smallestPubkeyForUnmarshalBytes+ELength{
-		return ErrTooShortToUnmarshal
-	}
-	if bits := length*8; bits< softMinRSABitLen {
-		jww.WARN.Printf(softMinRSABitLenWarn, bits, softMinRSABitLen)
-	}
-	return nil
+// GetMarshalWireLength returns the length of a Marshal Wire for a given key
+// size in bits
+func (*scheme)GetMarshalWireLength(sizeBits int) int{
+	return sizeBits/8+ELength
 }
