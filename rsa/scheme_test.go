@@ -9,8 +9,9 @@
 package rsa
 
 import (
-"bytes"
-"testing"
+	"bytes"
+	"crypto/rand"
+	"testing"
 )
 
 const pemStrPKSC1 = `-----BEGIN RSA PRIVATE KEY-----
@@ -79,7 +80,9 @@ RrQgrWpA+PUSfMw6MEXqKS4XfZt5LCzqw7aCJQZb1JxNJ2Te4HRz6pcosobuA3Bo
 OfR7UYEP1zZHdxx0mMq8Dpv6wg0P4+g=
 -----END PRIVATE KEY-----`
 
-const junkPemStr = `-----BEGIN JUNK KEY-----
+// junkPemStr1 is an un-parseable PEM string. This is invalid
+// from the beginning of the string.
+const junkPemStr1 = `-----BEGIN JUNK KEY-----
 MIIBygIBAAJhALhySvzEqx4l+18WYAqUwiipIU4CixehO75s8Q1W8bNKGNZRoVpW
 swZpBfpbLyN2FfSAD64GQ1N5bOhAS9O2hp0WkNhM
 -----END JUNK KEY-----
@@ -92,6 +95,24 @@ MIIBygIBAAJhALhySvzEqx4l+18WYAqUwiipIU4CixehO75s8Q1W8bNKGNZRoVpW
 swZpBfpbLyN2FfSAD64GQ1N5bOhAS9O2hp0WkNhM
 -----END RSA PRIVATE KEY-----`
 
+// junkPemStr2 is an un-parseable PEM string. This is similar to
+// pemStrPKSC1 but the ending of every line has been
+// overwritten with the string "NNNNN".
+const junkPemStr2 = `-----BEGIN RSA PRIVATE KEY-----
+MIIBygIBAAJhALhySvzEqx4l+18WYAqUwiipIU4CixehO75s8Q1W8bNKGNZRoVpW
+NDuoTZOvjESzF0wMB5hyaCsLIDiyPRT5EolqkJcy2HVnXKq3HdcMIGu+NVjNNNNN
+8uAH06nfevMBmwIDAQABAmA2wyhkd/feUaSajMgjHBuxetW6laK6d1KHrUyNNNNN
+74IET+Q6MBH+DHBMAvkAhLNLAk5oNwgHIVq/xvCsV17WacwD+UEpQTKc5NxNNNNN
+tCVzqwzQiKkWPukSCIYbpdECMQDcq8u4L4kx/UFKzQcUGINaTVCEWulISKUNNNNN
+reX08kYZ4uAnEmHjZ7sMxIhvSFcCMQDV+dS/iP3+biArvDWQyGoqFII6S+GNNNNN
+wW/wrNM2Ze4JtEodjs60lIcCz4g71l0CMG8Pp8BTbGFUbQAQoHdkvvc74kINNNNN
+MbzZR0gUBaB6Lv3oSZhgkBO7qVCLuX8IkQIwJHGKlJymdeEXxZsmnGQmAMjNNNNN
+KKEGe30Ura8hwhAWPLziKqqZ9hOd8xKZp2dZAjEAwR/qt7tEmsMkxCbAwxxNNNNN
+swZpBfpbLyN2FfSAD64GQ1N5bOhAS9O2hp0WkNhM
+-----END RSA PRIVATE KEY-----
+`
+
+// Some test.
 func TestPemSmokePKCS1(t *testing.T) {
 	pkBytes := []byte(pemStrPKSC1)
 	sLocal := GetScheme()
@@ -118,6 +139,7 @@ func TestPemSmokePKCS1(t *testing.T) {
 	}
 }
 
+// Smoke test.
 func TestPemSmokePKCS8(t *testing.T) {
 	pkBytes := []byte(pemStrPKSC8)
 	sLocal := GetScheme()
@@ -128,6 +150,7 @@ func TestPemSmokePKCS8(t *testing.T) {
 	}
 }
 
+// Error case.
 func TestEmptyPem(t *testing.T) {
 	pkBytes := []byte{0, 0, 0, 0}
 	sLocal := GetScheme()
@@ -141,8 +164,10 @@ func TestEmptyPem(t *testing.T) {
 	}
 }
 
+// Error test.
 func TestJunkPem(t *testing.T) {
-	pkBytes := []byte(junkPemStr)
+	// Test with the obviously invalid junk
+	pkBytes := []byte(junkPemStr1)
 	sLocal := GetScheme()
 	_, err := sLocal.UnmarshalPrivateKeyPEM(pkBytes)
 	if err == nil {
@@ -152,5 +177,87 @@ func TestJunkPem(t *testing.T) {
 	if err == nil {
 		t.Errorf("Generated RSA PubKey from junk file!")
 	}
+
+	// Test with the junk that is subtly invalid.
+	// Specifically, these two tests reach the error cases
+	// where blocks are continuously read after the first pem.Decode.
+	pkBytes = []byte(junkPemStr2)
+
+	_, err = sLocal.UnmarshalPrivateKeyPEM(pkBytes)
+	if err == nil {
+		t.Errorf("Generated RSA PrivKey from junk file!")
+	}
+
+	_, err = sLocal.UnmarshalPublicKeyPEM(pkBytes)
+	if err == nil {
+		t.Errorf("Generated RSA PubKey from junk file!")
+
+	}
 }
 
+// Smoke test.
+func TestScheme_GenerateDefault(t *testing.T) {
+	sLocal := GetScheme()
+	rng := rand.Reader
+
+	privKey, err := sLocal.GenerateDefault(rng)
+	if err != nil {
+		t.Fatalf("Failed to generate key: %v", err)
+	}
+
+	if privKey.Size() != defaultRSABitLen/8 {
+		t.Fatalf("Scheme.GenerateDefault() error: Did not generate key of "+
+			"proper size."+
+			"\nExpected: %d"+
+			"\nReceived: %d", privKey.Size(), defaultRSABitLen/8)
+	}
+}
+
+// Smoke test.
+func TestScheme_GetDefaultKeySize(t *testing.T) {
+	sLocal := GetScheme()
+
+	if sLocal.GetDefaultKeySize() != defaultRSABitLen {
+		t.Fatalf("GetDefaultKeySize did not return the hardcoded value."+
+			"\nExpected: %d"+
+			"\nReceived: %d", defaultRSABitLen, sLocal.GetDefaultKeySize())
+	}
+
+}
+
+// Smoke test.
+func TestScheme_GetSoftMinKeySize(t *testing.T) {
+	sLocal := GetScheme()
+
+	if sLocal.GetSoftMinKeySize() != softMinRSABitLen {
+		t.Fatalf("GetSoftMinKeySize did not return the hardcoded value."+
+			"\nExpected: %d"+
+			"\nReceived: %d", softMinRSABitLen, sLocal.GetSoftMinKeySize())
+	}
+}
+
+// Smoke test.
+func TestPublic_GetMarshalWireLength(t *testing.T) {
+	sLocal := GetScheme()
+	val := 24
+
+	// This is the equation used in GetMarshalWireLength as of writing
+	expectedVal := val/8 + ELength
+	if sLocal.GetMarshalWireLength(val) != expectedVal {
+		t.Fatalf("GetMarshalWireLength did not return expected value."+
+			"\nExpected: %d"+
+			"\nReceived: %v", expectedVal, sLocal.GetMarshalWireLength(val))
+	}
+}
+
+// Error case: Tests that passing in bytes too short to be unmarshalled
+// returns an error (ErrTooShortToUnmarshal).
+func TestScheme_UnmarshalPublicKeyWire_Error(t *testing.T) {
+	sLocal := GetScheme()
+	dataTooShort := []byte{1}
+
+	_, err := sLocal.UnmarshalPublicKeyWire(dataTooShort)
+	if err == nil {
+		t.Fatalf("Unmarshalled data too short for a public key")
+	}
+}
