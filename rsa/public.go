@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	// Elength is the length in bytes that the RSA Public Key's E component
+	// ELength is the length in bytes that the RSA Public Key's E component
 	// serializes to.
 	ELength = 4
 )
@@ -125,7 +125,8 @@ func (pub *public)MarshalPem() []byte{
 // MarshalWire returns a marshaled version of the private key which contains
 // everything needed to reconstruct it, specifically both the private exponent
 // as well as the modulus.
-// Notice: the size of the return will be 4 bytes longer than the
+// Notice: the size of the return will be 4 bytes longer than the public key
+// size
 func (pub *public)MarshalWire() []byte{
 	buf := make([]byte, ELength)
 	binary.BigEndian.PutUint32(buf, uint32(pub.GetE()))
