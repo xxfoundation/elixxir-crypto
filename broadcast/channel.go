@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"gitlab.com/elixxir/crypto/rsa"
 	"hash"
 	"io"
 	"strconv"
@@ -15,16 +16,17 @@ import (
 	"golang.org/x/crypto/hkdf"
 
 	"gitlab.com/xx_network/crypto/csprng"
-	"gitlab.com/xx_network/crypto/signature/rsa"
 	"gitlab.com/xx_network/primitives/id"
 
 	"gitlab.com/elixxir/crypto/cmix"
 )
 
 const (
-	version  = "v1"
+	version  = 1
 	hkdfInfo = "XX_Network_Broadcast_Channel_HKDF_Blake2b"
 )
+
+var channelHash = blake2b.New256
 
 // ErrSecretSizeIncorrect indicates an incorrect sized secret.
 var ErrSecretSizeIncorrect = errors.New("NewChannelID secret must be 32 bytes long.")
@@ -44,7 +46,7 @@ type Channel struct {
 	Salt                []byte
 	RsaPubKeyHash       []byte
 	RsaPubKeyLength     int
-	RsaCiphertextLength int
+	RSASubPayloads		int
 	Secret              []byte
 
 	// Only appears in memory, is not contained in the marshalled version.
@@ -53,13 +55,26 @@ type Channel struct {
 	key []byte
 }
 
-func NewChannel(name, description string, packetPayloadLength int, rng csprng.Source) (*Channel, *rsa.PrivateKey, error) {
+// NewChannel creates a new channel with a variable rsa keysize calculated based
+// off of recommended security parameters.
+func NewChannel(name, description string, packetPayloadLength int,
+	rng csprng.Source) (*Channel, rsa.PrivateKey, error) {
+	return NewChannelVariableKeyUnsafe(name, description, packetPayloadLength,
+		rsa.GetScheme().GetDefaultKeySize(), rng)
+}
 
-	if packetPayloadLength%2 != 0 {
-		return nil, nil, ErrPayloadLengthIsOdd
-	}
+// NewChannelVariableKeyUnsafe creates a new channel with a variable rsa keysize calculated to
+// optimally use space in the packer.
+// Do not use unless you know what you are doing
+func NewChannelVariableKeyUnsafe(name, description string, packetPayloadLength,
+	maxKeysize int,rng csprng.Source) (*Channel, rsa.PrivateKey, error) {
 
-	pk, err := rsa.GenerateKey(rng, (packetPayloadLength-rsa.ELength)/2)
+	//get the key size and the number of fields
+	keysize, numSubpayloads := calculateKeySize(packetPayloadLength,maxKeysize)
+
+	s := rsa.GetScheme()
+
+	pk, err := s.Generate(rng, keysize)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -74,9 +89,9 @@ func NewChannel(name, description string, packetPayloadLength int, rng csprng.So
 		jww.FATAL.Panic("failed to read from rng")
 	}
 
-	pubKeyBytes := pk.GetPublic().Bytes()
+	pubkeyHash := hashPubKey(pk.Public())
 
-	channelID, err := NewChannelID(name, description, salt, hashSecret(pubKeyBytes), secret)
+	channelID, err := NewChannelID(name, description, salt, pubkeyHash, secret)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -86,10 +101,10 @@ func NewChannel(name, description string, packetPayloadLength int, rng csprng.So
 		Name:                name,
 		Description:         description,
 		Salt:                salt,
-		RsaPubKeyHash:       hashSecret(pubKeyBytes),
+		RsaPubKeyHash:       pubkeyHash,
 		Secret:              secret,
-		RsaCiphertextLength: len(pubKeyBytes) - rsa.ELength,
-		RsaPubKeyLength:     len(pubKeyBytes),
+		RsaPubKeyLength:     keysize,
+		RSASubPayloads: 	 numSubpayloads,
 	}, pk, nil
 }
 
@@ -106,6 +121,7 @@ func (c *Channel) Marshal() ([]byte, error) {
 func (c *Channel) label() []byte {
 	return append([]byte(c.Name), []byte(c.Description)...)
 }
+
 
 // NewChannelID creates a new channel ID, the resulting 32 byte
 // identity is derived like this:
@@ -147,54 +163,19 @@ func NewChannelID(name, description string, salt, rsaPubHash, secret []byte) (*i
 	return sid, nil
 }
 
-type channelDisk struct {
-	ReceptionID         *id.ID
-	Name                string
-	Description         string
-	Salt                []byte
-	RsaPubKeyHash       []byte
-	RsaPubKeyLength     int
-	RsaCiphertextLength int
-	Secret              []byte
-	key                 []byte
-}
+
 
 func (c *Channel) MarshalJson() ([]byte, error) {
-	return json.Marshal(channelDisk{
-		ReceptionID:         c.ReceptionID,
-		Name:                c.Name,
-		Description:         c.Description,
-		Salt:                c.Salt,
-		RsaPubKeyHash:       c.RsaPubKeyHash,
-		RsaPubKeyLength:     c.RsaPubKeyLength,
-		RsaCiphertextLength: c.RsaCiphertextLength,
-		Secret:              c.Secret,
-		key:                 c.key,
-	})
+	return json.Marshal(c)
 
 }
 
 func (c *Channel) UnmarshalJson(b []byte) error {
-	cDisk := &channelDisk{}
-	err := json.Unmarshal(b, cDisk)
+	err := json.Unmarshal(b, c)
 	if err != nil {
 		return err
 	}
-
-	*c = Channel{
-		ReceptionID:         cDisk.ReceptionID,
-		Name:                cDisk.Name,
-		Description:         cDisk.Description,
-		Salt:                cDisk.Salt,
-		RsaPubKeyHash:       cDisk.RsaPubKeyHash,
-		RsaPubKeyLength:     cDisk.RsaPubKeyLength,
-		RsaCiphertextLength: cDisk.RsaCiphertextLength,
-		Secret:              cDisk.Secret,
-		key:                 cDisk.key,
-	}
-
 	return nil
-
 }
 
 // PrettyPrint prints a human-pasteable serialization of this Channel type, like this:
@@ -203,15 +184,14 @@ func (c *Channel) UnmarshalJson(b []byte) error {
 // erewerwee","qw432432sdfserfwerewrwerewrewrwerewrwerewerwee","qw432432sdfserfwerewrwerewrewrwerewrwerewerwee",>
 func (c *Channel) PrettyPrint() string {
 	var b strings.Builder
-	fmt.Fprintf(&b, "<XXChannel,%s,%s,description,%s,secret,%s,%s,%s,%d,%d,%s>",
+	fmt.Fprintf(&b, "<XXChannel-v%d:%s,description:%s,secrets:%s,%s,%d,%d,%s>",
 		version,
 		c.Name,
 		c.Description,
-		base64.StdEncoding.EncodeToString(c.ReceptionID[:]),
 		base64.StdEncoding.EncodeToString(c.Salt),
 		base64.StdEncoding.EncodeToString(c.RsaPubKeyHash),
 		c.RsaPubKeyLength,
-		c.RsaCiphertextLength,
+		c.RSASubPayloads,
 		base64.StdEncoding.EncodeToString(c.Secret))
 	return b.String()
 }
@@ -220,34 +200,28 @@ func (c *Channel) PrettyPrint() string {
 // a valid pretty printed Channel serialization via the
 // PrettyPrint method.
 func NewChannelFromPrettyPrint(p string) (*Channel, error) {
-	fields := strings.Split(p, ",")
-	if len(fields) != 12 {
+	fields := strings.FieldsFunc(p,split)
+	if len(fields) != 10 {
 		return nil, ErrMalformedPrettyPrintedChannel
 	}
 
-	id := new(id.ID)
-	rawId, err := base64.StdEncoding.DecodeString(string(fields[6]))
-	if err != nil {
-		return nil, ErrMalformedPrettyPrintedChannel
-	}
-	copy(id[:], rawId)
 
-	salt, err := base64.StdEncoding.DecodeString(string(fields[7]))
+	salt, err := base64.StdEncoding.DecodeString(string(fields[6]))
 	if err != nil {
 		return nil, ErrMalformedPrettyPrintedChannel
 	}
 
-	rsaPubKeyHash, err := base64.StdEncoding.DecodeString(string(fields[8]))
+	rsaPubKeyHash, err := base64.StdEncoding.DecodeString(string(fields[7]))
 	if err != nil {
 		return nil, ErrMalformedPrettyPrintedChannel
 	}
 
-	rsaPubKeyLength, err := strconv.Atoi(fields[9])
+	rsaPubKeyLength, err := strconv.Atoi(fields[8])
 	if err != nil {
 		return nil, ErrMalformedPrettyPrintedChannel
 	}
 
-	rsaCiphertextLength, err := strconv.Atoi(fields[10])
+	rsaSubPayloads, err := strconv.Atoi(fields[10])
 	if err != nil {
 		return nil, ErrMalformedPrettyPrintedChannel
 	}
@@ -257,14 +231,24 @@ func NewChannelFromPrettyPrint(p string) (*Channel, error) {
 		return nil, ErrMalformedPrettyPrintedChannel
 	}
 
-	return &Channel{
-		Name:                fields[2],
-		Description:         fields[4],
-		ReceptionID:         id,
+	c := &Channel{
+		Name:                fields[1],
+		Description:         fields[3],
 		Salt:                salt,
 		RsaPubKeyHash:       rsaPubKeyHash,
 		RsaPubKeyLength:     rsaPubKeyLength,
-		RsaCiphertextLength: rsaCiphertextLength,
+		RSASubPayloads: 	 rsaSubPayloads,
 		Secret:              secret,
-	}, nil
+	}
+
+	c.ReceptionID, err = NewChannelID(c.Name, c.Description, c.Salt, c.RsaPubKeyHash, c.Secret)
+	if err != nil {
+		return nil, ErrMalformedPrettyPrintedChannel
+	}
+
+	return c, nil
+}
+
+func split(r rune)bool{
+	return r==',' || r == ':'
 }

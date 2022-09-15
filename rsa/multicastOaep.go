@@ -293,10 +293,27 @@ func mgf1XOR(out []byte, hash hash.Hash, seed []byte) {
 // This is done per the OEAP spec, example of how a similar thing is done in the
 // standard RSA: https://github.com/golang/go/blob/master/src/crypto/rsa/rsa.go#L452
 func getMaxOEAPPayloadSize(hash hash.Hash, key PublicKey) int {
+	return GetMaxOEAPPayloadSize(hash, key.Size())
+}
+
+// GetMaxOEAPPayloadSize returns the maximum size of a multicastRSA broadcast
+// message based on its keysize.
+// The message must be no longer than the length of the public modulus minus
+// twice the hash length, minus a further 2.
+// This is done per the OEAP spec, example of how a similar thing is done in the
+// standard RSA: https://github.com/golang/go/blob/master/src/crypto/rsa/rsa.go#L452
+func GetMaxOEAPPayloadSize(hash hash.Hash, keysize int) int {
+	return keysize - GetMaxOEAPPayloadTakenSpace(hash)
+}
+
+
+// GetMaxOEAPPayloadTakenSpace returns the space taken in the OAEP payload by
+// the protocol.
+// This is done per the OEAP spec, example of how a similar thing is done in the
+// standard RSA: https://github.com/golang/go/blob/master/src/crypto/rsa/rsa.go#L452
+func GetMaxOEAPPayloadTakenSpace(hash hash.Hash)int{
 	hash.Reset()
-	k := key.Size()
-	hashSize := hash.Size()
-	return k - 2*hashSize - 2
+	return 2 * hash.Size() + 2
 }
 
 

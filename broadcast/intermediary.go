@@ -1,22 +1,35 @@
 package broadcast
 
 import (
+	"encoding/binary"
 	jww "github.com/spf13/jwalterweatherman"
-	"golang.org/x/crypto/blake2b"
+	"gitlab.com/elixxir/crypto/rsa"
 )
 
 // secret is hashed first so that
 // we can share all the inputs to the
 // hkdf without giving out the secret.
 func hashSecret(secret []byte) []byte {
-	b := blake2b.Sum256(secret)
-	return b[:]
+	h, _ := channelHash(nil)
+	h.Write(secret)
+	return h.Sum(nil)
 }
+
+// hashPubKey is used to compute the hash of the RSA Public Key
+func hashPubKey(pub rsa.PublicKey) []byte {
+	h, _ := channelHash(nil)
+	h.Write(pub.GetN().Bytes())
+	ebytes := make([]byte,rsa.ELength)
+	binary.BigEndian.PutUint32(ebytes,uint32(pub.GetE()))
+	h.Write(ebytes)
+	return h.Sum(nil)
+}
+
 
 // returns the Blake2b hash of the given arguments:
 // H(name | description | rsaPubHash | hashedSecret | salt)
 func deriveIntermediary(name, description string, salt, rsaPubHash, hashedSecret []byte) []byte {
-	h, err := blake2b.New256(nil)
+	h, err := channelHash(nil)
 	if err != nil {
 		jww.FATAL.Panic(err)
 	}
