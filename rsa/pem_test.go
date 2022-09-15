@@ -235,29 +235,3 @@ func TestScheme_GetSoftMinKeySize(t *testing.T) {
 			"\nReceived: %d", softMinRSABitLen, sLocal.GetSoftMinKeySize())
 	}
 }
-
-// Smoke test.
-func TestPublic_GetMarshalWireLength(t *testing.T) {
-	sLocal := GetScheme()
-	val := 24
-
-	// This is the equation used in GetMarshalWireLength as of writing
-	expectedVal := val/8 + ELength
-	if sLocal.GetMarshalWireLength(val) != expectedVal {
-		t.Fatalf("GetMarshalWireLength did not return expected value."+
-			"\nExpected: %d"+
-			"\nReceived: %v", expectedVal, sLocal.GetMarshalWireLength(val))
-	}
-}
-
-// Error case: Tests that passing in bytes too short to be unmarshalled
-// returns an error (ErrTooShortToUnmarshal).
-func TestScheme_UnmarshalPublicKeyWire_Error(t *testing.T) {
-	sLocal := GetScheme()
-	dataTooShort := []byte{1}
-
-	_, err := sLocal.UnmarshalPublicKeyWire(dataTooShort)
-	if err == nil {
-		t.Fatalf("Unmarshalled data too short for a public key")
-	}
-}
