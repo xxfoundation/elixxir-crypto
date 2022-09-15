@@ -2,7 +2,13 @@ package broadcast
 
 import (
 	"bytes"
+	"encoding/base64"
+	"gitlab.com/elixxir/crypto/cmix"
+	"gitlab.com/elixxir/crypto/rsa"
+	oldRsa "gitlab.com/xx_network/crypto/signature/rsa"
+	"gitlab.com/xx_network/primitives/id"
 	"math/rand"
+	"reflect"
 	"testing"
 
 	"gitlab.com/xx_network/crypto/csprng"
@@ -37,7 +43,7 @@ func TestSymmetric_Encrypt_Decrypt(t *testing.T) {
 			"\nexpected: %v\nreceived: %v", payload, decryptedPayload)
 	}
 }
-/*
+
 // Tests that Symmetric.Decrypt returns an error when the MAC is invalid.
 func TestSymmetric_Decrypt(t *testing.T) {
 	prng := rand.New(rand.NewSource(42))
@@ -50,7 +56,12 @@ func TestSymmetric_Decrypt(t *testing.T) {
 	payload := make([]byte, 256)
 	prng.Read(payload)
 
-	encryptedPayload, mac, fp := s.EncryptSymmetric(payload, csprng.NewSystemRNG())
+	packetSize := 1000
+
+	encryptedPayload, mac, fp, err := s.EncryptSymmetric(payload, packetSize, csprng.NewSystemRNG())
+	if err != nil {
+		t.Errorf("Failed to enbcrypt payload: %+v", err)
+	}
 
 	// Create bad MAC
 	prng.Read(mac)
@@ -65,12 +76,19 @@ func TestSymmetric_Decrypt(t *testing.T) {
 // Tests that a Symmetric marshalled by Symmetric.Marshal and unmarshalled via
 // UnmarshalSymmetric matches the original.
 func TestSymmetric_Marshal_UnmarshalSymmetric(t *testing.T) {
+	rng := rand.New(rand.NewSource(42))
+	pk, err := rsa.GetScheme().Generate(rng, 64)
+	if err != nil {
+		t.Fatalf("Failed to generate key: %+v", err)
+	}
+	pubKey := pk.Public()
+
 	s := &Channel{
 		ReceptionID:   id.NewIdFromString("ChannelID", id.User, t),
 		Name:          "MyChannel",
 		Description:   "Channel for channel stuff.",
 		Salt:          cmix.NewSalt(csprng.Source(&csprng.SystemRNG{}), 32),
-		RsaPubKeyHash: hashSecret(rsa.CreatePublicKeyPem(newRsaPubKey(rand.New(rand.NewSource(42)), t))),
+		RsaPubKeyHash: hashSecret(oldRsa.CreatePublicKeyPem(pubKey.GetOldRSA())),
 	}
 
 	data, err := s.Marshal()
@@ -170,4 +188,4 @@ func TestNewSymmetricKey_Unique(t *testing.T) {
 			keys[keyStr] = true
 		}
 	}
-}*/
+}
