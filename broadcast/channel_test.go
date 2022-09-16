@@ -6,10 +6,19 @@
 
 package broadcast
 
-/*
+import (
+	"bytes"
+	"gitlab.com/elixxir/crypto/cmix"
+	"gitlab.com/elixxir/crypto/rsa"
+	"gitlab.com/xx_network/crypto/csprng"
+	oldRsa "gitlab.com/xx_network/crypto/signature/rsa"
+	"reflect"
+	"testing"
+)
+
 func TestChannel_PrettyPrint(t *testing.T) {
 	rng := csprng.NewSystemRNG()
-	pk, err := rsa.GenerateKey(rng, 4096)
+	pk, err := rsa.GetScheme().Generate(rng, 4096)
 	if err != nil {
 		t.Fatalf("Failed to generate private key: %+v", err)
 	}
@@ -21,14 +30,17 @@ func TestChannel_PrettyPrint(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	rid, err := NewChannelID(name, desc, secret, salt, hashSecret(rsa.CreatePublicKeyPem(pk.GetPublic())))
+
+	pubKeyPem := oldRsa.CreatePublicKeyPem(pk.Public().GetOldRSA())
+
+	rid, err := NewChannelID(name, desc, secret, salt, hashSecret(pubKeyPem))
 	channel1 := Channel{
 		Secret:        secret,
 		ReceptionID:   rid,
 		Name:          name,
 		Description:   desc,
 		Salt:          salt,
-		RsaPubKeyHash: hashSecret(rsa.CreatePublicKeyPem(pk.GetPublic())),
+		RsaPubKeyHash: hashSecret(pubKeyPem),
 	}
 
 	pretty1 := channel1.PrettyPrint()
@@ -51,7 +63,7 @@ func TestChannel_PrettyPrint(t *testing.T) {
 func TestChannel_MarshalJson(t *testing.T) {
 	// Construct a channel
 	rng := csprng.NewSystemRNG()
-	pk, err := rsa.GenerateKey(rng, 4096)
+	pk, err := rsa.GetScheme().Generate(rng, 4096)
 	if err != nil {
 		t.Fatalf("Failed to generate private key: %+v", err)
 	}
@@ -64,13 +76,14 @@ func TestChannel_MarshalJson(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rid, err := NewChannelID(name, desc, secret, salt, hashSecret(rsa.CreatePublicKeyPem(pk.GetPublic())))
+	pubKeyPem := oldRsa.CreatePublicKeyPem(pk.Public().GetOldRSA())
+	rid, err := NewChannelID(name, desc, secret, salt, hashSecret(pubKeyPem))
 	channel := Channel{
 		ReceptionID:   rid,
 		Name:          name,
 		Description:   desc,
 		Salt:          salt,
-		RsaPubKeyHash: hashSecret(rsa.CreatePublicKeyPem(pk.GetPublic())),
+		RsaPubKeyHash: hashSecret(pubKeyPem),
 	}
 
 	// Marshal data
@@ -128,7 +141,7 @@ func TestChannel_NewChannelIDSecretLength(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	privateKey, err := rsa.GenerateKey(rng, 4096)
+	privateKey, err := rsa.GetScheme().Generate(rng, 4096)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -139,12 +152,12 @@ func TestChannel_NewChannelIDSecretLength(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = NewChannelID(name, description, salt, privateKey.GetPublic().GetN().Bytes(), secret)
+	_, err = NewChannelID(name, description, salt, privateKey.GetOldRSA().GetN().Bytes(), secret)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = NewChannelID(name, description, salt, privateKey.GetPublic().GetN().Bytes(), []byte("1234567"))
+	_, err = NewChannelID(name, description, salt, privateKey.GetOldRSA().GetN().Bytes(), []byte("1234567"))
 	if err == nil {
 		t.Fatal()
 	}
@@ -154,7 +167,7 @@ func TestRChanel_Marshal_Unmarshal(t *testing.T) {
 	rng := csprng.NewSystemRNG()
 	packetSize := 1000
 	keysize, _ := calculateKeySize(packetSize, packetSize)
-	keysize = keysize*8
+	keysize = keysize * 8
 
 	s := rsa.GetScheme()
 	pk, err := s.Generate(rng, keysize)
@@ -193,4 +206,4 @@ func TestRChanel_Marshal_Unmarshal(t *testing.T) {
 	if !reflect.DeepEqual(ac, unmarshalled) {
 		t.Errorf("Did not receive expected asymmetric channel\n\tExpected: %+v\n\tReceived: %+v\n", ac, unmarshalled)
 	}
-}*/
+}
