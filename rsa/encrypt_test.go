@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"gitlab.com/elixxir/crypto/hash"
-	mathRand "math/rand"
 	"strconv"
 	"testing"
 )
@@ -58,7 +57,7 @@ func TestEncryptDectyptOAEP(t *testing.T) {
 func TestPrivate_EncryptOAEP_Consistency(t *testing.T) {
 
 	// Using a PRNG with same source so the output is the same on each run
-	prng := mathRand.New(mathRand.NewSource(12))
+	prng := &CountingReader{}
 
 	// Generate keys
 	sLocal := GetScheme()
@@ -75,11 +74,11 @@ func TestPrivate_EncryptOAEP_Consistency(t *testing.T) {
 
 	// Expected output
 	expectedOutput := []string{
-		"G8R1pxsm4tWReXrrAuPnjD07mr5Ke/KK1IOZfi++uhaz1GAef5TMskawb5htZtIEwciukYEZtQoSKWvuaDlfo3vAYeV0InS0PUrIb7jLaDGSnvkaArI7tULTcSOIUlbeoURMPH79bw2rNmrHvh72AaIRjbac/UE/V3192nWn+Ag=",
-		"po/OQ5gDRvyzVKMEEwoQ97DEjly6LerFRN7SKcQqpto1bb4Kah6T2GmCvItOImbwV8dkOETZWws4QL7BHK0OiLvd3s9yZH7nesVIT3YZnd5vuO54v8iWhjTqpSqA/YOuuiEzQc1FoUt3F5+RDYIL/vKVJ4OfXGTiNXtdqOWCjUA=",
-		"OMqTZfDAhyWppP9RruNNhFD1WxdCJrFO1lpr/xbuxEEui6U4YRjsubXy1xcLBgINoNTIAD7AeIRj1IgDArsLaDLghc3gIts6Ms8Q1TXHM8udIiF7cS61pOep7nlN9+ryuwJ6em1stOB4QEz54rqNMy6UGfXsRy54XbwrdIP6f8c=",
-		"cR+IR238CxiepClSYd+vEQYPNQ2FNrzoLfVtSSarfN62VYAw5UtX5D76ucCZ2FOR7nFvj5O9v8NmOn1pEk8oIO+9QrxnC/XdkzI0DcLaz4kG/rssZGdVU/+alAMRW4vlOqKKxeU1DVpa/UdZZNLAndu/tu7yUa6s6ljc78Jehsw=",
-		"mfYUhcUiCp2vICHeWEsYhHsHeAD5BVCNDUukJmAD91nbTRUevK4EY9eDIMgNG/6/+6cLfn4VWJ/x8ldMf8A4HF5ouTodXYBIsdDMNGvoB+sWVMgFfj41UtYkASyKdW30bZXiSK1WSlpvm9R99qtr8EbTIhTD1F3oiymeZ7ouwOI=",
+		"G5+YcK/mo9npEZIhXbxRpQykuxLGhuu7abxvZ0VGiDSc348WoKmNrxWbjCRzJ7boOTx6grCVXSVJsljwF+YoXLbIxEqJGMjMqWnmVJAxGj0D2V8J0EBeYCfbJ/gcVuq8lybXHXlidTdI0J+TQMCydqgdqUANnvKttst2XTgPJT8=",
+		"c9kBM9Xd3zI502daeJNGKNr0Am0B85waD9Z28pILN3xoetFwek+U+ViKx+q7iZBiGL64m4h9suR4J9FA/xfvzm7xtZeUi+oLIwtwLw/zNfEZf1K5RbgqDhtNJ+uX9zwp5g/xR59/KFtkCoeFb4iCwGw+5AqOuc+gGqiXpnh/pW0=",
+		"saa60bG6AisGuA3Ev+oLP55KEF9664T8mt+mi8vhw44je+ThpfZjiO1TMfPd1VBDPW63AG3LnYd6XQYgnP5OyXlhCaj1JNrE0n2jJiVuQ6m1Wo/g6t2ubokO1rD4WbUfktGNObXkqDx57alla0RlbHT4RWWeSnRyRpYXjQRlPCQ=",
+		"lpdYLK7pVwp6RMOWrmQZj+BbMpBrys10J9wGjgu0QvGkQmcmPE2tnOIEF770l95lnS6+k+UslHnXMrAE+5fyJvv2tqmJTEaTwgla0wIljHAKZAyKGORNuz4uexwREcbqthQITVyb4M5kwiQsCIKXyNacMuUcEQez9hAOYdQhkCo=",
+		"AsDYBlrd2QacDGsn7KYn4+m2O4Vio2Y13RTK47QxHLnI5bgLKVhLxrFR7vcQMP8kvoDt9q8KEesMDleHkdke2SYDCqxMuYmqE89WdKc/U8PIoexFpb5AP+2eKDzBDuJsgLre9v04A7qWVqdMeiToRCuV5fWc/H5/IO/e+lETNmU=",
 	}
 	for i := 0; i < numTest; i++ {
 
@@ -96,7 +95,7 @@ func TestPrivate_EncryptOAEP_Consistency(t *testing.T) {
 		// Check that encrypted data is consistent
 		received := base64.StdEncoding.EncodeToString(encrypted)
 		if expectedOutput[i] != received {
-			t.Fatalf("EncryptOAEP did not produce consistent output with "+
+			t.Errorf("EncryptOAEP did not produce consistent output with "+
 				"precanned values."+
 				"\nExpected: %s"+
 				"\nReceived: %s", expectedOutput[i], received)
