@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/rsa"
+	"hash"
 )
 
 // secret is hashed first so that
@@ -33,25 +34,20 @@ func deriveIntermediary(name, description string, salt, rsaPubHash, hashedSecret
 	if err != nil {
 		jww.FATAL.Panic(err)
 	}
-	_, err = h.Write([]byte(name))
-	if err != nil {
-		jww.FATAL.Panic(err)
-	}
-	_, err = h.Write([]byte(description))
-	if err != nil {
-		jww.FATAL.Panic(err)
-	}
-	_, err = h.Write(rsaPubHash)
-	if err != nil {
-		jww.FATAL.Panic(err)
-	}
-	_, err = h.Write(hashedSecret)
-	if err != nil {
-		jww.FATAL.Panic(err)
-	}
-	_, err = h.Write(salt)
-	if err != nil {
-		jww.FATAL.Panic(err)
-	}
+
+	write(h,[]byte(name))
+	write(h,[]byte(description))
+	write(h,rsaPubHash)
+	write(h,hashedSecret)
+	write(h,salt)
 	return h.Sum(nil)
+}
+
+// moved the error handling into a single function to
+// increase test coverage
+func write(h hash.Hash, data []byte){
+	_, err := h.Write(data)
+	if err != nil {
+		jww.FATAL.Panic(err)
+	}
 }
