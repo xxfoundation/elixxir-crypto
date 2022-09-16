@@ -12,41 +12,35 @@ const (
 // calculateKeySize finds the optimal key size and number of subpackets smaller
 // than the keysize and larger than the minkeysize.
 // both paylaodSize and maxKeysize should be in bytes
-func calculateKeySize(payloadSize, maxKeysize int)(selectedKeySize int, selectedN int){
+func calculateKeySize(payloadSize, maxKeySizeGoal int)(selectedKeySize int, selectedN int){
 
+	// some of the payload is taken up by data for the sized broadcast included
+	// in the outer symmetric encryption layer. account for that.
 	sizedPayloadSize := MaxSizedBroadcastPayloadSize(payloadSize)
 
-	//get the bounds
-	lower := int(math.Ceil(float64(sizedPayloadSize)/float64(maxKeysize)))
-	upper := sizedPayloadSize/minKeysize
+	// calculate the maximum keysize that can be used for a given payload
+	maxkey := (sizedPayloadSize-rsa.ELength)/2
 
-	minWaste := math.MaxInt64
-	for n:=lower;n<=upper;n++ {
-		keysize := (sizedPayloadSize-rsa.ELength) / n
-		if wasted := waste(n, keysize, sizedPayloadSize); wasted < minWaste {
-			minWaste = wasted
-			selectedKeySize = keysize
-			selectedN = n
-		}
+	// if the requested key size is greater than the maximum, reduce it to the
+	// maximum
+	if maxKeySizeGoal>maxkey{
+		selectedKeySize = maxkey
+		selectedN = 1
+		return
 	}
 
+	// otherwise, find the closes key size to the requested which fits.
+	// it will likely be smaller because an integer number of payloads for the
+	// key size need to fit in the payload. The n needs to be "ceilinged"
+	// in order to ensure the given keysize goal is treated as an upper bound
+	selectedN = int(math.Ceil(float64(sizedPayloadSize-rsa.ELength)/
+		float64(maxKeySizeGoal)-1))
+
+	// Run the above calculation in reverse in order to get from the floored n
+	// the appropriate key size back
+	selectedKeySize = (sizedPayloadSize-rsa.ELength)/(selectedN+1)
+
 	return
-}
-
-// waste calculates the amount of wasted space inside the packet
-func waste(n,k, p int)int{
-	h, _ := channelHash(nil)
-	r := rsa.GetMaxOEAPPayloadTakenSpace(h)
-	// add 1 to n because there is an extra key size payload for the public key
-	unusedSapce := p-((n+1)*k+rsa.ELength)
-	oaepTakenSpace := (n)*r
-	publicKey := rsa.GetScheme().GetMarshalWireLength(k)
-	return unusedSapce + oaepTakenSpace + publicKey
-}
-
-// numFields calculates the number of individual encrypted fields will be used
-func numFields(p,k int)int{
-	return p/k-1
 }
 
 func calculateRsaToPublicPacketSize(keysize, numSubPayloads int)int {
