@@ -69,7 +69,6 @@ func TestNewSizedBroadcast_MaxPayloadSizeError(t *testing.T) {
 	maxPayloadSize := len(payload)
 	rng := rand.New(rand.NewSource(42))
 
-
 	expectedErr := fmt.Sprintf(errNewSizedBroadcastMaxSize,
 		len(payload)+sizedBroadcastMinSize, maxPayloadSize)
 
@@ -99,7 +98,9 @@ func TestDecodeSizedBroadcast_DataTooShortError(t *testing.T) {
 // Error path: tests that DecodeSizedBroadcast returns an error when the payload
 // size is larger than the actual payload contained in the data.
 func TestDecodeSizedBroadcast_SizeMismatchError(t *testing.T) {
-	data := []byte{255, 0, 10}
+	data := make([]byte, sizedBroadcastMinSize)
+	data[0] = byte(255)
+
 	expectedErr := fmt.Sprintf(
 		errDecodeSizedBroadcastSize, data[0], len(data[sizeSize:]))
 
@@ -121,4 +122,3 @@ func TestMaxSizedBroadcastPayloadSize(t *testing.T) {
 			expectedSize, receivedSize)
 	}
 }
-
