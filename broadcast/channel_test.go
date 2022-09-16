@@ -50,7 +50,9 @@ func TestChannel_PrettyPrint(t *testing.T) {
 	pretty2 := channel2.PrettyPrint()
 
 	if pretty1 != pretty2 {
-		t.Fatal("mismatch serializations")
+		t.Fatalf("Mismatch in serializations."+
+			"\nExpected: %s"+
+			"\nReceived: %s", pretty1, pretty2)
 	}
 
 }
