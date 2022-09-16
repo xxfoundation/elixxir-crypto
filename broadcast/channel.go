@@ -74,7 +74,9 @@ func NewChannelVariableKeyUnsafe(name, description string, packetPayloadLength,
 
 	s := rsa.GetScheme()
 
-	pk, err := s.Generate(rng, keysize)
+	// multiply the keysize by 8 because generate expects keysize in
+	// bits not bytes
+	pk, err := s.Generate(rng, keysize*8)
 	if err != nil {
 		return nil, nil, err
 	}

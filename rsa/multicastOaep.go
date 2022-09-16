@@ -212,26 +212,21 @@ func decrypt(m *large.Int, pub PublicKey, c *large.Int) *large.Int {
 
 // ErrMessageTooLong is returned when attempting to encrypt a message which is
 // too large for the size of the public key.
-var ErrMessageTooLong = errors.New("xx_network/crypto/multicastRSA: " +
-	"message too long for RSA public key size")
+var ErrMessageTooLong = errors.New("message too long for RSA public " +
+	"key size")
 
 // ErrDecryption represents a failure to decrypt a message.
 // It is deliberately vague to avoid adaptive attacks.
-var ErrDecryption = errors.New("xx_network/crypto/multicastRSA: " +
-	"decryption error")
+var ErrDecryption = errors.New("decryption error")
 
 // ErrVerification represents a failure to verify a signature.
 // It is deliberately vague to avoid adaptive attacks.
-var ErrVerification = errors.New("xx_network/crypto/multicastRSA: " +
-	"verification error")
+var ErrVerification = errors.New("verification error")
 
 var (
-	errPublicModulus = errors.New("xx_network/crypto/multicastRSA: " +
-		"missing public modulus")
-	errPublicExponentSmall = errors.New("xx_network/crypto/multicastRSA: " +
-		"public exponent too small")
-	errPublicExponentLarge = errors.New("xx_network/crypto/multicastRSA: " +
-		"public exponent too large")
+	errPublicModulus = errors.New("missing public modulus")
+	errPublicExponentSmall = errors.New("public exponent too small")
+	errPublicExponentLarge = errors.New("public exponent too large")
 )
 
 // checkPub sanity checks the public key before we use it.

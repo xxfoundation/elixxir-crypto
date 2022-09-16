@@ -12,7 +12,7 @@ import (
 // IsPublicKey returns true if the passed public key is the public key for the
 // given channel
 func (c *Channel) IsPublicKey(publicKey rsa.PublicKey) bool {
-	if bytes.Equal(c.RsaPubKeyHash, hashSecret(publicKey.GetN().Bytes())) {
+	if bytes.Equal(c.RsaPubKeyHash, hashPubKey(publicKey)) {
 		return true
 	}
 	return false
@@ -57,14 +57,16 @@ func (c *Channel) EncryptRSAToPublic(payload []byte, privkey rsa.PrivateKey,
 		calculateRsaToPublicPacketSize(c.RsaPubKeyLength, c.RSASubPayloads))
 
 	//prepend the public key
-	singleEncryptedPayload = append(singleEncryptedPayload,privkey.Public().MarshalWire()...)
+	publicWire := privkey.Public().MarshalWire()
+	singleEncryptedPayload = append(singleEncryptedPayload,publicWire...)
 
 	//encrypt and append the encrypted payloads
 	h, _ := channelHash(nil)
 	for n:=0;n<c.RSASubPayloads;n++{
 		h.Reset()
+		subsample := permissiveSubsample(payload,subpayloadSize,n)
 		innerCiphertext, err := privkey.EncryptOAEPMulticast(h,
-			csprng, permissiveSubsample(singleEncryptedPayload,subpayloadSize,n), c.label())
+			csprng, subsample, c.label())
 		if err != nil {
 			return nil, nil, format.Fingerprint{},
 			errors.WithMessagef(err, "Failed to encrypt asymmetric " +
@@ -161,14 +163,14 @@ func (c *Channel) EncryptRSAToPrivate(payload []byte, pubkey rsa.PublicKey,
 
 	//do the multiple RSA encryptions on a chunked payload
 	singleEncryptedPayload := make([]byte, 0,
-		calculateRsaToPrivatePacketSize(c.RsaPubKeyLength, c.RSASubPayloads))
+		calculateRsaToPrivatePacketSize(c.RsaPubKeyLength, numSubPayloads))
 
 	//encrypt and append the encrypted payloads
 	h, _ := channelHash(nil)
 	for n:=0;n<numSubPayloads;n++{
 		h.Reset()
 		innerCiphertext, err := pubkey.EncryptOAEP(h,
-			rng, permissiveSubsample(singleEncryptedPayload,subpayloadSize,n), c.label())
+			rng, permissiveSubsample(payload,subpayloadSize,n), c.label())
 		if err != nil {
 			return nil, nil, format.Fingerprint{},
 				errors.WithMessagef(err, "Failed to encrypt asymmetric " +
@@ -221,8 +223,8 @@ func permissiveSubsample(b []byte, size, n int)[]byte{
 	begin := n*size
 	end := (n+1)*size
 	if begin>len(b){
-		return nil
-	}else if end>len(b){
+		return make([]byte, 0)
+	}else if size>len(b[begin:]){
 		return b[begin:]
 	}else{
 		return b[begin:end]

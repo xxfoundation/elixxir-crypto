@@ -6,16 +6,7 @@
 
 package broadcast
 
-import (
-	"bytes"
-	"testing"
-
-	"gitlab.com/xx_network/crypto/csprng"
-	"gitlab.com/xx_network/crypto/signature/rsa"
-
-	"gitlab.com/elixxir/crypto/cmix"
-)
-
+/*
 func TestChannel_PrettyPrint(t *testing.T) {
 	rng := csprng.NewSystemRNG()
 	pk, err := rsa.GenerateKey(rng, 4096)
@@ -156,3 +147,48 @@ func TestChannel_NewChannelIDSecretLength(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+func TestRChanel_Marshal_Unmarshal(t *testing.T) {
+	rng := csprng.NewSystemRNG()
+	packetSize := 1000
+	keysize, _ := calculateKeySize(packetSize, packetSize)
+	keysize = keysize*8
+
+	s := rsa.GetScheme()
+	pk, err := s.Generate(rng, keysize)
+	if err != nil {
+		t.Fatalf("Failed to generate private key: %+v", err)
+	}
+	name := "Asymmetric channel"
+	desc := "Asymmetric channel description"
+	salt := cmix.NewSalt(rng, 512)
+	secret := make([]byte, 32)
+	_, err = rng.Read(secret)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rid, err := NewChannelID(name, desc, secret, salt, hashPubKey(pk.Public()))
+	ac := &Channel{
+		RsaPubKeyLength: 528,
+		ReceptionID:     rid,
+		Name:            name,
+		Description:     desc,
+		Salt:            salt,
+		RsaPubKeyHash:   hashPubKey(pk.Public()),
+	}
+
+	marshalled, err := ac.Marshal()
+	if err != nil {
+		t.Fatalf("Failed to marshall asymmetric channel: %+v", err)
+	}
+
+	unmarshalled, err := UnmarshalChannel(marshalled)
+	if err != nil {
+		t.Fatalf("Failed to unmarshal data into asymmetric object: %+v", err)
+	}
+
+	if !reflect.DeepEqual(ac, unmarshalled) {
+		t.Errorf("Did not receive expected asymmetric channel\n\tExpected: %+v\n\tReceived: %+v\n", ac, unmarshalled)
+	}
+}*/

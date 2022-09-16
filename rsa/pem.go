@@ -185,7 +185,7 @@ func (*scheme) GetSoftMinKeySize() int {
 }
 
 // GetMarshalWireLength returns the length of a Marshal Wire for a given key
-// size in bits
-func (*scheme) GetMarshalWireLength(sizeBits int) int {
-	return sizeBits/8 + ELength
+// size in bytes
+func (*scheme) GetMarshalWireLength(sizeBytes int) int {
+	return sizeBytes + ELength
 }

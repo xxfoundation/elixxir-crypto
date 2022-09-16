@@ -44,7 +44,7 @@ func TestPublic_GetMarshalWireLength(t *testing.T) {
 	val := 24
 
 	// This is the equation used in GetMarshalWireLength as of writing
-	expectedVal := val/8 + ELength
+	expectedVal := val + ELength
 	if sLocal.GetMarshalWireLength(val) != expectedVal {
 		t.Fatalf("GetMarshalWireLength did not return expected value."+
 			"\nExpected: %d"+
@@ -62,4 +62,21 @@ func TestScheme_UnmarshalPublicKeyWire_Error(t *testing.T) {
 	if err == nil {
 		t.Fatalf("Unmarshalled data too short for a public key")
 	}
+}
+
+func TestWireLength(t *testing.T) {
+	sLocal := GetScheme()
+	serverPrivKey, err := sLocal.Generate(rand.Reader, 1024)
+	if err != nil {
+		t.Errorf("Failed to generate private key: %+v", err)
+	}
+	serverPubKey := serverPrivKey.Public()
+	serverPubKeyBytes := serverPubKey.MarshalWire()
+	wireLength := serverPubKey.GetMarshalWireLength()
+
+	if len(serverPubKeyBytes)!=wireLength{
+		t.Errorf("Wire length returned is not the same as the actual " +
+			"wire length, %d vs %d", wireLength, len(serverPubKeyBytes))
+	}
+
 }
