@@ -40,14 +40,14 @@ var ErrMalformedPrettyPrintedChannel = errors.New("Malformed pretty printed chan
 // Channel is a multicast communication channel that retains the
 // various privacy notions that this mix network provides.
 type Channel struct {
-	ReceptionID         *id.ID
-	Name                string
-	Description         string
-	Salt                []byte
-	RsaPubKeyHash       []byte
-	RsaPubKeyLength     int
-	RSASubPayloads		int
-	Secret              []byte
+	ReceptionID     *id.ID
+	Name            string
+	Description     string
+	Salt            []byte
+	RsaPubKeyHash   []byte
+	RsaPubKeyLength int
+	RSASubPayloads  int
+	Secret          []byte
 
 	// Only appears in memory, is not contained in the marshalled version.
 	// Lazily evaluated on first use.
@@ -67,10 +67,10 @@ func NewChannel(name, description string, packetPayloadLength int,
 // optimally use space in the packer.
 // Do not use unless you know what you are doing
 func NewChannelVariableKeyUnsafe(name, description string, packetPayloadLength,
-	maxKeysize int,rng csprng.Source) (*Channel, rsa.PrivateKey, error) {
+	maxKeysize int, rng csprng.Source) (*Channel, rsa.PrivateKey, error) {
 
 	//get the key size and the number of fields
-	keysize, numSubpayloads := calculateKeySize(packetPayloadLength,maxKeysize)
+	keysize, numSubpayloads := calculateKeySize(packetPayloadLength, maxKeysize)
 
 	s := rsa.GetScheme()
 
@@ -99,14 +99,14 @@ func NewChannelVariableKeyUnsafe(name, description string, packetPayloadLength,
 	}
 
 	return &Channel{
-		ReceptionID:         channelID,
-		Name:                name,
-		Description:         description,
-		Salt:                salt,
-		RsaPubKeyHash:       pubkeyHash,
-		Secret:              secret,
-		RsaPubKeyLength:     keysize,
-		RSASubPayloads: 	 numSubpayloads,
+		ReceptionID:     channelID,
+		Name:            name,
+		Description:     description,
+		Salt:            salt,
+		RsaPubKeyHash:   pubkeyHash,
+		Secret:          secret,
+		RsaPubKeyLength: keysize,
+		RSASubPayloads:  numSubpayloads,
 	}, pk, nil
 }
 
@@ -123,7 +123,6 @@ func (c *Channel) Marshal() ([]byte, error) {
 func (c *Channel) label() []byte {
 	return append([]byte(c.Name), []byte(c.Description)...)
 }
-
 
 // NewChannelID creates a new channel ID, the resulting 32 byte
 // identity is derived like this:
@@ -165,8 +164,6 @@ func NewChannelID(name, description string, salt, rsaPubHash, secret []byte) (*i
 	return sid, nil
 }
 
-
-
 func (c *Channel) MarshalJson() ([]byte, error) {
 	return json.Marshal(c)
 
@@ -202,45 +199,45 @@ func (c *Channel) PrettyPrint() string {
 // a valid pretty printed Channel serialization via the
 // PrettyPrint method.
 func NewChannelFromPrettyPrint(p string) (*Channel, error) {
-	fields := strings.FieldsFunc(p,split)
+	fields := strings.FieldsFunc(p, split)
 	if len(fields) != 10 {
+		fmt.Println("bad length")
 		return nil, ErrMalformedPrettyPrintedChannel
 	}
 
-
-	salt, err := base64.StdEncoding.DecodeString(string(fields[6]))
+	salt, err := base64.StdEncoding.DecodeString(fields[5])
 	if err != nil {
 		return nil, ErrMalformedPrettyPrintedChannel
 	}
 
-	rsaPubKeyHash, err := base64.StdEncoding.DecodeString(string(fields[7]))
+	rsaPubKeyHash, err := base64.StdEncoding.DecodeString(fields[6])
 	if err != nil {
 		return nil, ErrMalformedPrettyPrintedChannel
 	}
 
-	rsaPubKeyLength, err := strconv.Atoi(fields[8])
+	rsaPubKeyLength, err := strconv.Atoi(fields[7])
 	if err != nil {
 		return nil, ErrMalformedPrettyPrintedChannel
 	}
 
-	rsaSubPayloads, err := strconv.Atoi(fields[10])
+	rsaSubPayloads, err := strconv.Atoi(fields[8])
 	if err != nil {
 		return nil, ErrMalformedPrettyPrintedChannel
 	}
 
-	secret, err := base64.StdEncoding.DecodeString(string(fields[11][:len(fields[11])-1]))
+	secret, err := base64.StdEncoding.DecodeString(fields[9])
 	if err != nil {
 		return nil, ErrMalformedPrettyPrintedChannel
 	}
 
 	c := &Channel{
-		Name:                fields[1],
-		Description:         fields[3],
-		Salt:                salt,
-		RsaPubKeyHash:       rsaPubKeyHash,
-		RsaPubKeyLength:     rsaPubKeyLength,
-		RSASubPayloads: 	 rsaSubPayloads,
-		Secret:              secret,
+		Name:            fields[1],
+		Description:     fields[3],
+		Salt:            salt,
+		RsaPubKeyHash:   rsaPubKeyHash,
+		RsaPubKeyLength: rsaPubKeyLength,
+		RSASubPayloads:  rsaSubPayloads,
+		Secret:          secret,
 	}
 
 	c.ReceptionID, err = NewChannelID(c.Name, c.Description, c.Salt, c.RsaPubKeyHash, c.Secret)
@@ -251,6 +248,6 @@ func NewChannelFromPrettyPrint(p string) (*Channel, error) {
 	return c, nil
 }
 
-func split(r rune)bool{
-	return r==',' || r == ':'
+func split(r rune) bool {
+	return r == ',' || r == ':' || r == '>'
 }
