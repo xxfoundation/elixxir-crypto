@@ -209,6 +209,19 @@ func TestRChanel_Marshal_Unmarshal(t *testing.T) {
 	}
 }
 
+func TestNewChannel_Verify(t *testing.T) {
+	rng := csprng.NewSystemRNG()
+
+	name := "Asymmetric channel"
+	desc := "Asymmetric channel description"
+
+	ac, _, _ := NewChannel(name, desc, 1000, rng)
+
+	if !ac.Verify(){
+		t.Fatalf("Channel ID should have verified")
+	}
+}
+
 func TestChannel_Verify_Happy(t *testing.T) {
 	rng := csprng.NewSystemRNG()
 	packetSize := 1000

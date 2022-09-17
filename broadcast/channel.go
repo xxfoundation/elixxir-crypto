@@ -94,7 +94,7 @@ func NewChannelVariableKeyUnsafe(name, description string, packetPayloadLength,
 
 	pubkeyHash := HashPubKey(pk.Public())
 
-	channelID, err := NewChannelID(name, description, salt, pubkeyHash, secret)
+	channelID, err := NewChannelID(name, description, salt, pubkeyHash, HashSecret(secret))
 	if err != nil {
 		return nil, nil, err
 	}
