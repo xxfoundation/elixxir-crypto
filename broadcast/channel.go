@@ -135,8 +135,6 @@ func (c *Channel)Verify() bool {
 			"channel generation: %+v", err)
 		return false
 	}
-	fmt.Println(gen)
-	fmt.Println(c.ReceptionID)
 	return c.ReceptionID.Cmp(gen)
 }
 
