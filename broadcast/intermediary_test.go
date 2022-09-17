@@ -3,6 +3,7 @@ package broadcast
 import (
 	"bytes"
 	"encoding/hex"
+	"gitlab.com/elixxir/crypto/rsa"
 	"hash"
 	"io"
 	"testing"
@@ -12,7 +13,6 @@ import (
 	"golang.org/x/crypto/hkdf"
 
 	"gitlab.com/xx_network/crypto/csprng"
-	"gitlab.com/xx_network/crypto/signature/rsa"
 	"gitlab.com/xx_network/primitives/id"
 )
 
@@ -72,8 +72,8 @@ func TestChannel_deriveIntermediary(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-
-	privateKey, err := rsa.GenerateKey(rng, 4096)
+	s := rsa.GetScheme()
+	privateKey, err := s.Generate(rng, 4096)
 	if err != nil {
 		panic(err)
 	}
@@ -84,7 +84,7 @@ func TestChannel_deriveIntermediary(t *testing.T) {
 		panic(err)
 	}
 
-	intermediary := deriveIntermediary(name, description, salt, hashSecret(privateKey.GetPublic().Bytes()), hashSecret(secret))
+	intermediary := deriveIntermediary(name, description, salt, hashPubKey(privateKey.Public()), hashSecret(secret))
 
 	hkdfHash := func() hash.Hash {
 		hash, err := blake2b.New256(nil)
@@ -104,7 +104,7 @@ func TestChannel_deriveIntermediary(t *testing.T) {
 	copy(sid[:], identityBytes)
 	sid.SetType(id.User)
 
-	rid, err := NewChannelID(name, description, salt, hashSecret(privateKey.GetPublic().Bytes()), secret)
+	rid, err := NewChannelID(name, description, salt, hashPubKey(privateKey.Public()), secret)
 	if err != nil {
 		panic(err)
 	}
