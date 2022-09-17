@@ -88,7 +88,7 @@ func TestSymmetric_Marshal_UnmarshalSymmetric(t *testing.T) {
 		Name:          "MyChannel",
 		Description:   "Channel for channel stuff.",
 		Salt:          cmix.NewSalt(csprng.Source(&csprng.SystemRNG{}), 32),
-		RsaPubKeyHash: hashSecret(oldRsa.CreatePublicKeyPem(pubKey.GetOldRSA())),
+		RsaPubKeyHash: HashSecret(oldRsa.CreatePublicKeyPem(pubKey.GetOldRSA())),
 	}
 
 	data, err := s.Marshal()

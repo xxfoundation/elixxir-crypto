@@ -7,17 +7,17 @@ import (
 	"hash"
 )
 
-// secret is hashed first so that
+// HashSecret secret is hashed first so that
 // we can share all the inputs to the
 // hkdf without giving out the secret.
-func hashSecret(secret []byte) []byte {
+func HashSecret(secret []byte) []byte {
 	h, _ := channelHash(nil)
 	h.Write(secret)
 	return h.Sum(nil)
 }
 
-// hashPubKey is used to compute the hash of the RSA Public Key
-func hashPubKey(pub rsa.PublicKey) []byte {
+// HashPubKey is used to compute the hash of the RSA Public Key
+func HashPubKey(pub rsa.PublicKey) []byte {
 	h, _ := channelHash(nil)
 	h.Write(pub.GetN().Bytes())
 	ebytes := make([]byte,rsa.ELength)

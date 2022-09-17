@@ -121,7 +121,7 @@ func NewSymmetricKey(name, description string, salt, rsaPubHash,
 	hkdf := hkdf.New(hkdfHash,
 		secret,
 		deriveIntermediary(name, description, salt, rsaPubHash,
-			hashSecret(secret)), []byte(hkdfInfo))
+			HashSecret(secret)), []byte(hkdfInfo))
 
 	// 256 bits of entropy
 	key := make([]byte, 32)

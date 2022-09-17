@@ -26,7 +26,7 @@ func TestChannel_deriveIntermediary_vector(t *testing.T) {
 	secret, err := hex.DecodeString("fec630412265ee468055455c8bf52dbcb40ae79eb3d243db1373383b8073ffcd")
 	require.NoError(t, err)
 
-	intermediary := deriveIntermediary(name, description, salt, hashedPubKey, hashSecret(secret))
+	intermediary := deriveIntermediary(name, description, salt, hashedPubKey, HashSecret(secret))
 	wantIntermediary, err := hex.DecodeString("a5300894d57215d6835c5cc41354e12a52cd1c4c186fb188a122a0e607adf188")
 	require.NoError(t, err)
 	require.Equal(t, wantIntermediary, intermediary)
@@ -84,7 +84,7 @@ func TestChannel_deriveIntermediary(t *testing.T) {
 		panic(err)
 	}
 
-	intermediary := deriveIntermediary(name, description, salt, hashPubKey(privateKey.Public()), hashSecret(secret))
+	intermediary := deriveIntermediary(name, description, salt, HashPubKey(privateKey.Public()), HashSecret(secret))
 
 	hkdfHash := func() hash.Hash {
 		hash, err := blake2b.New256(nil)
@@ -104,7 +104,7 @@ func TestChannel_deriveIntermediary(t *testing.T) {
 	copy(sid[:], identityBytes)
 	sid.SetType(id.User)
 
-	rid, err := NewChannelID(name, description, salt, hashPubKey(privateKey.Public()), secret)
+	rid, err := NewChannelID(name, description, salt, HashPubKey(privateKey.Public()), secret)
 	if err != nil {
 		panic(err)
 	}

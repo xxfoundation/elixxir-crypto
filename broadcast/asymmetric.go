@@ -12,7 +12,7 @@ import (
 // IsPublicKey returns true if the passed public key is the public key for the
 // given channel
 func (c *Channel) IsPublicKey(publicKey rsa.PublicKey) bool {
-	if bytes.Equal(c.RsaPubKeyHash, hashPubKey(publicKey)) {
+	if bytes.Equal(c.RsaPubKeyHash, HashPubKey(publicKey)) {
 		return true
 	}
 	return false

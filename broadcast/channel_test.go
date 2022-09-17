@@ -12,6 +12,7 @@ import (
 	"gitlab.com/elixxir/crypto/rsa"
 	"gitlab.com/xx_network/crypto/csprng"
 	oldRsa "gitlab.com/xx_network/crypto/signature/rsa"
+	"gitlab.com/xx_network/primitives/id"
 	"reflect"
 	"testing"
 )
@@ -33,14 +34,14 @@ func TestChannel_PrettyPrint(t *testing.T) {
 
 	pubKeyPem := oldRsa.CreatePublicKeyPem(pk.Public().GetOldRSA())
 
-	rid, err := NewChannelID(name, desc, secret, salt, hashSecret(pubKeyPem))
+	rid, err := NewChannelID(name, desc, secret, salt, HashSecret(pubKeyPem))
 	channel1 := Channel{
 		Secret:        secret,
 		ReceptionID:   rid,
 		Name:          name,
 		Description:   desc,
 		Salt:          salt,
-		RsaPubKeyHash: hashSecret(pubKeyPem),
+		RsaPubKeyHash: HashSecret(pubKeyPem),
 	}
 
 	pretty1 := channel1.PrettyPrint()
@@ -77,13 +78,13 @@ func TestChannel_MarshalJson(t *testing.T) {
 	}
 
 	pubKeyPem := oldRsa.CreatePublicKeyPem(pk.Public().GetOldRSA())
-	rid, err := NewChannelID(name, desc, secret, salt, hashSecret(pubKeyPem))
+	rid, err := NewChannelID(name, desc, secret, salt, HashSecret(pubKeyPem))
 	channel := Channel{
 		ReceptionID:   rid,
 		Name:          name,
 		Description:   desc,
 		Salt:          salt,
-		RsaPubKeyHash: hashSecret(pubKeyPem),
+		RsaPubKeyHash: HashSecret(pubKeyPem),
 	}
 
 	// Marshal data
@@ -183,14 +184,14 @@ func TestRChanel_Marshal_Unmarshal(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rid, err := NewChannelID(name, desc, secret, salt, hashPubKey(pk.Public()))
+	rid, err := NewChannelID(name, desc, secret, salt, HashPubKey(pk.Public()))
 	ac := &Channel{
 		RsaPubKeyLength: 528,
 		ReceptionID:     rid,
 		Name:            name,
 		Description:     desc,
 		Salt:            salt,
-		RsaPubKeyHash:   hashPubKey(pk.Public()),
+		RsaPubKeyHash:   HashPubKey(pk.Public()),
 	}
 
 	marshalled, err := ac.Marshal()
@@ -205,5 +206,120 @@ func TestRChanel_Marshal_Unmarshal(t *testing.T) {
 
 	if !reflect.DeepEqual(ac, unmarshalled) {
 		t.Errorf("Did not receive expected asymmetric channel\n\tExpected: %+v\n\tReceived: %+v\n", ac, unmarshalled)
+	}
+}
+
+func TestChannel_Verify_Happy(t *testing.T) {
+	rng := csprng.NewSystemRNG()
+	packetSize := 1000
+	keysize, _ := calculateKeySize(packetSize, packetSize)
+	keysize = keysize * 8
+
+	s := rsa.GetScheme()
+	pk, err := s.Generate(rng, keysize)
+	if err != nil {
+		t.Fatalf("Failed to generate private key: %+v", err)
+	}
+	name := "Asymmetric channel"
+	desc := "Asymmetric channel description"
+	salt := cmix.NewSalt(rng, 512)
+	secret := make([]byte, 32)
+	_, err = rng.Read(secret)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	hashedSecret := HashSecret(secret)
+	hashedPubkey := HashPubKey(pk.Public())
+
+	rid, err := NewChannelID(name, desc, salt, hashedPubkey, hashedSecret)
+	ac := &Channel{
+		RsaPubKeyLength: 528,
+		ReceptionID:     rid,
+		Name:            name,
+		Description:     desc,
+		Salt:            salt,
+		Secret: 		secret,
+		RsaPubKeyHash:  hashedPubkey,
+	}
+
+	if !ac.Verify(){
+		t.Fatalf("Channel ID should have verified")
+	}
+}
+
+func TestChannel_Verify_Fail_BadVerify(t *testing.T) {
+	rng := csprng.NewSystemRNG()
+	packetSize := 1000
+	keysize, _ := calculateKeySize(packetSize, packetSize)
+	keysize = keysize * 8
+
+	s := rsa.GetScheme()
+	pk, err := s.Generate(rng, keysize)
+	if err != nil {
+		t.Fatalf("Failed to generate private key: %+v", err)
+	}
+	name := "Asymmetric channel"
+	desc := "Asymmetric channel description"
+	salt := cmix.NewSalt(rng, 512)
+	secret := make([]byte, 32)
+	_, err = rng.Read(secret)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	hashedPubkey := HashPubKey(pk.Public())
+
+	ac := &Channel{
+		RsaPubKeyLength: 528,
+		ReceptionID:     &id.ID{},
+		Name:            name,
+		Description:     desc,
+		Salt:            salt,
+		Secret: 		secret,
+		RsaPubKeyHash:  hashedPubkey,
+	}
+
+	if ac.Verify(){
+		t.Fatalf("Channel ID should not have verified")
+	}
+}
+
+func TestChannel_Verify_BadGeneration(t *testing.T) {
+	rng := csprng.NewSystemRNG()
+	packetSize := 1000
+	keysize, _ := calculateKeySize(packetSize, packetSize)
+	keysize = keysize * 8
+
+	s := rsa.GetScheme()
+	pk, err := s.Generate(rng, keysize)
+	if err != nil {
+		t.Fatalf("Failed to generate private key: %+v", err)
+	}
+	name := "Asymmetric channel"
+	desc := "Asymmetric channel description"
+	salt := cmix.NewSalt(rng, 512)
+	secret := make([]byte, 32)
+	_, err = rng.Read(secret)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	hashedSecret := HashSecret(secret)
+	hashedPubkey := HashPubKey(pk.Public())
+
+	rid, err := NewChannelID(name, desc, salt, hashedPubkey, hashedSecret)
+	ac := &Channel{
+		RsaPubKeyLength: 528,
+		ReceptionID:     rid,
+		Name:            name,
+		Description:     desc,
+		Salt:            []byte{69},
+		Secret: 		secret,
+		RsaPubKeyHash:  hashedPubkey,
+	}
+
+	if ac.Verify(){
+		t.Fatalf("Channel ID should not have verified")
 	}
 }
