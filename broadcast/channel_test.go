@@ -137,7 +137,7 @@ func TestChannel_NewChannelIDSecretLength(t *testing.T) {
 	name := "mychannelname"
 	description := "my channel description"
 	rng := csprng.NewSystemRNG()
-	salt := make([]byte, 24)
+	salt := make([]byte, saltSize)
 	_, err := rng.Read(salt)
 	if err != nil {
 		t.Fatal(err)
@@ -148,7 +148,7 @@ func TestChannel_NewChannelIDSecretLength(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	secret := make([]byte, 32)
+	secret := make([]byte, secretSize)
 	_, err = rng.Read(secret)
 	if err != nil {
 		t.Fatal(err)
@@ -236,8 +236,8 @@ func TestChannel_Verify_Happy(t *testing.T) {
 	}
 	name := "Asymmetric channel"
 	desc := "Asymmetric channel description"
-	salt := cmix.NewSalt(rng, 512)
-	secret := make([]byte, 32)
+	salt := cmix.NewSalt(rng, saltSize)
+	secret := make([]byte, secretSize)
 	_, err = rng.Read(secret)
 	if err != nil {
 		t.Fatal(err)
