@@ -81,8 +81,6 @@ func NewChannelVariableKeyUnsafe(name, description string, packetPayloadLength,
 	keysize, numSubpayloads := calculateKeySize(packetPayloadLength,
 		maxKeySizeBits/8)
 
-	fmt.Println(keysize)
-
 	s := rsa.GetScheme()
 
 	// multiply the keysize by 8 because generate expects keysize in
