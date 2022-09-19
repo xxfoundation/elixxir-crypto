@@ -27,8 +27,7 @@ func init() {
 	// Print with both jww and fmt to ensure that the message is seen
 	msg := fmt.Sprintf("Using %d-bit RSA key size due to performance issues "+
 		"with key generation in WebAssembly. This is not safe and not "+
-		"generally compatible", DefaultRSABitLen)
+		"generally compatible", defaultRSABitLen)
 	fmt.Println(msg)
 	jww.CRITICAL.Print(msg)
 }
-
