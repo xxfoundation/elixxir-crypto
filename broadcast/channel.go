@@ -67,11 +67,21 @@ func NewChannel(name, description string, packetPayloadLength int,
 // NewChannelVariableKeyUnsafe creates a new channel with a variable rsa keysize calculated to
 // optimally use space in the packer.
 // Do not use unless you know what you are doing
+// maxKeySizeBits received the number of the length of RSA key defining the
+// channel in bits, it must be divisible by 8
+// packetPayloadLength is in bytes
 func NewChannelVariableKeyUnsafe(name, description string, packetPayloadLength,
-	maxKeysize int, rng csprng.Source) (*Channel, rsa.PrivateKey, error) {
+	maxKeySizeBits int, rng csprng.Source) (*Channel, rsa.PrivateKey, error) {
+
+	if maxKeySizeBits%8!=0{
+		return nil, nil, errors.New("maxKeySizeBits must be divisible by 8")
+	}
 
 	//get the key size and the number of fields
-	keysize, numSubpayloads := calculateKeySize(packetPayloadLength, maxKeysize)
+	keysize, numSubpayloads := calculateKeySize(packetPayloadLength,
+		maxKeySizeBits/8)
+
+	fmt.Println(keysize)
 
 	s := rsa.GetScheme()
 
