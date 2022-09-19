@@ -49,7 +49,7 @@ func TestChannel_deriveIntermediary_vector(t *testing.T) {
 	copy(sid[:], identityBytes)
 	sid.SetType(id.User)
 
-	rid, err := NewChannelID(name, description, salt, hashedPubKey, secret)
+	rid, err := NewChannelID(name, description, salt, hashedPubKey, HashSecret(secret))
 	if err != nil {
 		panic(err)
 	}
@@ -67,7 +67,7 @@ func TestChannel_deriveIntermediary(t *testing.T) {
 	name := "mychannelname"
 	description := "my channel description"
 	rng := csprng.NewSystemRNG()
-	salt := make([]byte, 24)
+	salt := make([]byte, 32)
 	_, err := rng.Read(salt)
 	if err != nil {
 		panic(err)
@@ -104,7 +104,7 @@ func TestChannel_deriveIntermediary(t *testing.T) {
 	copy(sid[:], identityBytes)
 	sid.SetType(id.User)
 
-	rid, err := NewChannelID(name, description, salt, HashPubKey(privateKey.Public()), secret)
+	rid, err := NewChannelID(name, description, salt, HashPubKey(privateKey.Public()), HashSecret(secret))
 	if err != nil {
 		panic(err)
 	}

@@ -19,29 +19,14 @@ import (
 
 func TestChannel_PrettyPrint(t *testing.T) {
 	rng := csprng.NewSystemRNG()
-	pk, err := rsa.GetScheme().Generate(rng, 4096)
-	if err != nil {
-		t.Fatalf("Failed to generate private key: %+v", err)
-	}
+
 	name := "Test Channel"
 	desc := "This is a test channel"
-	salt := cmix.NewSalt(rng, 32)
-	secret := make([]byte, 32)
-	_, err = rng.Read(secret)
-	if err != nil {
-		t.Fatal(err)
-	}
 
-	pubKeyPem := oldRsa.CreatePublicKeyPem(pk.Public().GetOldRSA())
 
-	rid, err := NewChannelID(name, desc, secret, salt, HashSecret(pubKeyPem))
-	channel1 := Channel{
-		Secret:        secret,
-		ReceptionID:   rid,
-		Name:          name,
-		Description:   desc,
-		Salt:          salt,
-		RsaPubKeyHash: HashSecret(pubKeyPem),
+	channel1, _, err := NewChannel(name, desc, 1000, rng)
+	if err!=nil{
+		t.Fatalf(err.Error())
 	}
 
 	pretty1 := channel1.PrettyPrint()
@@ -60,6 +45,10 @@ func TestChannel_PrettyPrint(t *testing.T) {
 			"\nReceived: %s", pretty1, pretty2)
 	}
 
+	//verify the new channel made from the pretty print is
+	if !channel2.Verify(){
+		t.Errorf("the channel failed to verify")
+	}
 }
 
 func TestChannel_MarshalJson(t *testing.T) {
@@ -131,38 +120,6 @@ func TestChannel_MarshalJson(t *testing.T) {
 			"\nReceived: %+v", channel.Description, newChannel.Description)
 	}
 
-}
-
-func TestChannel_NewChannelIDSecretLength(t *testing.T) {
-	name := "mychannelname"
-	description := "my channel description"
-	rng := csprng.NewSystemRNG()
-	salt := make([]byte, saltSize)
-	_, err := rng.Read(salt)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	privateKey, err := rsa.GetScheme().Generate(rng, 4096)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	secret := make([]byte, secretSize)
-	_, err = rng.Read(secret)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	_, err = NewChannelID(name, description, salt, privateKey.GetOldRSA().GetN().Bytes(), secret)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	_, err = NewChannelID(name, description, salt, privateKey.GetOldRSA().GetN().Bytes(), []byte("1234567"))
-	if err == nil {
-		t.Fatal()
-	}
 }
 
 func TestRChanel_Marshal_Unmarshal(t *testing.T) {

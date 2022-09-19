@@ -156,12 +156,7 @@ func (c *Channel)Verify() bool {
 //
 // intermediary = H(name | description | rsaPubHash | hashedSecret | salt)
 // identityBytes = HKDF(intermediary, salt, hkdfInfo)
-func NewChannelID(name, description string, salt, rsaPubHash, secret []byte) (*id.ID, error) {
-
-	if len(secret) != secretSize {
-		return nil, ErrSecretSizeIncorrect
-	}
-
+func NewChannelID(name, description string, salt, rsaPubHash, secretHash []byte) (*id.ID, error) {
 	if len(salt) != saltSize {
 		return nil, ErrSaltSizeIncorrect
 	}
@@ -174,8 +169,9 @@ func NewChannelID(name, description string, salt, rsaPubHash, secret []byte) (*i
 		return hash
 	}
 
+	intermediary := deriveIntermediary(name, description, salt, rsaPubHash, secretHash)
 	hkdf1 := hkdf.New(hkdfHash,
-		deriveIntermediary(name, description, salt, rsaPubHash, HashSecret(secret)),
+		intermediary,
 		salt,
 		[]byte(hkdfInfo))
 
@@ -271,7 +267,8 @@ func NewChannelFromPrettyPrint(p string) (*Channel, error) {
 		Secret:          secret,
 	}
 
-	c.ReceptionID, err = NewChannelID(c.Name, c.Description, c.Salt, c.RsaPubKeyHash, c.Secret)
+	c.ReceptionID, err = NewChannelID(c.Name, c.Description, c.Salt,
+		c.RsaPubKeyHash, HashSecret(c.Secret))
 	if err != nil {
 		return nil, ErrMalformedPrettyPrintedChannel
 	}
