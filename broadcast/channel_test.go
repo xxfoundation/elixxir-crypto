@@ -23,9 +23,9 @@ func TestChannel_PrettyPrint(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to generate private key: %+v", err)
 	}
-	name := "Asymmetric channel"
-	desc := "Asymmetric channel description"
-	salt := cmix.NewSalt(rng, 512)
+	name := "Test Channel"
+	desc := "This is a test channel"
+	salt := cmix.NewSalt(rng, 32)
 	secret := make([]byte, 32)
 	_, err = rng.Read(secret)
 	if err != nil {
@@ -45,6 +45,7 @@ func TestChannel_PrettyPrint(t *testing.T) {
 	}
 
 	pretty1 := channel1.PrettyPrint()
+	t.Log(pretty1)
 
 	channel2, err := NewChannelFromPrettyPrint(pretty1)
 	if err != nil {

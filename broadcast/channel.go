@@ -25,12 +25,17 @@ const (
 	version  = 1
 	hkdfInfo = "XX_Network_Broadcast_Channel_HKDF_Blake2b"
 	labelConstant = "XX_Network_Broadcast_Channel_Constant"
+	saltSize = 32 //256 bits
+	secretSize = 32 //256 bits
 )
 
 var channelHash = blake2b.New256
 
 // ErrSecretSizeIncorrect indicates an incorrect sized secret.
 var ErrSecretSizeIncorrect = errors.New("NewChannelID secret must be 32 bytes long.")
+
+// ErrSaltSizeIncorrect indicates an incorrect sized salt.
+var ErrSaltSizeIncorrect = errors.New("NewChannelID salt must be 32 bytes long.")
 
 // ErrPayloadLengthIsOdd indicates an odd packet payload length.
 var ErrPayloadLengthIsOdd = errors.New("Packet payload length must be even.")
@@ -89,9 +94,9 @@ func NewChannelVariableKeyUnsafe(name, description string, packetPayloadLength,
 	if err != nil {
 		return nil, nil, err
 	}
-	salt := cmix.NewSalt(rng, 512)
+	salt := cmix.NewSalt(rng, saltSize)
 
-	secret := make([]byte, 32)
+	secret := make([]byte, secretSize)
 	n, err := rng.Read(secret)
 	if err != nil {
 		jww.FATAL.Panic(err)
@@ -153,8 +158,12 @@ func (c *Channel)Verify() bool {
 // identityBytes = HKDF(intermediary, salt, hkdfInfo)
 func NewChannelID(name, description string, salt, rsaPubHash, secret []byte) (*id.ID, error) {
 
-	if len(secret) != 32 {
+	if len(secret) != secretSize {
 		return nil, ErrSecretSizeIncorrect
+	}
+
+	if len(salt) != saltSize {
+		return nil, ErrSaltSizeIncorrect
 	}
 
 	hkdfHash := func() hash.Hash {
