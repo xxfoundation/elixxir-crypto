@@ -210,7 +210,7 @@ func (c *Channel) UnmarshalJson(b []byte) error {
 // erewerwee","qw432432sdfserfwerewrwerewrewrwerewrwerewerwee","qw432432sdfserfwerewrwerewrewrwerewrwerewerwee",>
 func (c *Channel) PrettyPrint() string {
 	var b strings.Builder
-	fmt.Fprintf(&b, "<XXChannel-v%d:%s,description:%s,secrets:%s,%s,%d,%d,%s>",
+	fmt.Fprintf(&b, "<Speakeasy-v%d:%s,description:%s,secrets:%s,%s,%d,%d,%s>",
 		version,
 		c.Name,
 		c.Description,
