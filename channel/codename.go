@@ -93,7 +93,7 @@ func generateColor(h hash.Hash, data []byte)string{
 
 func generateExtension(h hash.Hash, data []byte)string{
 	data = hasher(h, data, extensionSalt)
-	return base64.StdEncoding.EncodeToString(data)
+	return base64.StdEncoding.EncodeToString(data)[:30]
 }
 
 func hasher(h hash.Hash, data []byte, c string)[]byte{
