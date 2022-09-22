@@ -12,8 +12,9 @@ func TestConstructIdentity(t *testing.T) {
 	codenames := make([]string, 0, numtests)
 
 	for i:=0;i<numtests;i++{
-		_, id, _ := GenerateIdentity(rng)
-		codenames = append(codenames, id.Codename + "#" + id.Extension + id.Color)
+		id, _ := GenerateIdentity(rng)
+		codenames = append(codenames, id.Codename + "#" + id.Extension +
+			id.Color)
 	}
 
 	for i:=0;i<numtests;i++{
