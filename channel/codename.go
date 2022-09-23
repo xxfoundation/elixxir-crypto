@@ -30,9 +30,9 @@ type sampler struct{
 
 
 var honorifics = sampler{
-	sampleFrom:       [][]string{articleEng},
+	sampleFrom:       [][]string{engHonorifics},
 	bitDepthLanguage: 0,
-	bitDepthEach:     []uint8{getBitDepth(len(articleEng))},
+	bitDepthEach:     []uint8{getBitDepth(len(engHonorifics))},
 }
 
 var adjectives = sampler{
