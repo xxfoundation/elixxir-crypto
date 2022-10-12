@@ -11,12 +11,11 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/jwalterweatherman v1.1.0
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.8.0
 	gitlab.com/elixxir/primitives v0.0.3-0.20220606195757-40f7a589347f
 	gitlab.com/xx_network/crypto v0.0.5-0.20220913213008-98764f5b3287
 	gitlab.com/xx_network/primitives v0.0.4-0.20220809193445-9fc0a5209548
+	gitlab.com/yawning/nyquist.git v0.0.0-20221003103146-de5645224a22 // indirect
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
-	golang.org/x/sys v0.0.0-20220728004956-3c1f35247d10 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
