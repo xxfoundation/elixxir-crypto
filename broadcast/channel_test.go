@@ -23,9 +23,8 @@ func TestChannel_PrettyPrint(t *testing.T) {
 	name := "Test Channel"
 	desc := "This is a test channel"
 
-
 	channel1, _, err := NewChannel(name, desc, 1000, rng)
-	if err!=nil{
+	if err != nil {
 		t.Fatalf(err.Error())
 	}
 
@@ -45,8 +44,8 @@ func TestChannel_PrettyPrint(t *testing.T) {
 			"\nReceived: %s", pretty1, pretty2)
 	}
 
-	//verify the new channel made from the pretty print is
-	if !channel2.Verify(){
+	// Verify the new channel made from the pretty print is
+	if !channel2.Verify() {
 		t.Errorf("the channel failed to verify")
 	}
 }
@@ -125,11 +124,11 @@ func TestChannel_MarshalJson(t *testing.T) {
 func TestRChanel_Marshal_Unmarshal(t *testing.T) {
 	rng := csprng.NewSystemRNG()
 	packetSize := 1000
-	keysize, _ := calculateKeySize(packetSize, packetSize)
-	keysize = keysize * 8
+	keySize, _ := calculateKeySize(packetSize, packetSize)
+	keySize = keySize * 8
 
 	s := rsa.GetScheme()
-	pk, err := s.Generate(rng, keysize)
+	pk, err := s.Generate(rng, keySize)
 	if err != nil {
 		t.Fatalf("Failed to generate private key: %+v", err)
 	}
@@ -175,7 +174,7 @@ func TestNewChannel_Verify(t *testing.T) {
 
 	ac, _, _ := NewChannel(name, desc, 1000, rng)
 
-	if !ac.Verify(){
+	if !ac.Verify() {
 		t.Fatalf("Channel ID should have verified")
 	}
 }
@@ -183,11 +182,11 @@ func TestNewChannel_Verify(t *testing.T) {
 func TestChannel_Verify_Happy(t *testing.T) {
 	rng := csprng.NewSystemRNG()
 	packetSize := 1000
-	keysize, _ := calculateKeySize(packetSize, packetSize)
-	keysize = keysize * 8
+	keySize, _ := calculateKeySize(packetSize, packetSize)
+	keySize = keySize * 8
 
 	s := rsa.GetScheme()
-	pk, err := s.Generate(rng, keysize)
+	pk, err := s.Generate(rng, keySize)
 	if err != nil {
 		t.Fatalf("Failed to generate private key: %+v", err)
 	}
@@ -210,11 +209,11 @@ func TestChannel_Verify_Happy(t *testing.T) {
 		Name:            name,
 		Description:     desc,
 		Salt:            salt,
-		Secret: 		secret,
-		RsaPubKeyHash:  hashedPubkey,
+		Secret:          secret,
+		RsaPubKeyHash:   hashedPubkey,
 	}
 
-	if !ac.Verify(){
+	if !ac.Verify() {
 		t.Fatalf("Channel ID should have verified")
 	}
 }
@@ -222,11 +221,11 @@ func TestChannel_Verify_Happy(t *testing.T) {
 func TestChannel_Verify_Fail_BadVerify(t *testing.T) {
 	rng := csprng.NewSystemRNG()
 	packetSize := 1000
-	keysize, _ := calculateKeySize(packetSize, packetSize)
-	keysize = keysize * 8
+	keySize, _ := calculateKeySize(packetSize, packetSize)
+	keySize = keySize * 8
 
 	s := rsa.GetScheme()
-	pk, err := s.Generate(rng, keysize)
+	pk, err := s.Generate(rng, keySize)
 	if err != nil {
 		t.Fatalf("Failed to generate private key: %+v", err)
 	}
@@ -247,11 +246,11 @@ func TestChannel_Verify_Fail_BadVerify(t *testing.T) {
 		Name:            name,
 		Description:     desc,
 		Salt:            salt,
-		Secret: 		secret,
-		RsaPubKeyHash:  hashedPubkey,
+		Secret:          secret,
+		RsaPubKeyHash:   hashedPubkey,
 	}
 
-	if ac.Verify(){
+	if ac.Verify() {
 		t.Fatalf("Channel ID should not have verified")
 	}
 }
@@ -259,11 +258,11 @@ func TestChannel_Verify_Fail_BadVerify(t *testing.T) {
 func TestChannel_Verify_BadGeneration(t *testing.T) {
 	rng := csprng.NewSystemRNG()
 	packetSize := 1000
-	keysize, _ := calculateKeySize(packetSize, packetSize)
-	keysize = keysize * 8
+	keySize, _ := calculateKeySize(packetSize, packetSize)
+	keySize = keySize * 8
 
 	s := rsa.GetScheme()
-	pk, err := s.Generate(rng, keysize)
+	pk, err := s.Generate(rng, keySize)
 	if err != nil {
 		t.Fatalf("Failed to generate private key: %+v", err)
 	}
@@ -286,11 +285,11 @@ func TestChannel_Verify_BadGeneration(t *testing.T) {
 		Name:            name,
 		Description:     desc,
 		Salt:            []byte{69},
-		Secret: 		secret,
-		RsaPubKeyHash:  hashedPubkey,
+		Secret:          secret,
+		RsaPubKeyHash:   hashedPubkey,
 	}
 
-	if ac.Verify(){
+	if ac.Verify() {
 		t.Fatalf("Channel ID should not have verified")
 	}
 }
