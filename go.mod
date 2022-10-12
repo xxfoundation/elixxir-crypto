@@ -3,6 +3,7 @@ module gitlab.com/elixxir/crypto
 go 1.13
 
 require (
+	git.xx.network/elixxir/ctidh_cgo v0.0.0-20220929120408-d7b2cd265da7 // indirect
 	github.com/cloudflare/circl v1.1.0
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.5.8 // indirect

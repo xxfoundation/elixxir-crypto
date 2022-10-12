@@ -5,6 +5,14 @@ import (
 	"gitlab.com/yawning/nyquist.git/dh"
 )
 
+type Scheme interface {
+	// Encrypt encrypts the given plaintext as a Noise X message.
+	Encrypt(plaintext []byte, myStatic dh.Keypair, partnerStaticPubKey dh.PublicKey) []byte
+
+	// Decrypt decrypts the given ciphertext as a Noise X message.
+	Decrypt(ciphertext []byte, myStatic dh.Keypair, partnerStaticPubKey dh.PublicKey) ([]byte, error)
+}
+
 func Encrypt(plaintext []byte, myStatic dh.Keypair, partnerStaticPubKey dh.PublicKey) []byte {
 	protocol, err := nyquist.NewProtocol("Noise_X_25519_ChaChaPoly_BLAKE2s")
 	if err != nil {
