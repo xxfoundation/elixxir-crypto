@@ -8,9 +8,10 @@ package dm
 
 import (
 	jww "github.com/spf13/jwalterweatherman"
+	"gitlab.com/yawning/nyquist.git/dh"
+
 	"gitlab.com/elixxir/crypto/nike"
 	"gitlab.com/elixxir/crypto/nike/ecdh"
-	"gitlab.com/yawning/nyquist.git/dh"
 )
 
 func privateToNyquist(privKey nike.PrivateKey) dh.Keypair {
