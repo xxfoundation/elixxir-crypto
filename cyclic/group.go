@@ -104,7 +104,7 @@ func (g *Group) NewInt(x int64) *Int {
 func (g *Group) NewIntFromLargeInt(x *large.Int) *Int {
 	n := &Int{value: x, fingerprint: g.fingerprint}
 	if !g.Inside(n.value) {
-		panic("NewIntFromLargeInt: Attempted creation of cyclic outside of group")
+		jww.FATAL.Panic("NewIntFromLargeInt: Attempted creation of cyclic outside of group")
 	}
 	return n
 }
