@@ -9,9 +9,12 @@
 package ecdh
 
 import (
+	"crypto/ed25519"
+	"crypto/sha512"
 	"errors"
 	"runtime"
 
+	"filippo.io/edwards25519"
 	jww "github.com/spf13/jwalterweatherman"
 	"golang.org/x/crypto/curve25519"
 
@@ -139,6 +142,17 @@ func (p *PrivateKey) FromBytes(data []byte) error {
 	return nil
 }
 
+func (p *PrivateKey) FromEdwards(privateKey ed25519.PrivateKey) {
+	dhBytes := sha512.Sum512(privateKey[:32])
+	dhBytes[0] &= 248
+	dhBytes[31] &= 127
+	dhBytes[31] |= 64
+	err := p.FromBytes(dhBytes[:32])
+	if err != nil {
+		jww.FATAL.Panic(err)
+	}
+}
+
 // PublicKey is an implementation of the nike.PublicKey interface.
 type PublicKey struct {
 	publicKey []byte
@@ -166,4 +180,9 @@ func (p *PublicKey) FromBytes(data []byte) error {
 	}
 	p.publicKey = data
 	return nil
+}
+
+func (p *PublicKey) FromEdwards() {
+	ed_pub, _ := new(edwards25519.Point).SetBytes(p.Bytes())
+	p.FromBytes(ed_pub.BytesMontgomery())
 }
