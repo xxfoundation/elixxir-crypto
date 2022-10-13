@@ -26,8 +26,8 @@ type ecdhNIKE struct{}
 // X25519.
 var ECDHNIKE = &ecdhNIKE{}
 
-var _ nike.PrivateKey = (*privateKey)(nil)
-var _ nike.PublicKey = (*publicKey)(nil)
+var _ nike.PrivateKey = (*PrivateKey)(nil)
+var _ nike.PublicKey = (*PublicKey)(nil)
 var _ nike.Nike = (*ecdhNIKE)(nil)
 
 func (d *ecdhNIKE) PublicKeySize() int {
@@ -39,13 +39,13 @@ func (d *ecdhNIKE) PrivateKeySize() int {
 }
 
 func (d *ecdhNIKE) NewEmptyPrivateKey() nike.PrivateKey {
-	return &privateKey{
+	return &PrivateKey{
 		privateKey: []byte{},
 	}
 }
 
 func (d *ecdhNIKE) NewEmptyPublicKey() nike.PublicKey {
-	return &publicKey{
+	return &PublicKey{
 		publicKey: []byte{},
 	}
 }
@@ -84,35 +84,35 @@ func (d *ecdhNIKE) NewKeypair() (nike.PrivateKey, nike.PublicKey) {
 		jww.FATAL.Panic(err)
 	}
 
-	return &privateKey{
+	return &PrivateKey{
 			privateKey: privKey,
-		}, &publicKey{
+		}, &PublicKey{
 			publicKey: pubKey,
 		}
 }
 
 func (d *ecdhNIKE) DerivePublicKey(privKey nike.PrivateKey) nike.PublicKey {
-	pubKey, err := curve25519.X25519(privKey.(*privateKey).privateKey, curve25519.Basepoint)
+	pubKey, err := curve25519.X25519(privKey.(*PrivateKey).privateKey, curve25519.Basepoint)
 	if err != nil {
 		jww.FATAL.Panic(err)
 	}
-	return &publicKey{
+	return &PublicKey{
 		publicKey: pubKey,
 	}
 }
 
 // PrivateKey is an implementation of the nike.PrivateKey interface.
-type privateKey struct {
+type PrivateKey struct {
 	privateKey []byte
 }
 
-func (p *privateKey) Scheme() nike.Nike {
+func (p *PrivateKey) Scheme() nike.Nike {
 	return ECDHNIKE
 }
 
-func (p *privateKey) DeriveSecret(pubKey nike.PublicKey) []byte {
+func (p *PrivateKey) DeriveSecret(pubKey nike.PublicKey) []byte {
 	secret, err := curve25519.X25519(p.privateKey,
-		(pubKey.(*publicKey)).publicKey)
+		(pubKey.(*PublicKey)).publicKey)
 	if err != nil {
 		jww.FATAL.Panic(err)
 	}
@@ -120,18 +120,18 @@ func (p *privateKey) DeriveSecret(pubKey nike.PublicKey) []byte {
 }
 
 //go:noinline
-func (p *privateKey) Reset() {
+func (p *PrivateKey) Reset() {
 	for i := 0; i < len(p.privateKey); i++ {
 		p.privateKey[i] = 0
 	}
 	runtime.KeepAlive(p.privateKey)
 }
 
-func (p *privateKey) Bytes() []byte {
+func (p *PrivateKey) Bytes() []byte {
 	return p.privateKey
 }
 
-func (p *privateKey) FromBytes(data []byte) error {
+func (p *PrivateKey) FromBytes(data []byte) error {
 	if len(data) != ECDHNIKE.PrivateKeySize() {
 		return errors.New("invalid key size")
 	}
@@ -140,26 +140,26 @@ func (p *privateKey) FromBytes(data []byte) error {
 }
 
 // PublicKey is an implementation of the nike.PublicKey interface.
-type publicKey struct {
+type PublicKey struct {
 	publicKey []byte
 }
 
-func (p *publicKey) Scheme() nike.Nike {
+func (p *PublicKey) Scheme() nike.Nike {
 	return ECDHNIKE
 }
 
-func (p *publicKey) Reset() {
+func (p *PublicKey) Reset() {
 	for i := 0; i < len(p.publicKey); i++ {
 		p.publicKey[i] = 0
 	}
 	runtime.KeepAlive(p.publicKey)
 }
 
-func (p *publicKey) Bytes() []byte {
+func (p *PublicKey) Bytes() []byte {
 	return p.publicKey
 }
 
-func (p *publicKey) FromBytes(data []byte) error {
+func (p *PublicKey) FromBytes(data []byte) error {
 	if len(data) != ECDHNIKE.PublicKeySize() {
 		return errors.New("invalid key size")
 	}
