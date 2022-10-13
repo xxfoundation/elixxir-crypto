@@ -10,7 +10,6 @@
 package e2e
 
 import (
-	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/primitives/format"
@@ -33,8 +32,8 @@ func DeriveKey(basekey *cyclic.Int, keyNum uint32, salts ...[]byte) Key {
 	//get the hash
 	h, err := blake2b.New256(nil)
 	if err != nil {
-		jww.FATAL.Panic(fmt.Sprintf("Failed to create hash for "+
-			"DeriveKey: %s", err))
+		jww.FATAL.Panicf("Failed to create hash for "+
+			"DeriveKey: %s", err)
 	}
 
 	//derive the key
@@ -58,8 +57,8 @@ func DeriveKeyFingerprint(dhkey *cyclic.Int, keyNum uint32, salts ...[]byte) for
 	//get the hash
 	h, err := blake2b.New256(nil)
 	if err != nil {
-		jww.FATAL.Panic(fmt.Sprintf("Failed to create hash for "+
-			"DeriveKeyFingerprint(): %s", err))
+		jww.FATAL.Panicf("Failed to create hash for "+
+			"DeriveKeyFingerprint(): %s", err)
 	}
 	//derive the key
 	fpBytes := derive(h, data, keyNum, salts...)

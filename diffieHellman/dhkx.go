@@ -10,7 +10,6 @@
 package diffieHellman
 
 import (
-	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
 	"io"
 
@@ -35,7 +34,7 @@ func GeneratePrivateKey(size int, group *cyclic.Group, source io.Reader) *cyclic
 	k1, err := csprng.GenerateInGroup(group.GetPBytes(), size, source)
 
 	if err != nil {
-		jww.FATAL.Panic(fmt.Sprintf("Failed to generate key: %s", err.Error()))
+		jww.FATAL.Panicf("Failed to generate key: %s", err.Error())
 	}
 
 	privateKey := group.NewIntFromBytes(k1)
