@@ -21,7 +21,7 @@ func MakeRelationshipFingerprint(pubkeyA, pubkeyB *cyclic.Int, sender,
 	receiver *id.ID) []byte {
 	h, err := hash.NewCMixHash()
 	if err != nil {
-		panic(fmt.Sprintf("Failed to get hash to make relationship"+
+		jww.FATAL.Panic(fmt.Sprintf("Failed to get hash to make relationship"+
 			" fingerprint with: %s", err))
 	}
 

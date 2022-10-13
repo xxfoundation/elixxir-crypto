@@ -14,9 +14,10 @@ import (
 	"crypto"
 	"crypto/hmac"
 	"crypto/sha256"
+	"fmt"
+	jww "github.com/spf13/jwalterweatherman"
 	"golang.org/x/crypto/blake2b"
 	"hash"
-	"fmt"
 )
 
 // NewCMixHash returns the current cMix hash implementation
@@ -30,7 +31,7 @@ func NewCMixHash() (hash.Hash, error) {
 func DefaultHash() hash.Hash {
 	h, err := blake2b.New256(nil)
 	if err != nil {
-		panic(fmt.Sprintf("Could not initialize blake2b: %+v", err))
+		jww.FATAL.Panic(fmt.Sprintf("Could not initialize blake2b: %+v", err))
 	}
 	return h
 }
