@@ -8,10 +8,13 @@ import (
 
 const ciphertextOverhead = 96
 
-var Cipher NoiseScheme = &scheme{}
+var (
+	Cipher   NoiseScheme = &scheme{}
+	protocol *nyquist.Protocol
+)
 
-var protocol *nyquist.Protocol
-
+// NoiseScheme is a minimal abstraction useful for building a noise
+// protocol layer.
 type NoiseScheme interface {
 	// CiphertextOverhead returns the ciphertext overhead in bytes.
 	CiphertextOverhead() int
@@ -27,29 +30,10 @@ type NoiseScheme interface {
 		partnerStaticPubKey nike.PublicKey) ([]byte, error)
 }
 
-/*
-
-// DH is a Diffie-Hellman key exchange algorithm.
-type DH interface {
-	fmt.Stringer
-
-	// GenerateKeypair generates a new Diffie-Hellman keypair using the
-	// provided entropy source.
-	GenerateKeypair(rng io.Reader) (Keypair, error)
-
-	// ParsePrivateKey parses a binary encoded private key.
-	ParsePrivateKey(data []byte) (Keypair, error)
-
-	// ParsePublicKey parses a binary encoded public key.
-	ParsePublicKey(data []byte) (PublicKey, error)
-
-	// Size returns the size of public keys and DH outputs in bytes (`DHLEN`).
-	Size() int
-}
-
-*/
-
+// scheme is an implementation of NoiseScheme interface.
 type scheme struct{}
+
+var _ NoiseScheme = (*scheme)(nil)
 
 func (s *scheme) CiphertextOverhead() int {
 	return ciphertextOverhead
