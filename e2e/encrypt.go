@@ -10,6 +10,7 @@
 package e2e
 
 import (
+	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/primitives/format"
 	"golang.org/x/crypto/chacha20"
 )
@@ -21,7 +22,7 @@ func Crypt(key Key, fingerprint format.Fingerprint, msg []byte) []byte {
 	nonce := fingerprint[:chacha20.NonceSizeX]
 	cipher, err := chacha20.NewUnauthenticatedCipher(key[:], nonce)
 	if err != nil {
-		panic(err)
+		jww.FATAL.Panic(err)
 	}
 	cipher.XORKeyStream(out, msg)
 	// Return the result

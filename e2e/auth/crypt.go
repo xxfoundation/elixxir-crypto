@@ -27,7 +27,7 @@ func Crypt(key, vector, msg []byte) (crypt []byte) {
 
 	cipher, err := chacha20.NewUnauthenticatedCipher(key[:], nonce)
 	if err != nil {
-		panic(err)
+		jww.FATAL.Panic(err)
 	}
 	cipher.XORKeyStream(out, msg)
 
