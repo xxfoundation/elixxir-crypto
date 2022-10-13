@@ -31,7 +31,7 @@ func ClientEncrypt(grp *cyclic.Group, msg format.Message,
 	// Get the salt for associated data
 	hash, err := blake2b.New256(nil)
 	if err != nil {
-		jww.FATAL.Panicf("E2E Client Encrypt could not get blake2b Hash")
+		jww.FATAL.Panic("E2E Client Encrypt could not get blake2b Hash")
 	}
 	hash.Reset()
 	hash.Write(salt)
