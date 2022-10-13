@@ -148,6 +148,7 @@ func (p *PublicKey) Scheme() nike.Nike {
 	return ECDHNIKE
 }
 
+//go:noinline
 func (p *PublicKey) Reset() {
 	for i := 0; i < len(p.publicKey); i++ {
 		p.publicKey[i] = 0
