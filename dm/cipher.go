@@ -6,11 +6,15 @@ import (
 	"gitlab.com/yawning/nyquist.git"
 )
 
-const ciphertextOverhead = 96
+const (
+	prologueSize       = 2
+	ciphertextOverhead = 96 + prologueSize
+)
 
 var (
 	Cipher   NoiseScheme = &scheme{}
 	protocol *nyquist.Protocol
+	version  = []byte{0x0, 0x0}
 )
 
 // NoiseScheme is a minimal abstraction useful for building a noise
@@ -45,6 +49,7 @@ func (s *scheme) Encrypt(plaintext []byte, myStatic nike.PrivateKey, partnerStat
 
 	cfg := &nyquist.HandshakeConfig{
 		Protocol:     protocol,
+		Prologue:     version,
 		LocalStatic:  privKey,
 		RemoteStatic: theirPubKey,
 		IsInitiator:  true,
@@ -79,6 +84,7 @@ func (s *scheme) Decrypt(ciphertext []byte, myStatic nike.PrivateKey, partnerSta
 	}
 	cfg := &nyquist.HandshakeConfig{
 		Protocol:     protocol,
+		Prologue:     version,
 		LocalStatic:  privKey,
 		RemoteStatic: theirPubKey,
 		IsInitiator:  false,
