@@ -1,6 +1,7 @@
 package dm
 
 import (
+	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/yawning/nyquist.git"
 )
 
@@ -32,7 +33,7 @@ func (s *scheme) CiphertextOverhead() int {
 func (s *scheme) Encrypt(plaintext []byte, myStatic *PrivateKey, partnerStaticPubKey *PublicKey) []byte {
 	protocol, err := nyquist.NewProtocol("Noise_X_25519_ChaChaPoly_BLAKE2s")
 	if err != nil {
-		panic(err)
+		jww.FATAL.Panic(err)
 	}
 	cfg := &nyquist.HandshakeConfig{
 		Protocol:     protocol,
@@ -42,7 +43,7 @@ func (s *scheme) Encrypt(plaintext []byte, myStatic *PrivateKey, partnerStaticPu
 	}
 	hs, err := nyquist.NewHandshake(cfg)
 	if err != nil {
-		panic(err)
+		jww.FATAL.Panic(err)
 	}
 	defer hs.Reset()
 	ciphertext, err := hs.WriteMessage(nil, plaintext)
@@ -50,11 +51,11 @@ func (s *scheme) Encrypt(plaintext []byte, myStatic *PrivateKey, partnerStaticPu
 	case nyquist.ErrDone:
 		status := hs.GetStatus()
 		if status.Err != nyquist.ErrDone {
-			panic(status.Err)
+			jww.FATAL.Panic(status.Err)
 		}
 	case nil:
 	default:
-		panic(err)
+		jww.FATAL.Panic(err)
 	}
 	return ciphertext
 }

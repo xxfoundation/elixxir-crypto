@@ -12,13 +12,14 @@ import (
 	"errors"
 	"runtime"
 
+	jww "github.com/spf13/jwalterweatherman"
 	"golang.org/x/crypto/curve25519"
 
-	"gitlab.com/elixxir/crypto/nike"
 	"gitlab.com/xx_network/crypto/csprng"
+
+	"gitlab.com/elixxir/crypto/nike"
 )
 
-// ecdhNIKE is an implementation of the nike.Nike interface.
 type ecdhNIKE struct{}
 
 // ECDHNIKE is an implementation of the nike.Nike interface using
@@ -49,7 +50,6 @@ func (d *ecdhNIKE) NewEmptyPublicKey() nike.PublicKey {
 	}
 }
 
-// UnmarshalBinaryPublicKey unmarshals the public key bytes.
 func (d *ecdhNIKE) UnmarshalBinaryPublicKey(b []byte) (nike.PublicKey, error) {
 	pubKey := d.NewEmptyPublicKey()
 	err := pubKey.FromBytes(b)
@@ -59,7 +59,6 @@ func (d *ecdhNIKE) UnmarshalBinaryPublicKey(b []byte) (nike.PublicKey, error) {
 	return pubKey, nil
 }
 
-// UnmarshalBinaryPrivateKey unmarshals the public key bytes.
 func (d *ecdhNIKE) UnmarshalBinaryPrivateKey(b []byte) (nike.PrivateKey, error) {
 	privKey := d.NewEmptyPrivateKey()
 	err := privKey.FromBytes(b)
@@ -74,15 +73,15 @@ func (d *ecdhNIKE) NewKeypair() (nike.PrivateKey, nike.PublicKey) {
 	privKey := make([]byte, d.PrivateKeySize())
 	count, err := rng.Read(privKey)
 	if err != nil {
-		panic(err)
+		jww.FATAL.Panic(err)
 	}
 	if count != d.PrivateKeySize() {
-		panic("rng failure")
+		jww.FATAL.Panic("rng failure")
 	}
 
 	pubKey, err := curve25519.X25519(privKey, curve25519.Basepoint)
 	if err != nil {
-		panic(err)
+		jww.FATAL.Panic(err)
 	}
 
 	return &privateKey{
@@ -95,7 +94,7 @@ func (d *ecdhNIKE) NewKeypair() (nike.PrivateKey, nike.PublicKey) {
 func (d *ecdhNIKE) DerivePublicKey(privKey nike.PrivateKey) nike.PublicKey {
 	pubKey, err := curve25519.X25519(privKey.(*privateKey).privateKey, curve25519.Basepoint)
 	if err != nil {
-		panic(err)
+		jww.FATAL.Panic(err)
 	}
 	return &publicKey{
 		publicKey: pubKey,
@@ -115,7 +114,7 @@ func (p *privateKey) DeriveSecret(pubKey nike.PublicKey) []byte {
 	secret, err := curve25519.X25519(p.privateKey,
 		(pubKey.(*publicKey)).publicKey)
 	if err != nil {
-		panic(err)
+		jww.FATAL.Panic(err)
 	}
 	return secret
 }
