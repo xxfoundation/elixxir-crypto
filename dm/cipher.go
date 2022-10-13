@@ -8,7 +8,7 @@ import (
 
 const (
 	prologueSize       = 2
-	ciphertextOverhead = 96 + prologueSize
+	ciphertextOverhead = 96
 )
 
 var (
