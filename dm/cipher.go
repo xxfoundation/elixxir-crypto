@@ -1,27 +1,43 @@
-package dmnoise
+package dm
 
 import (
 	"gitlab.com/yawning/nyquist.git"
-	"gitlab.com/yawning/nyquist.git/dh"
 )
 
-type Scheme interface {
+const ciphertextOverhead = 96
+
+var Cipher NoiseScheme = &scheme{}
+
+type NoiseScheme interface {
+	// CiphertextOverhead returns the ciphertext overhead in bytes.
+	CiphertextOverhead() int
+
 	// Encrypt encrypts the given plaintext as a Noise X message.
-	Encrypt(plaintext []byte, myStatic dh.Keypair, partnerStaticPubKey dh.PublicKey) []byte
+	Encrypt(plaintext []byte,
+		myStatic *PrivateKey,
+		partnerStaticPubKey *PublicKey) []byte
 
 	// Decrypt decrypts the given ciphertext as a Noise X message.
-	Decrypt(ciphertext []byte, myStatic dh.Keypair, partnerStaticPubKey dh.PublicKey) ([]byte, error)
+	Decrypt(ciphertext []byte,
+		myStatic *PrivateKey,
+		partnerStaticPubKey *PublicKey) ([]byte, error)
 }
 
-func Encrypt(plaintext []byte, myStatic dh.Keypair, partnerStaticPubKey dh.PublicKey) []byte {
+type scheme struct{}
+
+func (s *scheme) CiphertextOverhead() int {
+	return ciphertextOverhead
+}
+
+func (s *scheme) Encrypt(plaintext []byte, myStatic *PrivateKey, partnerStaticPubKey *PublicKey) []byte {
 	protocol, err := nyquist.NewProtocol("Noise_X_25519_ChaChaPoly_BLAKE2s")
 	if err != nil {
 		panic(err)
 	}
 	cfg := &nyquist.HandshakeConfig{
 		Protocol:     protocol,
-		LocalStatic:  myStatic,
-		RemoteStatic: partnerStaticPubKey,
+		LocalStatic:  myStatic.privateKey,
+		RemoteStatic: partnerStaticPubKey.publicKey,
 		IsInitiator:  true,
 	}
 	hs, err := nyquist.NewHandshake(cfg)
@@ -43,15 +59,15 @@ func Encrypt(plaintext []byte, myStatic dh.Keypair, partnerStaticPubKey dh.Publi
 	return ciphertext
 }
 
-func Decrypt(ciphertext []byte, myStatic dh.Keypair, partnerStaticPubKey dh.PublicKey) ([]byte, error) {
+func (s *scheme) Decrypt(ciphertext []byte, myStatic *PrivateKey, partnerStaticPubKey *PublicKey) ([]byte, error) {
 	protocol, err := nyquist.NewProtocol("Noise_X_25519_ChaChaPoly_BLAKE2s")
 	if err != nil {
 		return nil, err
 	}
 	cfg := &nyquist.HandshakeConfig{
 		Protocol:     protocol,
-		LocalStatic:  myStatic,
-		RemoteStatic: partnerStaticPubKey,
+		LocalStatic:  myStatic.privateKey,
+		RemoteStatic: partnerStaticPubKey.publicKey,
 		IsInitiator:  false,
 	}
 

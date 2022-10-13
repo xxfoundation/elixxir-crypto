@@ -1,4 +1,4 @@
-package dmnoise
+package dm
 
 import (
 	"crypto/rand"
@@ -20,9 +20,17 @@ func TestEncryptDecrypt(t *testing.T) {
 	bobStatic, err := protocol.DH.GenerateKeypair(rand.Reader)
 	require.NoError(t, err)
 
-	ciphertext := Encrypt(message1, aliceStatic, bobStatic.Public())
+	ciphertext := Cipher.Encrypt(message1, &PrivateKey{
+		privateKey: aliceStatic,
+	}, &PublicKey{
+		publicKey: bobStatic.Public(),
+	})
 
-	message2, err := Decrypt(ciphertext, bobStatic, aliceStatic.Public())
+	message2, err := Cipher.Decrypt(ciphertext, &PrivateKey{
+		privateKey: bobStatic,
+	}, &PublicKey{
+		publicKey: aliceStatic.Public(),
+	})
 	require.NoError(t, err)
 
 	require.Equal(t, message1, message2)

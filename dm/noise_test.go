@@ -1,4 +1,4 @@
-package dmnoise
+package dm
 
 import (
 	"crypto/rand"
