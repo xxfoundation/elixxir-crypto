@@ -182,7 +182,7 @@ func (p *PublicKey) FromBytes(data []byte) error {
 	return nil
 }
 
-func (p *PublicKey) FromEdwards() {
-	ed_pub, _ := new(edwards25519.Point).SetBytes(p.Bytes())
+func (p *PublicKey) FromEdwards(publicKey ed25519.PublicKey) {
+	ed_pub, _ := new(edwards25519.Point).SetBytes(publicKey)
 	p.FromBytes(ed_pub.BytesMontgomery())
 }

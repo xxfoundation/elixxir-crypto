@@ -7,10 +7,30 @@
 package ecdh
 
 import (
+	"crypto/ed25519"
+	"crypto/rand"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
+
+func TestFromEdwards(t *testing.T) {
+	edpubKey, edprivKey, err := ed25519.GenerateKey(rand.Reader)
+	require.NoError(t, err)
+
+	alicePrivateKey := ECDHNIKE.NewEmptyPrivateKey()
+	alicePublicKey := ECDHNIKE.NewEmptyPublicKey()
+
+	alicePrivateKey.(*PrivateKey).FromEdwards(edprivKey)
+	alicePublicKey.(*PublicKey).FromEdwards(edpubKey)
+
+	bobPrivateKey, bobPublicKey := ECDHNIKE.NewKeypair()
+
+	secret1 := alicePrivateKey.DeriveSecret(bobPublicKey)
+	secret2 := bobPrivateKey.DeriveSecret(alicePublicKey)
+
+	require.Equal(t, secret1, secret2)
+}
 
 func TestNike(t *testing.T) {
 	alicePrivateKey, alicePublicKey := ECDHNIKE.NewKeypair()
