@@ -142,6 +142,8 @@ func (p *PrivateKey) FromBytes(data []byte) error {
 	return nil
 }
 
+// FromEdwards implements the edwards to montgomery
+// conversion as specified in https://www.rfc-editor.org/rfc/rfc8032#section-5.1.5
 func (p *PrivateKey) FromEdwards(privateKey ed25519.PrivateKey) {
 	dhBytes := sha512.Sum512(privateKey[:32])
 	dhBytes[0] &= 248
@@ -182,6 +184,9 @@ func (p *PublicKey) FromBytes(data []byte) error {
 	return nil
 }
 
+// FromEdwards implements the edwards to montgomery
+// Per RFC 7748, EDDSA Public keys can be trivially
+// converted (https://www.rfc-editor.org/rfc/rfc7748.html#page-14)
 func (p *PublicKey) FromEdwards(publicKey ed25519.PublicKey) {
 	ed_pub, _ := new(edwards25519.Point).SetBytes(publicKey)
 	p.FromBytes(ed_pub.BytesMontgomery())
