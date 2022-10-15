@@ -1,19 +1,18 @@
 package channel
 
-
 //NOTE: DO NOT CHANGE! THIS WILL RESULT IN CRYPTOGRAPHIC CHANGING PEOPLE'S
 //IDENTITIES
 var honorificsDefs = []hd{
-	{"this",1000},
-	{"",100},
-	{"that",1000},
-	{"our",100},
-	{"in",100},
-	{"the",400},
-	{"my",1000},
-	{"dr",100},
-	{"lord",50},
-	{"sir",75},
+	{"this", 1000},
+	{"", 100},
+	{"that", 1000},
+	{"our", 100},
+	{"in", 100},
+	{"the", 400},
+	{"my", 1000},
+	{"dr", 100},
+	{"lord", 50},
+	{"sir", 75},
 	{"gentleman", 300},
 	{"excellency", 20},
 	{"theHonorable", 20},
@@ -39,32 +38,30 @@ var honorificsDefs = []hd{
 	{"colonel", 50},
 	{"general", 25},
 	{"admiral", 25},
+	{"10xDeveloper", 1},
 }
 
+var engHonorifics = compileHonorifics(honorificsDefs)
 
-var engHonorifics =  compileHonorifics(honorificsDefs)
-
-
-type hd struct{
+type hd struct {
 	h         string
 	frequency int
 }
 
-
-func compileHonorifics(defs []hd)[]string{
+func compileHonorifics(defs []hd) []string {
 
 	// precalculate the size to avoid constant reallocation
 	numHonorifics := 0
-	for i:=range defs{
+	for i := range defs {
 		numHonorifics += defs[i].frequency
 	}
 
 	engHonor := make([]string, 0, numHonorifics)
 
-	defer func()[]string{return engHonor}()
+	defer func() []string { return engHonor }()
 
-	for i:= range defs{
-		for j:=0;j<defs[i].frequency;j++{
+	for i := range defs {
+		for j := 0; j < defs[i].frequency; j++ {
 			engHonor = append(engHonor, defs[i].h)
 		}
 	}
