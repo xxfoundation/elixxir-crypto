@@ -20,32 +20,33 @@ func HashSecret(secret []byte) []byte {
 func HashPubKey(pub rsa.PublicKey) []byte {
 	h, _ := channelHash(nil)
 	h.Write(pub.GetN().Bytes())
-	ebytes := make([]byte,rsa.ELength)
-	binary.BigEndian.PutUint32(ebytes,uint32(pub.GetE()))
+	ebytes := make([]byte, rsa.ELength)
+	binary.BigEndian.PutUint32(ebytes, uint32(pub.GetE()))
 	h.Write(ebytes)
 	return h.Sum(nil)
 }
 
-
 // returns the Blake2b hash of the given arguments:
-// H(name | description | rsaPubHash | hashedSecret | salt)
-func deriveIntermediary(name, description string, salt, rsaPubHash, hashedSecret []byte) []byte {
+// H(name | description | privacyLevel | rsaPubHash | hashedSecret | salt)
+func deriveIntermediary(name, description string, level PrivacyLevel, salt,
+	rsaPubHash, hashedSecret []byte) []byte {
 	h, err := channelHash(nil)
 	if err != nil {
 		jww.FATAL.Panic(err)
 	}
 
-	write(h,[]byte(name))
-	write(h,[]byte(description))
-	write(h,rsaPubHash)
-	write(h,hashedSecret)
-	write(h,salt)
+	write(h, []byte(name))
+	write(h, []byte(description))
+	write(h, []byte{byte(level)})
+	write(h, rsaPubHash)
+	write(h, hashedSecret)
+	write(h, salt)
 	return h.Sum(nil)
 }
 
 // moved the error handling into a single function to
 // increase test coverage
-func write(h hash.Hash, data []byte){
+func write(h hash.Hash, data []byte) {
 	_, err := h.Write(data)
 	if err != nil {
 		jww.FATAL.Panic(err)

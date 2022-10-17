@@ -25,7 +25,8 @@ import (
 // Symmetric.Decrypt matches the original.
 func TestSymmetric_Encrypt_Decrypt(t *testing.T) {
 
-	s, _, err := NewChannel("alice", "description", 528, csprng.NewSystemRNG())
+	s, _, err := NewChannel(
+		"alice", "description", Public, 528, csprng.NewSystemRNG())
 	if err != nil {
 		panic(err)
 	}
@@ -35,7 +36,8 @@ func TestSymmetric_Encrypt_Decrypt(t *testing.T) {
 
 	packetSize := 1000
 
-	encryptedPayload, mac, fp, err := s.EncryptSymmetric(payload, packetSize, csprng.NewSystemRNG())
+	encryptedPayload, mac, fp, err := s.EncryptSymmetric(
+		payload, packetSize, csprng.NewSystemRNG())
 	if err != nil {
 		t.Errorf("Failed to enbcrypt payload: %+v", err)
 	}
@@ -55,7 +57,8 @@ func TestSymmetric_Encrypt_Decrypt(t *testing.T) {
 func TestSymmetric_Decrypt(t *testing.T) {
 	prng := rand.New(rand.NewSource(42))
 
-	s, _, err := NewChannel("alice", "description", 528, csprng.NewSystemRNG())
+	s, _, err := NewChannel(
+		"alice", "description", Public, 528, csprng.NewSystemRNG())
 	if err != nil {
 		panic(err)
 	}
@@ -65,7 +68,8 @@ func TestSymmetric_Decrypt(t *testing.T) {
 
 	packetSize := 1000
 
-	encryptedPayload, mac, fp, err := s.EncryptSymmetric(payload, packetSize, csprng.NewSystemRNG())
+	encryptedPayload, mac, fp, err := s.EncryptSymmetric(
+		payload, packetSize, csprng.NewSystemRNG())
 	if err != nil {
 		t.Errorf("Failed to enbcrypt payload: %+v", err)
 	}
@@ -118,16 +122,16 @@ func TestSymmetric_Marshal_UnmarshalSymmetric(t *testing.T) {
 func TestNewSymmetricKey_Consistency(t *testing.T) {
 	prng := rand.New(rand.NewSource(42))
 	expectedKeys := []string{
-		"YFcaO/zEULS9vMUstPJSGgcD+4rs+wRMmQwirYAf4TY=",
-		"Kww9lMeLE5Ud+Z60Y3dL6rmbVbDYgGGoEjuetejAj6A=",
-		"IDlVxZaxNr3VMBpxEC7fe2mF/H3+0HNdqbfd11wN84Y=",
-		"sTsbdAAk9GNhAcHQo1f2DOBTKKVwbCPdKzujjSlcQag=",
-		"2zWuXh4Cq8TPc1ffXJ05fT6POmeYcNOF9PuSmYFhA+E=",
-		"e/xUE3UQKEVE85Z/AC2BfrwAGa9HVcZ3EacgSTZWF7s=",
-		"7RzVqo2HHUySxAdp/s9FyNCWpZ/d8xXwnVTamr8o5hI=",
-		"pfu9fs8TAALiuGB0qLCiWlkpMvvsKkSZRUPfoIwPq04=",
-		"DKqeBhgZcCjB6izXjtSNjpC1JebEmwHhPKtMSSSID5g=",
-		"4bfnVYIqKT1+JKbeRchmg7wTWbTV86IkQxc223lAD/c=",
+		"lN9B8anjMqvPWgWj2fOmdGWwsYILYP52X9R+XyHd1y4=",
+		"uuHkSfNj7neRIYTpKgXEKFPlHNMAXd3T/vvuFrmjpzY=",
+		"/FglFkbFrrPBlPTypMyLkLncp/VaHfYs7KjmGaamL9U=",
+		"W3AdtueK0VEVwYREhMv/R8XzGw8IdRkTDK730affKeA=",
+		"jUWb1YmG7y+8kVmV0gEho/NtYgeF1V2uGlNALlZA07M=",
+		"OvwS6rbVsKNiYeegyd/rDuhduqprlJ1snyWQY9f0IfE=",
+		"Iqu5sAW7PilPQ8JVLpmdZHJJDRLHWqgRHDsOEpZKGJA=",
+		"2Qe+4C3pjYzHZuK/dTZS4ALlJMdKdMhhcKVXRObgQYA=",
+		"pnCIAYioH4LtmAgRORlKLUZp35YuFQ8KdVZGjok+tno=",
+		"oQUGd5+SHf5oA4tkxPZjVjDGemLpk9/kX2TXLEa728w=",
 	}
 
 	secret := make([]byte, 32)
@@ -144,6 +148,7 @@ func TestNewSymmetricKey_Consistency(t *testing.T) {
 
 		key, err := NewSymmetricKey("alice",
 			"chan description",
+			Public,
 			[]byte("salt"),
 			[]byte("my fake rsa key"),
 			secret)
@@ -179,6 +184,7 @@ func TestNewSymmetricKey_Unique(t *testing.T) {
 
 		key, err := NewSymmetricKey("alice",
 			"chan description",
+			Public,
 			[]byte("salt"),
 			[]byte("my fake rsa key"),
 			secret)
