@@ -19,16 +19,16 @@ import (
 // Returns nil for the error if the verification is successful
 func JointVerify(UDPubkey, userPublicKey *rsa.PublicKey, usernameHash,
 	fileHash, verificationSignature, uploadSignature []byte, uploadTs,
-	now time.Time)error{
+	now time.Time) error {
 
 	if err := VerifyVerificationSignature(UDPubkey, usernameHash,
-		userPublicKey, verificationSignature); err!=nil{
+		userPublicKey, verificationSignature); err != nil {
 		return errors.WithMessage(err,
 			"Failed to verify the Verification Signature")
 	}
 
 	if err := VerifyUpload(userPublicKey, now, uploadTs, fileHash,
-		uploadSignature); err!=nil{
+		uploadSignature); err != nil {
 		return errors.WithMessage(err,
 			"Failed to verify the Upload Signature")
 	}
