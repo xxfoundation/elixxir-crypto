@@ -22,7 +22,7 @@ func TestRSAToPublic_Encrypt_Decrypt_BigKey(t *testing.T) {
 	internalPacketSize := MaxSizedBroadcastPayloadSize(packetSize)
 	keysize, n := calculateKeySize(internalPacketSize, internalPacketSize)
 
-	if n!=1{
+	if n != 1 {
 		t.Fatalf("Keysize isnt big")
 	}
 
@@ -41,7 +41,8 @@ func TestRSAToPublic_Encrypt_Decrypt_BigKey(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rid, err := NewChannelID(name, desc, salt, HashPubKey(pk.Public()), secret)
+	rid, err := NewChannelID(
+		name, desc, Public, salt, HashPubKey(pk.Public()), secret)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +54,7 @@ func TestRSAToPublic_Encrypt_Decrypt_BigKey(t *testing.T) {
 		Description:     desc,
 		Salt:            salt,
 		RsaPubKeyHash:   HashPubKey(pk.Public()),
-		RSASubPayloads: n,
+		RSASubPayloads:  n,
 	}
 
 	maxPayloadLen, _, _ := ac.GetRSAToPublicMessageLength()
@@ -78,7 +79,6 @@ func TestRSAToPublic_Encrypt_Decrypt_BigKey(t *testing.T) {
 	}
 }
 
-
 func TestRSAToPublic_Encrypt_Decrypt_BigKey_SmallPayload(t *testing.T) {
 	rng := csprng.NewSystemRNG()
 
@@ -86,7 +86,7 @@ func TestRSAToPublic_Encrypt_Decrypt_BigKey_SmallPayload(t *testing.T) {
 	internalPacketSize := MaxSizedBroadcastPayloadSize(packetSize)
 	keysize, n := calculateKeySize(internalPacketSize, internalPacketSize)
 
-	if n!=1{
+	if n != 1 {
 		t.Fatalf("Keysize isnt big")
 	}
 
@@ -105,7 +105,8 @@ func TestRSAToPublic_Encrypt_Decrypt_BigKey_SmallPayload(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rid, err := NewChannelID(name, desc, salt, HashPubKey(pk.Public()), secret)
+	rid, err := NewChannelID(
+		name, desc, Public, salt, HashPubKey(pk.Public()), secret)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -117,7 +118,7 @@ func TestRSAToPublic_Encrypt_Decrypt_BigKey_SmallPayload(t *testing.T) {
 		Description:     desc,
 		Salt:            salt,
 		RsaPubKeyHash:   HashPubKey(pk.Public()),
-		RSASubPayloads: n,
+		RSASubPayloads:  n,
 	}
 
 	payload := make([]byte, 10)
@@ -145,10 +146,10 @@ func TestRSAToPublic_Encrypt_Decrypt_NewChannel(t *testing.T) {
 
 	packetSize := 1000
 
-	name := "Asymmetric channel"
+	name := "Asymmetric_channel"
 	desc := "Asymmetric channel description"
 
-	ac, pk, err := NewChannel(name, desc, packetSize, rng)
+	ac, pk, err := NewChannel(name, desc, Public, packetSize, rng)
 
 	maxPayloadLen, _, _ := ac.GetRSAToPublicMessageLength()
 
@@ -168,7 +169,8 @@ func TestRSAToPublic_Encrypt_Decrypt_NewChannel(t *testing.T) {
 	}
 
 	if bytes.Compare(decrypted, payload) != 0 {
-		t.Errorf("Decrypt did not return expected data\n\tExpected: %+v\n\tReceived: %+v\n", payload, decrypted)
+		t.Errorf("Decrypt did not return expected data."+
+			"\nexpected: %+v\nreceived: %+v", payload, decrypted)
 	}
 }
 
@@ -178,7 +180,7 @@ func TestRSAToPublic_Encrypt_Decrypt_SmallKey(t *testing.T) {
 	packetSize := 1000
 	internalPacketSize := MaxSizedBroadcastPayloadSize(packetSize)
 	keysize, n := calculateKeySize(internalPacketSize, internalPacketSize/5)
-	if n<4{
+	if n < 4 {
 		t.Fatalf("Keysize isnt small")
 	}
 
@@ -197,7 +199,8 @@ func TestRSAToPublic_Encrypt_Decrypt_SmallKey(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rid, err := NewChannelID(name, desc, salt, HashPubKey(pk.Public()), secret)
+	rid, err := NewChannelID(
+		name, desc, Public, salt, HashPubKey(pk.Public()), secret)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -209,7 +212,7 @@ func TestRSAToPublic_Encrypt_Decrypt_SmallKey(t *testing.T) {
 		Description:     desc,
 		Salt:            salt,
 		RsaPubKeyHash:   HashPubKey(pk.Public()),
-		RSASubPayloads: n,
+		RSASubPayloads:  n,
 	}
 
 	maxPayloadLen, _, _ := ac.GetRSAToPublicMessageLength()
@@ -234,14 +237,13 @@ func TestRSAToPublic_Encrypt_Decrypt_SmallKey(t *testing.T) {
 	}
 }
 
-
 func TestRSAToPublic_Encrypt_Decrypt_SmallKey_SmallPayload(t *testing.T) {
 	rng := csprng.NewSystemRNG()
 
 	packetSize := 1000
 	internalPacketSize := MaxSizedBroadcastPayloadSize(packetSize)
 	keysize, n := calculateKeySize(internalPacketSize, internalPacketSize/5)
-	if n<4{
+	if n < 4 {
 		t.Fatalf("Keysize isnt small")
 	}
 
@@ -260,7 +262,8 @@ func TestRSAToPublic_Encrypt_Decrypt_SmallKey_SmallPayload(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rid, err := NewChannelID(name, desc, salt, HashPubKey(pk.Public()), secret)
+	rid, err := NewChannelID(
+		name, desc, Public, salt, HashPubKey(pk.Public()), secret)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -272,7 +275,7 @@ func TestRSAToPublic_Encrypt_Decrypt_SmallKey_SmallPayload(t *testing.T) {
 		Description:     desc,
 		Salt:            salt,
 		RsaPubKeyHash:   HashPubKey(pk.Public()),
-		RSASubPayloads: n,
+		RSASubPayloads:  n,
 	}
 
 	payload := make([]byte, 10)
@@ -295,8 +298,6 @@ func TestRSAToPublic_Encrypt_Decrypt_SmallKey_SmallPayload(t *testing.T) {
 	}
 }
 
-
-
 func TestRSAToPrivate_Encrypt_Decrypt_BigKey(t *testing.T) {
 	rng := csprng.NewSystemRNG()
 
@@ -304,7 +305,7 @@ func TestRSAToPrivate_Encrypt_Decrypt_BigKey(t *testing.T) {
 	internalPacketSize := MaxSizedBroadcastPayloadSize(packetSize)
 	keysize, n := calculateKeySize(internalPacketSize, internalPacketSize)
 
-	if n!=1{
+	if n != 1 {
 		t.Fatalf("Keysize isnt big")
 	}
 
@@ -323,7 +324,8 @@ func TestRSAToPrivate_Encrypt_Decrypt_BigKey(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rid, err := NewChannelID(name, desc, salt, HashPubKey(pk.Public()), secret)
+	rid, err := NewChannelID(
+		name, desc, Public, salt, HashPubKey(pk.Public()), secret)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -335,7 +337,7 @@ func TestRSAToPrivate_Encrypt_Decrypt_BigKey(t *testing.T) {
 		Description:     desc,
 		Salt:            salt,
 		RsaPubKeyHash:   HashPubKey(pk.Public()),
-		RSASubPayloads: n,
+		RSASubPayloads:  n,
 	}
 
 	maxPayloadLen, _, _ := ac.GetRSAToPublicMessageLength()
@@ -360,7 +362,6 @@ func TestRSAToPrivate_Encrypt_Decrypt_BigKey(t *testing.T) {
 	}
 }
 
-
 func TestRSAToPrivate_Encrypt_Decrypt_BigKey_SmallPacket(t *testing.T) {
 	rng := csprng.NewSystemRNG()
 
@@ -368,7 +369,7 @@ func TestRSAToPrivate_Encrypt_Decrypt_BigKey_SmallPacket(t *testing.T) {
 	internalPacketSize := MaxSizedBroadcastPayloadSize(packetSize)
 	keysize, n := calculateKeySize(internalPacketSize, internalPacketSize)
 
-	if n!=1{
+	if n != 1 {
 		t.Fatalf("Keysize isnt big")
 	}
 
@@ -387,7 +388,8 @@ func TestRSAToPrivate_Encrypt_Decrypt_BigKey_SmallPacket(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rid, err := NewChannelID(name, desc, salt, HashPubKey(pk.Public()), secret)
+	rid, err := NewChannelID(
+		name, desc, Public, salt, HashPubKey(pk.Public()), secret)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -399,7 +401,7 @@ func TestRSAToPrivate_Encrypt_Decrypt_BigKey_SmallPacket(t *testing.T) {
 		Description:     desc,
 		Salt:            salt,
 		RsaPubKeyHash:   HashPubKey(pk.Public()),
-		RSASubPayloads: n,
+		RSASubPayloads:  n,
 	}
 
 	payload := make([]byte, 10)
@@ -429,7 +431,7 @@ func TestRSAToPrivate_Encrypt_Decrypt_SmallKey(t *testing.T) {
 	internalPacketSize := MaxSizedBroadcastPayloadSize(packetSize)
 	keysize, n := calculateKeySize(internalPacketSize, internalPacketSize/5)
 
-	if n<4{
+	if n < 4 {
 		t.Fatalf("Keysize isnt small")
 	}
 
@@ -448,7 +450,8 @@ func TestRSAToPrivate_Encrypt_Decrypt_SmallKey(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rid, err := NewChannelID(name, desc, salt, HashPubKey(pk.Public()), secret)
+	rid, err := NewChannelID(
+		name, desc, Public, salt, HashPubKey(pk.Public()), secret)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -460,7 +463,7 @@ func TestRSAToPrivate_Encrypt_Decrypt_SmallKey(t *testing.T) {
 		Description:     desc,
 		Salt:            salt,
 		RsaPubKeyHash:   HashPubKey(pk.Public()),
-		RSASubPayloads: n,
+		RSASubPayloads:  n,
 	}
 
 	maxPayloadLen, _, _ := ac.GetRSAToPublicMessageLength()
@@ -492,7 +495,7 @@ func TestRSAToPrivate_Encrypt_Decrypt_SmallKey_SmallPacket(t *testing.T) {
 	internalPacketSize := MaxSizedBroadcastPayloadSize(packetSize)
 	keysize, n := calculateKeySize(internalPacketSize, internalPacketSize/5)
 
-	if n<4{
+	if n < 4 {
 		t.Fatalf("Keysize isnt small")
 	}
 
@@ -511,7 +514,8 @@ func TestRSAToPrivate_Encrypt_Decrypt_SmallKey_SmallPacket(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rid, err := NewChannelID(name, desc, salt, HashPubKey(pk.Public()), secret)
+	rid, err := NewChannelID(
+		name, desc, Public, salt, HashPubKey(pk.Public()), secret)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -523,7 +527,7 @@ func TestRSAToPrivate_Encrypt_Decrypt_SmallKey_SmallPacket(t *testing.T) {
 		Description:     desc,
 		Salt:            salt,
 		RsaPubKeyHash:   HashPubKey(pk.Public()),
-		RSASubPayloads: n,
+		RSASubPayloads:  n,
 	}
 
 	payload := make([]byte, 10)

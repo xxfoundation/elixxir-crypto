@@ -25,8 +25,6 @@ import (
 
 // Error messages.
 const (
-
-
 	// Symmetric.Decrypt
 	errVerifyMAC = "failed to verify MAC"
 
@@ -41,7 +39,7 @@ var ErrPayloadTooBig = errors.New("cannot symmetrically encrypt the " +
 
 // GetMaxSymmetricPayloadSize returns the maximum size that a symmetric
 // payload can be based upon the size of the packet it must fit in
-func (c *Channel)GetMaxSymmetricPayloadSize(outerPayloadSize int)int{
+func (c *Channel) GetMaxSymmetricPayloadSize(outerPayloadSize int) int {
 	return MaxSizedBroadcastPayloadSize(outerPayloadSize)
 }
 
@@ -52,7 +50,7 @@ func (c *Channel) EncryptSymmetric(payload []byte, outerPayloadSize int,
 	nonce format.Fingerprint, err error) {
 
 	// edge check
-	if len(payload)>c.GetMaxSymmetricPayloadSize(outerPayloadSize){
+	if len(payload) > c.GetMaxSymmetricPayloadSize(outerPayloadSize) {
 		return nil, nil, format.Fingerprint{}, ErrPayloadTooBig
 	}
 
@@ -60,7 +58,7 @@ func (c *Channel) EncryptSymmetric(payload []byte, outerPayloadSize int,
 	// of the packet it needs to fit in
 	// this has a minimum of 8 bytes of random padding as defence in depth
 	sizedPayload, err := NewSizedBroadcast(outerPayloadSize, payload, csprng)
-	if err!=nil{
+	if err != nil {
 		jww.FATAL.Panicf("Failed to size the symmetric broadcast: %+v", err)
 	}
 
@@ -85,7 +83,7 @@ func (c *Channel) DecryptSymmetric(encryptedPayload, mac []byte,
 	}
 
 	payload, err := DecodeSizedBroadcast(sizedPayload)
-	if err!=nil{
+	if err != nil {
 		return nil, err
 	}
 
@@ -93,10 +91,10 @@ func (c *Channel) DecryptSymmetric(encryptedPayload, mac []byte,
 }
 
 // getSymmetricKey lazy instantiates the symmetric key and returns it
-func (c *Channel)getSymmetricKey()[]byte{
+func (c *Channel) getSymmetricKey() []byte {
 	var err error
 	if c.key == nil {
-		c.key, err = NewSymmetricKey(c.Name, c.Description, c.Salt,
+		c.key, err = NewSymmetricKey(c.Name, c.Description, c.level, c.Salt,
 			c.RsaPubKeyHash, c.Secret)
 		if err != nil {
 			jww.FATAL.Panic(err)
@@ -108,31 +106,31 @@ func (c *Channel)getSymmetricKey()[]byte{
 // NewSymmetricKey generates a new symmetric channel key
 // which is derived like this:
 //
-// intermediary = H(name | description | rsaPubHash | hashedSecret | salt)
+// intermediary = H(name | description | privacyLevel | rsaPubHash | hashedSecret | salt)
 // key = HKDF(secret, intermediary, hkdfInfo)
-func NewSymmetricKey(name, description string, salt, rsaPubHash,
-	secret []byte) ([]byte, error) {
+func NewSymmetricKey(name, description string, level PrivacyLevel, salt,
+	rsaPubHash, secret []byte) ([]byte, error) {
 	if len(secret) != 32 {
 		jww.FATAL.Panic(fmt.Sprintf("secret len is %d", len(secret)))
 		return nil, ErrSecretSizeIncorrect
 	}
 
 	hkdfHash := func() hash.Hash {
-		hash, err := channelHash(nil)
+		h, err := channelHash(nil)
 		if err != nil {
 			jww.FATAL.Panic(err)
 		}
-		return hash
+		return h
 	}
 
-	hkdf := hkdf.New(hkdfHash,
+	hkdfReader := hkdf.New(hkdfHash,
 		secret,
-		deriveIntermediary(name, description, salt, rsaPubHash,
+		deriveIntermediary(name, description, level, salt, rsaPubHash,
 			HashSecret(secret)), []byte(hkdfInfo))
 
 	// 256 bits of entropy
 	key := make([]byte, 32)
-	n, err := io.ReadFull(hkdf, key)
+	n, err := io.ReadFull(hkdfReader, key)
 	if err != nil {
 		jww.FATAL.Panic(err)
 	}

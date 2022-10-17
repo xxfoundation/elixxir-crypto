@@ -15,6 +15,7 @@ import (
 	"gitlab.com/elixxir/crypto/rsa"
 	"hash"
 	"io"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -34,22 +35,60 @@ const (
 	labelConstant = "XX_Network_Broadcast_Channel_Constant"
 	saltSize      = 32 // 256 bits
 	secretSize    = 32 // 256 bits
+
+	// NameMinChars is the minimum number of UTF-8 characters allowed in a
+	// channel name.
+	NameMinChars = 3 // 3 characters
+
+	// NameMaxChars is the maximum number of UTF-8 characters allowed in a
+	// channel name.
+	NameMaxChars = 24 // 24 characters
+
+	// DescriptionMaxChars is the maximum number of UTF-8 characters allowed in
+	// a channel description.
+	DescriptionMaxChars = 144 // 144 characters
 )
 
 var channelHash = blake2b.New256
 
-// ErrSecretSizeIncorrect indicates an incorrect sized secret.
-var ErrSecretSizeIncorrect = errors.New(
-	"NewChannelID secret must be 32 bytes long.")
+// Error messages.
+var (
+	// ErrSecretSizeIncorrect indicates an incorrect sized secret.
+	ErrSecretSizeIncorrect = errors.New(
+		"NewChannelID secret must be 32 bytes long.")
 
-// ErrSaltSizeIncorrect indicates an incorrect sized salt.
-var ErrSaltSizeIncorrect = errors.New(
-	"NewChannelID salt must be 32 bytes long.")
+	// ErrSaltSizeIncorrect indicates an incorrect sized salt.
+	ErrSaltSizeIncorrect = errors.New(
+		"NewChannelID salt must be 32 bytes long.")
 
-// ErrMalformedPrettyPrintedChannel indicates the channel description blob was
-// malformed.
-var ErrMalformedPrettyPrintedChannel = errors.New(
-	"Malformed pretty printed channel.")
+	// ErrMalformedPrettyPrintedChannel indicates the channel description blob
+	// was malformed.
+	ErrMalformedPrettyPrintedChannel = errors.New(
+		"Malformed pretty printed channel.")
+
+	// MinNameCharLenErr is returned when the name is shorter than the minimum
+	// character limit.
+	MinNameCharLenErr = errors.Errorf(
+		"name cannot be shorter than %d characters", NameMinChars)
+
+	// MaxNameCharLenErr is returned when the name is longer than the maximum
+	// character limit.
+	MaxNameCharLenErr = errors.Errorf(
+		"name cannot be longer than %d characters", NameMaxChars)
+
+	// NameInvalidCharErr is returned when the name contains disallowed
+	// characters.
+	NameInvalidCharErr = errors.New("name contains disallowed characters")
+
+	// MaxDescriptionCharLenErr is returned when the description is longer than
+	// the maximum character limit.
+	MaxDescriptionCharLenErr = errors.Errorf(
+		"description cannot be longer than %d characters", DescriptionMaxChars)
+
+	// InvalidPrivacyLevelErr is returned when the PrivacyLevel is not one of
+	// the valid chooses.
+	InvalidPrivacyLevelErr = errors.New("invalid privacy level")
+)
 
 // Channel is a multicast communication channel that retains the various privacy
 // notions that this mix network provides.
@@ -63,6 +102,10 @@ type Channel struct {
 	RSASubPayloads  int
 	Secret          []byte
 
+	// Determines the amount of information displayed as plaintext vs encrypted
+	// when sharing channel information.
+	level PrivacyLevel
+
 	// This key only appears in memory; it is not contained in the marshalled
 	// version. It is lazily evaluated on first use.
 	//  key = H(ReceptionID)
@@ -71,10 +114,13 @@ type Channel struct {
 
 // NewChannel creates a new channel with a variable RSA key size calculated
 // based off of recommended security parameters.
-func NewChannel(name, description string, packetPayloadLength int,
-	rng csprng.Source) (*Channel, rsa.PrivateKey, error) {
-	return NewChannelVariableKeyUnsafe(name, description, packetPayloadLength,
-		rsa.GetScheme().GetDefaultKeySize(), rng)
+//
+// The name cannot be more than NameMaxChars characters long and the description
+// cannot be more than DescriptionMaxChars characters long.
+func NewChannel(name, description string, level PrivacyLevel,
+	packetPayloadLength int, rng csprng.Source) (*Channel, rsa.PrivateKey, error) {
+	return NewChannelVariableKeyUnsafe(name, description, level,
+		packetPayloadLength, rsa.GetScheme().GetDefaultKeySize(), rng)
 }
 
 // NewChannelVariableKeyUnsafe creates a new channel with a variable RSA key
@@ -82,13 +128,24 @@ func NewChannel(name, description string, packetPayloadLength int,
 //
 // Do not use this function unless you know what you are doing.
 //
-// maxKeySizeBits is the length, in bits, of an RSA key defining the channel in
-// bits. It must be divisible by 8. packetPayloadLength is in bytes.
-func NewChannelVariableKeyUnsafe(name, description string, packetPayloadLength,
-	maxKeySizeBits int, rng csprng.Source) (*Channel, rsa.PrivateKey, error) {
+// packetPayloadLength is in bytes. maxKeySizeBits is the length, in bits, of an
+// RSA key defining the channel in bits. It must be divisible by 8.
+func NewChannelVariableKeyUnsafe(name, description string, level PrivacyLevel,
+	packetPayloadLength, maxKeySizeBits int, rng csprng.Source) (
+	*Channel, rsa.PrivateKey, error) {
 
 	if maxKeySizeBits%8 != 0 {
 		return nil, nil, errors.New("maxKeySizeBits must be divisible by 8")
+	}
+
+	if err := VerifyName(name); err != nil {
+		return nil, nil, err
+	}
+	if err := VerifyDescription(description); err != nil {
+		return nil, nil, err
+	}
+	if !level.Verify() {
+		return nil, nil, errors.WithStack(InvalidPrivacyLevelErr)
 	}
 
 	// Get the key size and the number of fields
@@ -115,10 +172,10 @@ func NewChannelVariableKeyUnsafe(name, description string, packetPayloadLength,
 			"secret requires %d bytes, found %d bytes", secretSize, n)
 	}
 
-	pubkeyHash := HashPubKey(pk.Public())
+	pubKeyHash := HashPubKey(pk.Public())
 
 	channelID, err := NewChannelID(
-		name, description, salt, pubkeyHash, HashSecret(secret))
+		name, description, level, salt, pubKeyHash, HashSecret(secret))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -128,10 +185,11 @@ func NewChannelVariableKeyUnsafe(name, description string, packetPayloadLength,
 		Name:            name,
 		Description:     description,
 		Salt:            salt,
-		RsaPubKeyHash:   pubkeyHash,
-		Secret:          secret,
+		RsaPubKeyHash:   pubKeyHash,
 		RsaPubKeyLength: keySize,
 		RSASubPayloads:  numSubPayloads,
+		Secret:          secret,
+		level:           level,
 	}, pk, nil
 }
 
@@ -153,8 +211,8 @@ func (c *Channel) label() []byte {
 // Verify checks that the channel ID is the same one generated by the channel
 // primitives.
 func (c *Channel) Verify() bool {
-	gen, err := NewChannelID(
-		c.Name, c.Description, c.Salt, c.RsaPubKeyHash, HashSecret(c.Secret))
+	gen, err := NewChannelID(c.Name, c.Description, c.level, c.Salt,
+		c.RsaPubKeyHash, HashSecret(c.Secret))
 	if err != nil {
 		jww.ERROR.Printf("Channel verify failed due to error from "+
 			"channel generation: %+v", err)
@@ -168,7 +226,8 @@ func (c *Channel) Verify() bool {
 // The 32-byte identity is derived as described below:
 //  intermediary = H(name | description | salt | rsaPubHash | hashedSecret)
 //  identityBytes = HKDF(intermediary, salt, hkdfInfo)
-func NewChannelID(name, description string, salt, rsaPubHash, secretHash []byte) (*id.ID, error) {
+func NewChannelID(name, description string, level PrivacyLevel, salt,
+	rsaPubHash, secretHash []byte) (*id.ID, error) {
 	if len(salt) != saltSize {
 		return nil, ErrSaltSizeIncorrect
 	}
@@ -182,7 +241,8 @@ func NewChannelID(name, description string, salt, rsaPubHash, secretHash []byte)
 	}
 
 	intermediary :=
-		deriveIntermediary(name, description, salt, rsaPubHash, secretHash)
+		deriveIntermediary(
+			name, description, level, salt, rsaPubHash, secretHash)
 	hkdf1 := hkdf.New(hkdfHash, intermediary, salt, []byte(hkdfInfo))
 
 	const identitySize = 32
@@ -217,6 +277,11 @@ func (c *Channel) UnmarshalJson(b []byte) error {
 	return nil
 }
 
+// PrivacyLevel returns the level of privacy set for this channel.
+func (c *Channel) PrivacyLevel() PrivacyLevel {
+	return c.level
+}
+
 // PrettyPrint prints a human-readable serialization of this Channel that can b
 // copy and pasted.
 //
@@ -224,10 +289,11 @@ func (c *Channel) UnmarshalJson(b []byte) error {
 //  <Speakeasy-v1:Test Channel,description:This is a test channel,secrets:YxHhRAKy2D4XU2oW5xnW/3yaqOeh8nO+ZSd3nUmiQ3c=,6pXN2H9FXcOj7pjJIZoq6nMi4tGX2s53fWH5ze2dU1g=,493,1,MVjkHlm0JuPxQNAn6WHsPdOw9M/BUF39p7XB/QEkQyc=>
 func (c *Channel) PrettyPrint() string {
 	return fmt.Sprintf(
-		"<Speakeasy-v%d:%s,description:%s,secrets:%s,%s,%d,%d,%s>",
+		"<Speakeasy-v%d:%s,description:%s,level:%s,secrets:%s,%s,%d,%d,%s>",
 		version,
 		c.Name,
 		c.Description,
+		c.level.Marshal(),
 		base64.StdEncoding.EncodeToString(c.Salt),
 		base64.StdEncoding.EncodeToString(c.RsaPubKeyHash),
 		c.RsaPubKeyLength,
@@ -239,38 +305,52 @@ func (c *Channel) PrettyPrint() string {
 // Channel serialization generated using the Channel.PrettyPrint method.
 func NewChannelFromPrettyPrint(p string) (*Channel, error) {
 	fields := strings.FieldsFunc(p, split)
-	if len(fields) != 10 {
-		return nil, ErrMalformedPrettyPrintedChannel
+	if len(fields) != 12 {
+		return nil, errors.Errorf(
+			"%v: number of fields %d does not match expected of %d",
+			ErrMalformedPrettyPrintedChannel, len(fields), 12)
 	}
 
-	salt, err := base64.StdEncoding.DecodeString(fields[5])
+	level, err := UnmarshalPrivacyLevel(fields[5])
 	if err != nil {
-		return nil, ErrMalformedPrettyPrintedChannel
+		return nil, errors.Errorf("%v: could not decode privacy level: %+v",
+			ErrMalformedPrettyPrintedChannel, err)
 	}
 
-	rsaPubKeyHash, err := base64.StdEncoding.DecodeString(fields[6])
+	salt, err := base64.StdEncoding.DecodeString(fields[7])
 	if err != nil {
-		return nil, ErrMalformedPrettyPrintedChannel
+		return nil, errors.Errorf("%v: Failed to decode salt: %+v",
+			ErrMalformedPrettyPrintedChannel, err)
 	}
 
-	rsaPubKeyLength, err := strconv.Atoi(fields[7])
+	rsaPubKeyHash, err := base64.StdEncoding.DecodeString(fields[8])
 	if err != nil {
-		return nil, ErrMalformedPrettyPrintedChannel
+		return nil, errors.Errorf("%v: Failed to decode RSA public key: %+v",
+			ErrMalformedPrettyPrintedChannel, err)
 	}
 
-	rsaSubPayloads, err := strconv.Atoi(fields[8])
+	rsaPubKeyLength, err := strconv.Atoi(fields[9])
 	if err != nil {
-		return nil, ErrMalformedPrettyPrintedChannel
+		return nil, errors.Errorf("%v: Failed to decode RSA public key length: %+v",
+			ErrMalformedPrettyPrintedChannel, err)
 	}
 
-	secret, err := base64.StdEncoding.DecodeString(fields[9])
+	rsaSubPayloads, err := strconv.Atoi(fields[10])
 	if err != nil {
-		return nil, ErrMalformedPrettyPrintedChannel
+		return nil, errors.Errorf("%v: Failed to decode RSA sub payloads: %+v",
+			ErrMalformedPrettyPrintedChannel, err)
+	}
+
+	secret, err := base64.StdEncoding.DecodeString(fields[11])
+	if err != nil {
+		return nil, errors.Errorf("%v: Failed to decode secret: %+v",
+			ErrMalformedPrettyPrintedChannel, err)
 	}
 
 	c := &Channel{
 		Name:            fields[1],
 		Description:     fields[3],
+		level:           level,
 		Salt:            salt,
 		RsaPubKeyHash:   rsaPubKeyHash,
 		RsaPubKeyLength: rsaPubKeyLength,
@@ -278,8 +358,19 @@ func NewChannelFromPrettyPrint(p string) (*Channel, error) {
 		Secret:          secret,
 	}
 
-	c.ReceptionID, err = NewChannelID(
-		c.Name, c.Description, c.Salt, c.RsaPubKeyHash, HashSecret(c.Secret))
+	// Ensure that the name, description, and privacy level are valid
+	if err = VerifyName(c.Name); err != nil {
+		return nil, err
+	}
+	if err := VerifyDescription(c.Description); err != nil {
+		return nil, err
+	}
+	if !c.level.Verify() {
+		return nil, errors.WithStack(InvalidPrivacyLevelErr)
+	}
+
+	c.ReceptionID, err = NewChannelID(c.Name, c.Description, c.level, c.Salt,
+		c.RsaPubKeyHash, HashSecret(c.Secret))
 	if err != nil {
 		return nil, ErrMalformedPrettyPrintedChannel
 	}
@@ -289,4 +380,41 @@ func NewChannelFromPrettyPrint(p string) (*Channel, error) {
 
 func split(r rune) bool {
 	return r == ',' || r == ':' || r == '>'
+}
+
+// nameMatch is the regular expressions that channel names are checked against.
+// It only allows letters, numbers, and underscores.
+//
+// Regex explains:
+//  ^       must start with any of the characters enumerated below
+//  \p{L}   any kind of letter from any language
+//  0-9     any digit 0 through 9
+//  _       underscore
+//  $       must end with any of the characters enumerated above
+//  +       match any number of character enumerated above
+var nameMatch = regexp.MustCompile(`[^\p{L}0-9_$]+`)
+
+// VerifyName verifies that the name is a valid channel name.
+func VerifyName(name string) error {
+	nameLen := len([]rune(name))
+
+	if nameLen < NameMinChars {
+		return errors.WithStack(MinNameCharLenErr)
+	} else if nameLen > NameMaxChars {
+		return errors.WithStack(MaxNameCharLenErr)
+	} else if nameMatch.MatchString(name) {
+		return errors.WithStack(NameInvalidCharErr)
+	}
+
+	return nil
+}
+
+// VerifyDescription verifies that the description is a valid channel
+// description.
+func VerifyDescription(description string) error {
+	if len([]rune(description)) > DescriptionMaxChars {
+		return errors.WithStack(MaxDescriptionCharLenErr)
+	}
+
+	return nil
 }
