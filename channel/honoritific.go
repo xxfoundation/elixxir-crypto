@@ -1,8 +1,8 @@
 package channel
 
-//NOTE: DO NOT CHANGE! THIS WILL RESULT IN CRYPTOGRAPHIC CHANGING PEOPLE'S
-//IDENTITIES
-var honorificsDefs = []hd{
+// NOTE: DO NOT CHANGE! THIS WILL RESULT IN CRYPTOGRAPHIC CHANGING PEOPLE'S
+// IDENTITIES
+var honorificsDefsV0 = []hd{
 	{"this", 1000},
 	{"", 100},
 	{"that", 1000},
@@ -41,7 +41,7 @@ var honorificsDefs = []hd{
 	{"10xDeveloper", 1},
 }
 
-var engHonorifics = compileHonorifics(honorificsDefs)
+var engHonorifics = compileHonorifics(honorificsDefsV0)
 
 type hd struct {
 	h         string

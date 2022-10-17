@@ -255,10 +255,14 @@ func decodePrivateIdentity(data []byte) (PrivateIdentity, error) {
 	codesetVersion := buff.Next(codesetLen)[0]
 	privKey := ed25519.PrivateKey(buff.Next(ed25519.PrivateKeySize))
 	pubKey := ed25519.PublicKey(buff.Next(ed25519.PublicKeySize))
+	identity, err := ConstructIdentity(pubKey, codesetVersion)
+	if err != nil {
+		return PrivateIdentity{}, err
+	}
 
 	pi := PrivateIdentity{
 		Privkey:  &privKey,
-		Identity: constructIdentity(pubKey, codesetVersion),
+		Identity: identity,
 	}
 
 	return pi, nil
