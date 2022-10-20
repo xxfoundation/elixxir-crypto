@@ -14,30 +14,28 @@ import (
 	"io"
 )
 
-const DatabaseSecretSize = 32
-
-// Crypt is the interface for storing encrypted channel messages into a
+// Cipher is the interface for storing encrypted channel messages into a
 // database.
-type Crypt interface {
+type Cipher interface {
 	Encrypt(raw []byte, standardEntryLength int) []byte
 	Decrypt(encrypted []byte) ([]byte, error)
-	GetSalt() []byte
 }
 
-// crypt is an internal structure which adheres to the Crypt interface.
-type crypt struct {
-	password []byte
-	salt     []byte
-	rng      io.Reader
+// cipher is an internal structure which adheres to the Cipher interface.
+type cipher struct {
+	secret []byte
+	rng    io.Reader
 }
 
-// NewCrypt is a constructor which builds a Crypt.
-func NewCrypt(internalPassword, salt []byte, csprng io.Reader) Crypt {
+// NewCipher is a constructor which builds a Cipher.
+func NewCipher(internalPassword, salt []byte, csprng io.Reader) Cipher {
 
-	return &crypt{
-		password: internalPassword,
-		salt:     salt,
-		rng:      csprng,
+	// Generate key
+	key := deriveDatabaseSecret(internalPassword, salt)
+
+	return &cipher{
+		secret: key,
+		rng:    csprng,
 	}
 }
 
@@ -45,14 +43,11 @@ func NewCrypt(internalPassword, salt []byte, csprng io.Reader) Crypt {
 // minimum length that the message will be padded. This allows no information
 // about the encrypted message to be leaked at rest. To avoid padding the
 // message, simply pass in zero (0) as the standard entry length.
-func (c *crypt) Encrypt(plaintext []byte, blockSize int) []byte {
+func (c *cipher) Encrypt(plaintext []byte, blockSize int) []byte {
 	plaintext = appendPadding(plaintext, blockSize)
 
-	// Generate key
-	key := c.deriveDatabaseSecret()
-
 	// Generate cipher and nonce
-	chaCipher := initChaCha20Poly1305(key)
+	chaCipher := initChaCha20Poly1305(c.secret)
 	nonce := make([]byte, chaCipher.NonceSize())
 	if _, err := io.ReadFull(c.rng, nonce); err != nil {
 		jww.FATAL.Panicf("Could not generate nonce %+v", err)
@@ -65,13 +60,10 @@ func (c *crypt) Encrypt(plaintext []byte, blockSize int) []byte {
 
 // Decrypt will decrypt the passed in encrypted value. If the plaintext was
 // padded, the padding will be discarded at this level.
-func (c *crypt) Decrypt(encrypted []byte) ([]byte, error) {
-
-	// Generate key
-	key := c.deriveDatabaseSecret()
+func (c *cipher) Decrypt(encrypted []byte) ([]byte, error) {
 
 	// Generate cypher
-	chaCipher := initChaCha20Poly1305(key)
+	chaCipher := initChaCha20Poly1305(c.secret)
 
 	nonceLen := chaCipher.NonceSize()
 	if (len(encrypted) - nonceLen) <= 0 {
@@ -89,11 +81,6 @@ func (c *crypt) Decrypt(encrypted []byte) ([]byte, error) {
 
 	return plaintext, nil
 
-}
-
-// GetSalt retrieves the salt generated in the NewCrypt call.
-func (c *crypt) GetSalt() []byte {
-	return c.salt
 }
 
 // appendPadding is a helper function which adds padding to the raw plaintext,
@@ -136,12 +123,12 @@ func discardPadding(data []byte) []byte {
 
 // deriveDatabaseSecret is a helper function which will generate the key for
 // encryption/decryption of
-func (c *crypt) deriveDatabaseSecret() []byte {
+func deriveDatabaseSecret(password, salt []byte) []byte {
 	h, err := hash.NewCMixHash()
 	if err != nil {
 		jww.FATAL.Panicf("Failed to generate cMix hash: %+v", err)
 	}
-	h.Write(c.password)
-	h.Write(c.salt)
+	h.Write(password)
+	h.Write(salt)
 	return h.Sum(nil)
 }

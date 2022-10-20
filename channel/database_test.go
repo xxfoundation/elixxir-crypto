@@ -136,9 +136,9 @@ func TestCrypt_AppendPadding_DiscardPadding(t *testing.T) {
 	}
 }
 
-// TestCrypt_EncryptDecrypt tests Crypt.Encrypt and Crypt.Decrypt.
-// Test Case: Ensure that Crypt.Decrypt returns the originally encrypted
-// plaintext when passed the output from Crypt.Encrypt.
+// TestCrypt_EncryptDecrypt tests Cipher.Encrypt and Cipher.Decrypt.
+// Test Case: Ensure that Cipher.Decrypt returns the originally encrypted
+// plaintext when passed the output from Cipher.Encrypt.
 func TestCrypt_EncryptDecrypt(t *testing.T) {
 	password := []byte("test123")
 	rng := csprng.NewSystemRNG()
@@ -146,7 +146,7 @@ func TestCrypt_EncryptDecrypt(t *testing.T) {
 
 	expected := []byte("original")
 	entryLength := 50
-	c := NewCrypt(password, salt, rng)
+	c := NewCipher(password, salt, rng)
 
 	encryptedData := c.Encrypt(expected, entryLength)
 	decryptedData, err := c.Decrypt(encryptedData)
@@ -155,7 +155,7 @@ func TestCrypt_EncryptDecrypt(t *testing.T) {
 	}
 
 	if !bytes.Equal(expected, decryptedData) {
-		t.Fatalf("Crypt.Decrypt did not return originally encrypted data."+
+		t.Fatalf("Cipher.Decrypt did not return originally encrypted data."+
 			"\nExpected: %v"+
 			"\nRecieved: %v", expected, decryptedData)
 	}
