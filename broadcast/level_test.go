@@ -58,7 +58,7 @@ func TestPrivacyLevel_Marshal_UnmarshalPrivacyLevel(t *testing.T) {
 
 		newPl, err := UnmarshalPrivacyLevel(s)
 		if err != nil {
-			t.Errorf("Failed to unmarshal privacy level %s: %+v", pl, err)
+			t.Errorf("Failed to unmarshal privacy Level %s: %+v", pl, err)
 		}
 
 		if pl != newPl {
@@ -88,7 +88,7 @@ func TestPrivacyLevel_MapCheck(t *testing.T) {
 	for pl, name := range privacyLevelNames {
 		v := privacyLevelValues[name]
 		if v != pl {
-			t.Errorf("Privacy level in name map does not match the one in the "+
+			t.Errorf("Privacy Level in name map does not match the one in the "+
 				"value map.\nname map:  %d\nvalue map: %d", v, pl)
 		}
 	}
@@ -96,7 +96,7 @@ func TestPrivacyLevel_MapCheck(t *testing.T) {
 	for v, name := range privacyLevelValues {
 		pl := privacyLevelNames[name]
 		if pl != v {
-			t.Errorf("Privacy level name in name map does not match the one "+
+			t.Errorf("Privacy Level name in name map does not match the one "+
 				"in the value map.\nname map:  %s\nvalue map: %s", v, pl)
 		}
 	}

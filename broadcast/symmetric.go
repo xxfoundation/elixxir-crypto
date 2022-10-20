@@ -94,7 +94,7 @@ func (c *Channel) DecryptSymmetric(encryptedPayload, mac []byte,
 func (c *Channel) getSymmetricKey() []byte {
 	var err error
 	if c.key == nil {
-		c.key, err = NewSymmetricKey(c.Name, c.Description, c.level, c.Salt,
+		c.key, err = NewSymmetricKey(c.Name, c.Description, c.Level, c.Salt,
 			c.RsaPubKeyHash, c.Secret)
 		if err != nil {
 			jww.FATAL.Panic(err)

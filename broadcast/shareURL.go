@@ -81,7 +81,7 @@ const (
 	newReceptionIdErr   = "could not create new channel ID: %+v"
 
 	// Channel.decodePublicShareURL
-	parseLevelErr           = "failed to parse privacy level: %+v"
+	parseLevelErr           = "failed to parse privacy Level: %+v"
 	parseSaltErr            = "failed to parse Salt: %+v"
 	parseRsaPubKeyHashErr   = "failed to parse RsaPubKeyHash: %+v"
 	parseRsaPubKeyLengthErr = "failed to parse RsaPubKeyLength: %+v"
@@ -107,10 +107,10 @@ const (
 // It can be set to nil for Public channels. No password is returned for Public
 // channels.
 //
-// A URL comes in one of three forms based on the privacy level set when
-// generating the channel. Each privacy level hides more information than the
-// last with the lowest level revealing everything and the highest level
-// revealing nothing. For any level above the lowest, a password is returned,
+// A URL comes in one of three forms based on the privacy Level set when
+// generating the channel. Each privacy Level hides more information than the
+// last with the lowest Level revealing everything and the highest Level
+// revealing nothing. For any Level above the lowest, a password is returned,
 // which will be required when decoding the URL.
 //
 // The maxUses is the maximum number of times this URL can be used to join a
@@ -125,9 +125,9 @@ func (c *Channel) ShareURL(url string, maxUses int, csprng io.Reader) (string, s
 		return "", "", errors.Errorf(parseHostUrlErr, err)
 	}
 
-	// If the privacy level is Private or Secret, then generate a password
+	// If the privacy Level is Private or Secret, then generate a password
 	var password string
-	if c.level != Public {
+	if c.Level != Public {
 		password, err = generatePhrasePassword(8, csprng)
 		if err != nil {
 			return "", "", errors.Errorf(generatePhrasePasswordErr, err)
@@ -138,8 +138,8 @@ func (c *Channel) ShareURL(url string, maxUses int, csprng io.Reader) (string, s
 	q.Set(versionKey, strconv.Itoa(shareUrlVersion))
 	q.Set(MaxUsesKey, strconv.Itoa(maxUses))
 
-	// Generate URL queries based on the privacy level
-	switch c.level {
+	// Generate URL queries based on the privacy Level
+	switch c.Level {
 	case Public:
 		u.RawQuery = c.encodePublicShareURL(q).Encode()
 	case Private:
@@ -216,25 +216,25 @@ func DecodeShareURL(url, password string) (*Channel, error) {
 		return nil, errors.New(malformedUrlErr)
 	}
 
-	if c.level == Private || c.level == Secret {
+	if c.Level == Private || c.Level == Secret {
 		if maxUses != maxUsesFromURL {
 			return nil, errors.Errorf(maxUsesUrlErr, maxUsesFromURL, maxUses)
 		}
 	}
 
-	// Ensure that the name, description, and privacy level are valid
+	// Ensure that the name, description, and privacy Level are valid
 	if err = VerifyName(c.Name); err != nil {
 		return nil, err
 	}
 	if err := VerifyDescription(c.Description); err != nil {
 		return nil, err
 	}
-	if !c.level.Verify() {
+	if !c.Level.Verify() {
 		return nil, errors.WithStack(InvalidPrivacyLevelErr)
 	}
 
 	// Generate the channel ID
-	c.ReceptionID, err = NewChannelID(c.Name, c.Description, c.level, c.Salt,
+	c.ReceptionID, err = NewChannelID(c.Name, c.Description, c.Level, c.Salt,
 		c.RsaPubKeyHash, HashSecret(c.Secret))
 	if err != nil {
 		return nil, errors.Errorf(newReceptionIdErr, err)
@@ -282,7 +282,7 @@ func GetShareUrlType(url string) (PrivacyLevel, error) {
 func (c *Channel) encodePublicShareURL(q goUrl.Values) goUrl.Values {
 	q.Set(nameKey, c.Name)
 	q.Set(descKey, c.Description)
-	q.Set(levelKey, c.level.Marshal())
+	q.Set(levelKey, c.Level.Marshal())
 	q.Set(saltKey, base64.StdEncoding.EncodeToString(c.Salt))
 	q.Set(rsaPubKeyHashKey, base64.StdEncoding.EncodeToString(c.RsaPubKeyHash))
 	q.Set(rsaPubKeyLengthKey, strconv.Itoa(c.RsaPubKeyLength))
@@ -299,7 +299,7 @@ func (c *Channel) decodePublicShareURL(q goUrl.Values) error {
 
 	c.Name = q.Get(nameKey)
 	c.Description = q.Get(descKey)
-	c.level, err = UnmarshalPrivacyLevel(q.Get(levelKey))
+	c.Level, err = UnmarshalPrivacyLevel(q.Get(levelKey))
 	if err != nil {
 		return errors.Errorf(parseLevelErr, err)
 	}
@@ -402,7 +402,7 @@ func (c *Channel) decodeSecretShareURL(q goUrl.Values, password string) (int, er
 	return maxUses, nil
 }
 
-// marshalPrivateShareUrlSecrets marshals the channel's level, Salt,
+// marshalPrivateShareUrlSecrets marshals the channel's Level, Salt,
 // RsaPubKeyHash, RsaPubKeyLength, RSASubPayloads, Secret, and max uses into a
 // byte slice.
 //
@@ -415,8 +415,8 @@ func (c *Channel) marshalPrivateShareUrlSecrets(maxUses int) []byte {
 	var buff bytes.Buffer
 	buff.Grow(marshaledPrivateLen)
 
-	// Privacy level byte
-	buff.WriteByte(byte(c.level))
+	// Privacy Level byte
+	buff.WriteByte(byte(c.Level))
 
 	// Salt (fixed length of saltSize)
 	buff.Write(c.Salt)
@@ -446,7 +446,7 @@ func (c *Channel) marshalPrivateShareUrlSecrets(maxUses int) []byte {
 }
 
 // unmarshalPrivateShareUrlSecrets unmarshalls the byte slice into the channel's
-// level, Salt, RsaPubKeyHash, RsaPubKeyLength, RSASubPayloads, and Secret and
+// Level, Salt, RsaPubKeyHash, RsaPubKeyLength, RSASubPayloads, and Secret and
 // returns the max uses.
 func (c *Channel) unmarshalPrivateShareUrlSecrets(data []byte) (int, error) {
 	if len(data) != marshaledPrivateLen {
@@ -455,7 +455,7 @@ func (c *Channel) unmarshalPrivateShareUrlSecrets(data []byte) (int, error) {
 
 	buff := bytes.NewBuffer(data)
 
-	c.level = PrivacyLevel(buff.Next(privLevelLen)[0])
+	c.Level = PrivacyLevel(buff.Next(privLevelLen)[0])
 	c.Salt = buff.Next(saltLen)
 	c.RsaPubKeyHash = buff.Next(rsaPubKeyHashLen)
 	c.RsaPubKeyLength = int(binary.LittleEndian.Uint16(buff.Next(rsaPubKeyLengthLen)))
@@ -466,7 +466,7 @@ func (c *Channel) unmarshalPrivateShareUrlSecrets(data []byte) (int, error) {
 	return maxUses, nil
 }
 
-// marshalSecretShareUrlSecrets marshals the channel's level, Name, Description,
+// marshalSecretShareUrlSecrets marshals the channel's Level, Name, Description,
 // Salt, RsaPubKeyHash, RsaPubKeyLength, RSASubPayloads, and Secret into a byte
 // slice.
 //
@@ -479,8 +479,8 @@ func (c *Channel) marshalSecretShareUrlSecrets(maxUses int) []byte {
 	var buff bytes.Buffer
 	buff.Grow(len(c.Name) + len(c.Description) + marshaledSecretLen)
 
-	// Privacy level byte
-	buff.WriteByte(byte(c.level))
+	// Privacy Level byte
+	buff.WriteByte(byte(c.Level))
 
 	// Length of Name
 	b := make([]byte, nameLengthLen)
@@ -526,7 +526,7 @@ func (c *Channel) marshalSecretShareUrlSecrets(maxUses int) []byte {
 }
 
 // unmarshalPrivateShareUrlSecrets unmarshalls the byte slice into the channel's
-// level, Name, Description, Salt, RsaPubKeyHash, RsaPubKeyLength,
+// Level, Name, Description, Salt, RsaPubKeyHash, RsaPubKeyLength,
 // RSASubPayloads, and Secret and returns the max uses.
 func (c *Channel) unmarshalSecretShareUrlSecrets(data []byte) (int, error) {
 	if len(data) < marshaledSecretLen {
@@ -535,8 +535,8 @@ func (c *Channel) unmarshalSecretShareUrlSecrets(data []byte) (int, error) {
 	}
 	buff := bytes.NewBuffer(data)
 
-	// Privacy level
-	c.level = PrivacyLevel(buff.Next(privLevelLen)[0])
+	// Privacy Level
+	c.Level = PrivacyLevel(buff.Next(privLevelLen)[0])
 
 	nameLen := int(binary.LittleEndian.Uint16(buff.Next(nameLengthLen)))
 	descLen := int(binary.LittleEndian.Uint16(buff.Next(descLengthLen)))

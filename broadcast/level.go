@@ -12,7 +12,7 @@ import (
 	"strconv"
 )
 
-// PrivacyLevel describes the privacy level of a Channel and dedicates how much
+// PrivacyLevel describes the privacy Level of a Channel and dedicates how much
 // channel information to reveal when sharing.
 type PrivacyLevel uint8
 
@@ -59,7 +59,7 @@ func (pl PrivacyLevel) Marshal() string {
 func UnmarshalPrivacyLevel(s string) (PrivacyLevel, error) {
 	pl, exists := privacyLevelValues[s]
 	if !exists {
-		return 0, errors.Errorf("invalid privacy level %q", s)
+		return 0, errors.Errorf("invalid privacy Level %q", s)
 	}
 
 	return pl, nil

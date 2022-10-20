@@ -249,7 +249,7 @@ func TestGetShareUrlType(t *testing.T) {
 		}
 
 		if expected != pl {
-			t.Errorf("Did not receive expected privacy level."+
+			t.Errorf("Did not receive expected privacy Level."+
 				"\nexpected: %s\nreceived: %s", expected, pl)
 		}
 	}
