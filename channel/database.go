@@ -52,8 +52,8 @@ func NewCrypt(internalPassword []byte, csprng io.Reader) Crypt {
 // minimum length that the message will be padded. This allows no information
 // about the encrypted message to be leaked at rest. To avoid padding the
 // message, simply pass in zero (0) as the standard entry length.
-func (c *crypt) Encrypt(raw []byte, standardEntryLength int) []byte {
-	raw = appendPadding(raw, standardEntryLength)
+func (c *crypt) Encrypt(plaintext []byte, blockSize int) []byte {
+	plaintext = appendPadding(plaintext, blockSize)
 
 	// Generate key
 	key := c.deriveDatabaseSecret()
@@ -66,7 +66,7 @@ func (c *crypt) Encrypt(raw []byte, standardEntryLength int) []byte {
 	}
 
 	// Encrypt data and return
-	ciphertext := chaCipher.Seal(nonce, nonce, raw, nil)
+	ciphertext := chaCipher.Seal(nonce, nonce, plaintext, nil)
 	return ciphertext
 }
 
