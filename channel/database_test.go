@@ -142,10 +142,11 @@ func TestCrypt_AppendPadding_DiscardPadding(t *testing.T) {
 func TestCrypt_EncryptDecrypt(t *testing.T) {
 	password := []byte("test123")
 	rng := csprng.NewSystemRNG()
+	salt := []byte("salt")
 
 	expected := []byte("original")
 	entryLength := 50
-	c := NewCrypt(password, rng)
+	c := NewCrypt(password, salt, rng)
 
 	encryptedData := c.Encrypt(expected, entryLength)
 	decryptedData, err := c.Decrypt(encryptedData)

@@ -31,15 +31,8 @@ type crypt struct {
 	rng      io.Reader
 }
 
-// NewCrypt is a constructor which builds a Crypt. This will generate a
-// salt that will be used for key construction. This can be retrieved using
-// Crypt.GetSalt.
-func NewCrypt(internalPassword []byte, csprng io.Reader) Crypt {
-
-	salt := make([]byte, DatabaseSecretSize)
-	if _, err := io.ReadFull(csprng, salt); err != nil {
-		jww.FATAL.Panicf("Could not generate salt %+v", err)
-	}
+// NewCrypt is a constructor which builds a Crypt.
+func NewCrypt(internalPassword, salt []byte, csprng io.Reader) Crypt {
 
 	return &crypt{
 		password: internalPassword,
