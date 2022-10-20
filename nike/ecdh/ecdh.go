@@ -113,6 +113,16 @@ func (p *PrivateKey) Scheme() nike.Nike {
 	return ECDHNIKE
 }
 
+func (p *PrivateKey) DerivePublicKey() nike.PublicKey {
+	pubKey, err := curve25519.X25519(p.privateKey, curve25519.Basepoint)
+	if err != nil {
+		jww.FATAL.Panic(err)
+	}
+	return &PublicKey{
+		publicKey: pubKey,
+	}
+}
+
 func (p *PrivateKey) DeriveSecret(pubKey nike.PublicKey) []byte {
 	secret, err := curve25519.X25519(p.privateKey,
 		(pubKey.(*PublicKey)).publicKey)
