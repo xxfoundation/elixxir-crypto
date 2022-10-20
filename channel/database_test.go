@@ -143,12 +143,11 @@ func TestCrypt_EncryptDecrypt(t *testing.T) {
 	password := []byte("test123")
 	rng := csprng.NewSystemRNG()
 	salt := []byte("salt")
-
-	expected := []byte("original")
 	entryLength := 50
-	c := NewCipher(password, salt, rng)
+	expected := []byte("original")
+	c := NewCipher(password, salt, entryLength, rng)
 
-	encryptedData := c.Encrypt(expected, entryLength)
+	encryptedData := c.Encrypt(expected)
 	decryptedData, err := c.Decrypt(encryptedData)
 	if err != nil {
 		t.Fatalf("Decrypt returned an error: %+v", err)

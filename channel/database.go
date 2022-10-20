@@ -14,28 +14,38 @@ import (
 	"io"
 )
 
+// Error messages.
+const (
+	cipherCannotDecryptErr  = "cannot decrypt ciphertext with secret: %+v"
+	cipherCipherTextSizeErr = "ciphertext has length %d which is not block size %d"
+)
+
+var padding = []byte{52, 13}
+
 // Cipher is the interface for storing encrypted channel messages into a
 // database.
 type Cipher interface {
-	Encrypt(raw []byte, standardEntryLength int) []byte
+	Encrypt(raw []byte) []byte
 	Decrypt(encrypted []byte) ([]byte, error)
 }
 
 // cipher is an internal structure which adheres to the Cipher interface.
 type cipher struct {
-	secret []byte
-	rng    io.Reader
+	secret    []byte
+	blockSize int
+	rng       io.Reader
 }
 
 // NewCipher is a constructor which builds a Cipher.
-func NewCipher(internalPassword, salt []byte, csprng io.Reader) Cipher {
+func NewCipher(internalPassword, salt []byte, blockSize int, csprng io.Reader) Cipher {
 
 	// Generate key
 	key := deriveDatabaseSecret(internalPassword, salt)
 
 	return &cipher{
-		secret: key,
-		rng:    csprng,
+		secret:    key,
+		blockSize: blockSize,
+		rng:       csprng,
 	}
 }
 
@@ -43,8 +53,8 @@ func NewCipher(internalPassword, salt []byte, csprng io.Reader) Cipher {
 // minimum length that the message will be padded. This allows no information
 // about the encrypted message to be leaked at rest. To avoid padding the
 // message, simply pass in zero (0) as the standard entry length.
-func (c *cipher) Encrypt(plaintext []byte, blockSize int) []byte {
-	plaintext = appendPadding(plaintext, blockSize)
+func (c *cipher) Encrypt(plaintext []byte) []byte {
+	plaintext = appendPadding(plaintext, c.blockSize)
 
 	// Generate cipher and nonce
 	chaCipher := initChaCha20Poly1305(c.secret)
@@ -61,7 +71,6 @@ func (c *cipher) Encrypt(plaintext []byte, blockSize int) []byte {
 // Decrypt will decrypt the passed in encrypted value. If the plaintext was
 // padded, the padding will be discarded at this level.
 func (c *cipher) Decrypt(encrypted []byte) ([]byte, error) {
-
 	// Generate cypher
 	chaCipher := initChaCha20Poly1305(c.secret)
 
@@ -72,11 +81,14 @@ func (c *cipher) Decrypt(encrypted []byte) ([]byte, error) {
 
 	// The first nonceLen bytes of ciphertext are the nonce.
 	nonce, ciphertext := encrypted[:nonceLen], encrypted[nonceLen:]
+
+	// Decrypt ciphertext
 	paddedPlaintext, err := chaCipher.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
-		return nil, errors.Errorf(decryptWithPasswordErr, err)
+		return nil, errors.Errorf(cipherCannotDecryptErr, err)
 	}
 
+	// Remove padding from plaintext
 	plaintext := discardPadding(paddedPlaintext)
 
 	return plaintext, nil
@@ -91,6 +103,7 @@ func appendPadding(raw []byte, standardEntryLength int) []byte {
 	} else {
 		// Pad raw data if data is less than the standard length
 		difference := standardEntryLength - len(raw)
+
 		if difference > 0 {
 			dataToAppend := make([]byte, difference)
 			raw = append(raw, dataToAppend...)
