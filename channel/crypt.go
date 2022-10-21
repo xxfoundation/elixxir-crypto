@@ -8,7 +8,7 @@
 package channel
 
 import (
-	"crypto/cipher"
+	cryptoCipher "crypto/cipher"
 	"github.com/pkg/errors"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/backup"
@@ -60,7 +60,7 @@ func decryptIdentity(data, key []byte) ([]byte, error) {
 
 // initChaCha20Poly1305 returns a XChaCha20-Poly1305 cipher.AEAD that uses the
 // given password hashed into a 256-bit key.
-func initChaCha20Poly1305(key []byte) cipher.AEAD {
+func initChaCha20Poly1305(key []byte) cryptoCipher.AEAD {
 	pwHash := blake2b.Sum256(key)
 	chaCipher, err := chacha20poly1305.NewX(pwHash[:])
 	if err != nil {
