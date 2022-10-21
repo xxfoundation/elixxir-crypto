@@ -20,6 +20,7 @@ const (
 	cipherCannotDecryptErr  = "cannot decrypt ciphertext with secret: %+v"
 	cipherCipherTextSizeErr = "ciphertext has length %d which is not block size %d"
 	cipherInvalidBlockSize  = "cannot instantiate cipher with block size %d"
+	plaintextTooLargeErr    = "plaintext too long (%d > max of %d)"
 )
 
 const (
@@ -29,7 +30,7 @@ const (
 // Cipher is the interface for storing encrypted channel messages into a
 // database.
 type Cipher interface {
-	Encrypt(raw []byte) []byte
+	Encrypt(raw []byte) ([]byte, error)
 	Decrypt(encrypted []byte) ([]byte, error)
 }
 
@@ -40,12 +41,15 @@ type cipher struct {
 	rng       io.Reader
 }
 
-// NewCipher is a constructor which builds a Cipher.
-func NewCipher(internalPassword, salt []byte, blockSize int,
+// NewCipher is a constructor which builds a Cipher. PlaintextBlockSize is
+// the maximum size of the plaintext. The ciphertext includes the
+// nonce (24 bytes), and maximumPaddingLength bytes of overhead to encode the
+// length of the plaintext.
+func NewCipher(internalPassword, salt []byte, plaintextBlockSize int,
 	csprng io.Reader) (Cipher, error) {
 
-	if blockSize == 0 {
-		return nil, errors.Errorf(cipherInvalidBlockSize, blockSize)
+	if plaintextBlockSize == 0 {
+		return nil, errors.Errorf(cipherInvalidBlockSize, plaintextBlockSize)
 	}
 
 	// Generate key
@@ -53,7 +57,7 @@ func NewCipher(internalPassword, salt []byte, blockSize int,
 
 	return &cipher{
 		secret:    key,
-		blockSize: blockSize,
+		blockSize: plaintextBlockSize,
 		rng:       csprng,
 	}, nil
 }
@@ -62,8 +66,16 @@ func NewCipher(internalPassword, salt []byte, blockSize int,
 // minimum length that the message will be padded. This allows no information
 // about the encrypted message to be leaked at rest. To avoid padding the
 // message, simply pass in zero (0) as the standard entry length.
-func (c *cipher) Encrypt(plaintext []byte) []byte {
-	plaintext = appendPadding(plaintext, c.blockSize)
+func (c *cipher) Encrypt(plaintext []byte) ([]byte, error) {
+
+	if len(plaintext) > c.blockSize {
+		return nil, errors.Errorf(plaintextTooLargeErr, len(plaintext), c.blockSize)
+	}
+
+	plaintext, err := appendPadding(plaintext, c.blockSize, c.rng)
+	if err != nil {
+		return nil, err
+	}
 
 	// Generate cipher and nonce
 	chaCipher := initChaCha20Poly1305(c.secret)
@@ -74,25 +86,25 @@ func (c *cipher) Encrypt(plaintext []byte) []byte {
 
 	// Encrypt data and return
 	ciphertext := chaCipher.Seal(nonce, nonce, plaintext, nil)
-	return ciphertext
+	return ciphertext, nil
 }
 
 // Decrypt will decrypt the passed in encrypted value. If the plaintext was
 // padded, the padding will be discarded at this level.
-func (c *cipher) Decrypt(encrypted []byte) ([]byte, error) {
+func (c *cipher) Decrypt(ciphertext []byte) ([]byte, error) {
 	// Generate cypher
 	chaCipher := initChaCha20Poly1305(c.secret)
 
 	nonceLen := chaCipher.NonceSize()
-	if (len(encrypted) - nonceLen) <= 0 {
-		return nil, errors.Errorf(readNonceLenErr, len(encrypted))
+	if (len(ciphertext) - nonceLen) <= 0 {
+		return nil, errors.Errorf(readNonceLenErr, len(ciphertext))
 	}
 
 	// The first nonceLen bytes of ciphertext are the nonce.
-	nonce, ciphertext := encrypted[:nonceLen], encrypted[nonceLen:]
+	nonce, encrypted := ciphertext[:nonceLen], ciphertext[nonceLen:]
 
 	// Decrypt ciphertext
-	paddedPlaintext, err := chaCipher.Open(nil, nonce, ciphertext, nil)
+	paddedPlaintext, err := chaCipher.Open(nil, nonce, encrypted, nil)
 	if err != nil {
 		return nil, errors.Errorf(cipherCannotDecryptErr, err)
 	}
@@ -109,43 +121,40 @@ func (c *cipher) Decrypt(encrypted []byte) ([]byte, error) {
 // formatted as such after padding: amountOfPadding | data | padding
 // The amountOfPadding is the serialized uint64 byte data representing how long
 // padding is in bytes.
-func appendPadding(raw []byte, blockSize int) []byte {
+func appendPadding(raw []byte, blockSize int, rng io.Reader) ([]byte, error) {
+	// Generate result
+	res := make([]byte, blockSize+maximumPaddingLength)
 
-	//
-	difference := blockSize - len(raw)
+	// Serialize length of plaintext
+	plaintextSize := len(raw)
+	binary.PutUvarint(res[0:maximumPaddingLength], uint64(plaintextSize))
 
-	if difference >= 0 {
+	// Put plaintext in result
+	copy(res[maximumPaddingLength:], raw)
 
-		// Amount of padding needed accounting for the prepending of the
-		// length of the padding.
-		amountOfPaddingNeeded := difference - maximumPaddingLength
-
-		differenceSerialized := make([]byte, maximumPaddingLength)
-		binary.PutUvarint(differenceSerialized, uint64(amountOfPaddingNeeded))
-
-		padding := make([]byte, amountOfPaddingNeeded)
-		raw = append(raw, padding...)
-		raw = append(differenceSerialized, raw...)
-	} else {
-
+	// Add padding to the result from where plaintext ends
+	padStart := maximumPaddingLength + plaintextSize
+	n, err := rng.Read(res[padStart:])
+	if err != nil {
+		return nil, err
 	}
 
-	return raw
+	// Check that the correct amount of padding was read into the result
+	padSize := blockSize - plaintextSize
+	if n != padSize {
+		return nil, errors.Errorf("short read (%d != %d)", n, padSize)
+	}
+
+	return res, nil
 }
 
 // discardPadding is a helper function which will return the plaintext with the
 // padding removed.
 func discardPadding(data []byte) []byte {
-	// Starting from the tail and moving to the head, find the first index where
-	// the byte data is non-zero at said index
-	lengthOfPaddingSerialized, rest := data[:maximumPaddingLength], data[maximumPaddingLength:]
-	lengthOfPadding, _ := binary.Uvarint(lengthOfPaddingSerialized)
+	plaintextSizeBytes := data[:maximumPaddingLength]
+	plaintextSize, _ := binary.Uvarint(plaintextSizeBytes)
 
-	// The plaintext will be up to where padding starts
-	startOfPadding := len(rest) - int(lengthOfPadding)
-	plaintext := rest[:startOfPadding]
-
-	return plaintext
+	return data[maximumPaddingLength:plaintextSize]
 }
 
 // deriveDatabaseSecret is a helper function which will generate the key for
