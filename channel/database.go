@@ -20,6 +20,7 @@ const (
 	cipherCannotDecryptErr = "cannot decrypt ciphertext with secret: %+v"
 	cipherInvalidBlockSize = "cannot instantiate cipher with block size %d"
 	plaintextTooLargeErr   = "plaintext too long (%d > max of %d)"
+	shortPaddingReadErr    = "short read (%d != %d)"
 )
 
 // cipher constants
@@ -165,7 +166,7 @@ func appendPadding(raw []byte, blockSize int, rng io.Reader) ([]byte, error) {
 	// Check that the correct amount of padding was read into the result
 	padSize := blockSize - plaintextSize
 	if n != padSize {
-		return nil, errors.Errorf("short read (%d != %d)", n, padSize)
+		return nil, errors.Errorf(shortPaddingReadErr, n, padSize)
 	}
 
 	return res, nil
