@@ -9,37 +9,29 @@ package channel
 
 import (
 	"bytes"
+	"encoding/binary"
 	"gitlab.com/xx_network/crypto/csprng"
 	"testing"
 )
-
-// TestCrypt_DiscardPadding_AllZeroes tests discardPadding.
-// Test Case: Data passed is all zeroes, meaning it should
-// all be considered padding.
-func TestCrypt_DiscardPadding_AllZeroes(t *testing.T) {
-	// Construct empty data (all 0's)
-	data := make([]byte, 32)
-
-	// Discard padding should return an empty byte slice
-	parsed := discardPadding(data)
-	if len(parsed) != 0 {
-		t.Errorf("Discard padding shoould have removed all "+
-			"data from %v", data)
-	}
-
-}
 
 // TestCrypt_DiscardPadding_NotAllZeroes tests discardPadding.
 // Test Case: Data passed is not all zeroes, meaning only all trailing zeroes
 // should be discarded.
 func TestCrypt_DiscardPadding_NotAllZeroes(t *testing.T) {
 	// Populate the first byte with non padding data
-	data := make([]byte, 32)
-	data[0] = 11
+	initial, paddingLength := 32, 1
+	data := make([]byte, initial)
+
+	// Serialize padding
+	paddingLengthSerialized := make([]byte, maximumPaddingLength)
+	binary.PutUvarint(paddingLengthSerialized, uint64(paddingLength))
+
+	// Add padding
+	paddedData := append(paddingLengthSerialized, data...)
 
 	// Discard padding should return the first byte of data
-	parsed := discardPadding(data)
-	expected := []byte{11}
+	parsed := discardPadding(paddedData)
+	expected := make([]byte, initial-paddingLength)
 	if !bytes.Equal(parsed, expected) {
 		t.Fatalf("discardPadding did not produce expected output."+
 			"\nExpected: %v"+
@@ -51,10 +43,18 @@ func TestCrypt_DiscardPadding_NotAllZeroes(t *testing.T) {
 // Test Case: Ensure that given nil and a non-zero entry length, an empty
 // byte slice of entry length is produced.
 func TestCrypt_AppendPadding_NilCase(t *testing.T) {
-	entryLength := 32
-	expected := make([]byte, entryLength)
+	blockSize := 255
 
-	received := appendPadding(nil, entryLength)
+	// Serialize padding
+	paddingLengthSerialized := make([]byte, maximumPaddingLength)
+	amountOfPaddingNeeded := blockSize - maximumPaddingLength
+	binary.PutUvarint(paddingLengthSerialized, uint64(amountOfPaddingNeeded))
+
+	// Construct padding
+	padding := make([]byte, amountOfPaddingNeeded)
+	expected := append(paddingLengthSerialized, padding...)
+
+	received := appendPadding(nil, blockSize)
 	if !bytes.Equal(received, expected) {
 		t.Fatalf("appendPadding did not produce expected output."+
 			"\nExpected: %v"+
@@ -68,12 +68,20 @@ func TestCrypt_AppendPadding_NilCase(t *testing.T) {
 // than entry length, appendPadding pads the data with zero data up to entry
 // length.
 func TestCrypt_AppendPadding_SmallData(t *testing.T) {
-	entryLength := 32
-	expected := make([]byte, entryLength)
-
+	blockSize := 32
 	smallData := []byte("123")
-	copy(expected, smallData)
-	received := appendPadding(smallData, entryLength)
+
+	// Serialize padding
+	paddingLengthSerialized := make([]byte, maximumPaddingLength)
+	amountOfPaddingNeeded := blockSize - maximumPaddingLength - len(smallData)
+	binary.PutUvarint(paddingLengthSerialized, uint64(amountOfPaddingNeeded))
+
+	// Construct padding
+	padding := make([]byte, amountOfPaddingNeeded)
+	expected := append(paddingLengthSerialized, smallData...)
+	expected = append(expected, padding...)
+
+	received := appendPadding(smallData, blockSize)
 	if !bytes.Equal(received, expected) {
 		t.Fatalf("appendPadding did not produce expected output."+
 			"\nExpected: %v"+
@@ -145,7 +153,10 @@ func TestCrypt_EncryptDecrypt(t *testing.T) {
 	salt := []byte("salt")
 	entryLength := 50
 	expected := []byte("original")
-	c := NewCipher(password, salt, entryLength, rng)
+	c, err := NewCipher(password, salt, entryLength, rng)
+	if err != nil {
+		t.Fatalf("Failed to create cipher: %+v", err)
+	}
 
 	encryptedData := c.Encrypt(expected)
 	decryptedData, err := c.Decrypt(encryptedData)

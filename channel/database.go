@@ -8,6 +8,7 @@
 package channel
 
 import (
+	"encoding/binary"
 	"github.com/pkg/errors"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/hash"
@@ -18,9 +19,12 @@ import (
 const (
 	cipherCannotDecryptErr  = "cannot decrypt ciphertext with secret: %+v"
 	cipherCipherTextSizeErr = "ciphertext has length %d which is not block size %d"
+	cipherInvalidBlockSize  = "cannot instantiate cipher with block size %d"
 )
 
-var padding = []byte{52, 13}
+const (
+	maximumPaddingLength = 2
+)
 
 // Cipher is the interface for storing encrypted channel messages into a
 // database.
@@ -37,7 +41,12 @@ type cipher struct {
 }
 
 // NewCipher is a constructor which builds a Cipher.
-func NewCipher(internalPassword, salt []byte, blockSize int, csprng io.Reader) Cipher {
+func NewCipher(internalPassword, salt []byte, blockSize int,
+	csprng io.Reader) (Cipher, error) {
+
+	if blockSize == 0 {
+		return nil, errors.Errorf(cipherInvalidBlockSize, blockSize)
+	}
 
 	// Generate key
 	key := deriveDatabaseSecret(internalPassword, salt)
@@ -46,7 +55,7 @@ func NewCipher(internalPassword, salt []byte, blockSize int, csprng io.Reader) C
 		secret:    key,
 		blockSize: blockSize,
 		rng:       csprng,
-	}
+	}, nil
 }
 
 // Encrypt will encrypt the raw data. The standard entry length will be
@@ -96,18 +105,29 @@ func (c *cipher) Decrypt(encrypted []byte) ([]byte, error) {
 }
 
 // appendPadding is a helper function which adds padding to the raw plaintext,
-// if padding is necessary and specified.
-func appendPadding(raw []byte, standardEntryLength int) []byte {
-	if standardEntryLength == 0 {
-		jww.WARN.Printf("Standard entry length is zero, will not pad raw data!")
-	} else {
-		// Pad raw data if data is less than the standard length
-		difference := standardEntryLength - len(raw)
+// if padding is necessary. If padding is necessary, the data will be
+// formatted as such after padding: amountOfPadding | data | padding
+// The amountOfPadding is the serialized uint64 byte data representing how long
+// padding is in bytes.
+func appendPadding(raw []byte, blockSize int) []byte {
 
-		if difference > 0 {
-			dataToAppend := make([]byte, difference)
-			raw = append(raw, dataToAppend...)
-		}
+	//
+	difference := blockSize - len(raw)
+
+	if difference >= 0 {
+
+		// Amount of padding needed accounting for the prepending of the
+		// length of the padding.
+		amountOfPaddingNeeded := difference - maximumPaddingLength
+
+		differenceSerialized := make([]byte, maximumPaddingLength)
+		binary.PutUvarint(differenceSerialized, uint64(amountOfPaddingNeeded))
+
+		padding := make([]byte, amountOfPaddingNeeded)
+		raw = append(raw, padding...)
+		raw = append(differenceSerialized, raw...)
+	} else {
+
 	}
 
 	return raw
@@ -118,18 +138,12 @@ func appendPadding(raw []byte, standardEntryLength int) []byte {
 func discardPadding(data []byte) []byte {
 	// Starting from the tail and moving to the head, find the first index where
 	// the byte data is non-zero at said index
-	startOfPadding := len(data)
-	for i := len(data) - 1; i >= 0; i-- {
-		if data[i] != byte(0) {
-			break
-		}
-
-		startOfPadding = i
-
-	}
+	lengthOfPaddingSerialized, rest := data[:maximumPaddingLength], data[maximumPaddingLength:]
+	lengthOfPadding, _ := binary.Uvarint(lengthOfPaddingSerialized)
 
 	// The plaintext will be up to where padding starts
-	plaintext := data[:startOfPadding]
+	startOfPadding := len(rest) - int(lengthOfPadding)
+	plaintext := rest[:startOfPadding]
 
 	return plaintext
 }
