@@ -8,6 +8,8 @@
 package fileTransfer
 
 import (
+	"encoding/json"
+	"reflect"
 	"testing"
 )
 
@@ -86,5 +88,31 @@ func TestTransferID_String(t *testing.T) {
 			t.Errorf("TransferID #%d string does not match expected."+
 				"\nexpected: %s\nreceived: %s", i, expected, tid.String())
 		}
+	}
+}
+
+// Tests that a TransferID JSON marshalled and unmarshalled matches the
+// original.
+func TestTransferID_JSON_Marshal_Unmarshal(t *testing.T) {
+	prng := NewPrng(42)
+	tid, err := NewTransferID(prng)
+	if err != nil {
+		t.Errorf("Failed to create new TransferID: %+v", err)
+	}
+
+	data, err := json.MarshalIndent(&tid, "", "\t")
+	if err != nil {
+		t.Errorf("Failed to JSON marshal TransferID: %+v", err)
+	}
+
+	var newTid TransferID
+	err = json.Unmarshal(data, &newTid)
+	if err != nil {
+		t.Errorf("Failed to JSON unmarshal TransferID: %+v", err)
+	}
+
+	if !reflect.DeepEqual(tid, newTid) {
+		t.Errorf("JSON marshalled and unmarshalled TransferID does not "+
+			"match original.\nexpected: %+v\nreceived: %+v", tid, newTid)
 	}
 }
