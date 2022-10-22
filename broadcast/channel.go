@@ -30,7 +30,7 @@ import (
 )
 
 const (
-	currentPrettyPrintVersion = 1
+	currentPrettyPrintVersion = 2
 
 	hkdfInfo      = "XX_Network_Broadcast_Channel_HKDF_Blake2b"
 	labelConstant = "XX_Network_Broadcast_Channel_Constant"
@@ -297,7 +297,7 @@ const (
 // copy and pasted.
 //
 // Example:
-//  <Speakeasy-v1:Test_Channel|description:Channel description.|level:Public|secrets:+oHcqDbJPZaT3xD5NcdLY8OjOMtSQNKdKgLPmr7ugdU=|rCI0wr01dHFStjSFMvsBzFZClvDIrHLL5xbCOPaUOJ0=|493|1|7cBhJxVfQxWo+DypOISRpeWdQBhuQpAZtUbQHjBm8NQ=>
+//  <Speakeasy-v2:Test_Channel|description:Channel description.|level:Public|secrets:+oHcqDbJPZaT3xD5NcdLY8OjOMtSQNKdKgLPmr7ugdU=|rCI0wr01dHFStjSFMvsBzFZClvDIrHLL5xbCOPaUOJ0=|493|1|7cBhJxVfQxWo+DypOISRpeWdQBhuQpAZtUbQHjBm8NQ=>
 func (c *Channel) PrettyPrint() string {
 	shouldEscape := func(s []rune, i int) bool { return s[i] == ppDelim }
 
