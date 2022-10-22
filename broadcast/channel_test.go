@@ -24,7 +24,7 @@ func TestChannel_PrettyPrint(t *testing.T) {
 	rng := csprng.NewSystemRNG()
 
 	name := "Test_Channel"
-	desc := "This is a test channel"
+	desc := "Channel description." + string(ppDelim)
 
 	channel1, _, err := NewChannel(name, desc, Public, 1000, rng)
 	if err != nil {
