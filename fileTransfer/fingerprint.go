@@ -22,7 +22,8 @@ import (
 const fingerprintVector = "FileTransferKeyFingerprint"
 
 // GenerateFingerprints generates the key fingerprints for all file parts.
-func GenerateFingerprints(startKey TransferKey, numFingerprints uint16) []format.Fingerprint {
+func GenerateFingerprints(
+	startKey TransferKey, numFingerprints uint16) []format.Fingerprint {
 	fingerprints := make([]format.Fingerprint, numFingerprints)
 	for i := uint16(0); i < numFingerprints; i++ {
 		fingerprints[i] = GenerateFingerprint(startKey, i)
@@ -33,7 +34,8 @@ func GenerateFingerprints(startKey TransferKey, numFingerprints uint16) []format
 
 // GenerateFingerprint generates an individual fingerprint for a file part given
 // the fingerprint number.
-func GenerateFingerprint(transferKey TransferKey, fpNum uint16) format.Fingerprint {
+func GenerateFingerprint(
+	transferKey TransferKey, fpNum uint16) format.Fingerprint {
 	h, _ := hash.NewCMixHash()
 	h.Reset()
 

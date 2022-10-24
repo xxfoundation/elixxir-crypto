@@ -35,22 +35,22 @@ func EncryptPart(transferKey TransferKey, partBytes []byte, fpNum uint16,
 	fp format.Fingerprint) (ciphertext, mac []byte) {
 
 	// Generate the part key and redefine as array
-	partKey := getPartKey(transferKey, fpNum)
+	pk := getPartKey(transferKey, fpNum)
 
 	// Create byte slice to store encrypted data
 	ciphertextLen := len(partBytes)
 	ciphertext = make([]byte, ciphertextLen)
 
 	// ChaCha20 encrypt file part bytes
-	cipher, err := chacha20.NewUnauthenticatedCipher(
-		partKey[:], fp[:chacha20.NonceSizeX])
+	cipher, err :=
+		chacha20.NewUnauthenticatedCipher(pk[:], fp[:chacha20.NonceSizeX])
 	if err != nil {
 		jww.FATAL.Panic(err)
 	}
 	cipher.XORKeyStream(ciphertext, partBytes)
 
 	// Create file part MAC
-	mac = createPartMAC(fp[:], partBytes, partKey)
+	mac = createPartMAC(fp[:], partBytes, pk)
 
 	// The nonce and ciphertext are returned separately
 	return ciphertext, mac
@@ -62,21 +62,21 @@ func DecryptPart(transferKey TransferKey, ciphertext, mac []byte,
 	fpNum uint16, fp format.Fingerprint) (filePartBytes []byte, err error) {
 
 	// Generate the part key and redefine as array
-	partKey := getPartKey(transferKey, fpNum)
+	pk := getPartKey(transferKey, fpNum)
 
 	// Create byte slice to store decrypted data
 	filePartBytes = make([]byte, len(ciphertext))
 
 	// ChaCha20 encrypt file part bytes
-	cipher, err := chacha20.NewUnauthenticatedCipher(
-		partKey[:], fp[:chacha20.NonceSizeX])
+	cipher, err :=
+		chacha20.NewUnauthenticatedCipher(pk[:], fp[:chacha20.NonceSizeX])
 	if err != nil {
 		jww.FATAL.Panic(err)
 	}
 	cipher.XORKeyStream(filePartBytes, ciphertext)
 
 	// Return an error if the MAC cannot be validated
-	if !verifyPartMAC(fp[:], filePartBytes, mac, partKey) {
+	if !verifyPartMAC(fp[:], filePartBytes, mac, pk) {
 		return nil, errors.New(macMismatchErr)
 	}
 

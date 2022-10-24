@@ -10,8 +10,8 @@ package broadcast
 import (
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"github.com/pkg/errors"
+	"gitlab.com/elixxir/crypto/broadcast/escape"
 	"gitlab.com/elixxir/crypto/rsa"
 	"hash"
 	"io"
@@ -30,7 +30,8 @@ import (
 )
 
 const (
-	version       = 1
+	currentPrettyPrintVersion = 2
+
 	hkdfInfo      = "XX_Network_Broadcast_Channel_HKDF_Blake2b"
 	labelConstant = "XX_Network_Broadcast_Channel_Constant"
 	saltSize      = 32 // 256 bits
@@ -282,74 +283,112 @@ func (c *Channel) PrivacyLevel() PrivacyLevel {
 	return c.Level
 }
 
+const (
+	ppHead     = "<Speakeasy-v"
+	ppVerDelim = ":"
+	ppTail     = ">"
+	ppDelim    = '|'
+	ppDesc     = "description:"
+	ppLevel    = "level:"
+	ppSecrets  = "secrets:"
+)
+
 // PrettyPrint prints a human-readable serialization of this Channel that can b
 // copy and pasted.
 //
 // Example:
-//  <Speakeasy-v1:Test Channel,description:This is a test channel,secrets:YxHhRAKy2D4XU2oW5xnW/3yaqOeh8nO+ZSd3nUmiQ3c=,6pXN2H9FXcOj7pjJIZoq6nMi4tGX2s53fWH5ze2dU1g=,493,1,MVjkHlm0JuPxQNAn6WHsPdOw9M/BUF39p7XB/QEkQyc=>
+//  <Speakeasy-v2:Test_Channel|description:Channel description.|level:Public|secrets:+oHcqDbJPZaT3xD5NcdLY8OjOMtSQNKdKgLPmr7ugdU=|rCI0wr01dHFStjSFMvsBzFZClvDIrHLL5xbCOPaUOJ0=|493|1|7cBhJxVfQxWo+DypOISRpeWdQBhuQpAZtUbQHjBm8NQ=>
 func (c *Channel) PrettyPrint() string {
-	return fmt.Sprintf(
-		"<Speakeasy-v%d:%s,description:%s,Level:%s,secrets:%s,%s,%d,%d,%s>",
-		version,
-		c.Name,
-		c.Description,
-		c.Level.Marshal(),
-		base64.StdEncoding.EncodeToString(c.Salt),
+	shouldEscape := func(s []rune, i int) bool { return s[i] == ppDelim }
+
+	fields := []string{
+		escape.HexEscape(c.Name, shouldEscape),
+		ppDesc + escape.HexEscape(c.Description, shouldEscape),
+		ppLevel + c.Level.Marshal(),
+		ppSecrets + base64.StdEncoding.EncodeToString(c.Salt),
 		base64.StdEncoding.EncodeToString(c.RsaPubKeyHash),
-		c.RsaPubKeyLength,
-		c.RSASubPayloads,
-		base64.StdEncoding.EncodeToString(c.Secret))
+		strconv.Itoa(c.RsaPubKeyLength),
+		strconv.Itoa(c.RSASubPayloads),
+		base64.StdEncoding.EncodeToString(c.Secret),
+	}
+
+	return ppHead + strconv.Itoa(currentPrettyPrintVersion) + ppVerDelim +
+		strings.Join(fields, string(ppDelim)) + ppTail
 }
 
 // NewChannelFromPrettyPrint creates a new Channel given a valid pretty printed
 // Channel serialization generated using the Channel.PrettyPrint method.
 func NewChannelFromPrettyPrint(p string) (*Channel, error) {
-	fields := strings.FieldsFunc(p, split)
-	if len(fields) != 12 {
+	// Strip the header and return an error if it is not present
+	if !strings.HasPrefix(p, ppHead) {
+		return nil, errors.New("missing header")
+	}
+	p = strings.TrimPrefix(p, ppHead)
+
+	// Strip the tail and return an error if it is not present
+	if !strings.HasSuffix(p, ppTail) {
+		return nil, errors.New("missing tail")
+	}
+	p = strings.TrimSuffix(p, ppTail)
+
+	// Split at the version separator and return error if not present
+	fields := strings.SplitN(p, ppVerDelim, 2)
+	if len(fields) != 2 {
+		return nil, errors.New("missing version separator")
+	}
+	p = fields[1]
+
+	// Parse and check that the version is correct
+	versionString := fields[0]
+	version, err := strconv.Atoi(versionString)
+	if err != nil {
+		return nil, errors.Errorf("failed to parse version: %+v", err)
+	} else if version != currentPrettyPrintVersion {
+		return nil, errors.Errorf("requires version %d; received version %d",
+			currentPrettyPrintVersion, version)
+	}
+
+	// Split into separate fields
+	fields = strings.Split(p, string(ppDelim))
+	if len(fields) != 8 {
 		return nil, errors.Errorf(
-			"%v: number of fields %d does not match expected of %d",
-			ErrMalformedPrettyPrintedChannel, len(fields), 12)
+			"expected %d fields, found %d fields", 8, len(fields))
 	}
 
-	level, err := UnmarshalPrivacyLevel(fields[5])
+	level, err := UnmarshalPrivacyLevel(strings.TrimPrefix(fields[2], ppLevel))
 	if err != nil {
-		return nil, errors.Errorf("%v: could not decode privacy Level: %+v",
-			ErrMalformedPrettyPrintedChannel, err)
+		return nil, errors.Errorf("could not decode privacy level: %+v", err)
 	}
 
-	salt, err := base64.StdEncoding.DecodeString(fields[7])
+	salt, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(fields[3], ppSecrets))
 	if err != nil {
-		return nil, errors.Errorf("%v: Failed to decode salt: %+v",
-			ErrMalformedPrettyPrintedChannel, err)
+		return nil, errors.Errorf("could not decode salt: %+v", err)
 	}
 
-	rsaPubKeyHash, err := base64.StdEncoding.DecodeString(fields[8])
+	rsaPubKeyHash, err := base64.StdEncoding.DecodeString(fields[4])
 	if err != nil {
-		return nil, errors.Errorf("%v: Failed to decode RSA public key: %+v",
-			ErrMalformedPrettyPrintedChannel, err)
+		return nil, errors.Errorf("could not decode RSA public key: %+v", err)
 	}
 
-	rsaPubKeyLength, err := strconv.Atoi(fields[9])
+	rsaPubKeyLength, err := strconv.Atoi(fields[5])
 	if err != nil {
-		return nil, errors.Errorf("%v: Failed to decode RSA public key length: %+v",
-			ErrMalformedPrettyPrintedChannel, err)
+		return nil, errors.Errorf(
+			"could not decode RSA public key length: %+v", err)
 	}
 
-	rsaSubPayloads, err := strconv.Atoi(fields[10])
+	rsaSubPayloads, err := strconv.Atoi(fields[6])
 	if err != nil {
-		return nil, errors.Errorf("%v: Failed to decode RSA sub payloads: %+v",
-			ErrMalformedPrettyPrintedChannel, err)
+		return nil, errors.Errorf("could not decode RSA sub payloads: %+v", err)
 	}
 
-	secret, err := base64.StdEncoding.DecodeString(fields[11])
+	secret, err := base64.StdEncoding.DecodeString(fields[7])
 	if err != nil {
-		return nil, errors.Errorf("%v: Failed to decode secret: %+v",
-			ErrMalformedPrettyPrintedChannel, err)
+		return nil, errors.Errorf("could not decode secret: %+v", err)
 	}
 
 	c := &Channel{
-		Name:            fields[1],
-		Description:     fields[3],
+		Name:            escape.HexUnescape(fields[0]),
+		Description:     strings.TrimPrefix(escape.HexUnescape(fields[1]), ppDesc),
 		Level:           level,
 		Salt:            salt,
 		RsaPubKeyHash:   rsaPubKeyHash,
@@ -376,10 +415,6 @@ func NewChannelFromPrettyPrint(p string) (*Channel, error) {
 	}
 
 	return c, nil
-}
-
-func split(r rune) bool {
-	return r == ',' || r == ':' || r == '>'
 }
 
 // nameMatch is the regular expressions that channel names are checked against.

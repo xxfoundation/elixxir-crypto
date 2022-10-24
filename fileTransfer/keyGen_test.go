@@ -8,6 +8,8 @@
 package fileTransfer
 
 import (
+	"encoding/json"
+	"reflect"
 	"testing"
 )
 
@@ -146,5 +148,31 @@ func Test_partKey_String(t *testing.T) {
 			t.Errorf("partKey #%d string does not match expected."+
 				"\nexpected: %s\nreceived: %s", i, expected, partKey.String())
 		}
+	}
+}
+
+// Tests that a TransferKey JSON marshalled and unmarshalled matches the
+// original.
+func TestTransferKey_JSON_Marshal_Unmarshal(t *testing.T) {
+	prng := NewPrng(42)
+	key, err := NewTransferKey(prng)
+	if err != nil {
+		t.Errorf("Failed to create new TransferKey: %+v", err)
+	}
+
+	data, err := json.MarshalIndent(&key, "", "\t")
+	if err != nil {
+		t.Errorf("Failed to JSON marshal TransferKey: %+v", err)
+	}
+
+	var newKey TransferKey
+	err = json.Unmarshal(data, &newKey)
+	if err != nil {
+		t.Errorf("Failed to JSON unmarshal TransferKey: %+v", err)
+	}
+
+	if !reflect.DeepEqual(key, newKey) {
+		t.Errorf("JSON marshalled and unmarshalled TransferKey does not "+
+			"match original.\nexpected: %+v\nreceived: %+v", key, newKey)
 	}
 }
