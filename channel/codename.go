@@ -33,7 +33,7 @@ const (
 	codesetV0             = 0
 )
 
-type identityConstructor func(pub ed25519.PublicKey, codeset uint8) (Identity, error)
+type identityConstructor func(pub ed25519.PublicKey) (Identity, int, error)
 
 // identityConstructorCodesets is a map of codeset version to its constructor.
 var identityConstructorCodesets = map[uint8]identityConstructor{
@@ -74,7 +74,7 @@ type CodeNamePart struct {
 var colorBitDepth = getBitDepth(len(colorsV0))
 
 func generateCodeNamePart(h hash.Hash, data []byte, c string, s sampler) CodeNamePart {
-
+	h.Reset()
 	// only one language currently, we will upgrade this
 	lang := English
 
