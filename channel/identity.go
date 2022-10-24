@@ -21,6 +21,9 @@ const (
 	English Language = iota
 )
 
+const MaxCodenameLength = 32
+const pubkeyHashingConstant = "codenamePubkeyHashingConstant"
+
 type PrivateIdentity struct {
 	Privkey *ed25519.PrivateKey
 	Identity
@@ -101,37 +104,57 @@ func ConstructIdentity(
 			"%d is an invalid codeset version", codesetVersion)
 	}
 
-	return constructor(pub, codesetVersion)
+	id, _, err := constructor(pub)
+
+	return id, err
 }
 
 // constructIdentityV0 is version 0 of the identity constructor.
-func constructIdentityV0(
-	pub ed25519.PublicKey, codesetVersion uint8) (Identity, error) {
+func constructIdentityV0(pub ed25519.PublicKey) (Identity, int, error) {
+
+	input := pub
+
+	codename := "1234567890123456789012345678901234567890"
+	var honorific CodeNamePart
+	var adjective CodeNamePart
+	var noun CodeNamePart
+
 	h, _ := blake2b.New256(nil)
+	c:=0
+	for ; len([]rune(codename)) > MaxCodenameLength;c++ {
+		h.Reset()
+		h.Write(input)
+		h.Write([]byte(pubkeyHashingConstant))
+		input = h.Sum(nil)
 
-	honorific := generateCodeNamePart(h, pub, honorificSalt, honorifics)
-	adjective := generateCodeNamePart(h, pub, adjectiveSalt, adjectives)
-	noun := generateCodeNamePart(h, pub, nounSalt, nouns)
+		honorific = generateCodeNamePart(h, input, honorificSalt, honorifics)
+		adjective = generateCodeNamePart(h, input, adjectiveSalt, adjectives)
+		noun = generateCodeNamePart(h, input, nounSalt, nouns)
 
-	if honorific.Generated != "" {
-		adjective.Generated = strings.Title(adjective.Generated)
+		if honorific.Generated != "" {
+			adjective.Generated = strings.Title(adjective.Generated)
+		}
+
+		if honorific.Generated != "" || adjective.Generated != "" {
+			noun.Generated = strings.Title(noun.Generated)
+		}
+
+		codename = honorific.Generated + adjective.Generated + noun.Generated
 	}
 
-	if honorific.Generated != "" || adjective.Generated != "" {
-		noun.Generated = strings.Title(noun.Generated)
-	}
+
 
 	i := Identity{
 		PubKey:         pub,
 		Honorific:      honorific,
 		Adjective:      adjective,
 		Noun:           noun,
-		Codename:       honorific.Generated + adjective.Generated + noun.Generated,
+		Codename:       codename,
 		Color:          generateColor(h, pub),
 		Extension:      generateExtension(h, pub),
-		CodesetVersion: codesetVersion,
+		CodesetVersion: 0,
 	}
-	return i, nil
+	return i, c, nil
 }
 
 // Marshal creates an exportable version of the Identity.
