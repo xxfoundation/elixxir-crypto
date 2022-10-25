@@ -21,10 +21,11 @@ import (
 	goUrl "net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // The current version number of the share URL structure.
-const shareUrlVersion = 0
+const shareUrlVersion = 1
 
 // Names for keys in the URL.
 const (
@@ -32,6 +33,7 @@ const (
 	nameKey            = "0Name"
 	descKey            = "1Description"
 	levelKey           = "2Level"
+	createdKey         = "3Created"
 	saltKey            = "s"
 	rsaPubKeyHashKey   = "k"
 	rsaPubKeyLengthKey = "l"
@@ -49,6 +51,7 @@ const (
 	privLevelLen        = 1
 	nameLengthLen       = 2
 	descLengthLen       = 2
+	createdLen          = 8
 	saltLen             = saltSize
 	rsaPubKeyHashLen    = blake2b.Size256
 	rsaPubKeyLengthLen  = 2
@@ -56,7 +59,7 @@ const (
 	secretLen           = secretSize
 	maxUsesLen          = 2
 	marshaledPrivateLen = privLevelLen + saltLen + rsaPubKeyHashLen + rsaPubKeyLengthLen + rsaSubPayloadsLen + secretLen + maxUsesLen
-	marshaledSecretLen  = nameLengthLen + descLengthLen + marshaledPrivateLen
+	marshaledSecretLen  = nameLengthLen + descLengthLen + marshaledPrivateLen + createdLen
 )
 
 // Error messages.
@@ -81,6 +84,7 @@ const (
 	newReceptionIdErr   = "could not create new channel ID: %+v"
 
 	// Channel.decodePublicShareURL
+	parseCreatedErr         = "failed to parse creation time: %+v"
 	parseLevelErr           = "failed to parse privacy Level: %+v"
 	parseSaltErr            = "failed to parse Salt: %+v"
 	parseRsaPubKeyHashErr   = "failed to parse RsaPubKeyHash: %+v"
@@ -234,8 +238,8 @@ func DecodeShareURL(url, password string) (*Channel, error) {
 	}
 
 	// Generate the channel ID
-	c.ReceptionID, err = NewChannelID(c.Name, c.Description, c.Level, c.Salt,
-		c.RsaPubKeyHash, HashSecret(c.Secret))
+	c.ReceptionID, err = NewChannelID(c.Name, c.Description, c.Level, c.Created,
+		c.Salt, c.RsaPubKeyHash, HashSecret(c.Secret))
 	if err != nil {
 		return nil, errors.Errorf(newReceptionIdErr, err)
 	}
@@ -283,6 +287,7 @@ func (c *Channel) encodePublicShareURL(q goUrl.Values) goUrl.Values {
 	q.Set(nameKey, c.Name)
 	q.Set(descKey, c.Description)
 	q.Set(levelKey, c.Level.Marshal())
+	q.Set(createdKey, strconv.FormatInt(c.Created.UnixNano(), 10))
 	q.Set(saltKey, base64.StdEncoding.EncodeToString(c.Salt))
 	q.Set(rsaPubKeyHashKey, base64.StdEncoding.EncodeToString(c.RsaPubKeyHash))
 	q.Set(rsaPubKeyLengthKey, strconv.Itoa(c.RsaPubKeyLength))
@@ -299,6 +304,13 @@ func (c *Channel) decodePublicShareURL(q goUrl.Values) error {
 
 	c.Name = q.Get(nameKey)
 	c.Description = q.Get(descKey)
+
+	created, err := strconv.ParseInt(q.Get(createdKey), 10, 64)
+	if err != nil {
+		return errors.Errorf(parseCreatedErr, err)
+	}
+	c.Created = time.Unix(0, created)
+
 	c.Level, err = UnmarshalPrivacyLevel(q.Get(levelKey))
 	if err != nil {
 		return errors.Errorf(parseLevelErr, err)
@@ -340,6 +352,7 @@ func (c *Channel) encodePrivateShareURL(
 
 	q.Set(nameKey, c.Name)
 	q.Set(descKey, c.Description)
+	q.Set(createdKey, strconv.FormatInt(c.Created.UnixNano(), 10))
 	q.Set(dataKey, base64.StdEncoding.EncodeToString(encryptedSecrets))
 
 	return q
@@ -350,6 +363,12 @@ func (c *Channel) encodePrivateShareURL(
 func (c *Channel) decodePrivateShareURL(q goUrl.Values, password string) (int, error) {
 	c.Name = q.Get(nameKey)
 	c.Description = q.Get(descKey)
+
+	created, err := strconv.ParseInt(q.Get(createdKey), 10, 64)
+	if err != nil {
+		return 0, errors.Errorf(parseCreatedErr, err)
+	}
+	c.Created = time.Unix(0, created)
 
 	encryptedData, err := base64.StdEncoding.DecodeString(q.Get(dataKey))
 	if err != nil {
@@ -470,11 +489,11 @@ func (c *Channel) unmarshalPrivateShareUrlSecrets(data []byte) (int, error) {
 // Salt, RsaPubKeyHash, RsaPubKeyLength, RSASubPayloads, and Secret into a byte
 // slice.
 //
-//  +---------+---------+-------------+------+-------------+-------+---------------+-----------------+----------------+----------+----------+
-//  | Privacy |  Name   | Description |      |             | Salt  | RsaPubKeyHash | RsaPubKeyLength | RSASubPayloads |  Secret  | Max Uses |
-//  |  Level  | Length  |   Length    | Name | Description |  32   |               |                 |                |          |          |
-//  | 1 byte  | 2 bytes |   2 bytes   |      |             | bytes |    32 bytes   |     2 bytes     |     2 bytes    | 32 bytes |  2 bytes |
-//  +---------+---------+-------------+------+-------------+-------+---------------+-----------------+----------------+----------+----------+
+//  +---------+---------+-------------+------+-------------+----------+-------+---------------+-----------------+----------------+----------+----------+
+//  | Privacy |  Name   | Description |      |             | Created | Salt  | RsaPubKeyHash | RsaPubKeyLength | RSASubPayloads |  Secret  | Max Uses |
+//  |  Level  | Length  |   Length    | Name | Description |         |  32   |               |                 |                |          |          |
+//  | 1 byte  | 2 bytes |   2 bytes   |      |             | 8 bytes | bytes |    32 bytes   |     2 bytes     |     2 bytes    | 32 bytes |  2 bytes |
+//  +---------+---------+-------------+------+-------------+----------+-------+---------------+-----------------+----------------+----------+----------+
 func (c *Channel) marshalSecretShareUrlSecrets(maxUses int) []byte {
 	var buff bytes.Buffer
 	buff.Grow(len(c.Name) + len(c.Description) + marshaledSecretLen)
@@ -497,6 +516,11 @@ func (c *Channel) marshalSecretShareUrlSecrets(maxUses int) []byte {
 
 	// Description
 	buff.WriteString(c.Description)
+
+	// Creation date
+	b = make([]byte, createdLen)
+	binary.LittleEndian.PutUint64(b, uint64(c.Created.UnixNano()))
+	buff.Write(b)
 
 	// Salt (fixed length of saltSize)
 	buff.Write(c.Salt)
@@ -548,6 +572,7 @@ func (c *Channel) unmarshalSecretShareUrlSecrets(data []byte) (int, error) {
 
 	c.Name = string(buff.Next(nameLen))
 	c.Description = string(buff.Next(descLen))
+	c.Created = time.Unix(0, int64(binary.LittleEndian.Uint64(buff.Next(createdLen))))
 	c.Salt = buff.Next(saltLen)
 	c.RsaPubKeyHash = buff.Next(rsaPubKeyHashLen)
 	c.RsaPubKeyLength = int(binary.LittleEndian.Uint16(buff.Next(rsaPubKeyLengthLen)))
