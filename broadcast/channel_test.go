@@ -15,6 +15,7 @@ import (
 	"gitlab.com/xx_network/crypto/csprng"
 	oldRsa "gitlab.com/xx_network/crypto/signature/rsa"
 	"gitlab.com/xx_network/primitives/id"
+	"gitlab.com/xx_network/primitives/netTime"
 	"reflect"
 	"strings"
 	"testing"
@@ -32,6 +33,8 @@ func TestChannel_PrettyPrint(t *testing.T) {
 	}
 
 	pretty1 := channel1.PrettyPrint()
+
+	t.Logf("%s", pretty1)
 
 	channel2, err := NewChannelFromPrettyPrint(pretty1)
 	if err != nil {
@@ -70,7 +73,7 @@ func TestChannel_MarshalJson(t *testing.T) {
 
 	pubKeyPem := oldRsa.CreatePublicKeyPem(pk.Public().GetOldRSA())
 	rid, err := NewChannelID(
-		name, desc, Public, secret, salt, HashSecret(pubKeyPem))
+		name, desc, Public, netTime.Now(), secret, salt, HashSecret(pubKeyPem))
 	channel := Channel{
 		ReceptionID:   rid,
 		Name:          name,
@@ -145,7 +148,7 @@ func TestRChanel_Marshal_Unmarshal(t *testing.T) {
 	}
 
 	rid, err := NewChannelID(
-		name, desc, Public, secret, salt, HashPubKey(pk.Public()))
+		name, desc, Public, netTime.Now(), secret, salt, HashPubKey(pk.Public()))
 	ac := &Channel{
 		RsaPubKeyLength: 528,
 		ReceptionID:     rid,
@@ -196,6 +199,8 @@ func TestChannel_Verify_Happy(t *testing.T) {
 	}
 	name := "Asymmetric channel"
 	desc := "Asymmetric channel description"
+	level := Public
+	created := netTime.Now()
 	salt := cmix.NewSalt(rng, saltSize)
 	secret := make([]byte, secretSize)
 	_, err = rng.Read(secret)
@@ -207,15 +212,17 @@ func TestChannel_Verify_Happy(t *testing.T) {
 	hashedPubkey := HashPubKey(pk.Public())
 
 	rid, err := NewChannelID(
-		name, desc, Public, salt, hashedPubkey, hashedSecret)
+		name, desc, level, created, salt, hashedPubkey, hashedSecret)
 	ac := &Channel{
-		RsaPubKeyLength: 528,
 		ReceptionID:     rid,
 		Name:            name,
 		Description:     desc,
+		Level:           level,
+		Created:         created,
 		Salt:            salt,
-		Secret:          secret,
 		RsaPubKeyHash:   hashedPubkey,
+		RsaPubKeyLength: 528,
+		Secret:          secret,
 	}
 
 	if !ac.Verify() {
@@ -284,7 +291,7 @@ func TestChannel_Verify_BadGeneration(t *testing.T) {
 	hashedPubkey := HashPubKey(pk.Public())
 
 	rid, err := NewChannelID(
-		name, desc, Public, salt, hashedPubkey, hashedSecret)
+		name, desc, Public, netTime.Now(), salt, hashedPubkey, hashedSecret)
 	ac := &Channel{
 		RsaPubKeyLength: 528,
 		ReceptionID:     rid,
