@@ -1,8 +1,9 @@
 package channel
 
 import (
-	"bytes"
+	"crypto/hmac"
 	"encoding/base64"
+
 	"gitlab.com/xx_network/primitives/id"
 	"golang.org/x/crypto/blake2b"
 
@@ -46,7 +47,7 @@ func MakeMessageID(message []byte, chID *id.ID) MessageID {
 // Equals checks if two message IDs which are the same
 // Not constant time
 func (mid MessageID) Equals(mid2 MessageID) bool {
-	return bytes.Equal(mid[:], mid2[:])
+	return hmac.Equal(mid[:], mid2[:])
 }
 
 // String returns a base64 encoded message ID for debugging

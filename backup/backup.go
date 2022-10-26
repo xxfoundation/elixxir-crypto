@@ -9,6 +9,7 @@ package backup
 
 import (
 	"bytes"
+	"crypto/hmac"
 	"encoding/json"
 
 	"github.com/pkg/errors"
@@ -36,7 +37,7 @@ func marshalTagVersion() []byte {
 
 func checkMarshalledTagVersion(b []byte) error {
 	acquiredTag := b[:tagSize]
-	if !bytes.Equal(acquiredTag, []byte(tag)) {
+	if !hmac.Equal(acquiredTag, []byte(tag)) {
 		return errors.New("tag mismatch")
 	}
 	acquiredVersion := int(b[tagSize])
@@ -143,7 +144,9 @@ func (b *Backup) Decrypt(password string, blob []byte) error {
 
 // Encrypt returns the encrypted serialized backup with the format for account
 // backups:
-//   "XXACCTBAK" | [VERSION as 1 byte] | [salt and params] | [DATA]
+//
+//	"XXACCTBAK" | [VERSION as 1 byte] | [salt and params] | [DATA]
+//
 // The key passed in must be derived via DeriveKey and the salt must be the same
 // used to derive the key. Key derivation happens outside the encryption because
 // it is slow, so that the key can be stored and reused.

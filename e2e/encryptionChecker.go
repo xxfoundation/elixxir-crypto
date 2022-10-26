@@ -10,7 +10,8 @@
 package e2e
 
 import (
-	"bytes"
+	"crypto/hmac"
+
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/hash"
 	"gitlab.com/elixxir/primitives/format"
@@ -33,7 +34,7 @@ func IsUnencrypted(m format.Message) (bool, *id.ID) {
 	receivedMac[0] &= macMask
 
 	//return false if the message is not unencrypted
-	if !bytes.Equal(expectedMac, receivedMac) {
+	if !hmac.Equal(expectedMac, receivedMac) {
 		return false, nil
 	}
 

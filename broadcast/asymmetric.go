@@ -8,18 +8,18 @@
 package broadcast
 
 import (
-	"bytes"
+	"crypto/hmac"
+
 	"github.com/pkg/errors"
 	"gitlab.com/elixxir/crypto/rsa"
 	"gitlab.com/elixxir/primitives/format"
 	"gitlab.com/xx_network/crypto/csprng"
 )
 
-
 // IsPublicKey returns true if the passed public key is the public key for the
 // given channel
 func (c *Channel) IsPublicKey(publicKey rsa.PublicKey) bool {
-	if bytes.Equal(c.RsaPubKeyHash, HashPubKey(publicKey)) {
+	if hmac.Equal(c.RsaPubKeyHash, HashPubKey(publicKey)) {
 		return true
 	}
 	return false
@@ -32,9 +32,9 @@ func (c *Channel) GetRSAToPublicMessageLength() (size int, numSubPayloads int,
 	subPayloadSize int) {
 	// get the number of bytes in each subpayload
 	h, _ := channelHash(nil)
-	subPayloadSize = rsa.GetMaxOEAPPayloadSize(h,c.RsaPubKeyLength)
+	subPayloadSize = rsa.GetMaxOEAPPayloadSize(h, c.RsaPubKeyLength)
 	numSubPayloads = c.RSASubPayloads
-	size = subPayloadSize*numSubPayloads
+	size = subPayloadSize * numSubPayloads
 	return
 }
 
@@ -53,7 +53,7 @@ func (c *Channel) EncryptRSAToPublic(payload []byte, privkey rsa.PrivateKey,
 
 	maxPayloadLength, _, subpayloadSize := c.GetRSAToPublicMessageLength()
 
-	if len(payload)>maxPayloadLength{
+	if len(payload) > maxPayloadLength {
 		return nil, nil, nonce, errors.New("the " +
 			"encrypted message must be no longer than " +
 			"GetRSAToPublicMessageLength()")
@@ -65,19 +65,19 @@ func (c *Channel) EncryptRSAToPublic(payload []byte, privkey rsa.PrivateKey,
 
 	//prepend the public key
 	publicWire := privkey.Public().MarshalWire()
-	singleEncryptedPayload = append(singleEncryptedPayload,publicWire...)
+	singleEncryptedPayload = append(singleEncryptedPayload, publicWire...)
 
 	//encrypt and append the encrypted payloads
 	h, _ := channelHash(nil)
-	for n:=0;n<c.RSASubPayloads;n++{
+	for n := 0; n < c.RSASubPayloads; n++ {
 		h.Reset()
-		subsample := permissiveSubsample(payload,subpayloadSize,n)
+		subsample := permissiveSubsample(payload, subpayloadSize, n)
 		innerCiphertext, err := privkey.EncryptOAEPMulticast(h,
 			csprng, subsample, c.label())
 		if err != nil {
 			return nil, nil, format.Fingerprint{},
-			errors.WithMessagef(err, "Failed to encrypt asymmetric " +
-				"broadcast message for subpayload %d", n)
+				errors.WithMessagef(err, "Failed to encrypt asymmetric "+
+					"broadcast message for subpayload %d", n)
 		}
 		singleEncryptedPayload = append(singleEncryptedPayload, innerCiphertext...)
 	}
@@ -118,8 +118,8 @@ func (c *Channel) DecryptRSAToPublic(payload []byte, mac []byte, nonce format.Fi
 	h, _ := channelHash(nil)
 	rsaToPublicLength, _, _ := c.GetRSAToPublicMessageLength()
 	decrypted := make([]byte, 0, rsaToPublicLength)
-	for n:=0; n<c.RSASubPayloads;n++{
-		cypherText := permissiveSubsample(innerCiphertext[wireProtocolLength:],c.RsaPubKeyLength,n)
+	for n := 0; n < c.RSASubPayloads; n++ {
+		cypherText := permissiveSubsample(innerCiphertext[wireProtocolLength:], c.RsaPubKeyLength, n)
 		decryptedPart, err := rsaPubKey.DecryptOAEPMulticast(h, cypherText, c.label())
 		if err != nil {
 			return nil, err
@@ -130,7 +130,6 @@ func (c *Channel) DecryptRSAToPublic(payload []byte, mac []byte, nonce format.Fi
 	return decrypted, nil
 }
 
-
 // GetRSAToPrivateMessageLength returns the size of the internal payload for
 // RSAtoPublic encrypted messages. It returns the total size, the number of
 // subpayloads, and the size of each subpayloads
@@ -138,14 +137,13 @@ func (c *Channel) GetRSAToPrivateMessageLength() (size int, numSubPayloads int,
 	subPayloadSize int) {
 	// get the number of bytes in each subpayload
 	h, _ := channelHash(nil)
-	subPayloadSize = rsa.GetMaxOEAPPayloadSize(h,c.RsaPubKeyLength)
+	subPayloadSize = rsa.GetMaxOEAPPayloadSize(h, c.RsaPubKeyLength)
 	// to private has room for an extra subpayload because it does not
 	// transmit the public key like Public
-	numSubPayloads = c.RSASubPayloads+1
-	size = subPayloadSize*numSubPayloads
+	numSubPayloads = c.RSASubPayloads + 1
+	size = subPayloadSize * numSubPayloads
 	return
 }
-
 
 // EncryptRSAToPrivate encrypts the given plaintext with the given
 // RSA public key. The payload must not be longer than
@@ -162,7 +160,7 @@ func (c *Channel) EncryptRSAToPrivate(payload []byte, pubkey rsa.PublicKey,
 
 	maxPayloadLength, numSubPayloads, subpayloadSize := c.GetRSAToPrivateMessageLength()
 
-	if len(payload)>maxPayloadLength{
+	if len(payload) > maxPayloadLength {
 		return nil, nil, nonce, errors.New("the " +
 			"encrypted message must be no longer than " +
 			"GetRSAToPrivateMessageLength()")
@@ -174,13 +172,13 @@ func (c *Channel) EncryptRSAToPrivate(payload []byte, pubkey rsa.PublicKey,
 
 	//encrypt and append the encrypted payloads
 	h, _ := channelHash(nil)
-	for n:=0;n<numSubPayloads;n++{
+	for n := 0; n < numSubPayloads; n++ {
 		h.Reset()
 		innerCiphertext, err := pubkey.EncryptOAEP(h,
-			rng, permissiveSubsample(payload,subpayloadSize,n), c.label())
+			rng, permissiveSubsample(payload, subpayloadSize, n), c.label())
 		if err != nil {
 			return nil, nil, format.Fingerprint{},
-				errors.WithMessagef(err, "Failed to encrypt asymmetric " +
+				errors.WithMessagef(err, "Failed to encrypt asymmetric "+
 					"broadcast message for subpayload %d", n)
 		}
 		singleEncryptedPayload = append(singleEncryptedPayload, innerCiphertext...)
@@ -205,13 +203,12 @@ func (c *Channel) DecryptRSAToPrivate(private rsa.PrivateKey, payload []byte,
 		return nil, err
 	}
 
-
 	// chunk up the remaining payload into each RSA decryption and decrypt them
 	h, _ := channelHash(nil)
 	rsaToPublicLength, numSubPayloads, _ := c.GetRSAToPrivateMessageLength()
 	decrypted := make([]byte, 0, rsaToPublicLength)
-	for n:=0; n<numSubPayloads;n++{
-		cypherText := permissiveSubsample(innerCiphertext,c.RsaPubKeyLength,n)
+	for n := 0; n < numSubPayloads; n++ {
+		cypherText := permissiveSubsample(innerCiphertext, c.RsaPubKeyLength, n)
 		decryptedPart, err := private.DecryptOAEP(h, nil, cypherText,
 			c.label())
 		if err != nil {
@@ -223,17 +220,16 @@ func (c *Channel) DecryptRSAToPrivate(private rsa.PrivateKey, payload []byte,
 	return decrypted, nil
 }
 
-
 // permissiveSubsample returns the nth subsample of size s in b, returning short or
 // empty subsamples if b is not long enough
-func permissiveSubsample(b []byte, size, n int)[]byte{
-	begin := n*size
-	end := (n+1)*size
-	if begin>len(b){
+func permissiveSubsample(b []byte, size, n int) []byte {
+	begin := n * size
+	end := (n + 1) * size
+	if begin > len(b) {
 		return make([]byte, 0)
-	}else if size>len(b[begin:]){
+	} else if size > len(b[begin:]) {
 		return b[begin:]
-	}else{
+	} else {
 		return b[begin:end]
 	}
 }
