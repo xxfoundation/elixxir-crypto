@@ -5,6 +5,7 @@ import (
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/rsa"
 	"hash"
+	"time"
 )
 
 // HashSecret secret is hashed first so that
@@ -27,9 +28,9 @@ func HashPubKey(pub rsa.PublicKey) []byte {
 }
 
 // returns the Blake2b hash of the given arguments:
-// H(name | description | privacyLevel | rsaPubHash | hashedSecret | salt)
-func deriveIntermediary(name, description string, level PrivacyLevel, salt,
-	rsaPubHash, hashedSecret []byte) []byte {
+//  H(name | description | level | created | rsaPubHash | hashedSecret | salt)
+func deriveIntermediary(name, description string, level PrivacyLevel,
+	creation time.Time, salt, rsaPubHash, hashedSecret []byte) []byte {
 	h, err := channelHash(nil)
 	if err != nil {
 		jww.FATAL.Panic(err)
@@ -38,17 +39,25 @@ func deriveIntermediary(name, description string, level PrivacyLevel, salt,
 	write(h, []byte(name))
 	write(h, []byte(description))
 	write(h, []byte{byte(level)})
+	write(h, marshalTime(creation))
 	write(h, rsaPubHash)
 	write(h, hashedSecret)
 	write(h, salt)
 	return h.Sum(nil)
 }
 
-// moved the error handling into a single function to
-// increase test coverage
+// write moves the error handling into a single function to increase test
+// coverage.
 func write(h hash.Hash, data []byte) {
 	_, err := h.Write(data)
 	if err != nil {
 		jww.FATAL.Panic(err)
 	}
+}
+
+// marshalTime converts the time to unix nano bytes.
+func marshalTime(t time.Time) []byte {
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint64(b, uint64(t.UnixNano()))
+	return b
 }

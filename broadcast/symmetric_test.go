@@ -14,9 +14,11 @@ import (
 	"gitlab.com/elixxir/crypto/rsa"
 	oldRsa "gitlab.com/xx_network/crypto/signature/rsa"
 	"gitlab.com/xx_network/primitives/id"
+	"gitlab.com/xx_network/primitives/netTime"
 	"math/rand"
 	"reflect"
 	"testing"
+	"time"
 
 	"gitlab.com/xx_network/crypto/csprng"
 )
@@ -122,16 +124,16 @@ func TestSymmetric_Marshal_UnmarshalSymmetric(t *testing.T) {
 func TestNewSymmetricKey_Consistency(t *testing.T) {
 	prng := rand.New(rand.NewSource(42))
 	expectedKeys := []string{
-		"lN9B8anjMqvPWgWj2fOmdGWwsYILYP52X9R+XyHd1y4=",
-		"uuHkSfNj7neRIYTpKgXEKFPlHNMAXd3T/vvuFrmjpzY=",
-		"/FglFkbFrrPBlPTypMyLkLncp/VaHfYs7KjmGaamL9U=",
-		"W3AdtueK0VEVwYREhMv/R8XzGw8IdRkTDK730affKeA=",
-		"jUWb1YmG7y+8kVmV0gEho/NtYgeF1V2uGlNALlZA07M=",
-		"OvwS6rbVsKNiYeegyd/rDuhduqprlJ1snyWQY9f0IfE=",
-		"Iqu5sAW7PilPQ8JVLpmdZHJJDRLHWqgRHDsOEpZKGJA=",
-		"2Qe+4C3pjYzHZuK/dTZS4ALlJMdKdMhhcKVXRObgQYA=",
-		"pnCIAYioH4LtmAgRORlKLUZp35YuFQ8KdVZGjok+tno=",
-		"oQUGd5+SHf5oA4tkxPZjVjDGemLpk9/kX2TXLEa728w=",
+		"Ozk4jUaSbqwNFNK5EuALfE2/nNAjwOmxheFtiWpui/A=",
+		"1DjLi5nYBgOHs1moUdqK/NFk1CIug7ctXfJdOxA+Pbc=",
+		"Mjuk2RaLaBMCYU7E4lECpBxUYrlfYU46R29h1zlJSto=",
+		"LjZmy2Pdxl4ztBXECXa198nPz1Dq56jkKj+xd+AnxlA=",
+		"AAt2sTU6rJt+KFJlr49GJ0Hos5RvA9txQ8tNIepw96c=",
+		"+cF4IVSZSaw5uVQVOHwG1L6Km40xcyShuNk4KGpAPjs=",
+		"vhOABoOEymIzYwDABQucXNhxsFRucNintcwFE/hxp6U=",
+		"IuyQVSrF7CJ6C7v+UcMVtrbwi5XGrIOxtDHFvS+G2Fs=",
+		"e2M/nSl+ao71r9GUsY5sMVDDfpPwd2BScFh3wh7LNLY=",
+		"f7pvcWpwCr1H6RCG0J+bq5+MG4sIjxjRGvfziNenNF4=",
 	}
 
 	secret := make([]byte, 32)
@@ -149,6 +151,7 @@ func TestNewSymmetricKey_Consistency(t *testing.T) {
 		key, err := NewSymmetricKey("alice",
 			"chan description",
 			Public,
+			time.Date(1955, 11, 5, 12, 0, 0, 0, time.UTC),
 			[]byte("salt"),
 			[]byte("my fake rsa key"),
 			secret)
@@ -185,6 +188,7 @@ func TestNewSymmetricKey_Unique(t *testing.T) {
 		key, err := NewSymmetricKey("alice",
 			"chan description",
 			Public,
+			netTime.Now(),
 			[]byte("salt"),
 			[]byte("my fake rsa key"),
 			secret)

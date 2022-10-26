@@ -109,19 +109,19 @@ func TestDecodeShareURL_DecodeError(t *testing.T) {
 		{"test?", "", urlVersionErr},
 		{"test?v=q", "", parseVersionErr},
 		{"test?v=2", "", versionErr},
-		{"test?v=0", "", noMaxUsesErr},
-		{"test?v=0&m=t", "", parseMaxUsesErr},
-		{"test?v=0&m=0", "", malformedUrlErr},
-		{"test?v=0&s=AA==&m=0", "", parseLevelErr},
-		{"test?v=0&0Name=2&m=0", "", noPasswordErr},
-		{"test?v=0&d=2&m=0", "", noPasswordErr},
-		{"test?v=0&s=A&2Level=Public&m=0", "", parseSaltErr},
-		{"test?v=0&s=AA==&2Level=Public&k=A&m=0", "", parseRsaPubKeyHashErr},
-		{"test?v=0&s=AA==&2Level=Public&k=AA==&l=q&m=0", "", parseRsaPubKeyLengthErr},
-		{"test?v=0&s=AA==&2Level=Public&k=AA==&l=5&p=t&m=0", "", parseRsaSubPayloadsErr},
-		{"test?v=0&s=AA==&2Level=Public&k=AA==&l=5&p=1&e=A&m=0", "", parseSecretErr},
-		{"test?v=0&0Name=2&m=0", "hello", decryptErr},
-		{"test?v=0&d=2&m=0", "hello", decodeEncryptedErr},
+		{"test?v=1", "", noMaxUsesErr},
+		{"test?v=1&m=t", "", parseMaxUsesErr},
+		{"test?v=1&m=0", "", malformedUrlErr},
+		{"test?v=1&s=AA==&m=0&3Created=0", "", parseLevelErr},
+		{"test?v=1&0Name=2&m=0", "", noPasswordErr},
+		{"test?v=1&d=2&m=0", "", noPasswordErr},
+		{"test?v=1&s=A&2Level=Public&m=0&3Created=0", "", parseSaltErr},
+		{"test?v=1&s=AA==&2Level=Public&k=A&m=0&3Created=0", "", parseRsaPubKeyHashErr},
+		{"test?v=1&s=AA==&2Level=Public&k=AA==&l=q&m=0&3Created=0", "", parseRsaPubKeyLengthErr},
+		{"test?v=1&s=AA==&2Level=Public&k=AA==&l=5&p=t&m=0&3Created=0", "", parseRsaSubPayloadsErr},
+		{"test?v=1&s=AA==&2Level=Public&k=AA==&l=5&p=1&e=A&m=0&3Created=0", "", parseSecretErr},
+		{"test?v=1&0Name=2&m=0&3Created=0", "hello", decryptErr},
+		{"test?v=1&d=2&m=0", "hello", decodeEncryptedErr},
 	}
 
 	for i, tt := range tests {
@@ -172,12 +172,13 @@ func TestDecodeShareURL_NewChannelIDError(t *testing.T) {
 		"?0Name=MyChannel" +
 		"&1Description=Here+is+information+about+my+channel." +
 		"&2Level=Public" +
+		"&3Created=0" +
 		"&e=z73XYenRG65WHmJh8r%2BanZ71r2rPOHjTgCSEh05TUlQ%3D" +
 		"&k=9b1UtGnZ%2B%2FM3hnXTfNRN%2BZKXcsHyZE00vZ9We0oDP90%3D" +
 		"&l=493" +
 		"&p=1" +
 		"&s=8tJb%2FC9j26MJEfb%2F2463YQ%3D%3D" +
-		"&v=0" +
+		"&v=1" +
 		"&m=0"
 	expectedErr := strings.Split(newReceptionIdErr, "%")[0]
 
@@ -195,13 +196,14 @@ func TestDecodeShareURL_NameMaxLengthError(t *testing.T) {
 		"?0Name=" + strings.Repeat("A", NameMaxChars+1) +
 		"&1Description=Here+is+information+about+my+channel." +
 		"&2Level=Public" +
+		"&3Created=0" +
 		"&e=GBBSbhYkAWj58b1befVCOQIUpnyv3nw2B97oe3Z0%2B6A%3D" +
 		"&k=ktKmxghB12i9I3ava5bX4hqH82gVCFnbOccKicNIBwk%3D" +
 		"&l=493" +
 		"&m=0" +
 		"&p=1" +
 		"&s=95flF3q1rSlqQXbrksem9HHK%2BFeG2iHn7AEoGk%2BI230%3D" +
-		"&v=0"
+		"&v=1"
 
 	_, err := DecodeShareURL(url, "")
 	if errors.Unwrap(err) != MaxNameCharLenErr {
@@ -217,13 +219,14 @@ func TestDecodeShareURL_DescriptionMaxLengthError(t *testing.T) {
 		"?0Name=Channel" +
 		"&1Description=" + strings.Repeat("A", DescriptionMaxChars+1) +
 		"&2Level=Public" +
+		"&3Created=0" +
 		"&e=GBBSbhYkAWj58b1befVCOQIUpnyv3nw2B97oe3Z0%2B6A%3D" +
 		"&k=ktKmxghB12i9I3ava5bX4hqH82gVCFnbOccKicNIBwk%3D" +
 		"&l=493" +
 		"&m=0" +
 		"&p=1" +
 		"&s=95flF3q1rSlqQXbrksem9HHK%2BFeG2iHn7AEoGk%2BI230%3D" +
-		"&v=0"
+		"&v=1"
 
 	_, err := DecodeShareURL(url, "")
 	if errors.Unwrap(err) != MaxDescriptionCharLenErr {
@@ -233,24 +236,32 @@ func TestDecodeShareURL_DescriptionMaxLengthError(t *testing.T) {
 	}
 }
 
-// Tests that GetShareUrlType returns the expected PrivacyLevel for every time
+// Tests that GetShareUrlType returns the expected PrivacyLevel for every type
 // of URL.
 func TestGetShareUrlType(t *testing.T) {
-	tests := map[string]PrivacyLevel{
-		"https://internet.speakeasy.tech/?0Name=My+Channel&1Description=Here+is+information+about+my+channel.&2Level=Public&e=z73XYenRG65WHmJh8r%2BanZ71r2rPOHjTgCSEh05TUlQ%3D&k=9b1UtGnZ%2B%2FM3hnXTfNRN%2BZKXcsHyZE00vZ9We0oDP90%3D&l=493&p=1&s=FyaykitzwwhRVvW%2FkqdKKbEvSiVcj9hwhFbvgb2UCDM%3D&v=0":                                                                             Public,
-		"https://internet.speakeasy.tech/?0Name=My+Channel&1Description=Here+is+information+about+my+channel.&d=rmU6scJhBFDKqRsXzPJUIx6WTaKvqCLv8Cuq0XaWe11d%2Bt3s3F5vj%2BgDfAUIEn1cMxjD997QBKoDUmjWppN63DWw1LDzYjfVWW7LvvOvPIo6thLb78NtN%2BhcG2gX54UM0Ieu3Uerpp2BEkUuEUmRqCR35oqSApC1P97a4FJJv2VGQwULO6ZaZcowoG3Z%2FNyJRXNphsu6APz6%2FhN%2BhcfiejM%3D&v=0":                         Private,
-		"https://internet.speakeasy.tech/?d=2VNLAz%2FqXGlZ6b7gRBmR8Q41S25Y0Q63MDpTJ58DZKaYCBDYEcOBBe7vZYQ6tLFL8%2BG7mvBaierirBbNlaI8iyd%2B2vIkMiPbRm3PFLX2xTW5eVCDMnbEmMaYfhmSYJuzi7oHaZykmtyQ4SQftgdRK7R0kko3wwmk4gzUO3FJ7HZhAacgh2dpcTwySjfLjhB5K1QK2HPxQiLvCEm4Qg4Lv5ttk03TiOe%2BGV2ThW0y4lgS%2BhczwZrEicQSjFotYub0Qzn%2Bi%2B4PNW2jkvWpdy%2B338hMar%2BafFfQQ99Hf0y%2FA8E%3D&v=0": Secret,
-	}
+	host := "https://internet.speakeasy.tech/"
+	rng := csprng.NewSystemRNG()
 
-	for u, expected := range tests {
-		pl, err := GetShareUrlType(u)
+	for i, level := range []PrivacyLevel{Public, Private, Secret} {
+		c, _, err := NewChannel("My_Channel",
+			"Here is information about my channel.", level, 24, rng)
 		if err != nil {
-			t.Errorf("Failed to get type of URL %q: %+v", u, err)
+			t.Fatalf("Failed to create new %s channel: %+v", level, err)
 		}
 
-		if expected != pl {
+		url, _, err := c.ShareURL(host, i, rng)
+		if err != nil {
+			t.Fatalf("Failed to create %s URL: %+v", level, err)
+		}
+
+		pl, err := GetShareUrlType(url)
+		if err != nil {
+			t.Errorf("Failed to get type of URL %q: %+v", url, err)
+		}
+
+		if level != pl {
 			t.Errorf("Did not receive expected privacy Level."+
-				"\nexpected: %s\nreceived: %s", expected, pl)
+				"\nexpected: %s\nreceived: %s", level, pl)
 		}
 	}
 }
@@ -273,9 +284,9 @@ func TestGetShareUrlType_Error(t *testing.T) {
 
 	tests := []test{
 		{"test?", "", urlVersionErr},
-		{"test?v=0", "", malformedUrlErr},
+		{"test?v=" + strconv.Itoa(shareUrlVersion), "", malformedUrlErr},
 		{"test?v=q", "", parseVersionErr},
-		{"test?v=2", "", versionErr},
+		{"test?v=" + strconv.Itoa(shareUrlVersion+1), "", versionErr},
 	}
 
 	for i, tt := range tests {
@@ -355,6 +366,7 @@ func TestChannel_encodePrivateShareURL_decodePrivateShareURL(t *testing.T) {
 // when decoding the data fails.
 func TestChannel_decodePrivateShareURL(t *testing.T) {
 	urlValues := make(goUrl.Values)
+	urlValues.Set(createdKey, "5")
 	urlValues.Set(dataKey, "invalid data")
 
 	var newChannel Channel
@@ -426,9 +438,10 @@ func TestChannel_marshalPrivateShareUrlSecrets_unmarshalPrivateShareUrlSecrets(t
 			"\nexpected: %d\nreceived: %d", maxUses, unmarshalledMaxUses)
 	}
 
-	// Name, description, and reception ID are set at the layer above
+	// Name, description, creation, and reception ID are set at the layer above
 	newChannel.Name = c.Name
 	newChannel.Description = c.Description
+	newChannel.Created = c.Created
 	newChannel.ReceptionID = c.ReceptionID
 
 	if !reflect.DeepEqual(*c, newChannel) {

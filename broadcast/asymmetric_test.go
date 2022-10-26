@@ -12,6 +12,7 @@ import (
 	"gitlab.com/elixxir/crypto/cmix"
 	"gitlab.com/elixxir/crypto/rsa"
 	"gitlab.com/xx_network/crypto/csprng"
+	"gitlab.com/xx_network/primitives/netTime"
 	"testing"
 )
 
@@ -33,6 +34,8 @@ func TestRSAToPublic_Encrypt_Decrypt_BigKey(t *testing.T) {
 	}
 	name := "Asymmetric channel"
 	desc := "Asymmetric channel description"
+	level := Public
+	created := netTime.Now()
 	salt := cmix.NewSalt(rng, 32)
 
 	secret := make([]byte, 32)
@@ -42,19 +45,21 @@ func TestRSAToPublic_Encrypt_Decrypt_BigKey(t *testing.T) {
 	}
 
 	rid, err := NewChannelID(
-		name, desc, Public, salt, HashPubKey(pk.Public()), secret)
+		name, desc, level, created, salt, HashPubKey(pk.Public()), secret)
 	if err != nil {
 		t.Fatal(err)
 	}
 	ac := Channel{
-		RsaPubKeyLength: keysize,
-		Secret:          secret,
 		ReceptionID:     rid,
 		Name:            name,
 		Description:     desc,
+		Level:           level,
+		Created:         created,
 		Salt:            salt,
 		RsaPubKeyHash:   HashPubKey(pk.Public()),
+		RsaPubKeyLength: keysize,
 		RSASubPayloads:  n,
+		Secret:          secret,
 	}
 
 	maxPayloadLen, _, _ := ac.GetRSAToPublicMessageLength()
@@ -97,6 +102,8 @@ func TestRSAToPublic_Encrypt_Decrypt_BigKey_SmallPayload(t *testing.T) {
 	}
 	name := "Asymmetric channel"
 	desc := "Asymmetric channel description"
+	level := Public
+	created := netTime.Now()
 	salt := cmix.NewSalt(rng, 32)
 
 	secret := make([]byte, 32)
@@ -106,19 +113,21 @@ func TestRSAToPublic_Encrypt_Decrypt_BigKey_SmallPayload(t *testing.T) {
 	}
 
 	rid, err := NewChannelID(
-		name, desc, Public, salt, HashPubKey(pk.Public()), secret)
+		name, desc, level, created, salt, HashPubKey(pk.Public()), secret)
 	if err != nil {
 		t.Fatal(err)
 	}
 	ac := Channel{
-		RsaPubKeyLength: keysize,
-		Secret:          secret,
 		ReceptionID:     rid,
 		Name:            name,
 		Description:     desc,
+		Level:           level,
+		Created:         created,
 		Salt:            salt,
 		RsaPubKeyHash:   HashPubKey(pk.Public()),
+		RsaPubKeyLength: keysize,
 		RSASubPayloads:  n,
+		Secret:          secret,
 	}
 
 	payload := make([]byte, 10)
@@ -191,6 +200,8 @@ func TestRSAToPublic_Encrypt_Decrypt_SmallKey(t *testing.T) {
 	}
 	name := "Asymmetric channel"
 	desc := "Asymmetric channel description"
+	level := Public
+	created := netTime.Now()
 	salt := cmix.NewSalt(rng, 32)
 
 	secret := make([]byte, 32)
@@ -200,19 +211,21 @@ func TestRSAToPublic_Encrypt_Decrypt_SmallKey(t *testing.T) {
 	}
 
 	rid, err := NewChannelID(
-		name, desc, Public, salt, HashPubKey(pk.Public()), secret)
+		name, desc, level, created, salt, HashPubKey(pk.Public()), secret)
 	if err != nil {
 		t.Fatal(err)
 	}
 	ac := Channel{
-		RsaPubKeyLength: keysize,
-		Secret:          secret,
 		ReceptionID:     rid,
 		Name:            name,
 		Description:     desc,
+		Level:           level,
+		Created:         created,
 		Salt:            salt,
 		RsaPubKeyHash:   HashPubKey(pk.Public()),
+		RsaPubKeyLength: keysize,
 		RSASubPayloads:  n,
+		Secret:          secret,
 	}
 
 	maxPayloadLen, _, _ := ac.GetRSAToPublicMessageLength()
@@ -254,6 +267,8 @@ func TestRSAToPublic_Encrypt_Decrypt_SmallKey_SmallPayload(t *testing.T) {
 	}
 	name := "Asymmetric channel"
 	desc := "Asymmetric channel description"
+	level := Public
+	created := netTime.Now()
 	salt := cmix.NewSalt(rng, 32)
 
 	secret := make([]byte, 32)
@@ -263,19 +278,21 @@ func TestRSAToPublic_Encrypt_Decrypt_SmallKey_SmallPayload(t *testing.T) {
 	}
 
 	rid, err := NewChannelID(
-		name, desc, Public, salt, HashPubKey(pk.Public()), secret)
+		name, desc, level, created, salt, HashPubKey(pk.Public()), secret)
 	if err != nil {
 		t.Fatal(err)
 	}
 	ac := Channel{
-		RsaPubKeyLength: keysize,
-		Secret:          secret,
 		ReceptionID:     rid,
 		Name:            name,
 		Description:     desc,
+		Level:           level,
+		Created:         created,
 		Salt:            salt,
 		RsaPubKeyHash:   HashPubKey(pk.Public()),
+		RsaPubKeyLength: keysize,
 		RSASubPayloads:  n,
+		Secret:          secret,
 	}
 
 	payload := make([]byte, 10)
@@ -316,6 +333,8 @@ func TestRSAToPrivate_Encrypt_Decrypt_BigKey(t *testing.T) {
 	}
 	name := "Asymmetric channel"
 	desc := "Asymmetric channel description"
+	level := Public
+	created := netTime.Now()
 	salt := cmix.NewSalt(rng, 32)
 
 	secret := make([]byte, 32)
@@ -325,19 +344,21 @@ func TestRSAToPrivate_Encrypt_Decrypt_BigKey(t *testing.T) {
 	}
 
 	rid, err := NewChannelID(
-		name, desc, Public, salt, HashPubKey(pk.Public()), secret)
+		name, desc, level, created, salt, HashPubKey(pk.Public()), secret)
 	if err != nil {
 		t.Fatal(err)
 	}
 	ac := Channel{
-		RsaPubKeyLength: keysize,
-		Secret:          secret,
 		ReceptionID:     rid,
 		Name:            name,
 		Description:     desc,
+		Level:           level,
+		Created:         created,
 		Salt:            salt,
 		RsaPubKeyHash:   HashPubKey(pk.Public()),
+		RsaPubKeyLength: keysize,
 		RSASubPayloads:  n,
+		Secret:          secret,
 	}
 
 	maxPayloadLen, _, _ := ac.GetRSAToPublicMessageLength()
@@ -380,6 +401,8 @@ func TestRSAToPrivate_Encrypt_Decrypt_BigKey_SmallPacket(t *testing.T) {
 	}
 	name := "Asymmetric channel"
 	desc := "Asymmetric channel description"
+	level := Public
+	created := netTime.Now()
 	salt := cmix.NewSalt(rng, 32)
 
 	secret := make([]byte, 32)
@@ -389,19 +412,21 @@ func TestRSAToPrivate_Encrypt_Decrypt_BigKey_SmallPacket(t *testing.T) {
 	}
 
 	rid, err := NewChannelID(
-		name, desc, Public, salt, HashPubKey(pk.Public()), secret)
+		name, desc, level, created, salt, HashPubKey(pk.Public()), secret)
 	if err != nil {
 		t.Fatal(err)
 	}
 	ac := Channel{
-		RsaPubKeyLength: keysize,
-		Secret:          secret,
 		ReceptionID:     rid,
 		Name:            name,
 		Description:     desc,
+		Level:           level,
+		Created:         created,
 		Salt:            salt,
 		RsaPubKeyHash:   HashPubKey(pk.Public()),
+		RsaPubKeyLength: keysize,
 		RSASubPayloads:  n,
+		Secret:          secret,
 	}
 
 	payload := make([]byte, 10)
@@ -442,6 +467,8 @@ func TestRSAToPrivate_Encrypt_Decrypt_SmallKey(t *testing.T) {
 	}
 	name := "Asymmetric channel"
 	desc := "Asymmetric channel description"
+	level := Public
+	created := netTime.Now()
 	salt := cmix.NewSalt(rng, 32)
 
 	secret := make([]byte, 32)
@@ -451,19 +478,21 @@ func TestRSAToPrivate_Encrypt_Decrypt_SmallKey(t *testing.T) {
 	}
 
 	rid, err := NewChannelID(
-		name, desc, Public, salt, HashPubKey(pk.Public()), secret)
+		name, desc, level, created, salt, HashPubKey(pk.Public()), secret)
 	if err != nil {
 		t.Fatal(err)
 	}
 	ac := Channel{
-		RsaPubKeyLength: keysize,
-		Secret:          secret,
 		ReceptionID:     rid,
 		Name:            name,
 		Description:     desc,
+		Level:           level,
+		Created:         created,
 		Salt:            salt,
 		RsaPubKeyHash:   HashPubKey(pk.Public()),
+		RsaPubKeyLength: keysize,
 		RSASubPayloads:  n,
+		Secret:          secret,
 	}
 
 	maxPayloadLen, _, _ := ac.GetRSAToPublicMessageLength()
@@ -506,6 +535,8 @@ func TestRSAToPrivate_Encrypt_Decrypt_SmallKey_SmallPacket(t *testing.T) {
 	}
 	name := "Asymmetric channel"
 	desc := "Asymmetric channel description"
+	level := Public
+	created := netTime.Now()
 	salt := cmix.NewSalt(rng, 32)
 
 	secret := make([]byte, 32)
@@ -515,19 +546,21 @@ func TestRSAToPrivate_Encrypt_Decrypt_SmallKey_SmallPacket(t *testing.T) {
 	}
 
 	rid, err := NewChannelID(
-		name, desc, Public, salt, HashPubKey(pk.Public()), secret)
+		name, desc, level, created, salt, HashPubKey(pk.Public()), secret)
 	if err != nil {
 		t.Fatal(err)
 	}
 	ac := Channel{
-		RsaPubKeyLength: keysize,
-		Secret:          secret,
 		ReceptionID:     rid,
 		Name:            name,
 		Description:     desc,
+		Level:           level,
+		Created:         created,
 		Salt:            salt,
 		RsaPubKeyHash:   HashPubKey(pk.Public()),
+		RsaPubKeyLength: keysize,
 		RSASubPayloads:  n,
+		Secret:          secret,
 	}
 
 	payload := make([]byte, 10)

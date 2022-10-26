@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"hash"
 	"io"
+	"time"
 
 	"github.com/pkg/errors"
 	jww "github.com/spf13/jwalterweatherman"
@@ -27,10 +28,6 @@ import (
 const (
 	// Symmetric.Decrypt
 	errVerifyMAC = "failed to verify MAC"
-
-	// NewSymmetricKey
-	errMakeSymmetricKeyHash = "[BCAST] Failed to create new hash for " +
-		"symmetric broadcast channel key: %+v"
 )
 
 // ErrPayloadTooBig is returned if the payload is too large
@@ -94,8 +91,8 @@ func (c *Channel) DecryptSymmetric(encryptedPayload, mac []byte,
 func (c *Channel) getSymmetricKey() []byte {
 	var err error
 	if c.key == nil {
-		c.key, err = NewSymmetricKey(c.Name, c.Description, c.Level, c.Salt,
-			c.RsaPubKeyHash, c.Secret)
+		c.key, err = NewSymmetricKey(c.Name, c.Description, c.Level, c.Created,
+			c.Salt, c.RsaPubKeyHash, c.Secret)
 		if err != nil {
 			jww.FATAL.Panic(err)
 		}
@@ -103,13 +100,13 @@ func (c *Channel) getSymmetricKey() []byte {
 	return c.key
 }
 
-// NewSymmetricKey generates a new symmetric channel key
-// which is derived like this:
+// NewSymmetricKey generates a new symmetric channel key, which is derived like
+// this:
 //
-// intermediary = H(name | description | privacyLevel | rsaPubHash | hashedSecret | salt)
-// key = HKDF(secret, intermediary, hkdfInfo)
-func NewSymmetricKey(name, description string, level PrivacyLevel, salt,
-	rsaPubHash, secret []byte) ([]byte, error) {
+//  intermediary = H(name | description | level | created | rsaPubHash | hashedSecret | salt)
+//  key = HKDF(secret, intermediary, hkdfInfo)
+func NewSymmetricKey(name, description string, level PrivacyLevel,
+	creation time.Time, salt, rsaPubHash, secret []byte) ([]byte, error) {
 	if len(secret) != 32 {
 		jww.FATAL.Panic(fmt.Sprintf("secret len is %d", len(secret)))
 		return nil, ErrSecretSizeIncorrect
@@ -123,9 +120,8 @@ func NewSymmetricKey(name, description string, level PrivacyLevel, salt,
 		return h
 	}
 
-	hkdfReader := hkdf.New(hkdfHash,
-		secret,
-		deriveIntermediary(name, description, level, salt, rsaPubHash,
+	hkdfReader := hkdf.New(hkdfHash, secret,
+		deriveIntermediary(name, description, level, creation, salt, rsaPubHash,
 			HashSecret(secret)), []byte(hkdfInfo))
 
 	// 256 bits of entropy

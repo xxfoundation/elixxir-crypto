@@ -3,13 +3,11 @@ package channel
 // NOTE: DO NOT CHANGE! THIS WILL RESULT IN CRYPTOGRAPHIC CHANGING PEOPLE'S
 // IDENTITIES
 var honorificsDefsV0 = []hd{
-	{"mr", 1000},
-	{"ms", 1000},
+	{"Mr", 1000},
+	{"Ms", 1000},
 	{"one", 1000},
 	{"a", 1000},
 	{"their", 1000},
-	{"his", 1000},
-	{"her", 1000},
 	{"its", 1000},
 	{"junior", 500},
 	{"jr", 500},
@@ -21,7 +19,6 @@ var honorificsDefsV0 = []hd{
 	{"newbie", 500},
 	{"recruit", 500},
 	{"freshie", 500},
-	{"friend", 300},
 	{"apprentice", 1000},
 	{"fledgeling", 500},
 	{"neophyte", 50},
