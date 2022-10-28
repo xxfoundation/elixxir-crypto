@@ -124,7 +124,6 @@ var honorificsDefsV0 = []hd{
 	{"aunt", 200},
 	{"señorita", 300},
 	{"jefe", 200},
-	{"herr", 200},
 	{"chef", 50},
 	{"monarch", 15},
 	{"sultan", 10},
