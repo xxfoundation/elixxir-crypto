@@ -7,14 +7,18 @@
 package dm
 
 import (
+	"encoding/binary"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/nike"
+	"gitlab.com/elixxir/crypto/nike/ecdh"
+	"gitlab.com/xx_network/crypto/csprng"
 	"gitlab.com/yawning/nyquist.git"
 )
 
 const (
 	prologueSize       = 2
 	ciphertextOverhead = 96
+	lengthOfOverhead   = 2
 )
 
 var (
@@ -31,13 +35,12 @@ type NoiseScheme interface {
 
 	// Encrypt encrypts the given plaintext as a Noise X message.
 	Encrypt(plaintext []byte,
-		myStatic nike.PrivateKey,
-		partnerStaticPubKey nike.PublicKey) []byte
+		partnerStaticPubKey nike.PublicKey,
+		maxPayloadSize int) []byte
 
 	// Decrypt decrypts the given ciphertext as a Noise X message.
 	Decrypt(ciphertext []byte,
-		myStatic nike.PrivateKey,
-		partnerStaticPubKey nike.PublicKey) ([]byte, error)
+		myStatic nike.PrivateKey) ([]byte, error)
 }
 
 // scheme is an implementation of NoiseScheme interface.
@@ -49,8 +52,11 @@ func (s *scheme) CiphertextOverhead() int {
 	return ciphertextOverhead
 }
 
-func (s *scheme) Encrypt(plaintext []byte, myStatic nike.PrivateKey, partnerStaticPubKey nike.PublicKey) []byte {
-	privKey := privateToNyquist(myStatic)
+func (s *scheme) Encrypt(plaintext []byte, partnerStaticPubKey nike.PublicKey,
+	maxPayloadSize int) []byte {
+	ecdhPrivate, ecdhPublic := ecdh.ECDHNIKE.NewKeypair()
+
+	privKey := privateToNyquist(ecdhPrivate)
 	theirPubKey := publicToNyquist(partnerStaticPubKey)
 
 	cfg := &nyquist.HandshakeConfig{
@@ -76,10 +82,16 @@ func (s *scheme) Encrypt(plaintext []byte, myStatic nike.PrivateKey, partnerStat
 	default:
 		jww.FATAL.Panic(err)
 	}
-	return ciphertext
+
+	return ciphertextToNoise(ciphertext, ecdhPublic, maxPayloadSize)
 }
 
-func (s *scheme) Decrypt(ciphertext []byte, myStatic nike.PrivateKey, partnerStaticPubKey nike.PublicKey) ([]byte, error) {
+func (s *scheme) Decrypt(ciphertext []byte, myStatic nike.PrivateKey) ([]byte, error) {
+
+	encrypted, partnerStaticPubKey, err := parseCiphertext(ciphertext)
+	if err != nil {
+		return nil, err
+	}
 
 	privKey := privateToNyquist(myStatic)
 	theirPubKey := publicToNyquist(partnerStaticPubKey)
@@ -102,7 +114,7 @@ func (s *scheme) Decrypt(ciphertext []byte, myStatic nike.PrivateKey, partnerSta
 	}
 	defer hs.Reset()
 
-	plaintext, err := hs.ReadMessage(nil, ciphertext)
+	plaintext, err := hs.ReadMessage(nil, encrypted)
 	switch err {
 	case nyquist.ErrDone:
 		status := hs.GetStatus()
@@ -114,6 +126,64 @@ func (s *scheme) Decrypt(ciphertext []byte, myStatic nike.PrivateKey, partnerSta
 		return nil, err
 	}
 	return plaintext, nil
+}
+
+// ciphertextToNoise is a helper function which will take the ciphertext
+// and format it to fit Noise's specifications. The returned byte data should
+// be formatted as such:
+// Length of Payload | Public Key | Ciphertext | Random Data
+func ciphertextToNoise(ciphertext []byte,
+	ecdhPublic nike.PublicKey, maxPayloadSize int) []byte {
+	res := make([]byte, maxPayloadSize)
+
+	lengthOfPublicKey := len(ecdhPublic.Bytes())
+	actualPayloadSize := lengthOfPublicKey + len(ciphertext)
+
+	// Put at the start the length of the payload (ciphertext)
+	binary.PutUvarint(res, uint64(actualPayloadSize))
+
+	// Put in the public key per the Noise spec
+	copy(res[lengthOfOverhead:], ecdhPublic.Bytes())
+
+	// Put in the cipher text
+	copy(res[lengthOfOverhead+lengthOfPublicKey:], ciphertext)
+
+	// Fill the rest of the context with random data
+	rng := csprng.NewSystemRNG()
+	count, err := rng.Read(res[actualPayloadSize:])
+	if err != nil {
+		jww.FATAL.Panic(err)
+	}
+
+	if count != maxPayloadSize-actualPayloadSize {
+		jww.FATAL.Panic("rng failure")
+	}
+
+	return res
+}
+
+// parseCiphertext is a helper function which parses the ciphertext. This should
+// be the inverse of ciphertextToNoise, returning to the user
+// the encrypted data and the public key.
+func parseCiphertext(ciphertext []byte) ([]byte, nike.PublicKey, error) {
+	// Extract the payload from the ciphertext
+	lengthOfPayloadBytes := ciphertext[:lengthOfOverhead]
+	payloadSize, _ := binary.Uvarint(lengthOfPayloadBytes)
+	payload := ciphertext[lengthOfOverhead:payloadSize]
+
+	// Extract the public key from the payload
+	publicKeySize := ecdh.ECDHNIKE.PublicKeySize()
+	publicKeyBytes := payload[:publicKeySize]
+	publicKey, err := ecdh.ECDHNIKE.
+		UnmarshalBinaryPublicKey(publicKeyBytes)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Extract encrypted data from payload
+	encrypted := payload[publicKeySize:]
+
+	return encrypted, publicKey, nil
 }
 
 func init() {
