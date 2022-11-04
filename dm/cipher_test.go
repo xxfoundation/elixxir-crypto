@@ -19,12 +19,12 @@ import (
 func TestEncryptDecrypt(t *testing.T) {
 	message1 := []byte("i am a message")
 
-	alicePrivKey, alicePubKey := ecdh.ECDHNIKE.NewKeypair()
+	//alicePrivKey, _ := ecdh.ECDHNIKE.NewKeypair()
 	bobPrivKey, bobPubKey := ecdh.ECDHNIKE.NewKeypair()
 
-	ciphertext := Cipher.Encrypt(message1, alicePrivKey, bobPubKey)
+	ciphertext := Cipher.Encrypt(message1, bobPubKey, 10000)
 
-	message2, err := Cipher.Decrypt(ciphertext, bobPrivKey, alicePubKey)
+	message2, err := Cipher.Decrypt(ciphertext, bobPrivKey)
 	require.NoError(t, err)
 
 	require.Equal(t, message1, message2)
@@ -63,11 +63,11 @@ func wrongEncrypt(plaintext []byte, myStatic nike.PrivateKey, partnerStaticPubKe
 func TestWrongPrologue(t *testing.T) {
 	message1 := []byte("i am a message")
 
-	alicePrivKey, alicePubKey := ecdh.ECDHNIKE.NewKeypair()
-	bobPrivKey, bobPubKey := ecdh.ECDHNIKE.NewKeypair()
+	alicePrivKey, _ := ecdh.ECDHNIKE.NewKeypair()
+	_, bobPubKey := ecdh.ECDHNIKE.NewKeypair()
 
 	ciphertext := wrongEncrypt(message1, alicePrivKey, bobPubKey)
 
-	_, err := Cipher.Decrypt(ciphertext, bobPrivKey, alicePubKey)
+	_, err := Cipher.Decrypt(ciphertext, alicePrivKey)
 	require.Error(t, err)
 }

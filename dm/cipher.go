@@ -8,6 +8,7 @@ package dm
 
 import (
 	"encoding/binary"
+	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/nike"
 	"gitlab.com/elixxir/crypto/nike/ecdh"
@@ -110,7 +111,7 @@ func (s *scheme) Encrypt(plaintext []byte, partnerStaticPubKey nike.PublicKey,
 	default:
 		jww.FATAL.Panic(err)
 	}
-
+	fmt.Printf("ciphertext: %v\n", ciphertext)
 	return ciphertextToNoise(ciphertext, ecdhPublic, maxPayloadSize)
 }
 
@@ -132,6 +133,8 @@ func (s *scheme) Decrypt(ciphertext []byte, myStatic nike.PrivateKey) ([]byte, e
 		RemoteStatic: theirPubKey,
 		IsInitiator:  false,
 	}
+
+	fmt.Printf("ciphertext: %v\n", encrypted)
 
 	hs, err := nyquist.NewHandshake(cfg)
 	if err != nil {
@@ -186,7 +189,7 @@ func ciphertextToNoise(ciphertext []byte,
 	res := make([]byte, maxPayloadSize)
 
 	lengthOfPublicKey := len(ecdhPublic.Bytes())
-	actualPayloadSize := lengthOfPublicKey + len(ciphertext)
+	actualPayloadSize := lengthOfPublicKey + len(ciphertext) + lengthOfOverhead
 
 	// Put at the start the length of the payload (ciphertext)
 	binary.PutUvarint(res, uint64(actualPayloadSize))
@@ -199,12 +202,12 @@ func ciphertextToNoise(ciphertext []byte,
 
 	// Fill the rest of the context with random data
 	rng := csprng.NewSystemRNG()
-	count, err := rng.Read(res[actualPayloadSize+lengthOfOverhead:])
+	count, err := rng.Read(res[actualPayloadSize:])
 	if err != nil {
 		jww.FATAL.Panic(err)
 	}
 
-	if count != maxPayloadSize-(actualPayloadSize+lengthOfOverhead) {
+	if count != maxPayloadSize-(actualPayloadSize) {
 		jww.FATAL.Panic("rng failure")
 	}
 
