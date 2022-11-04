@@ -13,12 +13,25 @@ import (
 	"gitlab.com/elixxir/crypto/nike/ecdh"
 	"gitlab.com/xx_network/crypto/csprng"
 	"gitlab.com/yawning/nyquist.git"
+	"golang.org/x/crypto/blake2b"
+	"golang.org/x/crypto/chacha20poly1305"
 )
 
 const (
 	prologueSize       = 2
 	ciphertextOverhead = 96
-	lengthOfOverhead   = 2
+
+	// lengthOfOverhead is the reserved bytes used to indicate the serialized
+	// length of the payload within a ciphertext.
+	lengthOfOverhead = 2
+
+	// pubKeySize is the size of the facsimile public key used for self
+	// encryption/decryption.
+	pubKeySize = blake2b.Size256
+
+	// nonceSize is the size of the nonce used for the encryption
+	// algorithm used for self encryption/decryption.
+	nonceSize = chacha20poly1305.NonceSize
 )
 
 var (
@@ -41,6 +54,20 @@ type NoiseScheme interface {
 	// Decrypt decrypts the given ciphertext as a Noise X message.
 	Decrypt(ciphertext []byte,
 		myStatic nike.PrivateKey) ([]byte, error)
+
+	// IsSelfEncrypted will return whether the ciphertext provided has been
+	// encrypted by the owner of the passed in private key. Returns true
+	// if the ciphertext has been encrypted by the user.
+	IsSelfEncrypted(data []byte, myPrivateKey nike.PrivateKey) bool
+
+	// EncryptSelf will encrypt the passed plaintext. This will simulate the
+	// encryption protocol in Encrypt, using just the user's public key.
+	EncryptSelf(plaintext []byte, myPrivateKey nike.PrivateKey,
+		maxPayloadSize int) ([]byte, error)
+
+	// DecryptSelf will decrypt the passed ciphertext. This will check if the
+	// ciphertext is expected using IsSelfEncrypted.
+	DecryptSelf(ciphertext []byte, myPrivateKey nike.PrivateKey) ([]byte, error)
 }
 
 // scheme is an implementation of NoiseScheme interface.
@@ -52,6 +79,7 @@ func (s *scheme) CiphertextOverhead() int {
 	return ciphertextOverhead
 }
 
+// Encrypt encrypts the given plaintext as a Noise X message.
 func (s *scheme) Encrypt(plaintext []byte, partnerStaticPubKey nike.PublicKey,
 	maxPayloadSize int) []byte {
 	ecdhPrivate, ecdhPublic := ecdh.ECDHNIKE.NewKeypair()
@@ -86,6 +114,7 @@ func (s *scheme) Encrypt(plaintext []byte, partnerStaticPubKey nike.PublicKey,
 	return ciphertextToNoise(ciphertext, ecdhPublic, maxPayloadSize)
 }
 
+// Decrypt decrypts the given ciphertext as a Noise X message.
 func (s *scheme) Decrypt(ciphertext []byte, myStatic nike.PrivateKey) ([]byte, error) {
 
 	encrypted, partnerStaticPubKey, err := parseCiphertext(ciphertext)
@@ -96,10 +125,6 @@ func (s *scheme) Decrypt(ciphertext []byte, myStatic nike.PrivateKey) ([]byte, e
 	privKey := privateToNyquist(myStatic)
 	theirPubKey := publicToNyquist(partnerStaticPubKey)
 
-	protocol, err := nyquist.NewProtocol("Noise_X_25519_ChaChaPoly_BLAKE2s")
-	if err != nil {
-		return nil, err
-	}
 	cfg := &nyquist.HandshakeConfig{
 		Protocol:     protocol,
 		Prologue:     version,
@@ -128,40 +153,6 @@ func (s *scheme) Decrypt(ciphertext []byte, myStatic nike.PrivateKey) ([]byte, e
 	return plaintext, nil
 }
 
-// ciphertextToNoise is a helper function which will take the ciphertext
-// and format it to fit Noise's specifications. The returned byte data should
-// be formatted as such:
-// Length of Payload | Public Key | Ciphertext | Random Data
-func ciphertextToNoise(ciphertext []byte,
-	ecdhPublic nike.PublicKey, maxPayloadSize int) []byte {
-	res := make([]byte, maxPayloadSize)
-
-	lengthOfPublicKey := len(ecdhPublic.Bytes())
-	actualPayloadSize := lengthOfPublicKey + len(ciphertext)
-
-	// Put at the start the length of the payload (ciphertext)
-	binary.PutUvarint(res, uint64(actualPayloadSize))
-
-	// Put in the public key per the Noise spec
-	copy(res[lengthOfOverhead:], ecdhPublic.Bytes())
-
-	// Put in the cipher text
-	copy(res[lengthOfOverhead+lengthOfPublicKey:], ciphertext)
-
-	// Fill the rest of the context with random data
-	rng := csprng.NewSystemRNG()
-	count, err := rng.Read(res[actualPayloadSize:])
-	if err != nil {
-		jww.FATAL.Panic(err)
-	}
-
-	if count != maxPayloadSize-actualPayloadSize {
-		jww.FATAL.Panic("rng failure")
-	}
-
-	return res
-}
-
 // parseCiphertext is a helper function which parses the ciphertext. This should
 // be the inverse of ciphertextToNoise, returning to the user
 // the encrypted data and the public key.
@@ -184,6 +175,40 @@ func parseCiphertext(ciphertext []byte) ([]byte, nike.PublicKey, error) {
 	encrypted := payload[publicKeySize:]
 
 	return encrypted, publicKey, nil
+}
+
+// ciphertextToNoise is a helper function which will take the ciphertext
+// and format it to fit Noise's specifications. The returned byte data should
+// be formatted as such:
+// Length of Payload | Public Key | Ciphertext | Random Data
+func ciphertextToNoise(ciphertext []byte,
+	ecdhPublic nike.PublicKey, maxPayloadSize int) []byte {
+	res := make([]byte, maxPayloadSize)
+
+	lengthOfPublicKey := len(ecdhPublic.Bytes())
+	actualPayloadSize := lengthOfPublicKey + len(ciphertext)
+
+	// Put at the start the length of the payload (ciphertext)
+	binary.PutUvarint(res, uint64(actualPayloadSize))
+
+	// Put in the public key per the Noise spec
+	copy(res[lengthOfOverhead:], ecdhPublic.Bytes())
+
+	// Put in the cipher text
+	copy(res[lengthOfOverhead+lengthOfPublicKey:], ciphertext)
+
+	// Fill the rest of the context with random data
+	rng := csprng.NewSystemRNG()
+	count, err := rng.Read(res[actualPayloadSize+lengthOfOverhead:])
+	if err != nil {
+		jww.FATAL.Panic(err)
+	}
+
+	if count != maxPayloadSize-(actualPayloadSize+lengthOfOverhead) {
+		jww.FATAL.Panic("rng failure")
+	}
+
+	return res
 }
 
 func init() {
