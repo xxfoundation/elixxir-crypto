@@ -91,11 +91,14 @@ func TestImportPrivateIdentity_MalformedImportsError(t *testing.T) {
 
 	tests := []test{
 		{[]byte{}, noDataErr},
-		{[]byte("<xxChannelIdentity(5)xx>"), fmt.Sprintf(noHeadFootTagsErr, noCloseTagErr)},
-		{[]byte("<xxChannelIdentity)stuff xxChannelIdentity>"), fmt.Sprintf(noVersionTagErr, noOpenTagErr)},
+		{[]byte("<xxChannelIdentity(5)xx>"),
+			fmt.Sprintf(noHeadFootTagsErr, noCloseTagErr)},
+		{[]byte("<xxChannelIdentity)stuff xxChannelIdentity>"),
+			fmt.Sprintf(noVersionTagErr, noOpenTagErr)},
 		{[]byte("<xxChannelIdentity() stuff xxChannelIdentity>"), noVersionErr},
 		{[]byte("<xxChannelIdentity(5)xxChannelIdentity>"), noEncryptedData},
-		{[]byte("<xxChannelIdentity(5)AxxChannelIdentity>"), fmt.Sprintf(wrongVersionErr, currentExportedVersion, "5")},
+		{[]byte("<xxChannelIdentity(5)AxxChannelIdentity>"),
+			fmt.Sprintf(wrongVersionErr, currentExportedVersion, "5")},
 	}
 
 	for i, tt := range tests {
@@ -203,8 +206,8 @@ func TestPrivateIdentity_encode_decodePrivateIdentity(t *testing.T) {
 	}
 }
 
-// Error path: Tests that decodePrivateIdentity returns the expected error when the
-// data passed in is of the wrong length.
+// Error path: Tests that decodePrivateIdentity returns the expected error when
+// the data passed in is of the wrong length.
 func Test_decodePrivateIdentity_DataLengthError(t *testing.T) {
 	pi, _ := GenerateIdentity(csprng.NewSystemRNG())
 	data := pi.encode()[5:]
@@ -218,8 +221,8 @@ func Test_decodePrivateIdentity_DataLengthError(t *testing.T) {
 	}
 }
 
-// Error path: Tests that decodePrivateIdentity returns the expected error when the
-// data has an incorrect version.
+// Error path: Tests that decodePrivateIdentity returns the expected error when
+// the data has an incorrect version.
 func Test_decodePrivateIdentity_IncorrectVersionError(t *testing.T) {
 	pi, _ := GenerateIdentity(csprng.NewSystemRNG())
 

@@ -73,9 +73,10 @@ type CodeNamePart struct {
 
 var colorBitDepth = getBitDepth(len(colorsV0))
 
-func generateCodeNamePart(h hash.Hash, data []byte, c string, s sampler) CodeNamePart {
+func generateCodeNamePart(
+	h hash.Hash, data []byte, c string, s sampler) CodeNamePart {
 	h.Reset()
-	// only one language currently, we will upgrade this
+	// Only one language currently, we will upgrade this
 	lang := English
 
 	d := uint64(math.MaxUint64)
@@ -121,7 +122,7 @@ func getBitDepth(l int) uint8 {
 	bd := int(math.Ceil(math.Log2(float64(l))))
 	if float64(bd)/float64(l) < .5 {
 		jww.WARN.Printf("The received bit depth is less than half " +
-			"generation will be inefficent")
+			"generation will be inefficient")
 	}
 	return uint8(bd)
 }

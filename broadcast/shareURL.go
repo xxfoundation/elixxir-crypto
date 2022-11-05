@@ -58,8 +58,10 @@ const (
 	rsaSubPayloadsLen   = 2
 	secretLen           = secretSize
 	maxUsesLen          = 2
-	marshaledPrivateLen = privLevelLen + saltLen + rsaPubKeyHashLen + rsaPubKeyLengthLen + rsaSubPayloadsLen + secretLen + maxUsesLen
-	marshaledSecretLen  = nameLengthLen + descLengthLen + marshaledPrivateLen + createdLen
+	marshaledPrivateLen = privLevelLen + saltLen + rsaPubKeyHashLen +
+		rsaPubKeyLengthLen + rsaSubPayloadsLen + secretLen + maxUsesLen
+	marshaledSecretLen = nameLengthLen + descLengthLen + marshaledPrivateLen +
+		createdLen
 )
 
 // Error messages.
@@ -123,7 +125,8 @@ const (
 // number is also encoded in the secret data for private and secret URLs, so if
 // the number is changed in the URL, is will be verified when calling
 // [DecodeShareURL]. There is no enforcement for public URLs.
-func (c *Channel) ShareURL(url string, maxUses int, csprng io.Reader) (string, string, error) {
+func (c *Channel) ShareURL(
+	url string, maxUses int, csprng io.Reader) (string, string, error) {
 	u, err := goUrl.Parse(url)
 	if err != nil {
 		return "", "", errors.Errorf(parseHostUrlErr, err)
@@ -360,7 +363,8 @@ func (c *Channel) encodePrivateShareURL(
 
 // decodePrivateShareURL decodes the values in the url.Values from a Private
 // share URL to a channel.
-func (c *Channel) decodePrivateShareURL(q goUrl.Values, password string) (int, error) {
+func (c *Channel) decodePrivateShareURL(
+	q goUrl.Values, password string) (int, error) {
 	c.Name = q.Get(nameKey)
 	c.Description = q.Get(descKey)
 
@@ -402,7 +406,8 @@ func (c *Channel) encodeSecretShareURL(
 
 // decodePrivateShareURL decodes the values in the url.Values from a Secret
 // share URL to a channel.
-func (c *Channel) decodeSecretShareURL(q goUrl.Values, password string) (int, error) {
+func (c *Channel) decodeSecretShareURL(
+	q goUrl.Values, password string) (int, error) {
 	encryptedData, err := base64.StdEncoding.DecodeString(q.Get(dataKey))
 	if err != nil {
 		return 0, errors.Errorf(decodeEncryptedErr, err)
@@ -425,11 +430,11 @@ func (c *Channel) decodeSecretShareURL(q goUrl.Values, password string) (int, er
 // RsaPubKeyHash, RsaPubKeyLength, RSASubPayloads, Secret, and max uses into a
 // byte slice.
 //
-//  +---------+-------+---------------+-----------------+----------------+----------+----------+
-//  | Privacy | Salt  | RsaPubKeyHash | RsaPubKeyLength | RSASubPayloads |  Secret  | Max Uses |
-//  |  Level  |  32   |               |                 |                |          |          |
-//  | 1 byte  | bytes |    32 bytes   |     2 bytes     |     2 bytes    | 32 bytes |  2 bytes |
-//  +---------+-------+---------------+-----------------+----------------+----------+----------+
+//	+---------+-------+---------------+-----------------+----------------+----------+----------+
+//	| Privacy | Salt  | RsaPubKeyHash | RsaPubKeyLength | RSASubPayloads |  Secret  | Max Uses |
+//	|  Level  |  32   |               |                 |                |          |          |
+//	| 1 byte  | bytes |    32 bytes   |     2 bytes     |     2 bytes    | 32 bytes |  2 bytes |
+//	+---------+-------+---------------+-----------------+----------------+----------+----------+
 func (c *Channel) marshalPrivateShareUrlSecrets(maxUses int) []byte {
 	var buff bytes.Buffer
 	buff.Grow(marshaledPrivateLen)
@@ -469,7 +474,8 @@ func (c *Channel) marshalPrivateShareUrlSecrets(maxUses int) []byte {
 // returns the max uses.
 func (c *Channel) unmarshalPrivateShareUrlSecrets(data []byte) (int, error) {
 	if len(data) != marshaledPrivateLen {
-		return 0, errors.Errorf(unmarshalPrivateDataLenErr, marshaledPrivateLen, len(data))
+		return 0, errors.Errorf(
+			unmarshalPrivateDataLenErr, marshaledPrivateLen, len(data))
 	}
 
 	buff := bytes.NewBuffer(data)
@@ -477,8 +483,10 @@ func (c *Channel) unmarshalPrivateShareUrlSecrets(data []byte) (int, error) {
 	c.Level = PrivacyLevel(buff.Next(privLevelLen)[0])
 	c.Salt = buff.Next(saltLen)
 	c.RsaPubKeyHash = buff.Next(rsaPubKeyHashLen)
-	c.RsaPubKeyLength = int(binary.LittleEndian.Uint16(buff.Next(rsaPubKeyLengthLen)))
-	c.RSASubPayloads = int(binary.LittleEndian.Uint16(buff.Next(rsaSubPayloadsLen)))
+	c.RsaPubKeyLength =
+		int(binary.LittleEndian.Uint16(buff.Next(rsaPubKeyLengthLen)))
+	c.RSASubPayloads =
+		int(binary.LittleEndian.Uint16(buff.Next(rsaSubPayloadsLen)))
 	c.Secret = buff.Next(secretLen)
 	maxUses := int(binary.LittleEndian.Uint16(buff.Next(maxUsesLen)))
 
@@ -489,11 +497,11 @@ func (c *Channel) unmarshalPrivateShareUrlSecrets(data []byte) (int, error) {
 // Salt, RsaPubKeyHash, RsaPubKeyLength, RSASubPayloads, and Secret into a byte
 // slice.
 //
-//  +---------+---------+-------------+------+-------------+----------+-------+---------------+-----------------+----------------+----------+----------+
-//  | Privacy |  Name   | Description |      |             | Created | Salt  | RsaPubKeyHash | RsaPubKeyLength | RSASubPayloads |  Secret  | Max Uses |
-//  |  Level  | Length  |   Length    | Name | Description |         |  32   |               |                 |                |          |          |
-//  | 1 byte  | 2 bytes |   2 bytes   |      |             | 8 bytes | bytes |    32 bytes   |     2 bytes     |     2 bytes    | 32 bytes |  2 bytes |
-//  +---------+---------+-------------+------+-------------+----------+-------+---------------+-----------------+----------------+----------+----------+
+//	+---------+---------+-------------+------+-------------+----------+-------+---------------+-----------------+----------------+----------+----------+
+//	| Privacy |  Name   | Description |      |             | Created | Salt  | RsaPubKeyHash | RsaPubKeyLength | RSASubPayloads |  Secret  | Max Uses |
+//	|  Level  | Length  |   Length    | Name | Description |         |  32   |               |                 |                |          |          |
+//	| 1 byte  | 2 bytes |   2 bytes   |      |             | 8 bytes | bytes |    32 bytes   |     2 bytes     |     2 bytes    | 32 bytes |  2 bytes |
+//	+---------+---------+-------------+------+-------------+----------+-------+---------------+-----------------+----------------+----------+----------+
 func (c *Channel) marshalSecretShareUrlSecrets(maxUses int) []byte {
 	var buff bytes.Buffer
 	buff.Grow(len(c.Name) + len(c.Description) + marshaledSecretLen)
@@ -572,11 +580,14 @@ func (c *Channel) unmarshalSecretShareUrlSecrets(data []byte) (int, error) {
 
 	c.Name = string(buff.Next(nameLen))
 	c.Description = string(buff.Next(descLen))
-	c.Created = time.Unix(0, int64(binary.LittleEndian.Uint64(buff.Next(createdLen))))
+	c.Created =
+		time.Unix(0, int64(binary.LittleEndian.Uint64(buff.Next(createdLen))))
 	c.Salt = buff.Next(saltLen)
 	c.RsaPubKeyHash = buff.Next(rsaPubKeyHashLen)
-	c.RsaPubKeyLength = int(binary.LittleEndian.Uint16(buff.Next(rsaPubKeyLengthLen)))
-	c.RSASubPayloads = int(binary.LittleEndian.Uint16(buff.Next(rsaSubPayloadsLen)))
+	c.RsaPubKeyLength =
+		int(binary.LittleEndian.Uint16(buff.Next(rsaPubKeyLengthLen)))
+	c.RSASubPayloads =
+		int(binary.LittleEndian.Uint16(buff.Next(rsaSubPayloadsLen)))
 	c.Secret = buff.Next(secretLen)
 	maxUses := int(binary.LittleEndian.Uint16(buff.Next(maxUsesLen)))
 

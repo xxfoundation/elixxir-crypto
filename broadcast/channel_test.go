@@ -169,7 +169,8 @@ func TestRChanel_Marshal_Unmarshal(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(ac, unmarshalled) {
-		t.Errorf("Did not receive expected asymmetric channel\n\tExpected: %+v\n\tReceived: %+v\n", ac, unmarshalled)
+		t.Errorf("Did not receive expected asymmetric channel."+
+			"\nexpected: %+v\nreceived: %+v", ac, unmarshalled)
 	}
 }
 

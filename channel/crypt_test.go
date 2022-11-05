@@ -101,8 +101,8 @@ func Test_deriveKey(t *testing.T) {
 					keyLen, len(key))
 			}
 
-			// Check that the same key is generated when the same password and salt
-			// are used
+			// Check that the same key is generated when the same password and
+			// salt are used
 			key2 := deriveKey(password, salt, p)
 
 			if !bytes.Equal(key, key2) {

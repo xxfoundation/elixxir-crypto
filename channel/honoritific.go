@@ -153,8 +153,7 @@ type hd struct {
 }
 
 func compileHonorifics(defs []hd) []string {
-
-	// precalculate the size to avoid constant reallocation
+	// Precalculate the size to avoid constant reallocation
 	numHonorifics := 0
 	for i := range defs {
 		numHonorifics += defs[i].frequency

@@ -19,7 +19,7 @@ import (
 )
 
 func TestChannel_deriveIntermediary_vector(t *testing.T) {
-	name := "mychannelname"
+	name := "myChannelName"
 	description := "my channel description"
 	level := Public
 	created := time.Date(1955, 11, 5, 12, 0, 0, 0, time.UTC)
@@ -36,7 +36,7 @@ func TestChannel_deriveIntermediary_vector(t *testing.T) {
 	intermediary := deriveIntermediary(name, description, level, created, salt,
 		hashedPubKey, HashSecret(secret))
 	wantIntermediary, err := hex.DecodeString(
-		"e75040c43f53df4ce93099bd324cc1593aa97c6d00bb0d5a8410fd2bd2b84306")
+		"9e80295813efd1bcdb19d1f236f53a4be249cbf1bdd402a7e9e85334d1ccf438")
 	require.NoError(t, err)
 	require.Equal(t, wantIntermediary, intermediary)
 
@@ -69,13 +69,13 @@ func TestChannel_deriveIntermediary_vector(t *testing.T) {
 	}
 
 	wantID, err := hex.DecodeString(
-		"c64f70ee4897a5b7b8a02991541740631c0e9c16a96305914016f987772ff3a503")
+		"7c736ca654836f784909facfd978e02c60a44771f6e43c9b8dce4b29fa3fb41603")
 	require.NoError(t, err)
 	require.Equal(t, rid[:], wantID)
 }
 
 func TestChannel_deriveIntermediary(t *testing.T) {
-	name := "mychannelname"
+	name := "myChannelName"
 	description := "my channel description"
 	level := Public
 	created := netTime.Now()

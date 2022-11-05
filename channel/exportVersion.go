@@ -19,7 +19,6 @@ import (
 
 // Error messages.
 const (
-
 	// decodeVer0
 	base64DecodeErr    = "could not base 64 decode string: %+v"
 	unmarshalParamsErr = "could not unmarshal params: %+v"
@@ -27,15 +26,16 @@ const (
 
 // decodeVer0 decodes the PrivateIdentity encoded data. This function is for
 // version "1" of the structure, defined below.
-//  +---------------------+----------------------------------------------+
-//  | Encryption Metadata |                Encrypted Data                |
-//  +----------+----------+---------+---------+-------------+------------+
-//  |   Salt   |  Argon   | Version | Codeset |   ed25519   |  ed25519   |
-//  |          |  params  |         | Version | Private Key | Public Key |
-//  | 16 bytes | 9 bytes  | 1 byte  | 1 byte  |   64 bytes  |  32 bytes  |
-//  +----------+----------+---------+---------+-------------+------------+
-//  |                          base 64 encoded                           |
-//  +--------------------------------------------------------------------+
+//
+//	+---------------------+----------------------------------------------+
+//	| Encryption Metadata |                Encrypted Data                |
+//	+----------+----------+---------+---------+-------------+------------+
+//	|   Salt   |  Argon   | Version | Codeset |   ed25519   |  ed25519   |
+//	|          |  params  |         | Version | Private Key | Public Key |
+//	| 16 bytes | 9 bytes  | 1 byte  | 1 byte  |   64 bytes  |  32 bytes  |
+//	+----------+----------+---------+---------+-------------+------------+
+//	|                          base 64 encoded                           |
+//	+--------------------------------------------------------------------+
 func decodeVer0(password string, data []byte) (PrivateIdentity, error) {
 	// Create a new buffer from a base64 decoder so that the data can be read
 	// and decoded at the same time.

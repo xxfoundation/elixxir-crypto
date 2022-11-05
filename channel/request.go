@@ -13,7 +13,8 @@ import (
 
 var (
 	tsBound        = 60 * time.Second
-	timestampError = errors.New("error timestamp is not within 60 seconds of current time")
+	timestampError = errors.New(
+		"error timestamp is not within 60 seconds of current time")
 )
 
 // hashRequestInfo is a helper which handles hashing info for channel requests
@@ -21,7 +22,7 @@ func hashRequestInfo(userEdPub ed25519.PublicKey, ts time.Time) []byte {
 	tsBytes := make([]byte, binary.MaxVarintLen64)
 	binary.PutVarint(tsBytes, ts.UnixNano())
 	h := crypto.BLAKE2b_256.New()
-	h.Write([]byte(userEdPub))
+	h.Write(userEdPub)
 	h.Write(tsBytes)
 	return h.Sum(nil)
 }

@@ -1,8 +1,9 @@
-////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2022 xx network SEZC                                                       //
-//                                                                                        //
-// Use of this source code is governed by a license that can be found in the LICENSE file //
-////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx foundation                                             //
+//                                                                            //
+// Use of this source code is governed by a license that can be found in the  //
+// LICENSE file.                                                              //
+////////////////////////////////////////////////////////////////////////////////
 
 package channel
 
@@ -16,33 +17,29 @@ import (
 )
 
 func TestConstructIdentity(t *testing.T) {
-	numtests := 100
-
+	const numTests = 100
 	rng := &csprng.SystemRNG{}
-	codenames := make([]string, 0, numtests)
+	codenames := make([]string, numTests)
 
-	for i := 0; i < numtests; i++ {
+	for i := range codenames {
 		id, _ := GenerateIdentity(rng)
-		codenames = append(codenames, id.Codename+"#"+id.Extension+
-			id.Color)
+		codenames[i] = id.Codename + "#" + id.Extension + id.Color
 	}
 
-	for i := 0; i < numtests; i++ {
-		for j := i + 1; j < numtests; j++ {
+	for i := 0; i < numTests; i++ {
+		for j := i + 1; j < numTests; j++ {
 			if codenames[i] == codenames[j] {
-				t.Errorf("2 generated codenames are the same, %d vs %d",
-					i, j)
+				t.Errorf("Codenames %d and %d are the same."+
+					"\ncodename %d: %s\ncodename %d: %s",
+					i, j, i, codenames[i], j, codenames[j])
 			}
 		}
 	}
 }
 
 func TestConstructIdentity_Vector(t *testing.T) {
-	numtests := 100
-
 	rng := rand.New(rand.NewSource(42))
-	codenames := make([]string, 0, numtests)
-	expectedCodeNames := []string{
+	expectedCodenames := []string{
 		"aWellKnownDownScoopShovel#CJBQ1Z7JR7B92gVvitmJbuzyQLOIHm0x77BFC7",
 		"mrDisruptiveFullback#diTJfbO4VEdjfsRZ78Lw46mG5B4s3Y0x57FEFF",
 		"juniorNeriticRicer#eyrYJ5rkz2S0geIaKRxlhVtMd1lzvg0x57FEFF",
@@ -144,30 +141,30 @@ func TestConstructIdentity_Vector(t *testing.T) {
 		"señoritaMostValuableRededication#xgvcUcqQxezQPNi5vAYE1a/c+H3MAo0xC12283",
 		"djMeanspiritedComplacency#XbYzYUhlZTHeSNEhzueijbQXX7HpQO0xE18B6B",
 	}
-	for i := 0; i < numtests; i++ {
+	codenames := make([]string, len(expectedCodenames))
+
+	for i := range codenames {
 		id, _ := GenerateIdentity(rng)
-		codenames = append(codenames, id.Codename+"#"+id.Extension+
-			id.Color)
+		codenames[i] = id.Codename + "#" + id.Extension + id.Color
 	}
 
-	for i := 0; i < numtests; i++ {
-		if codenames[i] != expectedCodeNames[i] {
-			t.Errorf("Codename %d do not match - %s vs %s", i, codenames[i], expectedCodeNames[i])
+	for i, expected := range expectedCodenames {
+		if codenames[i] != expected {
+			t.Errorf("Codename %d does not match expected."+
+				"\nexpected: %s\nreceived: %s", i, codenames[i], expected)
 		}
 	}
 
-	logstr := "codenames := []string {"
-	for i := 0; i < numtests; i++ {
-		logstr = fmt.Sprintf(logstr+"\n\t\"%s\",", codenames[i])
+	var logStr string
+	for _, codename := range codenames {
+		logStr = fmt.Sprintf(logStr+"\n\t\"%s\",", codename)
 	}
-	logstr = fmt.Sprintf(logstr + "\n}")
-	t.Logf(logstr)
+	t.Logf("codenames := []string {" + logStr + "\n}")
 }
 
 // Checks that PrivateIdentity.Marshal and UnmarshalPrivateIdentity are inverse
 // operations.
 func TestPrivateIdentity_MarshalUnmarshal(t *testing.T) {
-
 	rng := &csprng.SystemRNG{}
 	privateIdentity, _ := GenerateIdentity(rng)
 	marshalledData := privateIdentity.Marshal()
@@ -179,17 +176,13 @@ func TestPrivateIdentity_MarshalUnmarshal(t *testing.T) {
 
 	if !reflect.DeepEqual(receivedIdentity, privateIdentity) {
 		t.Fatalf("UnmarshalPrivateIdentity did not construct identical "+
-			"identity from original structure."+
-			"\nExpected: %v"+
-			"\nReceived: %v", privateIdentity, receivedIdentity)
+			"identity from original structure.\nexpected: %v\nreceived: %v",
+			privateIdentity, receivedIdentity)
 	}
-
 }
 
-// Checks that Identity.Marshal and UnmarshalIdentity are inverse
-// operations.
+// Checks that Identity.Marshal and UnmarshalIdentity are inverse operations.
 func TestIdentity_MarshalUnmarshal(t *testing.T) {
-
 	rng := &csprng.SystemRNG{}
 	privateIdentity, _ := GenerateIdentity(rng)
 	expected := privateIdentity.Identity
@@ -202,16 +195,13 @@ func TestIdentity_MarshalUnmarshal(t *testing.T) {
 
 	if !reflect.DeepEqual(expected, received) {
 		t.Fatalf("UnmarshalIdentity did not construct identical identity "+
-			"from orignal structure."+
-			"\nExpected: %v"+
-			"\nReceived: %v", expected, received)
+			"from orignal structure.\nexpected: %v\nreceived: %v",
+			expected, received)
 	}
-
 }
 
-// Error case: UnmarshalPrivateIdentity should error when receiving
-// byte data that is not of length
-// [ed25519.PrivateKeySize] + [ed25519.PublicKeySize] + 1.
+// Error case: UnmarshalPrivateIdentity should error when receiving byte data
+// that is not of length [ed25519.PrivateKeySize] + [ed25519.PublicKeySize] + 1.
 func TestUnmarshalPrivateIdentity_Error(t *testing.T) {
 	empty := []byte("too short")
 	_, err := UnmarshalPrivateIdentity(empty)
@@ -222,8 +212,8 @@ func TestUnmarshalPrivateIdentity_Error(t *testing.T) {
 	}
 }
 
-// Error case: UnmarshalIdentity should error when receiving
-// byte data that is not of length [ed25519.PublicKeySize] + 1.
+// Error case: UnmarshalIdentity should error when receiving byte data that is
+// not of length [ed25519.PublicKeySize] + 1.
 func TestUnmarshalIdentity_Error(t *testing.T) {
 	empty := []byte("too short")
 	_, err := UnmarshalIdentity(empty)

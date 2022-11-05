@@ -48,10 +48,10 @@ const (
 // Tags indicate the start and end of data. The tags must only contain printable
 // ASCII characters.
 const (
-	headTag     = "<xxChannelIdentity" // Indicates the start of the encoded data
-	footTag     = "xxChannelIdentity>" // Indicates the end of the encoded data
-	openVerTag  = "("                  // Indicates the start of the encoding version number
-	closeVerTag = ")"                  // Indicates the end of the encoding version number
+	headTag     = "<xxChannelIdentity" // Start of the encoded data
+	footTag     = "xxChannelIdentity>" // End of the encoded data
+	openVerTag  = "("                  // Start of the encoding version number
+	closeVerTag = ")"                  // End of the encoding version number
 )
 
 // Data lengths.
@@ -81,8 +81,9 @@ const currentEncryptedVersion = uint8(0)
 // Current version of the string returned by PrivateIdentity.Export.
 const currentExportedVersion = "0"
 
-// map of exported encoding version numbers to their decoding functions.
-var decodeVersions = map[string]func(password string, data []byte) (PrivateIdentity, error){
+// Map of exported encoding version numbers to their decoding functions.
+var decodeVersions = map[string]func(
+	password string, data []byte) (PrivateIdentity, error){
 	currentExportedVersion: decodeVer0,
 }
 
@@ -93,15 +94,16 @@ func (i PrivateIdentity) Export(password string, csprng io.Reader) ([]byte, erro
 }
 
 // export encrypts and marshals the PrivateIdentity into a portable string.
-//  +----------------+---------------------+----------------------------------------------+--------+
-//  |     Header     | Encryption Metadata |                Encrypted Data                | Footer |
-//  +------+---------+----------+----------+---------+---------+-------------+------------+--------+
-//  | Open |         |   Salt   |  Argon   | Version | Codeset |   ed25519   |  ed25519   | Close  |
-//  | Tag  | Version |          |  params  |         | Version | Private Key | Public Key |  Tag   |
-//  |      |         | 16 bytes | 9 bytes  | 1 byte  | 1 byte  |   64 bytes  |  32 bytes  |        |
-//  +------+---------+----------+----------+---------+---------+-------------+------------+--------+
-//  |     string     |                          base 64 encoded                           | string |
-//  +----------------+--------------------------------------------------------------------+--------+
+//
+//	+----------------+---------------------+----------------------------------------------+--------+
+//	|     Header     | Encryption Metadata |                Encrypted Data                | Footer |
+//	+------+---------+----------+----------+---------+---------+-------------+------------+--------+
+//	| Open |         |   Salt   |  Argon   | Version | Codeset |   ed25519   |  ed25519   | Close  |
+//	| Tag  | Version |          |  params  |         | Version | Private Key | Public Key |  Tag   |
+//	|      |         | 16 bytes | 9 bytes  | 1 byte  | 1 byte  |   64 bytes  |  32 bytes  |        |
+//	+------+---------+----------+----------+---------+---------+-------------+------------+--------+
+//	|     string     |                          base 64 encoded                           | string |
+//	+----------------+--------------------------------------------------------------------+--------+
 func (i PrivateIdentity) export(password string, params backup.Params,
 	csprng io.Reader) ([]byte, error) {
 
@@ -219,10 +221,11 @@ func decryptPrivateIdentity(password string, data, salt []byte,
 // number of this encoding. The length of the output is encodedLen.
 //
 // Marshalled data structure:
-//  +---------+---------+---------------------+--------------------+
-//  | Version | Codeset | ed25519 Private Key | ed25519 Public Key |
-//  | 1 byte  | 1 byte  |      64 bytes       |      32 bytes      |
-//  +---------+---------+---------------------+--------------------+
+//
+//	+---------+---------+---------------------+--------------------+
+//	| Version | Codeset | ed25519 Private Key | ed25519 Public Key |
+//	| 1 byte  | 1 byte  |      64 bytes       |      32 bytes      |
+//	+---------+---------+---------------------+--------------------+
 func (i PrivateIdentity) encode() []byte {
 	buff := bytes.NewBuffer(nil)
 	buff.Grow(encodedLen)

@@ -15,6 +15,7 @@ require (
 	gitlab.com/xx_network/crypto v0.0.5-0.20221025020316-517fa8f91d2c
 	gitlab.com/xx_network/primitives v0.0.4-0.20221025020003-cbec15a71b8f
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa
+	golang.org/x/text v0.3.6
 )
 
 require (

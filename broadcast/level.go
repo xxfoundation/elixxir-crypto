@@ -17,8 +17,14 @@ import (
 type PrivacyLevel uint8
 
 const (
+	// Public channels expose all metadata when sharing (name, description,
+	// privacy level, identity public keys)
 	Public PrivacyLevel = iota
+
+	// Private channels only expose their name and description when sharing.
 	Private
+
+	// Secret channels expose no information when sharing.
 	Secret
 )
 

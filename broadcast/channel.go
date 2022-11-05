@@ -140,8 +140,8 @@ func NewChannel(name, description string, level PrivacyLevel,
 // packetPayloadLength is in bytes. maxKeySizeBits is the length, in bits, of an
 // RSA key defining the channel in bits. It must be divisible by 8.
 func NewChannelVariableKeyUnsafe(name, description string, level PrivacyLevel,
-	created time.Time, packetPayloadLength, maxKeySizeBits int, rng csprng.Source) (
-	*Channel, rsa.PrivateKey, error) {
+	created time.Time, packetPayloadLength, maxKeySizeBits int,
+	rng csprng.Source) (*Channel, rsa.PrivateKey, error) {
 
 	if maxKeySizeBits%8 != 0 {
 		return nil, nil, errors.New("maxKeySizeBits must be divisible by 8")
@@ -201,6 +201,7 @@ func NewChannelVariableKeyUnsafe(name, description string, level PrivacyLevel,
 	}, pk, nil
 }
 
+// UnmarshalChannel JSON marshals a Channel.
 func UnmarshalChannel(data []byte) (*Channel, error) {
 	var c Channel
 	return &c, json.Unmarshal(data, &c)
@@ -232,8 +233,9 @@ func (c *Channel) Verify() bool {
 // NewChannelID creates a new channel [id.ID] with a type [id.User].
 //
 // The 32-byte identity is derived as described below:
-//  intermediary = H(name | description | level | created | salt | rsaPubHash | hashedSecret)
-//  identityBytes = HKDF(intermediary, salt, hkdfInfo)
+//
+//	intermediary = H(name | description | level | created | salt | rsaPubHash | hashedSecret)
+//	identityBytes = HKDF(intermediary, salt, hkdfInfo)
 func NewChannelID(name, description string, level PrivacyLevel,
 	created time.Time, salt, rsaPubHash, secretHash []byte) (*id.ID, error) {
 	if len(salt) != saltSize {
@@ -271,11 +273,13 @@ func NewChannelID(name, description string, level PrivacyLevel,
 	return sid, nil
 }
 
+// MarshalJson JSON marshals the Channel.
 func (c *Channel) MarshalJson() ([]byte, error) {
 	return json.Marshal(c)
 
 }
 
+// UnmarshalJson unmarshalls the bytes into the Channel.
 func (c *Channel) UnmarshalJson(b []byte) error {
 	err := json.Unmarshal(b, c)
 	if err != nil {
@@ -306,7 +310,8 @@ const (
 // copy and pasted.
 //
 // Example:
-//  <Speakeasy-v3:Test_Channel|description:Channel description.|level:Public|created:1666718081766741100|secrets:+oHcqDbJPZaT3xD5NcdLY8OjOMtSQNKdKgLPmr7ugdU=|rCI0wr01dHFStjSFMvsBzFZClvDIrHLL5xbCOPaUOJ0=|493|1|7cBhJxVfQxWo+DypOISRpeWdQBhuQpAZtUbQHjBm8NQ=>
+//
+//	<Speakeasy-v3:Test_Channel|description:Channel description.|level:Public|created:1666718081766741100|secrets:+oHcqDbJPZaT3xD5NcdLY8OjOMtSQNKdKgLPmr7ugdU=|rCI0wr01dHFStjSFMvsBzFZClvDIrHLL5xbCOPaUOJ0=|493|1|7cBhJxVfQxWo+DypOISRpeWdQBhuQpAZtUbQHjBm8NQ=>
 func (c *Channel) PrettyPrint() string {
 	shouldEscape := func(s []rune, i int) bool { return s[i] == ppDelim }
 
@@ -372,13 +377,15 @@ func NewChannelFromPrettyPrint(p string) (*Channel, error) {
 	}
 
 	// Creation time
-	createdUnixNano, err := strconv.ParseInt(strings.TrimPrefix(fields[3], ppCreated), 10, 64)
+	createdUnixNano, err :=
+		strconv.ParseInt(strings.TrimPrefix(fields[3], ppCreated), 10, 64)
 	if err != nil {
 		return nil, errors.Errorf("could not parse creation time int: %+v", err)
 	}
 
 	// Salt
-	salt, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(fields[4], ppSecrets))
+	salt, err := base64.StdEncoding.DecodeString(
+		strings.TrimPrefix(fields[4], ppSecrets))
 	if err != nil {
 		return nil, errors.Errorf("could not decode salt: %+v", err)
 	}
@@ -444,12 +451,13 @@ func NewChannelFromPrettyPrint(p string) (*Channel, error) {
 // It only allows letters, numbers, and underscores.
 //
 // Regex explains:
-//  ^       must start with any of the characters enumerated below
-//  \p{L}   any kind of letter from any language
-//  0-9     any digit 0 through 9
-//  _       underscore
-//  $       must end with any of the characters enumerated above
-//  +       match any number of character enumerated above
+//
+//	^       must start with any of the characters enumerated below
+//	\p{L}   any kind of letter from any language
+//	0-9     any digit 0 through 9
+//	_       underscore
+//	$       must end with any of the characters enumerated above
+//	+       match any number of character enumerated above
 var nameMatch = regexp.MustCompile(`[^\p{L}0-9_$]+`)
 
 // VerifyName verifies that the name is a valid channel name.

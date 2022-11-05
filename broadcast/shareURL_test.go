@@ -116,10 +116,14 @@ func TestDecodeShareURL_DecodeError(t *testing.T) {
 		{"test?v=1&0Name=2&m=0", "", noPasswordErr},
 		{"test?v=1&d=2&m=0", "", noPasswordErr},
 		{"test?v=1&s=A&2Level=Public&m=0&3Created=0", "", parseSaltErr},
-		{"test?v=1&s=AA==&2Level=Public&k=A&m=0&3Created=0", "", parseRsaPubKeyHashErr},
-		{"test?v=1&s=AA==&2Level=Public&k=AA==&l=q&m=0&3Created=0", "", parseRsaPubKeyLengthErr},
-		{"test?v=1&s=AA==&2Level=Public&k=AA==&l=5&p=t&m=0&3Created=0", "", parseRsaSubPayloadsErr},
-		{"test?v=1&s=AA==&2Level=Public&k=AA==&l=5&p=1&e=A&m=0&3Created=0", "", parseSecretErr},
+		{"test?v=1&s=AA==&2Level=Public&k=A&m=0&3Created=0", "",
+			parseRsaPubKeyHashErr},
+		{"test?v=1&s=AA==&2Level=Public&k=AA==&l=q&m=0&3Created=0", "",
+			parseRsaPubKeyLengthErr},
+		{"test?v=1&s=AA==&2Level=Public&k=AA==&l=5&p=t&m=0&3Created=0", "",
+			parseRsaSubPayloadsErr},
+		{"test?v=1&s=AA==&2Level=Public&k=AA==&l=5&p=1&e=A&m=0&3Created=0", "",
+			parseSecretErr},
 		{"test?v=1&0Name=2&m=0&3Created=0", "hello", decryptErr},
 		{"test?v=1&d=2&m=0", "hello", decodeEncryptedErr},
 	}
@@ -417,7 +421,8 @@ func TestChannel_encodeSecretShareURL_decodeSecretShareURL(t *testing.T) {
 // and unmarshalled with Channel.unmarshalPrivateShareUrlSecrets matches the
 // original, except for the Name, Description, and ReceptionID, which are added
 // in the layer above.
-func TestChannel_marshalPrivateShareUrlSecrets_unmarshalPrivateShareUrlSecrets(t *testing.T) {
+func TestChannel_marshalPrivateShareUrlSecrets_unmarshalPrivateShareUrlSecrets(
+	t *testing.T) {
 	rng := csprng.NewSystemRNG()
 	c, _, err := NewChannel("Test_Channel", "Description", Private, 24, rng)
 	if err != nil {
@@ -453,7 +458,8 @@ func TestChannel_marshalPrivateShareUrlSecrets_unmarshalPrivateShareUrlSecrets(t
 // Tests that a channel marshalled with Channel.marshalSecretShareUrlSecrets and
 // unmarshalled with Channel.unmarshalSecretShareUrlSecrets matches the
 // original, except for the ReceptionID, which is added in the layer above.
-func TestChannel_marshalSecretShareUrlSecrets_unmarshalSecretShareUrlSecrets(t *testing.T) {
+func TestChannel_marshalSecretShareUrlSecrets_unmarshalSecretShareUrlSecrets(
+	t *testing.T) {
 	rng := csprng.NewSystemRNG()
 	c, _, err := NewChannel("Test_Channel", "Description", Secret, 24, rng)
 	if err != nil {
@@ -511,7 +517,7 @@ func Test_decryptShareURL_ShortData(t *testing.T) {
 	}
 
 	expectedErrMsg := "Read 24 bytes, too short to decrypt"
-	if err.Error()[:len(expectedErrMsg)] != expectedErrMsg {
+	if err == nil || err.Error()[:len(expectedErrMsg)] != expectedErrMsg {
 		t.Errorf("Unexpected error: %+v", err)
 	}
 
@@ -523,7 +529,7 @@ func Test_decryptShareURL_ShortData(t *testing.T) {
 	}
 
 	expectedErrMsg = "Read 0 bytes, too short to decrypt"
-	if err.Error()[:len(expectedErrMsg)] != expectedErrMsg {
+	if err == nil || err.Error()[:len(expectedErrMsg)] != expectedErrMsg {
 		t.Errorf("Unexpected error: %+v", err)
 	}
 }

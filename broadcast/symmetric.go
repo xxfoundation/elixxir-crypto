@@ -40,20 +40,22 @@ func (c *Channel) GetMaxSymmetricPayloadSize(outerPayloadSize int) int {
 	return MaxSizedBroadcastPayloadSize(outerPayloadSize)
 }
 
-// EncryptSymmetric symmetrically encrypts the payload with the key after padding
-// The payload must not be longer than Channel.GetMaxSymmetricPayloadSize()
+// EncryptSymmetric symmetrically encrypts the payload with the key after
+// padding.
+//
+// The payload must not be longer than Channel.GetMaxSymmetricPayloadSize.
 func (c *Channel) EncryptSymmetric(payload []byte, outerPayloadSize int,
 	csprng csprng.Source) (encryptedPayload, mac []byte,
 	nonce format.Fingerprint, err error) {
 
-	// edge check
+	// Edge check
 	if len(payload) > c.GetMaxSymmetricPayloadSize(outerPayloadSize) {
 		return nil, nil, format.Fingerprint{}, ErrPayloadTooBig
 	}
 
-	// pad the payload up to the outer payload size, which should be the size
-	// of the packet it needs to fit in
-	// this has a minimum of 8 bytes of random padding as defence in depth
+	// Pad the payload up to the outer payload size, which should be the size
+	// of the packet it needs to fit in.
+	// This has a minimum of 8 bytes of random padding as defence in depth.
 	sizedPayload, err := NewSizedBroadcast(outerPayloadSize, payload, csprng)
 	if err != nil {
 		jww.FATAL.Panicf("Failed to size the symmetric broadcast: %+v", err)
@@ -67,7 +69,8 @@ func (c *Channel) EncryptSymmetric(payload []byte, outerPayloadSize int,
 	return encryptedPayload, mac, nonce, nil
 }
 
-// DecryptSymmetric symmetrically decrypts the payload with the key after padding
+// DecryptSymmetric symmetrically decrypts the payload with the key after
+// padding.
 func (c *Channel) DecryptSymmetric(encryptedPayload, mac []byte,
 	nonce format.Fingerprint) ([]byte, error) {
 
@@ -87,7 +90,7 @@ func (c *Channel) DecryptSymmetric(encryptedPayload, mac []byte,
 	return payload, nil
 }
 
-// getSymmetricKey lazy instantiates the symmetric key and returns it
+// getSymmetricKey lazy instantiates the symmetric key and returns it.
 func (c *Channel) getSymmetricKey() []byte {
 	var err error
 	if c.key == nil {
@@ -103,8 +106,8 @@ func (c *Channel) getSymmetricKey() []byte {
 // NewSymmetricKey generates a new symmetric channel key, which is derived like
 // this:
 //
-//  intermediary = H(name | description | level | created | rsaPubHash | hashedSecret | salt)
-//  key = HKDF(secret, intermediary, hkdfInfo)
+//	intermediary = H(name | description | level | created | rsaPubHash | hashedSecret | salt)
+//	key = HKDF(secret, intermediary, hkdfInfo)
 func NewSymmetricKey(name, description string, level PrivacyLevel,
 	creation time.Time, salt, rsaPubHash, secret []byte) ([]byte, error) {
 	if len(secret) != 32 {

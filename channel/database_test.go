@@ -44,7 +44,7 @@ func TestCrypt_AppendPadding_SmallData(t *testing.T) {
 	blockSize := 32
 	smallData := []byte("123")
 
-	// use insecure seeded rng for reproducibility
+	// Use insecure seeded rng for reproducibility
 	notRand := &CountingReader{count: uint8(0)}
 
 	// Serialize length of plaintext
@@ -54,11 +54,12 @@ func TestCrypt_AppendPadding_SmallData(t *testing.T) {
 
 	// Construct padding
 	padding := make([]byte, blockSize-plaintextSize)
-	notRand.Read(padding)
+	_, _ = notRand.Read(padding)
 	expected := append(plaintextSizeBytes, smallData...)
 	expected = append(expected, padding...)
 
-	received, err := appendPadding(smallData, blockSize, &CountingReader{count: uint8(0)})
+	received, err := appendPadding(
+		smallData, blockSize, &CountingReader{count: uint8(0)})
 	if err != nil {
 		t.Fatalf("appendPadding returned an unexpected error: %+v", err)
 	}
@@ -99,7 +100,7 @@ func TestCrypt_AppendPadding_DiscardPadding(t *testing.T) {
 func TestCipher_Encrypt_PlaintextTooLarge(t *testing.T) {
 	blockSize := 256
 
-	// Construct a plaintext larger than blocksize
+	// Construct a plaintext larger than blockSize
 	plaintext := make([]byte, blockSize*2)
 
 	// Construct cipher

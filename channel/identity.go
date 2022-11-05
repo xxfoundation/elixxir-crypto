@@ -15,15 +15,19 @@ import (
 	"strings"
 )
 
+// Language represents possible languages to generate code names from.
 type Language uint8
 
 const (
 	English Language = iota
 )
 
+// MaxCodenameLength is the maximum length, in bytes, that a codename can be.
 const MaxCodenameLength = 32
 const pubkeyHashingConstant = "codenamePubkeyHashingConstant"
 
+// PrivateIdentity is a user's private identity on a channel. It contains their
+// public identity and their private key.
 type PrivateIdentity struct {
 	Privkey *ed25519.PrivateKey
 	Identity
@@ -120,8 +124,8 @@ func constructIdentityV0(pub ed25519.PublicKey) (Identity, int, error) {
 	var noun CodeNamePart
 
 	h, _ := blake2b.New256(nil)
-	c:=0
-	for ; len([]rune(codename)) > MaxCodenameLength;c++ {
+	c := 0
+	for ; len([]rune(codename)) > MaxCodenameLength; c++ {
 		h.Reset()
 		h.Write(input)
 		h.Write([]byte(pubkeyHashingConstant))
@@ -141,8 +145,6 @@ func constructIdentityV0(pub ed25519.PublicKey) (Identity, int, error) {
 
 		codename = honorific.Generated + adjective.Generated + noun.Generated
 	}
-
-
 
 	i := Identity{
 		PubKey:         pub,
