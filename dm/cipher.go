@@ -8,7 +8,6 @@ package dm
 
 import (
 	"encoding/binary"
-	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/nike"
 	"gitlab.com/elixxir/crypto/nike/ecdh"
@@ -32,7 +31,7 @@ const (
 
 	// nonceSize is the size of the nonce used for the encryption
 	// algorithm used for self encryption/decryption.
-	nonceSize = chacha20poly1305.NonceSize
+	nonceSize = chacha20poly1305.NonceSizeX
 )
 
 var (
@@ -111,7 +110,7 @@ func (s *scheme) Encrypt(plaintext []byte, partnerStaticPubKey nike.PublicKey,
 	default:
 		jww.FATAL.Panic(err)
 	}
-	fmt.Printf("ciphertext: %v\n", ciphertext)
+
 	return ciphertextToNoise(ciphertext, ecdhPublic, maxPayloadSize)
 }
 
@@ -133,8 +132,6 @@ func (s *scheme) Decrypt(ciphertext []byte, myStatic nike.PrivateKey) ([]byte, e
 		RemoteStatic: theirPubKey,
 		IsInitiator:  false,
 	}
-
-	fmt.Printf("ciphertext: %v\n", encrypted)
 
 	hs, err := nyquist.NewHandshake(cfg)
 	if err != nil {

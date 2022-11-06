@@ -25,16 +25,15 @@ func (s *scheme) IsSelfEncrypted(data []byte,
 	myPrivateKey nike.PrivateKey) bool {
 
 	// Pull nonce from ciphertext
-	nonce := data[lengthOfOverhead:nonceSize]
+	offset := lengthOfOverhead + nonceSize
+	nonce := data[lengthOfOverhead:offset]
 
 	// Pull public key from ciphertext
-	offset := lengthOfOverhead + nonceSize
 	receivedPubKey := data[offset : offset+pubKeySize]
 
 	// Construct expected public key using nonce in ciphertext and
 	// the user's private key
-	toHash := constructSelfCryptPublicKey(myPrivateKey.Bytes(), nonce)
-	expectedPubKey := blake2b.Sum256(toHash[:])
+	expectedPubKey := constructSelfCryptPublicKey(myPrivateKey.Bytes(), nonce)
 
 	// Check that generated public key matches public key within ciphertext
 	if hmac.Equal(receivedPubKey, expectedPubKey[:]) {
@@ -73,7 +72,7 @@ func (s *scheme) EncryptSelf(plaintext []byte, myPrivateKey nike.PrivateKey,
 	}
 
 	// Encrypt plaintext
-	encrypted := chaCipher.Seal(nonce, nonce, plaintext, nil)
+	encrypted := chaCipher.Seal(nil, nonce, plaintext, nil)
 	res := make([]byte, maxPayloadSize)
 
 	// Place the size of the payload (byte-serialized) at the beginning of the
@@ -115,10 +114,10 @@ func (s *scheme) DecryptSelf(ciphertext []byte,
 	}
 
 	// Pull nonce from ciphertext
-	nonce := ciphertext[lengthOfOverhead:nonceSize]
+	offset := lengthOfOverhead + nonceSize
+	nonce := ciphertext[lengthOfOverhead:offset]
 
 	// Pull public key from ciphertext
-	offset := lengthOfOverhead + nonceSize
 	receivedPubKey := ciphertext[offset : offset+pubKeySize]
 
 	// Find size of payload
@@ -127,7 +126,7 @@ func (s *scheme) DecryptSelf(ciphertext []byte,
 
 	// Pull encrypted payload from ciphertext
 	offset = offset + pubKeySize
-	encrypted := ciphertext[offset:encryptedSize]
+	encrypted := ciphertext[offset : encryptedSize+lengthOfOverhead]
 
 	// Construct key for decryption
 	chaKey := constructSelfChaKey(myPrivateKey.Bytes(), receivedPubKey, nonce)
@@ -150,16 +149,16 @@ func (s *scheme) DecryptSelf(ciphertext []byte,
 
 // constructSelfChaKey is a helper function which generates the key
 // used for self encryption and decryption.
-func constructSelfChaKey(myPrivateKey, pubKey, nonce []byte) []byte {
+func constructSelfChaKey(myPrivateKey, pubKey, nonce []byte) [pubKeySize]byte {
 	chaKey := make([]byte, 0)
 	chaKey = append(chaKey, pubKey[:]...)
 	chaKey = append(chaKey, nonce...)
 	chaKey = append(chaKey, myPrivateKey...)
-	return chaKey
+	return blake2b.Sum256(chaKey)
 }
 
 // constructSelfCryptPublicKey is a helper function which will construct the
-// facsimile "public key" will will be used to generate the key for self
+// facsimile "public key" will be used to generate the key for self
 // encryption.
 func constructSelfCryptPublicKey(myPrivateKey, nonce []byte) [pubKeySize]byte {
 	// Construct "public key"
