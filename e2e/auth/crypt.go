@@ -1,8 +1,9 @@
-////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2020 xx network SEZC                                                       //
-//                                                                                        //
-// Use of this source code is governed by a license that can be found in the LICENSE file //
-////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx foundation                                             //
+//                                                                            //
+// Use of this source code is governed by a license that can be found in the  //
+// LICENSE file.                                                              //
+////////////////////////////////////////////////////////////////////////////////
 
 package auth
 
@@ -26,7 +27,7 @@ func Crypt(key, vector, msg []byte) (crypt []byte) {
 
 	cipher, err := chacha20.NewUnauthenticatedCipher(key[:], nonce)
 	if err != nil {
-		panic(err)
+		jww.FATAL.Panic(err)
 	}
 	cipher.XORKeyStream(out, msg)
 

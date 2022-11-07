@@ -1,39 +1,44 @@
-////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2020 xx network SEZC                                                       //
-//                                                                                        //
-// Use of this source code is governed by a license that can be found in the LICENSE file //
-////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx foundation                                             //
+//                                                                            //
+// Use of this source code is governed by a license that can be found in the  //
+// LICENSE file.                                                              //
+////////////////////////////////////////////////////////////////////////////////
 
 package broadcast
 
 import (
 	"bytes"
+	"github.com/pkg/errors"
 	"gitlab.com/elixxir/crypto/cmix"
 	"gitlab.com/elixxir/crypto/rsa"
 	"gitlab.com/xx_network/crypto/csprng"
 	oldRsa "gitlab.com/xx_network/crypto/signature/rsa"
 	"gitlab.com/xx_network/primitives/id"
+	"gitlab.com/xx_network/primitives/netTime"
 	"reflect"
+	"strings"
 	"testing"
 )
 
 func TestChannel_PrettyPrint(t *testing.T) {
 	rng := csprng.NewSystemRNG()
 
-	name := "Test Channel"
-	desc := "This is a test channel"
+	name := "Test_Channel"
+	desc := "Channel description." + string(ppDelim)
 
-	channel1, _, err := NewChannel(name, desc, 1000, rng)
+	channel1, _, err := NewChannel(name, desc, Public, 1000, rng)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
 
 	pretty1 := channel1.PrettyPrint()
-	t.Log(pretty1)
+
+	t.Logf("%s", pretty1)
 
 	channel2, err := NewChannelFromPrettyPrint(pretty1)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("%+v", err)
 	}
 
 	pretty2 := channel2.PrettyPrint()
@@ -67,7 +72,8 @@ func TestChannel_MarshalJson(t *testing.T) {
 	}
 
 	pubKeyPem := oldRsa.CreatePublicKeyPem(pk.Public().GetOldRSA())
-	rid, err := NewChannelID(name, desc, secret, salt, HashSecret(pubKeyPem))
+	rid, err := NewChannelID(
+		name, desc, Public, netTime.Now(), secret, salt, HashSecret(pubKeyPem))
 	channel := Channel{
 		ReceptionID:   rid,
 		Name:          name,
@@ -141,7 +147,8 @@ func TestRChanel_Marshal_Unmarshal(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rid, err := NewChannelID(name, desc, secret, salt, HashPubKey(pk.Public()))
+	rid, err := NewChannelID(
+		name, desc, Public, netTime.Now(), secret, salt, HashPubKey(pk.Public()))
 	ac := &Channel{
 		RsaPubKeyLength: 528,
 		ReceptionID:     rid,
@@ -162,17 +169,18 @@ func TestRChanel_Marshal_Unmarshal(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(ac, unmarshalled) {
-		t.Errorf("Did not receive expected asymmetric channel\n\tExpected: %+v\n\tReceived: %+v\n", ac, unmarshalled)
+		t.Errorf("Did not receive expected asymmetric channel."+
+			"\nexpected: %+v\nreceived: %+v", ac, unmarshalled)
 	}
 }
 
 func TestNewChannel_Verify(t *testing.T) {
 	rng := csprng.NewSystemRNG()
 
-	name := "Asymmetric channel"
+	name := "Asymmetric_channel"
 	desc := "Asymmetric channel description"
 
-	ac, _, _ := NewChannel(name, desc, 1000, rng)
+	ac, _, _ := NewChannel(name, desc, Public, 1000, rng)
 
 	if !ac.Verify() {
 		t.Fatalf("Channel ID should have verified")
@@ -192,6 +200,8 @@ func TestChannel_Verify_Happy(t *testing.T) {
 	}
 	name := "Asymmetric channel"
 	desc := "Asymmetric channel description"
+	level := Public
+	created := netTime.Now()
 	salt := cmix.NewSalt(rng, saltSize)
 	secret := make([]byte, secretSize)
 	_, err = rng.Read(secret)
@@ -202,15 +212,18 @@ func TestChannel_Verify_Happy(t *testing.T) {
 	hashedSecret := HashSecret(secret)
 	hashedPubkey := HashPubKey(pk.Public())
 
-	rid, err := NewChannelID(name, desc, salt, hashedPubkey, hashedSecret)
+	rid, err := NewChannelID(
+		name, desc, level, created, salt, hashedPubkey, hashedSecret)
 	ac := &Channel{
-		RsaPubKeyLength: 528,
 		ReceptionID:     rid,
 		Name:            name,
 		Description:     desc,
+		Level:           level,
+		Created:         created,
 		Salt:            salt,
-		Secret:          secret,
 		RsaPubKeyHash:   hashedPubkey,
+		RsaPubKeyLength: 528,
+		Secret:          secret,
 	}
 
 	if !ac.Verify() {
@@ -278,7 +291,8 @@ func TestChannel_Verify_BadGeneration(t *testing.T) {
 	hashedSecret := HashSecret(secret)
 	hashedPubkey := HashPubKey(pk.Public())
 
-	rid, err := NewChannelID(name, desc, salt, hashedPubkey, hashedSecret)
+	rid, err := NewChannelID(
+		name, desc, Public, netTime.Now(), salt, hashedPubkey, hashedSecret)
 	ac := &Channel{
 		RsaPubKeyLength: 528,
 		ReceptionID:     rid,
@@ -291,5 +305,78 @@ func TestChannel_Verify_BadGeneration(t *testing.T) {
 
 	if ac.Verify() {
 		t.Fatalf("Channel ID should not have verified")
+	}
+}
+
+// Tests that VerifyName does not return an error for a list of valid names.
+func TestChannel_VerifyName(t *testing.T) {
+	tests := []string{
+		strings.Repeat("A", NameMinChars),
+		strings.Repeat("A", NameMaxChars),
+		"hello",
+		"hel1o",
+		"سلامدنیا",
+		"hel_lo",
+	}
+
+	for i, name := range tests {
+		if err := VerifyName(name); err != nil {
+			t.Errorf("Name %d is invalid %q: %s", i, name, err)
+		}
+	}
+}
+
+// Error path: Tests that VerifyName returns the expected error for a list of
+// invalid names.
+func TestChannel_VerifyName_InvalidNameError(t *testing.T) {
+	tests := map[string]error{
+		"":                                  MinNameCharLenErr,
+		strings.Repeat("A", NameMinChars-1): MinNameCharLenErr,
+		strings.Repeat("A", NameMaxChars+1): MaxNameCharLenErr,
+		"😀😀😀":                               NameInvalidCharErr,
+		"hel-lo":                            NameInvalidCharErr,
+		"hel lo":                            NameInvalidCharErr,
+	}
+
+	for name, expected := range tests {
+
+		if err := VerifyName(name); errors.Unwrap(err) != expected {
+			t.Errorf("Name %q did not return the expected error."+
+				"\nexpected: %s\nreceived: %s", name, expected, err)
+		}
+	}
+}
+
+// Tests that VerifyDescription does not return an error for a list of valid
+// description.
+func TestChannel_VerifyDescription(t *testing.T) {
+	tests := []string{
+		strings.Repeat("A", DescriptionMaxChars),
+		strings.Repeat("A", DescriptionMaxChars),
+		"hello 😀",
+		"Symbols? Should. Be! Allowed@",
+		"سلامدنیا",
+		"hel_lo",
+	}
+
+	for i, description := range tests {
+		if err := VerifyDescription(description); err != nil {
+			t.Errorf("Description %d is invalid %q: %s", i, description, err)
+		}
+	}
+}
+
+// Error path: Tests that VerifyDescription returns the expected error for a
+// list of invalid descriptions.
+func TestChannel_VerifyDescription_InvalidDescriptionError(t *testing.T) {
+	tests := map[string]error{
+		strings.Repeat("A", DescriptionMaxChars+1): MaxDescriptionCharLenErr,
+	}
+
+	for description, expected := range tests {
+		if err := VerifyDescription(description); errors.Unwrap(err) != expected {
+			t.Errorf("Description %q did not return the expected error."+
+				"\nexpected: %s\nreceived: %s", description, expected, err)
+		}
 	}
 }

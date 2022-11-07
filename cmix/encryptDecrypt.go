@@ -1,8 +1,9 @@
-////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2020 xx network SEZC                                                       //
-//                                                                                        //
-// Use of this source code is governed by a license that can be found in the LICENSE file //
-////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx foundation                                             //
+//                                                                            //
+// Use of this source code is governed by a license that can be found in the  //
+// LICENSE file.                                                              //
+////////////////////////////////////////////////////////////////////////////////
 
 // Package cmix contains utility functions for preparing, encrypting, and decrypting
 // messages sent and received by cMix. In cMix, messages are encrypted by the sending clients,
@@ -15,6 +16,7 @@
 package cmix
 
 import (
+	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/primitives/format"
 	"gitlab.com/xx_network/primitives/id"
@@ -29,7 +31,7 @@ func ClientEncrypt(grp *cyclic.Group, msg format.Message,
 	// Get the salt for associated data
 	hash, err := blake2b.New256(nil)
 	if err != nil {
-		panic("E2E Client Encrypt could not get blake2b Hash")
+		jww.FATAL.Panic("E2E Client Encrypt could not get blake2b Hash")
 	}
 	hash.Reset()
 	hash.Write(salt)

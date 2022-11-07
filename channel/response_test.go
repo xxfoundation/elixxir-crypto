@@ -9,8 +9,8 @@ import (
 	"time"
 )
 
-// TestSignResponse_VerifyResponse generates two sets of ed25519 keys and
-// tests signing & verifying a response using SignChannelLease and VerifyChannelLease
+// Generates two sets of Ed25519 keys and tests signing and verifying a response
+// using SignChannelLease and VerifyChannelLease.
 func TestSignResponse_VerifyResponse(t *testing.T) {
 	rng := csprng.NewSystemRNG()
 
@@ -37,14 +37,23 @@ func TestSignResponse_VerifyResponse(t *testing.T) {
 }
 
 func TestSignVerify_Consistency(t *testing.T) {
-	edPub1 := []byte{50, 35, 84, 147, 53, 22, 216, 211, 28, 7, 148, 12, 78, 87, 208, 187, 86, 76, 164, 86, 239, 23, 108, 113, 132, 145, 219, 3, 176, 219, 68, 187}
+	edPub1 := []byte{50, 35, 84, 147, 53, 22, 216, 211, 28, 7, 148, 12, 78, 87,
+		208, 187, 86, 76, 164, 86, 239, 23, 108, 113, 132, 145, 219, 3, 176,
+		219, 68, 187}
 
-	edPub2 := []byte{123, 118, 86, 100, 82, 92, 47, 197, 45, 158, 10, 162, 28, 221, 135, 87, 113, 251, 44, 232, 59, 160, 119, 134, 104, 113, 104, 218, 101, 161, 12, 197}
-	edPriv2 := []byte{232, 76, 88, 197, 38, 8, 204, 108, 64, 45, 54, 199, 10, 70, 31, 48, 45, 193, 136, 154, 233, 71, 219, 211, 16, 81, 147, 20, 149, 139, 62, 119, 123, 118, 86, 100, 82, 92, 47, 197, 45, 158, 10, 162, 28, 221, 135, 87, 113, 251, 44, 232, 59, 160, 119, 134, 104, 113, 104, 218, 101, 161, 12, 197}
+	edPub2 := []byte{123, 118, 86, 100, 82, 92, 47, 197, 45, 158, 10, 162, 28,
+		221, 135, 87, 113, 251, 44, 232, 59, 160, 119, 134, 104, 113, 104, 218,
+		101, 161, 12, 197}
+	edPriv2 := []byte{232, 76, 88, 197, 38, 8, 204, 108, 64, 45, 54, 199, 10,
+		70, 31, 48, 45, 193, 136, 154, 233, 71, 219, 211, 16, 81, 147, 20, 149,
+		139, 62, 119, 123, 118, 86, 100, 82, 92, 47, 197, 45, 158, 10, 162, 28,
+		221, 135, 87, 113, 251, 44, 232, 59, 160, 119, 134, 104, 113, 104, 218,
+		101, 161, 12, 197}
 
 	lease := time.Unix(0, 1659978469802846000)
 
-	expected := "9T/4HMO4uKlIB70FXaJqxYo7FylqCMVFuIYUxODPtpp1BSfcO7+6RtpdgbU2AMIok1P1GS6TPlFPDReMaRKEAA=="
+	expected := "9T/4HMO4uKlIB70FXaJqxYo7FylqCMVFuIYUxODPtpp1BSfcO7+6RtpdgbU2" +
+		"AMIok1P1GS6TPlFPDReMaRKEAA=="
 	expectedBytes, err := base64.StdEncoding.DecodeString(expected)
 	if err != nil {
 		t.Fatalf("Failed to decode expected sig: %+v", err)
@@ -52,7 +61,8 @@ func TestSignVerify_Consistency(t *testing.T) {
 	username := "zezima"
 	sig := SignChannelLease(edPub1, username, lease, edPriv2)
 	if !bytes.Equal(sig, expectedBytes) {
-		t.Errorf("Did not get expected signature\n\tExpected: %+v\n\tReceived: %+v\n", expected, base64.StdEncoding.EncodeToString(sig))
+		t.Errorf("Did not get expected signature.\nexpected: %+v\nreceived: %+v",
+			expected, base64.StdEncoding.EncodeToString(sig))
 	}
 
 	ok := VerifyChannelLease(sig, edPub1, username, lease, edPub2)
