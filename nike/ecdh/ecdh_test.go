@@ -7,6 +7,7 @@
 package ecdh
 
 import (
+	"bytes"
 	"crypto/ed25519"
 	"crypto/rand"
 	"testing"
@@ -84,4 +85,31 @@ func TestPublicKeyMarshaling(t *testing.T) {
 
 	require.Equal(t, alice3PublicKeyBytes, alice2PublicKeyBytes)
 	require.Equal(t, len(alice3PublicKeyBytes), ECDHNIKE.PublicKeySize())
+}
+
+func TestPrivateKey_Reset(t *testing.T) {
+	alicePrivateKey, _ := ECDHNIKE.NewKeypair()
+
+	alicePrivateKey.Reset()
+
+	privKeyBytes := alicePrivateKey.Bytes()
+	expected := make([]byte, len(privKeyBytes))
+
+	if !bytes.Equal(expected, privKeyBytes) {
+		t.Fatalf("Failed to reset key, byte data is not all zeroes.")
+	}
+}
+
+func TestPublicKey_Reset(t *testing.T) {
+	_, alicePublicKey := ECDHNIKE.NewKeypair()
+
+	alicePublicKey.Reset()
+
+	pubKeyBytes := alicePublicKey.Bytes()
+	expected := make([]byte, len(pubKeyBytes))
+
+	if !bytes.Equal(expected, pubKeyBytes) {
+		t.Fatalf("Failed to reset key, byte data is not all zeroes.")
+	}
+
 }
