@@ -65,3 +65,20 @@ func TestPublicKeyMarshaling(t *testing.T) {
 	require.Equal(t, alice3PublicKeyBytes, alice2PublicKeyBytes)
 	require.Equal(t, len(alice3PublicKeyBytes), DHNIKE.PublicKeySize())
 }
+
+func TestPublicKey_Reset(t *testing.T) {
+	_, alicePublicKey := DHNIKE.NewKeypair()
+	alicePublicKey.Reset()
+	if alicePublicKey.Bytes() != nil {
+		t.Fatalf("After reset, key should be nil!")
+	}
+}
+
+func TestPrivateKey_Reset(t *testing.T) {
+	alicePrivKey, _ := DHNIKE.NewKeypair()
+	alicePrivKey.Reset()
+	if alicePrivKey.Bytes() != nil {
+		t.Fatalf("After reset, key should be nil!")
+	}
+
+}
