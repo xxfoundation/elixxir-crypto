@@ -7,6 +7,7 @@
 package dm
 
 import (
+	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/yawning/nyquist.git"
 )
@@ -43,5 +44,15 @@ func panicOnError(err error) {
 func panicOnRngFailure(expected, received int) {
 	if expected != received {
 		jww.FATAL.Panic("rng failure")
+	}
+}
+
+// panicOnChaChaFailure is a helper function which will panic if the
+// error is not nil. This primarily serves as a fix for
+// the coverage hit by un-testable error conditions.
+func panicOnChaChaFailure(err error) {
+	if err != nil {
+		panic(fmt.Sprintf("Could not init XChaCha20Poly1305 mode: %s",
+			err.Error()))
 	}
 }

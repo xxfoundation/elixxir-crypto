@@ -9,7 +9,6 @@ package dm
 import (
 	"crypto/hmac"
 	"encoding/binary"
-	"fmt"
 	"github.com/pkg/errors"
 	"gitlab.com/elixxir/crypto/nike"
 	"gitlab.com/xx_network/crypto/csprng"
@@ -63,10 +62,7 @@ func (s *scheme) EncryptSelf(plaintext []byte, myPrivateKey nike.PrivateKey,
 
 	// Construct cipher
 	chaCipher, err := chacha20poly1305.NewX(chaKey[:])
-	if err != nil {
-		panic(fmt.Sprintf("Could not init XChaCha20Poly1305 mode: %s",
-			err.Error()))
-	}
+	panicOnChaChaFailure(err)
 
 	// Encrypt plaintext
 	encrypted := chaCipher.Seal(nil, nonce, plaintext, nil)
@@ -125,10 +121,7 @@ func (s *scheme) DecryptSelf(ciphertext []byte,
 
 	// Construct cipher
 	chaCipher, err := chacha20poly1305.NewX(chaKey[:])
-	if err != nil {
-		panic(fmt.Sprintf("Could not init XChaCha20Poly1305 mode: %s",
-			err.Error()))
-	}
+	panicOnChaChaFailure(err)
 
 	// Decrypt ciphertext
 	plaintext, err := chaCipher.Open(nil, nonce, encrypted, nil)
