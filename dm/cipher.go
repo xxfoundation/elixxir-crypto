@@ -95,22 +95,10 @@ func (s *scheme) Encrypt(plaintext []byte, partnerStaticPubKey nike.PublicKey,
 		IsInitiator:  true,
 	}
 	hs, err := nyquist.NewHandshake(cfg)
-	if err != nil {
-		jww.FATAL.Panic(err)
-	}
+	panicOnError(err)
 	defer hs.Reset()
 	ciphertext, err := hs.WriteMessage(nil, plaintext)
-	switch err {
-	case nyquist.ErrDone:
-		status := hs.GetStatus()
-		if status.Err != nyquist.ErrDone {
-			jww.FATAL.Panic(status.Err)
-		}
-	case nil:
-	default:
-		jww.FATAL.Panic(err)
-	}
-
+	handleErrorOnNoise(hs, err)
 	return ciphertextToNoise(ciphertext, ecdhPublic, maxPayloadSize)
 }
 
@@ -140,16 +128,8 @@ func (s *scheme) Decrypt(ciphertext []byte, myStatic nike.PrivateKey) ([]byte, e
 	defer hs.Reset()
 
 	plaintext, err := hs.ReadMessage(nil, encrypted)
-	switch err {
-	case nyquist.ErrDone:
-		status := hs.GetStatus()
-		if status.Err != nyquist.ErrDone {
-			return nil, status.Err
-		}
-	case nil:
-	default:
-		return nil, err
-	}
+	handleErrorOnNoise(hs, err)
+
 	return plaintext, nil
 }
 
@@ -200,9 +180,7 @@ func ciphertextToNoise(ciphertext []byte,
 	// Fill the rest of the context with random data
 	rng := csprng.NewSystemRNG()
 	count, err := rng.Read(res[actualPayloadSize:])
-	if err != nil {
-		jww.FATAL.Panic(err)
-	}
+	panicOnError(err)
 
 	if count != maxPayloadSize-(actualPayloadSize) {
 		jww.FATAL.Panic("rng failure")
@@ -214,7 +192,5 @@ func ciphertextToNoise(ciphertext []byte,
 func init() {
 	var err error
 	protocol, err = nyquist.NewProtocol("Noise_X_25519_ChaChaPoly_BLAKE2s")
-	if err != nil {
-		jww.FATAL.Panic(err)
-	}
+	panicOnError(err)
 }

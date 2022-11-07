@@ -94,9 +94,7 @@ func (s *scheme) EncryptSelf(plaintext []byte, myPrivateKey nike.PrivateKey,
 	// Fill the rest of the ciphertext with padding. This simulates the Noise
 	// protocol.
 	count, err = csprng.NewSystemRNG().Read(res[payloadSize+lengthOfOverhead:])
-	if err != nil {
-		jww.FATAL.Panic(err)
-	}
+	panicOnError(err)
 
 	if count != maxPayloadSize-(payloadSize+lengthOfOverhead) {
 		jww.FATAL.Panic("rng failure")

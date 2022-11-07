@@ -59,15 +59,3 @@ func wrongEncrypt(plaintext []byte, myStatic nike.PrivateKey, partnerStaticPubKe
 	}
 	return ciphertext
 }
-
-func TestWrongPrologue(t *testing.T) {
-	message1 := []byte("i am a message")
-
-	alicePrivKey, _ := ecdh.ECDHNIKE.NewKeypair()
-	_, bobPubKey := ecdh.ECDHNIKE.NewKeypair()
-
-	ciphertext := wrongEncrypt(message1, alicePrivKey, bobPubKey)
-
-	_, err := Cipher.Decrypt(ciphertext, alicePrivKey)
-	require.Error(t, err)
-}
