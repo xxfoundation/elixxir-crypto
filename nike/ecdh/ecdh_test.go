@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"crypto/ed25519"
 	"crypto/rand"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -110,6 +111,25 @@ func TestPublicKey_Reset(t *testing.T) {
 
 	if !bytes.Equal(expected, pubKeyBytes) {
 		t.Fatalf("Failed to reset key, byte data is not all zeroes.")
+	}
+
+}
+
+func TestPrivateKey_Scheme(t *testing.T) {
+	alicePrivKey, _ := ECDHNIKE.NewKeypair()
+
+	if !reflect.DeepEqual(alicePrivKey.Scheme(), ECDHNIKE) {
+		t.Fatalf("GetScheme failed to retrieve expected value")
+
+	}
+}
+
+func TestPublicKey_Scheme(t *testing.T) {
+	_, alicePubKey := ECDHNIKE.NewKeypair()
+
+	if !reflect.DeepEqual(alicePubKey.Scheme(), ECDHNIKE) {
+		t.Fatalf("GetScheme failed to retrieve expected value")
+
 	}
 
 }

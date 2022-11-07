@@ -7,6 +7,7 @@
 package dh
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -79,6 +80,23 @@ func TestPrivateKey_Reset(t *testing.T) {
 	alicePrivKey.Reset()
 	if alicePrivKey.Bytes() != nil {
 		t.Fatalf("After reset, key should be nil!")
+	}
+
+}
+
+func TestPrivateKey_Scheme(t *testing.T) {
+	alicePrivKey, _ := DHNIKE.NewKeypair()
+
+	if !reflect.DeepEqual(alicePrivKey.Scheme(), DHNIKE) {
+		t.Fatalf("GetScheme failed to retrieve expected value")
+	}
+}
+
+func TestPublicKey_Scheme(t *testing.T) {
+	_, alicePubKey := DHNIKE.NewKeypair()
+
+	if !reflect.DeepEqual(alicePubKey.Scheme(), DHNIKE) {
+		t.Fatalf("GetScheme failed to retrieve expected value")
 	}
 
 }
