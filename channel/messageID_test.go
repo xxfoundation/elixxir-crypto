@@ -8,53 +8,50 @@ import (
 	"testing"
 )
 
-// verify MessageID adheres to the stringer interface
+// Verify MessageID adheres to the stringer interface
 var _ fmt.Stringer = MessageID{}
 
-// TestMakeMessageID_Unique verifies that MakeMessageID doesnt obviously
-// duplicate returned message IDs
+// Verifies that MakeMessageID does not obviously duplicate returned MessageID
+// objects with different inputs.
 func TestMakeMessageID_Unique(t *testing.T) {
-
-	numTests := 100
-	results := make([]MessageID, 0, numTests)
-	inputs := make([][]byte, 0, numTests)
+	const numTests = 100
+	results := make([]MessageID, numTests)
+	inputs := make([][]byte, numTests)
 	prng := rand.New(rand.NewSource(42))
-
 	chID := &id.ID{}
 
-	// generate results
-	for i := 0; i < numTests; i++ {
+	// Generate results
+	for i := range results {
 		contents := make([]byte, 1000)
 		prng.Read(contents)
-		inputs = append(inputs, contents)
-		results = append(results, MakeMessageID(contents, chID))
+		inputs[i] = contents
+		results[i] = MakeMessageID(contents, chID)
 	}
 
-	//Check the results are different
+	// Check the results are different
 	for i := 0; i < numTests; i++ {
 		for j := 0; j < numTests; j++ {
 			if i != j {
 				if bytes.Equal(results[i][:], results[j][:]) {
-					t.Fatalf("Result %d and %d are the same "+
-						"with %s, inputs: %v vs %v", i, j, results[i], inputs[i], inputs[j])
+					t.Fatalf("Result %d and %d are the same for ID %s."+
+						"\nID %d: %v\nID %d: %v", i, j,
+						results[i], i, inputs[i], j, inputs[j])
 				}
 			}
 		}
 	}
 }
 
-// TestMakeMessageID_Channels_Unique verifies that MakeMessageID doesn't obviously
-// duplicate returned message IDs with the same inputs but different channel IDs
+// Verifies that MakeMessageID does not obviously duplicate returned MessageID
+// objects with the same inputs but different channel IDs.
 func TestMakeMessageID_Channels_Unique(t *testing.T) {
-
-	numTests := 100
+	const numTests = 100
 	prng := rand.New(rand.NewSource(42))
 
-	chID1 := &id.ID{}
-	chID2 := &id.ID{}
+	chID1, chID2 := &id.ID{}, &id.ID{}
 	chID2[0] = 1
 
-	// generate results
+	// Generate results
 	for i := 0; i < numTests; i++ {
 		contents := make([]byte, 1000)
 		prng.Read(contents)
@@ -62,22 +59,18 @@ func TestMakeMessageID_Channels_Unique(t *testing.T) {
 		a := MakeMessageID(contents, chID1)
 		b := MakeMessageID(contents, chID2)
 		if a.Equals(b) {
-			t.Errorf("same message with diferent channels has " +
-				"the same ID")
+			t.Errorf("MessageID with same contents but different channel IDs "+
+				"are equal (%d)."+
+				"\ncontents:     %q...\nChannel ID a: %s\nChannel ID b: %s"+
+				"\nMessageID a:  %s\nMessageID b:  %s",
+				i, contents[:16], chID1, chID2, a, b)
 		}
 	}
-
 }
 
-// TestMakeMessageID_Constancy ensures the output of the function doesnt change
+// Ensures that the output of MakeMessageID is consistent does not change.
 func TestMakeMessageID_Constancy(t *testing.T) {
-
-	numTests := 5
-	results := make([]MessageID, 0, numTests)
 	prng := rand.New(rand.NewSource(69))
-
-	chID := &id.ID{}
-
 	expectedResults := []string{
 		"ChMsgID-936YPj78YUr6bJ9LrGILBeCBFCwB3aIwxX0UL3mMjtE=",
 		"ChMsgID-m+7QPDIGaDR2TFeksDH2JlikZAeU+E/f0amzCVlTYrY=",
@@ -85,39 +78,38 @@ func TestMakeMessageID_Constancy(t *testing.T) {
 		"ChMsgID-ATMGXTjZL/GjY8HhS3hAUzAGudluCVA/062dhQsNvBw=",
 		"ChMsgID-spm/UbyfvrkmLiwZWB7DkyY30gXDWnwZM/90t0UsfFg=",
 	}
+	results := make([]MessageID, len(expectedResults))
 
-	// generate results
-	for i := 0; i < numTests; i++ {
+	// Generate results
+	chID := &id.ID{}
+	for i := range results {
 		contents := make([]byte, 1000)
 		prng.Read(contents)
-		results = append(results, MakeMessageID(contents, chID))
+		results[i] = MakeMessageID(contents, chID)
 	}
 
-	//Check the results are different
-	for i := 0; i < numTests; i++ {
-		if results[i].String() != expectedResults[i] {
-			t.Errorf("Result %d did not match expected results, '%s' "+
-				"vs '%s' ", i, results[i], expectedResults[i])
+	// Check the results are different
+	for i, expected := range expectedResults {
+		if results[i].String() != expected {
+			t.Errorf("Result %d did not match expected."+
+				"\nexpected: %s\nreceived: %s", i, expected, results[i])
 		}
 	}
 }
 
-// TestMessageID_Equals makes sure the equals function works
+// Tests that MessageID.Equals accurately determines two of the same MessageID
+// objects are the same and that different IDs are different.
 func TestMessageID_Equals(t *testing.T) {
-
-	numTests := 100
-	results := make([]MessageID, 0, numTests)
-	inputs := make([][]byte, 0, numTests)
-	prng := rand.New(rand.NewSource(420))
-
+	const numTests = 100
+	results := make([]MessageID, numTests)
+	prng := rand.New(rand.NewSource(42))
 	chID := &id.ID{}
 
-	// generate message IDs
-	for i := 0; i < numTests; i++ {
+	// Generate results
+	for i := range results {
 		contents := make([]byte, 1000)
 		prng.Read(contents)
-		inputs = append(inputs, contents)
-		results = append(results, MakeMessageID(contents, chID))
+		results[i] = MakeMessageID(contents, chID)
 	}
 
 	// Check that equals is equal when it shouldn't be, and is equal when it
@@ -126,85 +118,134 @@ func TestMessageID_Equals(t *testing.T) {
 		for j := 0; j < numTests; j++ {
 			if i != j {
 				if results[i].Equals(results[j]) {
-					t.Fatalf("Result %d and %d are not the same when they should be"+
-						"with %s, inputs: %v vs %v", i, j, results[i], inputs[i], inputs[j])
+					t.Fatalf("Result %d and %d are not the same when they "+
+						"should be.\nID %d: %v\nID %d: %v",
+						i, j, i, results[i], j, results[j])
 				}
 			} else {
 				if !bytes.Equal(results[i][:], results[j][:]) {
-					t.Fatalf("Result %d and %d are the same when they should not be"+
-						"with %s, inputs: %v vs %v", i, j, results[i], inputs[i], inputs[j])
+					t.Fatalf("Result %d and %d are the same when they should "+
+						"not be.\nID %d: %v\nID %d: %v",
+						i, j, i, results[i], j, results[j])
+
 				}
 			}
 		}
 	}
 }
 
-// TestMakeMessageID_Bytes makes sure the bytes function returns the same data
-// and that it is a copy
+// Tests that byte slice returned by MessageID.Bytes contains the same data that
+// is in the MessageID and that the result is a copy.
 func TestMessageID_Bytes(t *testing.T) {
-
-	numTests := 100
-	results := make([]MessageID, 0, numTests)
+	const numTests = 100
+	results := make([]MessageID, numTests)
 	prng := rand.New(rand.NewSource(9001))
-
 	chID := &id.ID{}
 
-	// generate message IDs
-	for i := 0; i < numTests; i++ {
+	// Generate message IDs
+	for i := range results {
 		contents := make([]byte, 1000)
 		prng.Read(contents)
-		results = append(results, MakeMessageID(contents, chID))
+		results[i] = MakeMessageID(contents, chID)
 	}
 
-	// Check the bytes are the same and that modifying them doesnt modify the ID
-	for i := 0; i < numTests; i++ {
+	// Check the bytes are the same and that modifying the copy does not reflect
+	// on the original
+	for i := range results {
 		b := results[i].Bytes()
-		//check that the bytes and messageID are the same
+
+		// Check that the bytes and messageID are the same
 		if !bytes.Equal(results[i][:], b) {
-			t.Errorf("Result %d bytes is not the same as the source, "+
-				"'%v' vs '%v' ", i, results[i][:], b)
+			t.Errorf("Result %d bytes is not the same as the source."+
+				"\nexpected: %v\nreceived: %v", i, results[i][:], b)
 		}
-		//fill the bytes with random data
+
+		// Fill the bytes with random data
 		prng.Read(b)
-		//check that the bytes and the message ID are different
+
+		// Check that the bytes and the message ID are different
 		if bytes.Equal(results[i][:], b) {
-			t.Errorf("Result %d bytes is the same as the source after "+
-				"editing, '%v' vs '%v' ", i, results[i][:], b)
+			t.Errorf("Result %d bytes is the same as the source after editing."+
+				"\nsource: %v\nresult: %v", i, results[i][:], b)
 		}
 	}
 }
 
-// TestMakeMessageID_Bytes makes sure the bytes function returns the same data
-// and that it is a copy
+// Tests that MessageID returned by MessageID.DeepCopy is a copy.
 func TestMessageID_DeepCopy(t *testing.T) {
-
-	numTests := 100
-	results := make([]MessageID, 0, numTests)
+	const numTests = 100
+	results := make([]MessageID, numTests)
 	prng := rand.New(rand.NewSource(1337))
-
 	chID := &id.ID{}
 
-	// generate message IDs
-	for i := 0; i < numTests; i++ {
+	// Generate message IDs
+	for i := range results {
 		contents := make([]byte, 1000)
 		prng.Read(contents)
-		results = append(results, MakeMessageID(contents, chID))
+		results[i] = MakeMessageID(contents, chID)
 	}
 
-	// Check the bytes are the same and that modifying them doesnt modify the ID
-	for i := 0; i < numTests; i++ {
+	// Check the objects are the same and that modifying the copy does not
+	// reflect on the original
+	for i := range results {
 		dc := results[i].DeepCopy()
-		//check that the deep copy and messageID are the same
+
+		// Check that the deep copy and messageID are the same
 		if !results[i].Equals(dc) {
-			t.Errorf("Result %d deep copy is not the same as the "+
-				"source, '%s' vs '%s' ", i, results[i], dc)
+			t.Errorf("Result %d deep copy is not the same as the source."+
+				"\nsource: %s\ncopy:   %s", i, results[i], dc)
 		}
-		//fill the bytes with random data
+
+		// Fill the bytes with random data
 		prng.Read(dc[:])
-		//check that the bytes and the message ID are different
+
+		// Check that the bytes and the message ID are different
 		if results[i].Equals(dc) {
-			t.Errorf("Result %d deep copy is the same as the source "+
-				"after editing, '%s' vs '%s' ", i, results[i], dc)
+			t.Errorf("Result %d deep copy is the same as the source after "+
+				"editing.\nsource: %s\ncopy:   %s", i, results[i], dc)
 		}
+	}
+}
+
+// Tests that a MessageID marshalled via MessageID.Marshal and unmarshalled with
+// UnmarshalMessageID matches the original.
+func TestMessageID_Marshal_UnmarshalMessageID(t *testing.T) {
+	const numTests = 100
+	results := make([]MessageID, numTests)
+	prng := rand.New(rand.NewSource(1337))
+	chID := &id.ID{}
+
+	// Generate message IDs
+	for i := range results {
+		contents := make([]byte, 1000)
+		prng.Read(contents)
+		results[i] = MakeMessageID(contents, chID)
+	}
+
+	for i, result := range results {
+		data := result.Marshal()
+		mid, err := UnmarshalMessageID(data)
+		if err != nil {
+			t.Errorf("Failed to unmarshal MessageID %d: %+v", i, err)
+		}
+
+		if !result.Equals(mid) {
+			t.Errorf("Marshalled and Unmarshalled MessageID does not match "+
+				"oirignal.\nexpected: %s\nreceived: %s", result, mid)
+		}
+	}
+}
+
+// Error path: Tests that UnmarshalMessageID returns an error for data that is
+// not of the correct length
+func TestUnmarshalMessageID(t *testing.T) {
+	data := make([]byte, MessageIDLen+1)
+	expectedErr := fmt.Sprintf(
+		unmarshalMessageIdDataLenErr, len(data), MessageIDLen)
+
+	_, err := UnmarshalMessageID(data)
+	if err == nil || err.Error() != expectedErr {
+		t.Errorf("Did not get expected error for data of incorrect length."+
+			"\nexpected: %s\nreceived: %+v", expectedErr, err)
 	}
 }

@@ -6,47 +6,48 @@ import (
 )
 
 const (
-	minKeysize = 1024/8
+	minKeySize = 1024 / 8
 )
 
-// calculateKeySize finds the optimal key size and number of subpackets smaller
-// than the keysize and larger than the minkeysize.
-// both paylaodSize and maxKeysize should be in bytes
-func calculateKeySize(payloadSize, maxKeySizeGoal int)(selectedKeySize int, selectedN int){
+// calculateKeySize finds the optimal key size and number of sub-packets smaller
+// than the key size and larger than the minKeySize. Both payloadSize and
+// maxKeySizeGoal should be in bytes.
+func calculateKeySize(
+	payloadSize, maxKeySizeGoal int) (selectedKeySize int, selectedN int) {
 
-	// some of the payload is taken up by data for the sized broadcast included
-	// in the outer symmetric encryption layer. account for that.
+	// Some payload is taken up by data for the sized broadcast included in the
+	// outer symmetric encryption layer; account for that.
 	sizedPayloadSize := MaxSizedBroadcastPayloadSize(payloadSize)
 
-	// calculate the maximum keysize that can be used for a given payload
-	maxkey := (sizedPayloadSize-rsa.ELength)/2
+	// Calculate the maximum key size that can be used for a given payload
+	maxKeySize := (sizedPayloadSize - rsa.ELength) / 2
 
-	// if the requested key size is greater than the maximum, reduce it to the
-	// maximum
-	if maxKeySizeGoal>maxkey{
-		selectedKeySize = maxkey
+	// If the requested key size is greater than the maximum, ten reduce it to
+	// the maximum key size
+	if maxKeySizeGoal > maxKeySize {
+		selectedKeySize = maxKeySize
 		selectedN = 1
 		return
 	}
 
-	// otherwise, find the closes key size to the requested which fits.
-	// it will likely be smaller because an integer number of payloads for the
-	// key size need to fit in the payload. The n needs to be "ceilinged"
-	// in order to ensure the given keysize goal is treated as an upper bound
-	selectedN = int(math.Ceil(float64(sizedPayloadSize-rsa.ELength)/
-		float64(maxKeySizeGoal)-1))
+	// Otherwise, find the closest key size to the requested that fits. It will
+	// likely be smaller because an integer number of payloads for the key size
+	// needs to fit in the payload. The n needs to be "ceilinged" to ensure the
+	// given key size goal is treated as an upper bound.
+	selectedN = int(math.Ceil(
+		float64(sizedPayloadSize-rsa.ELength)/float64(maxKeySizeGoal) - 1))
 
 	// Run the above calculation in reverse in order to get from the floored n
 	// the appropriate key size back
-	selectedKeySize = (sizedPayloadSize-rsa.ELength)/(selectedN+1)
+	selectedKeySize = (sizedPayloadSize - rsa.ELength) / (selectedN + 1)
 
 	return
 }
 
-func calculateRsaToPublicPacketSize(keysize, numSubPayloads int)int {
-	return keysize*numSubPayloads + rsa.GetScheme().GetMarshalWireLength(keysize)
+func calculateRsaToPublicPacketSize(keySize, numSubPayloads int) int {
+	return keySize*numSubPayloads + rsa.GetScheme().GetMarshalWireLength(keySize)
 }
 
-func calculateRsaToPrivatePacketSize(keysize, numSubPayloads int)int {
-	return keysize*numSubPayloads
+func calculateRsaToPrivatePacketSize(keySize, numSubPayloads int) int {
+	return keySize * numSubPayloads
 }

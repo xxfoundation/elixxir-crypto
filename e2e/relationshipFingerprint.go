@@ -1,7 +1,13 @@
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx foundation                                             //
+//                                                                            //
+// Use of this source code is governed by a license that can be found in the  //
+// LICENSE file.                                                              //
+////////////////////////////////////////////////////////////////////////////////
+
 package e2e
 
 import (
-	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/hash"
@@ -14,8 +20,8 @@ func MakeRelationshipFingerprint(pubkeyA, pubkeyB *cyclic.Int, sender,
 	receiver *id.ID) []byte {
 	h, err := hash.NewCMixHash()
 	if err != nil {
-		panic(fmt.Sprintf("Failed to get hash to make relationship"+
-			" fingerprint with: %s", err))
+		jww.FATAL.Panicf("Failed to get hash to make relationship"+
+			" fingerprint with: %s", err)
 	}
 
 	switch pubkeyA.Cmp(pubkeyB) {

@@ -1,31 +1,39 @@
-////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2022 xx network SEZC                                                       //
-//                                                                                        //
-// Use of this source code is governed by a license that can be found in the LICENSE file //
-////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx foundation                                             //
+//                                                                            //
+// Use of this source code is governed by a license that can be found in the  //
+// LICENSE file.                                                              //
+////////////////////////////////////////////////////////////////////////////////
 
 package channel
 
 import (
 	"crypto/ed25519"
-	"errors"
+	"github.com/pkg/errors"
 	"golang.org/x/crypto/blake2b"
 	"io"
 	"strings"
 )
 
+// Language represents possible languages to generate code names from.
 type Language uint8
 
 const (
 	English Language = iota
 )
 
+// MaxCodenameLength is the maximum length, in bytes, that a codename can be.
+const MaxCodenameLength = 32
+const pubkeyHashingConstant = "codenamePubkeyHashingConstant"
+
+// PrivateIdentity is a user's private identity on a channel. It contains their
+// public identity and their private key.
 type PrivateIdentity struct {
 	Privkey *ed25519.PrivateKey
 	Identity
 }
 
-// Marshal creates a write version of the private identity
+// Marshal creates en exportable version of the PrivateIdentity.
 func (i PrivateIdentity) Marshal() []byte {
 	return append([]byte{i.CodesetVersion}, append(*i.Privkey, i.PubKey...)...)
 }
@@ -37,13 +45,18 @@ func UnmarshalPrivateIdentity(data []byte) (PrivateIdentity, error) {
 			"private identity is the wrong length")
 	}
 
-	version := uint8(data[0])
-	privkey := ed25519.PrivateKey(data[1 : 1+ed25519.PrivateKeySize])
+	version := data[0]
+	privKey := ed25519.PrivateKey(data[1 : 1+ed25519.PrivateKeySize])
 	pubKey := ed25519.PublicKey(data[1+ed25519.PrivateKeySize:])
 
+	identity, err := ConstructIdentity(pubKey, version)
+	if err != nil {
+		return PrivateIdentity{}, err
+	}
+
 	pi := PrivateIdentity{
-		Privkey:  &privkey,
-		Identity: constructIdentity(pubKey, version),
+		Privkey:  &privKey,
+		Identity: identity,
 	}
 
 	return pi, nil
@@ -72,59 +85,65 @@ func GenerateIdentity(rng io.Reader) (PrivateIdentity, error) {
 		return PrivateIdentity{}, err
 	}
 
+	identity, err := ConstructIdentity(pub, currentCodesetVersion)
+	if err != nil {
+		return PrivateIdentity{}, err
+	}
+
 	pi := PrivateIdentity{
 		Privkey:  &priv,
-		Identity: ConstructIdentity(pub),
+		Identity: identity,
 	}
 
 	return pi, nil
 }
 
-// ConstructIdentity creates a codename from an extant identity
-func ConstructIdentity(pub ed25519.PublicKey) Identity {
-	h, _ := blake2b.New256(nil)
-
-	honorific := generateCodeNamePart(h, pub, honorificSalt, honorifics)
-	adjective := generateCodeNamePart(h, pub, adjectiveSalt, adjectives)
-	noun := generateCodeNamePart(h, pub, nounSalt, nouns)
-
-	if honorific.Generated != "" {
-		adjective.Generated = strings.Title(adjective.Generated)
-	}
-
-	if honorific.Generated != "" || adjective.Generated != "" {
-		noun.Generated = strings.Title(noun.Generated)
-	}
-
-	i := Identity{
-		PubKey:         pub,
-		Honorific:      honorific,
-		Adjective:      adjective,
-		Noun:           noun,
-		Codename:       honorific.Generated + adjective.Generated + noun.Generated,
-		Color:          generateColor(h, pub),
-		Extension:      generateExtension(h, pub),
-		CodesetVersion: codesetv0,
-	}
-	return i
-}
-
-// constructIdentity creates a codename from an extant identity for a given
+// ConstructIdentity creates a codename from an extant identity for a given
 // version
-// currently, because there is only version 0, it only deals with version 0
-func constructIdentity(pub ed25519.PublicKey, codesetVersion uint8) Identity {
-	h, _ := blake2b.New256(nil)
-
-	honorific := generateCodeNamePart(h, pub, honorificSalt, honorifics)
-	adjective := generateCodeNamePart(h, pub, adjectiveSalt, adjectives)
-	noun := generateCodeNamePart(h, pub, nounSalt, nouns)
-
-	if honorific.Generated != "" {
-		adjective.Generated = strings.Title(adjective.Generated)
+func ConstructIdentity(
+	pub ed25519.PublicKey, codesetVersion uint8) (Identity, error) {
+	constructor, exists := identityConstructorCodesets[codesetVersion]
+	if !exists {
+		return Identity{}, errors.Errorf(
+			"%d is an invalid codeset version", codesetVersion)
 	}
 
-	if honorific.Generated != "" || adjective.Generated != "" {
-		noun.Generated = strings.Title(noun.Generated)
+	id, _, err := constructor(pub)
+
+	return id, err
+}
+
+// constructIdentityV0 is version 0 of the identity constructor.
+func constructIdentityV0(pub ed25519.PublicKey) (Identity, int, error) {
+
+	input := pub
+
+	codename := "1234567890123456789012345678901234567890"
+	var honorific CodeNamePart
+	var adjective CodeNamePart
+	var noun CodeNamePart
+
+	h, _ := blake2b.New256(nil)
+	c := 0
+	for ; len([]rune(codename)) > MaxCodenameLength; c++ {
+		h.Reset()
+		h.Write(input)
+		h.Write([]byte(pubkeyHashingConstant))
+		input = h.Sum(nil)
+
+		honorific = generateCodeNamePart(h, input, honorificSalt, honorifics)
+		adjective = generateCodeNamePart(h, input, adjectiveSalt, adjectives)
+		noun = generateCodeNamePart(h, input, nounSalt, nouns)
+
+		if honorific.Generated != "" {
+			adjective.Generated = strings.Title(adjective.Generated)
+		}
+
+		if honorific.Generated != "" || adjective.Generated != "" {
+			noun.Generated = strings.Title(noun.Generated)
+		}
+
+		codename = honorific.Generated + adjective.Generated + noun.Generated
 	}
 
 	i := Identity{
@@ -132,15 +151,15 @@ func constructIdentity(pub ed25519.PublicKey, codesetVersion uint8) Identity {
 		Honorific:      honorific,
 		Adjective:      adjective,
 		Noun:           noun,
-		Codename:       honorific.Generated + adjective.Generated + noun.Generated,
+		Codename:       codename,
 		Color:          generateColor(h, pub),
 		Extension:      generateExtension(h, pub),
-		CodesetVersion: codesetVersion,
+		CodesetVersion: 0,
 	}
-	return i
+	return i, c, nil
 }
 
-// Marshal creates a write version of the identity
+// Marshal creates an exportable version of the Identity.
 func (i Identity) Marshal() []byte {
 	return append([]byte{i.CodesetVersion}, i.PubKey...)
 }
@@ -152,8 +171,8 @@ func UnmarshalIdentity(data []byte) (Identity, error) {
 			"the wrong length")
 	}
 
-	version := uint8(data[0])
+	version := data[0]
 	pubkey := ed25519.PublicKey(data[1:])
 
-	return constructIdentity(pubkey, version), nil
+	return ConstructIdentity(pubkey, version)
 }
