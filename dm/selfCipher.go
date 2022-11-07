@@ -11,7 +11,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/pkg/errors"
-	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/nike"
 	"gitlab.com/xx_network/crypto/csprng"
 	"golang.org/x/crypto/blake2b"
@@ -54,9 +53,7 @@ func (s *scheme) EncryptSelf(plaintext []byte, myPrivateKey nike.PrivateKey,
 	if err != nil {
 		return nil, err
 	}
-	if count != nonceSize {
-		jww.FATAL.Panic("rng failure")
-	}
+	panicOnRngFailure(count, nonceSize)
 
 	// Construct public key
 	pubKey := constructSelfCryptPublicKey(myPrivateKey.Bytes(), nonce)
@@ -95,10 +92,7 @@ func (s *scheme) EncryptSelf(plaintext []byte, myPrivateKey nike.PrivateKey,
 	// protocol.
 	count, err = csprng.NewSystemRNG().Read(res[payloadSize+lengthOfOverhead:])
 	panicOnError(err)
-
-	if count != maxPayloadSize-(payloadSize+lengthOfOverhead) {
-		jww.FATAL.Panic("rng failure")
-	}
+	panicOnRngFailure(count, maxPayloadSize-(payloadSize+lengthOfOverhead))
 
 	return res, nil
 }

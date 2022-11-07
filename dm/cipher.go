@@ -8,7 +8,6 @@ package dm
 
 import (
 	"encoding/binary"
-	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/nike"
 	"gitlab.com/elixxir/crypto/nike/ecdh"
 	"gitlab.com/xx_network/crypto/csprng"
@@ -181,10 +180,7 @@ func ciphertextToNoise(ciphertext []byte,
 	rng := csprng.NewSystemRNG()
 	count, err := rng.Read(res[actualPayloadSize:])
 	panicOnError(err)
-
-	if count != maxPayloadSize-(actualPayloadSize) {
-		jww.FATAL.Panic("rng failure")
-	}
+	panicOnRngFailure(count, maxPayloadSize-actualPayloadSize)
 
 	return res
 }
