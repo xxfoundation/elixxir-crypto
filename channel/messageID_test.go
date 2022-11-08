@@ -2,6 +2,7 @@ package channel
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"gitlab.com/xx_network/primitives/id"
 	"math/rand"
@@ -247,5 +248,66 @@ func TestUnmarshalMessageID(t *testing.T) {
 	if err == nil || err.Error() != expectedErr {
 		t.Errorf("Did not get expected error for data of incorrect length."+
 			"\nexpected: %s\nreceived: %+v", expectedErr, err)
+	}
+}
+
+// Tests that a MessageID JSON marshalled and unmarshalled matches the original.
+func TestMessageID_MarshalJSON_UnmarshalJSON(t *testing.T) {
+	prng := rand.New(rand.NewSource(1337))
+	chID, _ := id.NewRandomID(prng, id.User)
+	contents := make([]byte, 1000)
+	prng.Read(contents)
+	mid := MakeMessageID(contents, chID)
+
+	data, err := json.Marshal(mid)
+	if err != nil {
+		t.Fatalf("Failed to JSON marshal MessageID: %+v", err)
+	}
+
+	var newMID MessageID
+	err = json.Unmarshal(data, &newMID)
+	if err != nil {
+		t.Fatalf("Failed to JSON unmarshal MessageID: %+v", err)
+	}
+
+	if mid != newMID {
+		t.Errorf("JSON marshaled and unamrshalled MessageID does not match "+
+			"expected.\nexpected: %s\nreceived: %s", mid, newMID)
+	}
+}
+
+// Tests that the output of json.Marshal on the MessageID is consistent. This
+// test is important because the MessageID is saved to storage using the JSON
+// marshaler and any changes to this format will break storage.
+func TestMessageID_MarshalJSON_Consistency(t *testing.T) {
+	prng := rand.New(rand.NewSource(1337))
+	expectedData := []string{
+		`"JK2k7J12VtoLtHRwLwPoXKbsuDXt+b2oyWCYJyk/xFc="`,
+		`"STtKvxCEDy/UCfwIyq9v23B3X8eV1KqSB1CoAtitdk8="`,
+		`"uFts/Ug2D/A1A5WDifVuX7e5UZCelEo7rpLBLmhc/sI="`,
+		`"KZbCLx+aFVghkYymeU4/f18db8TDKRjcCoRW79WmEzY="`,
+		`"WEEwQ7d8b+UpcvymJliO7O4L5seD5FozTbWZIQQAcrY="`,
+		`"QEF6vG9W+/gerI3ThHtPtn4KKYCW69ebBfKLnyj6yqI="`,
+		`"fLBJTa6VkGxzHslAwpPIvr33enRNKmNAGLsGYjfocRk="`,
+		`"n2RCe4m55XkwPiV2tig6gA28cLUDQK9dwDrELlePTxI="`,
+		`"YmUVG3T41F70bhrNlx+8J6CYt51iKf2qJmKHsmIpBPY="`,
+		`"Qt1hNDqE8g4gEOa0OCk2BSEPBoY34WhT7B1+UyGh2Zg="`,
+	}
+
+	for i, expected := range expectedData {
+		chID, _ := id.NewRandomID(prng, id.User)
+		contents := make([]byte, 1000)
+		prng.Read(contents)
+		mid := MakeMessageID(contents, chID)
+
+		data, err := json.Marshal(mid)
+		if err != nil {
+			t.Errorf("Failed to JSON marshal message ID: %+v", err)
+		}
+
+		if expected != string(data) {
+			t.Errorf("Unexpected JSON for MessageID %s (%d)."+
+				"\nexpected: %s\nreceived: %s", mid, i, expected, data)
+		}
 	}
 }
