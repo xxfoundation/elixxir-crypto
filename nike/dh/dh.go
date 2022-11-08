@@ -128,6 +128,9 @@ func (p *privateKey) Reset() {
 }
 
 func (p *privateKey) Bytes() []byte {
+	if p.privateKey == nil {
+		return nil
+	}
 	return p.privateKey.BinaryEncode()
 }
 
@@ -151,6 +154,9 @@ func (p *publicKey) Reset() {
 }
 
 func (p *publicKey) Bytes() []byte {
+	if p.publicKey == nil {
+		return nil
+	}
 	return p.publicKey.BinaryEncode()
 }
 

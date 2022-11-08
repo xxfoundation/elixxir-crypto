@@ -2,6 +2,7 @@ package dm
 
 import (
 	"crypto/rand"
+	"gitlab.com/elixxir/crypto/nike/ecdh"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -97,4 +98,21 @@ func TestNoise(t *testing.T) {
 	require.Equal(t, aliceStatus.LocalEphemeral.Bytes(), bobStatus.RemoteEphemeral.Bytes())
 	require.Equal(t, aliceStatus.RemoteStatic.Bytes(), bobStatic.Public().Bytes())
 	require.Equal(t, bobStatus.RemoteStatic.Bytes(), aliceStatic.Public().Bytes())
+}
+
+// TestCrossingWires tests that if you encrypt a message using Encrypt,
+// DecryptSelf will fail to decrypt it.
+func TestCrossingWires(t *testing.T) {
+	message1 := []byte("i am a message")
+
+	//alicePrivKey, _ := ecdh.ECDHNIKE.NewKeypair()
+	bobPrivKey, bobPubKey := ecdh.ECDHNIKE.NewKeypair()
+
+	ciphertext := Cipher.Encrypt(message1, bobPubKey, 10000)
+
+	_, err := Cipher.DecryptSelf(ciphertext, bobPrivKey)
+	if err == nil {
+		t.Fatalf("DecryptSelf should fail when passed ciphertext from encrypt.")
+	}
+
 }
