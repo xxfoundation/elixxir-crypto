@@ -14,11 +14,11 @@ type Scheme interface {
 
 	// Generate generates an RSA keypair of the given bit size using the
 	// random source random (for example, crypto/rand.Reader).
-	Generate(rng io.Reader, bits int)(PrivateKey, error)
+	Generate(rng io.Reader, bits int) (PrivateKey, error)
 
 	// GenerateDefault generates an RSA keypair of the library default bit
 	// size using the random source random (for example, crypto/rand.Reader).
-	GenerateDefault(rng io.Reader)(PrivateKey, error)
+	GenerateDefault(rng io.Reader) (PrivateKey, error)
 
 	// UnmarshalPrivateKeyPEM unmarshals the private key from a PEM file.
 	// Will refuse to unmarshal a key smaller than 64 bits, this is not an
@@ -43,21 +43,24 @@ type Scheme interface {
 
 	// GetDefaultKeySize returns the deafult key size in bits the
 	// scheme will generate
-	GetDefaultKeySize()int
+	GetDefaultKeySize() int
 
 	// GetSoftMinKeySize returns the minimum key size in bits the scheme will
 	// allow to be generated without printing an error to the log
-	GetSoftMinKeySize()int
+	GetSoftMinKeySize() int
 
 	// GetMarshalWireLength returns the length of a Marshal Wire for a given key
 	// size
 	GetMarshalWireLength(size int) int
+
+	// Convert accepts a gorsa.PrivateKey and returns a PrivateKey interface
+	Convert(key *gorsa.PrivateKey) PrivateKey
 }
 
 // PrivateKey is an interface for an RSA private key which implements the
 // standard operation available on go RSA by calling the go rsa code as well as
 // a custom multicast OEAP encryption
-type PrivateKey interface{
+type PrivateKey interface {
 
 	/* Operations */
 
@@ -66,8 +69,8 @@ type PrivateKey interface{
 	// digest must be the result of hashing the input message using the given hash
 	// function. The opts argument may be nil, in which case sensible defaults are
 	// used. If opts.Hash is set, it overrides hash.
-	SignPSS (rand io.Reader, hash crypto.Hash, hashed []byte,
-		opts *PSSOptions)([]byte, error)
+	SignPSS(rand io.Reader, hash crypto.Hash, hashed []byte,
+		opts *PSSOptions) ([]byte, error)
 
 	// SignPKCS1v15 calculates the signature of hashed using
 	// RSASSA-PKCS1-V1_5-SIGN from RSA PKCS #1 v1.5.  Note that hashed must
@@ -118,7 +121,7 @@ type PrivateKey interface{
 	//
 	// The message must be no longer than the length of the public modulus minus
 	// twice the hash length, minus a further 2.
-	EncryptOAEPMulticast(hash hash.Hash, random io.Reader, 	msg []byte,
+	EncryptOAEPMulticast(hash hash.Hash, random io.Reader, msg []byte,
 		label []byte) ([]byte, error)
 
 	// DecryptPKCS1v15 decrypts a plaintext using RSA and the padding scheme from PKCS #1 v1.5.
@@ -129,7 +132,7 @@ type PrivateKey interface{
 	// learn whether each instance returned an error then they can decrypt and
 	// forge signatures as if they had the private key. See
 	// DecryptPKCS1v15SessionKey for a way of solving this problem.
-	DecryptPKCS1v15(random io.Reader,ciphertext []byte) ([]byte, error)
+	DecryptPKCS1v15(random io.Reader, ciphertext []byte) ([]byte, error)
 
 	// DecryptPKCS1v15SessionKey decrypts a session key using RSA and the padding scheme from PKCS #1 v1.5.
 	// If random != nil, it uses RSA blinding to avoid timing side-channel attacks.
@@ -156,18 +159,18 @@ type PrivateKey interface{
 	/* Getters */
 
 	// Public returns the public key in *rsa.PublicKey format.
-	Public()PublicKey
+	Public() PublicKey
 
 	// GetGoRSA returns the private key in the standard go rsa format.
-	GetGoRSA()*gorsa.PrivateKey
+	GetGoRSA() *gorsa.PrivateKey
 
 	// GetOldRSA returns the private key in the old wrapper format for RSA
 	// within the xx project. Deprecated, only for compatibility during the
 	// change
-	GetOldRSA()*oldrsa.PrivateKey
+	GetOldRSA() *oldrsa.PrivateKey
 
 	// Size returns the key size in bits of the private key
-	Size()int
+	Size() int
 
 	// GetD returns the private exponent of the RSA Private Key as
 	// a large.Int
@@ -188,7 +191,7 @@ type PrivateKey interface{
 	// twice the hash length, minus a further 2.
 	// This is done per the OEAP spec, example of how a similar thing is done in the
 	// standard RSA: https://github.com/golang/go/blob/master/src/crypto/rsa/rsa.go#L452
-	GetMaxOEAPPayloadSize(hash hash.Hash)int
+	GetMaxOEAPPayloadSize(hash hash.Hash) int
 
 	/* Marshallers */
 
@@ -199,7 +202,7 @@ type PrivateKey interface{
 // PublicKey is an interface for an RSA public key which implements the
 // standard operation available on go RSA by calling the go rsa code as well as
 // a custom multicast OEAP decryption and a compact wire protocol
-type PublicKey interface{
+type PublicKey interface {
 	/* Operations */
 
 	// EncryptOAEP encrypts the given message with RSA-OAEP.
@@ -244,7 +247,7 @@ type PublicKey interface{
 	//
 	// WARNING: use of this function to encrypt plaintexts other than
 	// session keys is dangerous. Use RSA OAEP in new protocols.
-	EncryptPKCS1v15(random io.Reader, msg []byte)([]byte, error)
+	EncryptPKCS1v15(random io.Reader, msg []byte) ([]byte, error)
 
 	// VerifyPKCS1v15 verifies an RSA PKCS #1 v1.5 signature.
 	// hashed is the result of hashing the input message using the given hash
@@ -259,20 +262,20 @@ type PublicKey interface{
 	// result of hashing the input message using the given hash function. The opts
 	// argument may be nil, in which case sensible defaults are used. opts.Hash is
 	// ignored.
-	VerifyPSS(hash crypto.Hash, digest []byte, sig []byte, opts *PSSOptions)error
+	VerifyPSS(hash crypto.Hash, digest []byte, sig []byte, opts *PSSOptions) error
 
 	/* Getters */
 
 	// GetGoRSA returns the private key in the standard go rsa format.
-	GetGoRSA()*gorsa.PublicKey
+	GetGoRSA() *gorsa.PublicKey
 
 	// GetOldRSA returns the private key in the old wrapper format for RSA
 	// within the xx project. Deprecated, only for compatibility during the
 	// change
-	GetOldRSA()*oldrsa.PublicKey
+	GetOldRSA() *oldrsa.PublicKey
 
 	// Size returns the key size in bits of the public key
-	Size()int
+	Size() int
 
 	// GetN returns the RSA Public Key modulus
 	GetN() *large.Int
@@ -286,7 +289,7 @@ type PublicKey interface{
 	// twice the hash length, minus a further 2.
 	// This is done per the OEAP spec, example of how a similar thing is done in the
 	// standard RSA: https://github.com/golang/go/blob/master/src/crypto/rsa/rsa.go#L452
-	GetMaxOEAPPayloadSize(hash hash.Hash)int
+	GetMaxOEAPPayloadSize(hash hash.Hash) int
 
 	// MarshalPem returns a PEM file of the private key
 	MarshalPem() []byte
@@ -300,14 +303,3 @@ type PublicKey interface{
 	// GetMarshalWireLength returns the length of a Marshal Wire
 	GetMarshalWireLength() int
 }
-
-
-
-
-
-
-
-
-
-
-
