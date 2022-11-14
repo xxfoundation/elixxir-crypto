@@ -27,7 +27,8 @@ func TestMarshalUnMarshalWire(t *testing.T) {
 
 	message := []byte("fluffy bunny")
 	hashed := blake2b.Sum256(message)
-	signature, err := serverPrivKey.SignPSS(rand.Reader, crypto.BLAKE2b_256, hashed[:], nil)
+	signature, err :=
+		serverPrivKey.SignPSS(rand.Reader, crypto.BLAKE2b_256, hashed[:], nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -47,20 +48,22 @@ func TestPublic_GetMarshalWireLength(t *testing.T) {
 	expectedVal := val + ELength
 	if sLocal.GetMarshalWireLength(val) != expectedVal {
 		t.Fatalf("GetMarshalWireLength did not return expected value."+
-			"\nExpected: %d"+
-			"\nReceived: %v", expectedVal, sLocal.GetMarshalWireLength(val))
+			"\nexpected: %d\nreceived: %d",
+			expectedVal, sLocal.GetMarshalWireLength(val))
 	}
 }
 
-// Error case: Tests that passing in bytes too short to be unmarshalled
+// Error case: tests that passing in bytes that are too short to be unmarshalled
 // returns an error (ErrTooShortToUnmarshal).
 func TestScheme_UnmarshalPublicKeyWire_Error(t *testing.T) {
 	sLocal := GetScheme()
 	dataTooShort := []byte{1}
 
 	_, err := sLocal.UnmarshalPublicKeyWire(dataTooShort)
-	if err == nil {
-		t.Fatalf("Unmarshalled data too short for a public key")
+	if err == nil || err != ErrTooShortToUnmarshal {
+		t.Fatalf("Did not get expected error when trying to unmarshal a "+
+			"public key wire format that is too short."+
+			"\nexpected: %s\nreceived: %+v", ErrTooShortToUnmarshal, err)
 	}
 }
 
@@ -74,9 +77,8 @@ func TestWireLength(t *testing.T) {
 	serverPubKeyBytes := serverPubKey.MarshalWire()
 	wireLength := serverPubKey.GetMarshalWireLength()
 
-	if len(serverPubKeyBytes)!=wireLength{
-		t.Errorf("Wire length returned is not the same as the actual " +
+	if len(serverPubKeyBytes) != wireLength {
+		t.Errorf("Wire length returned is not the same as the actual "+
 			"wire length, %d vs %d", wireLength, len(serverPubKeyBytes))
 	}
-
 }

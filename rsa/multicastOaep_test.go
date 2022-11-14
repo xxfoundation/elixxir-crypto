@@ -20,7 +20,7 @@ import (
 )
 
 func TestEncryptDecryptRSA(t *testing.T) {
-	test_messages := [][]byte{
+	testMessages := [][]byte{
 		[]byte("Hello"),
 		[]byte("World!"),
 		[]byte("How"),
@@ -44,27 +44,28 @@ func TestEncryptDecryptRSA(t *testing.T) {
 	rng := rand.Reader
 
 	// Encrypt, then decrypt and check each message
-	for i := 0; i < len(test_messages); i++ {
-		inM := test_messages[i]
-		c, err := priv.EncryptOAEPMulticast(h, rng, inM, label)
-		if err != nil {
-			t.Fatalf("'%s': %+v", inM, err)
+	for _, inM := range testMessages {
+		c, err2 := priv.EncryptOAEPMulticast(h, rng, inM, label)
+		if err2 != nil {
+			t.Fatalf("'%s': %+v", inM, err2)
 		}
 
-		m, err := pub.DecryptOAEPMulticast(h, c, label)
-		if err != nil {
-			t.Fatalf("%+v", err)
+		m, err2 := pub.DecryptOAEPMulticast(h, c, label)
+		if err2 != nil {
+			t.Fatal(err2)
 		}
 
-		if bytes.Compare(inM, m) != 0 {
-			t.Errorf("Encrypt/Decrypt Mismatch, in: %v, out: %v",
-				inM, m)
+		if !bytes.Equal(inM, m) {
+			t.Errorf(
+				"Encrypt/Decrypt mismatch.\nexected: %q\nreceived: %q", inM, m)
 		}
 	}
 }
 
-func TestEncryptRSATooLong(t *testing.T) {
-	too_long := []byte("averylongmessageaverylongmessageaverylongkgeavery" +
+// Error path: tests that PrivateKey.EncryptOAEPMulticast returns the error
+// ErrMessageTooLong when the message is too long.
+func TestPrivateKey_EncryptOAEPMulticast_RSATooLong(t *testing.T) {
+	tooLong := []byte("averylongmessageaverylongmessageaverylongkgeavery" +
 		"longmessageaverylongmessageaverylongmessageaverylong" +
 		"longmessageaverylongmessageaverylongmessageaverylong" +
 		"longmessageaverylongmessageaverylongmessageaverylong" +
@@ -81,9 +82,10 @@ func TestEncryptRSATooLong(t *testing.T) {
 	label := []byte("testing123")
 	rng := rand.Reader
 
-	inM := too_long
-	_, err = priv.EncryptOAEPMulticast(h, rng, inM, label)
-	if err == nil {
-		t.Fatalf("Message should have been too long to encrypt!")
+	_, err = priv.EncryptOAEPMulticast(h, rng, tooLong, label)
+	if err == nil || err != ErrMessageTooLong {
+		t.Fatalf("Did not get expected error when the message should have "+
+			"been too long to encrypt.\nexpected: %+v\nreceived: %+v",
+			ErrMessageTooLong, err)
 	}
 }

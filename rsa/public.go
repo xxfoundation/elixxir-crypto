@@ -18,8 +18,7 @@ const (
 	ELength = 4
 )
 
-
-type public struct{
+type public struct {
 	gorsa.PublicKey
 }
 
@@ -40,32 +39,33 @@ type public struct{
 //
 // The message must be no longer than the length of the public modulus minus
 // twice the hash length, minus a further 2.
-func (pub *public)EncryptOAEP(hash hash.Hash, random io.Reader,
-	msg []byte, label []byte) ([]byte, error){
+func (pub *public) EncryptOAEP(hash hash.Hash, random io.Reader, msg []byte,
+	label []byte) ([]byte, error) {
 	return gorsa.EncryptOAEP(hash, random, &pub.PublicKey, msg, label)
 }
 
-// EncryptPKCS1v15 encrypts the given message with RSA and the padding
-// scheme from PKCS #1 v1.5.  The message must be no longer than the
-// length of the public modulus minus 11 bytes.
+// EncryptPKCS1v15 encrypts the given message with RSA and the padding scheme
+// from PKCS #1 v1.5. The message must be no longer than the length of the
+// public modulus minus 11 bytes.
 //
-// The random parameter is used as a source of entropy to ensure that
-// encrypting the same message twice doesn't result in the same
-// ciphertext.
+// The random parameter is used as a source of entropy to ensure that encrypting
+// the same message twice doesn't result in the same ciphertext.
 //
-// WARNING: use of this function to encrypt plaintexts other than
-// session keys is dangerous. Use RSA OAEP in new protocols.
-func (pub *public)EncryptPKCS1v15(random io.Reader, msg []byte)([]byte, error){
+// WARNING: use of this function to encrypt plaintexts other than session keys
+// is dangerous. Use RSA OAEP in new protocols.
+func (pub *public) EncryptPKCS1v15(
+	random io.Reader, msg []byte) ([]byte, error) {
 	return gorsa.EncryptPKCS1v15(random, &pub.PublicKey, msg)
 }
 
 // VerifyPKCS1v15 verifies an RSA PKCS #1 v1.5 signature.
+//
 // hashed is the result of hashing the input message using the given hash
 // function and sig is the signature. A valid signature is indicated by
-// returning a nil error. If hash is zero then hashed is used directly. This
-// isn't advisable except for interoperability.
-func (pub *public)VerifyPKCS1v15(hash crypto.Hash,
-	hashed []byte, sig []byte) error{
+// returning a nil error. If hash is zero, then hashed is used directly.
+// This isn't advisable except for interoperability.
+func (pub *public) VerifyPKCS1v15(
+	hash crypto.Hash, hashed []byte, sig []byte) error {
 	return gorsa.VerifyPKCS1v15(&pub.PublicKey, hash, hashed, sig)
 }
 
@@ -73,10 +73,10 @@ func (pub *public)VerifyPKCS1v15(hash crypto.Hash,
 //
 // A valid signature is indicated by returning a nil error. digest must be the
 // result of hashing the input message using the given hash function. The opts
-// argument may be nil, in which case sensible defaults are used. opts.Hash is
+// argument may be nil; in which case, sensible defaults are used. opts.Hash is
 // ignored.
-func (pub *public)VerifyPSS(hash crypto.Hash, digest []byte, sig []byte,
-	opts *PSSOptions)error{
+func (pub *public) VerifyPSS(
+	hash crypto.Hash, digest []byte, sig []byte, opts *PSSOptions) error {
 	if opts == nil {
 		opts = NewDefaultPSSOptions()
 		opts.Hash = hash
@@ -84,36 +84,37 @@ func (pub *public)VerifyPSS(hash crypto.Hash, digest []byte, sig []byte,
 	return gorsa.VerifyPSS(&pub.PublicKey, hash, digest, sig, &opts.PSSOptions)
 }
 
-// GetGoRSA returns the private key in the standard go rsa format.
-func (pub *public)GetGoRSA()*gorsa.PublicKey{
+// GetGoRSA returns the public key in the standard Go [crypto/rsa] format.
+func (pub *public) GetGoRSA() *gorsa.PublicKey {
 	return &pub.PublicKey
 }
 
-// GetOldRSA returns the private key in the old wrapper format for RSA
-// within the xx project. Deprecated, only for compatibility during the
-// change
-func (pub *public)GetOldRSA()*oldrsa.PublicKey{
-	return &oldrsa.PublicKey{pub.PublicKey}
+// GetOldRSA returns the public key in the old wrapper format for RSA that was
+// used in xx project.
+//
+// Deprecated: Only use for compatibility during the change.
+func (pub *public) GetOldRSA() *oldrsa.PublicKey {
+	return &oldrsa.PublicKey{PublicKey: pub.PublicKey}
 }
 
-// Size returns the key size in bits of the public key
-func (pub *public)Size() int{
+// Size returns the key size, in bits, of the public key.
+func (pub *public) Size() int {
 	return pub.PublicKey.Size()
 }
 
-// GetN returns the RSA Public Key modulus
-func (pub *public)GetN() *large.Int{
+// GetN returns the RSA public key modulus.
+func (pub *public) GetN() *large.Int {
 	return large.NewIntFromBigInt(pub.N)
 }
 
-// GetE returns the RSA Public Key exponent
-func (pub *public)GetE() int{
+// GetE returns the RSA public key exponent.
+func (pub *public) GetE() int {
 	return pub.E
 }
 
-// MarshalPem returns a PEM file of the private key
-func (pub *public)MarshalPem() []byte{
-	// Note we have to dig into the wrappers .PrivateKey object here
+// MarshalPem returns a PEM encoding of the public key.
+func (pub *public) MarshalPem() []byte {
+	// Note: we have to dig into the wrapper's .PrivateKey object
 	block := &pem.Block{
 		Type:  "RSA PUBLIC KEY",
 		Bytes: x509.MarshalPKCS1PublicKey(&pub.PublicKey),
@@ -122,19 +123,20 @@ func (pub *public)MarshalPem() []byte{
 	return pemBytes[:len(pemBytes)-1] // Strip newline
 }
 
-// MarshalWire returns a marshaled version of the private key which contains
-// everything needed to reconstruct it, specifically both the private exponent
-// as well as the modulus.
-// Notice: the size of the return will be 4 bytes longer than the public key
-// size
-func (pub *public)MarshalWire() []byte{
+// MarshalWire returns a marshaled version of the public key that contains
+// everything needed to reconstruct it. Specifically, both the public exponent
+// and the modulus.
+//
+// Notice: the size of the return will be 4 bytes longer than the key size.
+// It can be found using [PublicKey.GetMarshalWireLength]
+func (pub *public) MarshalWire() []byte {
 	buf := make([]byte, ELength)
 	binary.BigEndian.PutUint32(buf, uint32(pub.GetE()))
 	return append(buf, pub.PublicKey.N.Bytes()...)
 }
 
-// GetMarshalWireLength returns the length of a Marshal Wire
-func (pub *public)GetMarshalWireLength() int{
-	return pub.Size()+ELength
+// GetMarshalWireLength returns the length of a marshalled wire version of the
+// public key returned from [PublicKey.MarshalWire]
+func (pub *public) GetMarshalWireLength() int {
+	return pub.Size() + ELength
 }
-

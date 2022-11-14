@@ -4,16 +4,16 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/base64"
-	"fmt"
 	"gitlab.com/elixxir/crypto/hash"
 	rand2 "math/rand"
 	"strconv"
 	"testing"
 )
 
-// Smoke test. Ensure that DecryptOAEP can decrypt the output from EncryptOAEP.
-// Also ensure decryption returns original input to EncryptOAEP.
-func TestEncryptDectyptOAEP(t *testing.T) {
+// Smoke test: ensure that PrivateKey.DecryptOAEP can decrypt the output from
+// PublicKey.EncryptOAEP. Also ensures decryption returns original input to
+// PublicKey.EncryptOAEP.
+func TestPublicKey_EncryptOAEP_PrivateKey_DecryptOAEP(t *testing.T) {
 	// Generate keys
 	sLocal := GetScheme()
 	rng := rand.Reader
@@ -22,8 +22,6 @@ func TestEncryptDectyptOAEP(t *testing.T) {
 	if err != nil {
 		t.Errorf("GenerateDefault: %v", err)
 	}
-
-
 
 	pubKey := privKey.Public()
 
@@ -50,8 +48,7 @@ func TestEncryptDectyptOAEP(t *testing.T) {
 		// Check that decrypted text matches the original plaintext
 		if !bytes.Equal(decrypted, data) {
 			t.Fatalf("Decrypted data does not match original plaintext."+
-				"\nExpected: %+v"+
-				"\nReceived: %v", data, decrypted)
+				"\nexpected: %v\nreceived: %v", data, decrypted)
 		}
 	}
 }
@@ -109,14 +106,10 @@ var privateKeyPem = []byte{45, 45, 45, 45, 45, 66, 69, 71, 73, 78, 32, 82, 83,
 	61, 10, 45, 45, 45, 45, 45, 69, 78, 68, 32, 82, 83, 65, 32, 80, 82, 73, 86,
 	65, 84, 69, 32, 75, 69, 89, 45, 45, 45, 45, 45}
 
-
-
-// Consistency test. Given pre-canned deterministic input to generate a
-// PrivateKey, check that the output for EncryptOAEP is deterministic.
-func TestPrivate_EncryptOAEP_Consistency(t *testing.T) {
-
+// Consistency test: given pre-canned deterministic input to generate a
+// PrivateKey, check that the output for PublicKey.EncryptOAEP is deterministic.
+func TestPrivateKey_PublicKey_EncryptOAEP_Consistency(t *testing.T) {
 	// Using a PRNG with same source so the output is the same on each run
-	//prng := rand2.New(rand2.NewSource(12))
 	prng := rand2.New(rand2.NewSource(12))
 
 	// Generate keys
@@ -126,9 +119,6 @@ func TestPrivate_EncryptOAEP_Consistency(t *testing.T) {
 	if err != nil {
 		t.Errorf("GenerateDefault: %v", err)
 	}
-
-	fmt.Println(privKey.MarshalPem())
-
 	pubKey := privKey.Public()
 
 	// Encryption hashing functions
@@ -136,44 +126,47 @@ func TestPrivate_EncryptOAEP_Consistency(t *testing.T) {
 
 	// Expected output
 	expectedOutput := []string{
-		"BAqF9cxQARWZKfSnMLQLUoxHGcH6OdCopfggl8W17sK6i+4AAfevZVXeiPLZsaL4KKRNMKF/4IRT6Pneulvy56HicvI6oFoKSvMq+KoFEXpHl8PVqY/tIZltZEvsL/GVQaXvIxa4okvG95EHzFyUidNMC36zia8ITqt/OH1aNWc=",
-		"U/GmLIgGceD1PQjm/1y68CZrG8HvoDJvGH/P3dMf5jBNige0Z85MIPjHE4jgbn0wJNuUcJP7l5+ANLQOVjLhysKLvXo81oyLtR42TRJdiO7/gsExE2cbL28aTuDc662k+VDhJwmGknvCfQ0yyzFa2ZsLf5sWQdoX97fgpDdW5Bw=",
-		"EFzf7zuJU5UYx8zIl8jJcQI5xz2arjwYxTkXeTou9UTSQtHOy4LLfHJUqq5UAc0isV1y+RIqGoKImuIDL39u7iiDVgGt70Bn6gmputx4sc0NuiYAD70sLzGmZ89O15DuoxnUd60NhrdVvvxzZ7dMhpX/ZQAQCaaVfyt2Mvot2U4=",
-		"jAD2VtmHtYdnMBsfrVJ4EKlmz0/z09GSYm2i6UaIFUo3ynTpIiPDBVaaDa5mzNTJtkcCOC+SvNiKbpfzNzRRkK1qGyCWFHsUjW+c4brWTw+c0QCX/Sg3ENpKD+DdNH/FfZPe9KE23GQUdh6ljc3N2TO86VNv1KYmfcA3HelaO+E=",
-		"K2yQM8KfPb2+p73vPqoeHng/tlNKhrEkhFydmF8rDfkJ/EUC309bavMnesKD2SZmlC2vbjrlvQz3VUuf6Ig5LrAiBk5eV/QjDt1wCHHEz0jOErGPMfJWc0TZYxgNhkrT3ufeazklxvL/ieM1cxzqxKudOiWrzIj0O/3lasaa3WM=",
+		"BAqF9cxQARWZKfSnMLQLUoxHGcH6OdCopfggl8W17sK6i+4AAfevZVXeiPLZsaL4KKRN" +
+			"MKF/4IRT6Pneulvy56HicvI6oFoKSvMq+KoFEXpHl8PVqY/tIZltZEvsL/GVQaXv" +
+			"Ixa4okvG95EHzFyUidNMC36zia8ITqt/OH1aNWc=",
+		"U/GmLIgGceD1PQjm/1y68CZrG8HvoDJvGH/P3dMf5jBNige0Z85MIPjHE4jgbn0wJNuU" +
+			"cJP7l5+ANLQOVjLhysKLvXo81oyLtR42TRJdiO7/gsExE2cbL28aTuDc662k+VDh" +
+			"JwmGknvCfQ0yyzFa2ZsLf5sWQdoX97fgpDdW5Bw=",
+		"EFzf7zuJU5UYx8zIl8jJcQI5xz2arjwYxTkXeTou9UTSQtHOy4LLfHJUqq5UAc0isV1y" +
+			"+RIqGoKImuIDL39u7iiDVgGt70Bn6gmputx4sc0NuiYAD70sLzGmZ89O15DuoxnU" +
+			"d60NhrdVvvxzZ7dMhpX/ZQAQCaaVfyt2Mvot2U4=",
+		"jAD2VtmHtYdnMBsfrVJ4EKlmz0/z09GSYm2i6UaIFUo3ynTpIiPDBVaaDa5mzNTJtkcC" +
+			"OC+SvNiKbpfzNzRRkK1qGyCWFHsUjW+c4brWTw+c0QCX/Sg3ENpKD+DdNH/FfZPe" +
+			"9KE23GQUdh6ljc3N2TO86VNv1KYmfcA3HelaO+E=",
+		"K2yQM8KfPb2+p73vPqoeHng/tlNKhrEkhFydmF8rDfkJ/EUC309bavMnesKD2SZmlC2v" +
+			"bjrlvQz3VUuf6Ig5LrAiBk5eV/QjDt1wCHHEz0jOErGPMfJWc0TZYxgNhkrT3ufe" +
+			"azklxvL/ieM1cxzqxKudOiWrzIj0O/3lasaa3WM=",
 	}
-	for i := 0; i < numTest; i++ {
 
+	for i, expected := range expectedOutput {
 		// Construct plaintext
 		plaintext := []byte("hello user" + strconv.Itoa(i) + "!")
 		label := []byte(strconv.Itoa(i + 1))
 
-		tb := make([]byte, hashFunc.Size())
-		fmt.Printf("test: %v\n", tb)
-		fmt.Printf("rng ptr: %p\n", prng)
-
 		// Encrypt data
-		encrypted, err := pubKey.EncryptOAEP(hashFunc, prng, plaintext, label)
-		if err != nil {
-			t.Errorf("EncryptOAEP error: %+v", err)
+		encrypted, err2 := pubKey.EncryptOAEP(hashFunc, prng, plaintext, label)
+		if err2 != nil {
+			t.Errorf("EncryptOAEP error: %+v", err2)
 		}
 
 		// Check that encrypted data is consistent
 		received := base64.StdEncoding.EncodeToString(encrypted)
-		if expectedOutput[i] != received {
+		if expected != received {
 			t.Errorf("EncryptOAEP did not produce consistent output with "+
-				"precanned values."+
-				"\nExpected: %s"+
-				"\nReceived: %s", expectedOutput[i], received)
+				"precanned values.\nexpected: %s\nreceived: %s",
+				expected, received)
 		}
-
 	}
-
 }
 
-// Smoke test. Ensure that DecryptPKCS1v15 can decrypt the output from
-// EncryptPKCS1v15. Also ensure decryption returns original input to
-// EncryptPKCS1v15.
+// Smoke test: ensure that PrivateKey.DecryptPKCS1v15 can decrypt the output
+// from PublicKey.EncryptPKCS1v15. Also ensure decryption returns original input
+// to PublicKey.EncryptPKCS1v15.
 func TestEncryptDecryptPKCS1v15(t *testing.T) {
 	sLocal := GetScheme()
 	rng := rand.Reader
@@ -185,29 +178,26 @@ func TestEncryptDecryptPKCS1v15(t *testing.T) {
 	}
 
 	pubKey := privKey.Public()
-
 	for i := 0; i < numTest; i++ {
 		// Construct plaintext
 		plaintext := []byte("hello user" + strconv.Itoa(i) + "!")
 
 		// Encrypt data
-		encrypted, err := pubKey.EncryptPKCS1v15(rng, plaintext)
-		if err != nil {
-			t.Fatalf("EncryptOAEP error: %+v", err)
+		encrypted, err2 := pubKey.EncryptPKCS1v15(rng, plaintext)
+		if err2 != nil {
+			t.Fatalf("EncryptOAEP error: %+v", err2)
 		}
 
 		// Decrypt data
-		decrypted, err := privKey.DecryptPKCS1v15(rng, encrypted)
-		if err != nil {
-			t.Fatalf("DecryptOAEP error: %+v", err)
+		decrypted, err2 := privKey.DecryptPKCS1v15(rng, encrypted)
+		if err2 != nil {
+			t.Fatalf("DecryptOAEP error: %+v", err2)
 		}
 
 		// Check that decrypted data matches the original plaintext.
 		if !bytes.Equal(decrypted, plaintext) {
 			t.Fatalf("Decrypted plaintext does not match original plaintext."+
-				"\nExpected: %+v"+
-				"\nReceived: %v", plaintext, decrypted)
+				"\nexpected: %v\nreceived: %v", plaintext, decrypted)
 		}
 	}
-
 }
