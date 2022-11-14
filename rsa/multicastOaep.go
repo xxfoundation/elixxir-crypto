@@ -54,7 +54,7 @@ import (
 //
 // The message must be no longer than the length of the public modulus minus
 // twice the hash length, minus a further 2 per the OAEP Spec. If it is longer,
-// then the error ErrMessageTooLong is returned.
+// then the error [ErrMessageTooLong] is returned.
 func (priv *private) EncryptOAEPMulticast(hash hash.Hash, random io.Reader,
 	msg []byte, label []byte) ([]byte, error) {
 	if err := checkPub(priv.Public()); err != nil {

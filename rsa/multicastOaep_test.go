@@ -1,9 +1,9 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2020 xx foundation                                             //
+// Copyright © 2022 xx foundation                                             //
 //                                                                            //
-// Use of this source code is governed by a license that can be found         //
-// in the LICENSE file.                                                       //
-// NOTE: This code is largely copied from golang's crypto/rsa pcakge, so it   //
+// Use of this source code is governed by a license that can be found in the  //
+// LICENSE file.                                                              //
+// NOTE: This code is largely copied from golang's crypto/rsa package, so it  //
 //       is 3-clause and not 2-clause BSD. Unchanged code (excepting type     //
 //       modifications) is noted at the bottom of this file.                  //
 ////////////////////////////////////////////////////////////////////////////////

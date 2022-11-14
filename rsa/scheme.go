@@ -158,6 +158,8 @@ func (*scheme) UnmarshalPublicKeyPEM(pemBytes []byte) (PublicKey, error) {
 //
 // This acceptance criteria is not an endorsement of keys of those sizes being
 // secure.
+//
+// Returns [ErrTooShortToUnmarshal] when the data is too short.
 func (*scheme) UnmarshalPublicKeyWire(b []byte) (PublicKey, error) {
 	// Do edge checks
 	if len(b)+ELength < smallestPubkeyForUnmarshalBytes {

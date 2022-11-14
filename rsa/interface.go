@@ -1,3 +1,10 @@
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx foundation                                             //
+//                                                                            //
+// Use of this source code is governed by a license that can be found in the  //
+// LICENSE file.                                                              //
+////////////////////////////////////////////////////////////////////////////////
+
 package rsa
 
 import (
@@ -44,6 +51,8 @@ type Scheme interface {
 	//
 	// This acceptance criteria is not an endorsement of keys of those sizes
 	// being secure.
+	//
+	// Returns [ErrTooShortToUnmarshal] when the data is too short.
 	UnmarshalPublicKeyWire(b []byte) (PublicKey, error)
 
 	// GetDefaultKeySize returns the default key size, in bits, that the scheme
@@ -126,7 +135,7 @@ type PrivateKey interface {
 	//
 	// The message must be no longer than the length of the public modulus minus
 	// twice the hash length, minus a further 2 per the OAEP Spec. If it is
-	// longer, then the error ErrMessageTooLong is returned.
+	// longer, then the error [ErrMessageTooLong] is returned.
 	EncryptOAEPMulticast(hash hash.Hash, random io.Reader, msg []byte,
 		label []byte) ([]byte, error)
 
