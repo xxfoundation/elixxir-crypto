@@ -5,7 +5,6 @@
 // LICENSE file.                                                              //
 ////////////////////////////////////////////////////////////////////////////////
 
-// Package rsa pem.go imports and exports to pem files.
 package rsa
 
 import (
@@ -80,8 +79,8 @@ RrQgrWpA+PUSfMw6MEXqKS4XfZt5LCzqw7aCJQZb1JxNJ2Te4HRz6pcosobuA3Bo
 OfR7UYEP1zZHdxx0mMq8Dpv6wg0P4+g=
 -----END PRIVATE KEY-----`
 
-// junkPemStr1 is an un-parseable PEM string. This is invalid
-// from the beginning of the string.
+// junkPemStr1 is an un-parseable PEM string. This is invalid from the beginning
+// of the string.
 const junkPemStr1 = `-----BEGIN JUNK KEY-----
 MIIBygIBAAJhALhySvzEqx4l+18WYAqUwiipIU4CixehO75s8Q1W8bNKGNZRoVpW
 swZpBfpbLyN2FfSAD64GQ1N5bOhAS9O2hp0WkNhM
@@ -95,9 +94,8 @@ MIIBygIBAAJhALhySvzEqx4l+18WYAqUwiipIU4CixehO75s8Q1W8bNKGNZRoVpW
 swZpBfpbLyN2FfSAD64GQ1N5bOhAS9O2hp0WkNhM
 -----END RSA PRIVATE KEY-----`
 
-// junkPemStr2 is an un-parseable PEM string. This is similar to
-// pemStrPKSC1 but the ending of every line has been
-// overwritten with the string "NNNNN".
+// junkPemStr2 is an un-parseable PEM string. This is similar to pemStrPKSC1 but
+// the ending of every line has been overwritten with the string "NNNNN".
 const junkPemStr2 = `-----BEGIN RSA PRIVATE KEY-----
 MIIBygIBAAJhALhySvzEqx4l+18WYAqUwiipIU4CixehO75s8Q1W8bNKGNZRoVpW
 NDuoTZOvjESzF0wMB5hyaCsLIDiyPRT5EolqkJcy2HVnXKq3HdcMIGu+NVjNNNNN
@@ -119,11 +117,11 @@ func TestPemSmokePKCS1(t *testing.T) {
 	// Load and store, make sure we get what we put in
 	pk, err := sLocal.UnmarshalPrivateKeyPEM(pkBytes)
 	if err != nil {
-		t.Errorf("%v", err)
+		t.Error(err)
 	}
 	pkBytesOut := pk.MarshalPem()
-	if bytes.Compare(pkBytes, pkBytesOut) != 0 {
-		t.Errorf("Private Key Mismatch:\n\t%v\n\t%v",
+	if !bytes.Equal(pkBytes, pkBytesOut) {
+		t.Errorf("Private key mismatch.\nexpected: %v\nreceived: %v",
 			pkBytes, pkBytesOut)
 	}
 
@@ -131,10 +129,10 @@ func TestPemSmokePKCS1(t *testing.T) {
 	pkPubBytes := pkPub.MarshalPem()
 	pkPubBytesIn, err := sLocal.UnmarshalPublicKeyPEM(pkPubBytes)
 	if err != nil {
-		t.Errorf("%v", err)
+		t.Error(err)
 	}
-	if bytes.Compare(pkBytes, pkBytesOut) != 0 {
-		t.Errorf("Private Key Mismatch:\n\t%v\n\t%v",
+	if !bytes.Equal(pkBytes, pkBytesOut) {
+		t.Errorf("Private key mismatch.\nexpected: %v\nreceived: %v",
 			pkPubBytes, pkPubBytesIn)
 	}
 }
@@ -146,7 +144,7 @@ func TestPemSmokePKCS8(t *testing.T) {
 	// Load and store, make sure we get what we put in
 	_, err := sLocal.UnmarshalPrivateKeyPEM(pkBytes)
 	if err != nil {
-		t.Errorf("%v", err)
+		t.Error(err)
 	}
 }
 
@@ -156,11 +154,12 @@ func TestEmptyPem(t *testing.T) {
 	sLocal := GetScheme()
 	_, err := sLocal.UnmarshalPrivateKeyPEM(pkBytes)
 	if err == nil {
-		t.Errorf("Generated RSA PrivKey from empty file!")
+		t.Error("Generated RSA PrivKey from empty file!")
 	}
+
 	_, err = sLocal.UnmarshalPrivateKeyPEM(pkBytes)
 	if err == nil {
-		t.Errorf("Generated RSA PubKey from empty file!")
+		t.Error("Generated RSA PubKey from empty file!")
 	}
 }
 
@@ -169,18 +168,20 @@ func TestJunkPem(t *testing.T) {
 	// Test with the obviously invalid junk
 	pkBytes := []byte(junkPemStr1)
 	sLocal := GetScheme()
+
 	_, err := sLocal.UnmarshalPrivateKeyPEM(pkBytes)
 	if err == nil {
-		t.Errorf("Generated RSA PrivKey from junk file!")
+		t.Error("Generated RSA PrivKey from junk file!")
 	}
+
 	_, err = sLocal.UnmarshalPublicKeyPEM(pkBytes)
 	if err == nil {
-		t.Errorf("Generated RSA PubKey from junk file!")
+		t.Error("Generated RSA PubKey from junk file!")
 	}
 
 	// Test with the junk that is subtly invalid.
-	// Specifically, these two tests reach the error cases
-	// where blocks are continuously read after the first pem.Decode.
+	// Specifically, these two tests reach the error cases where blocks are
+	// continuously read after the first pem.Decode.
 	pkBytes = []byte(junkPemStr2)
 
 	_, err = sLocal.UnmarshalPrivateKeyPEM(pkBytes)
@@ -207,9 +208,8 @@ func TestScheme_GenerateDefault(t *testing.T) {
 
 	if privKey.Size() != defaultRSABitLen/8 {
 		t.Fatalf("Scheme.GenerateDefault() error: Did not generate key of "+
-			"proper size."+
-			"\nExpected: %d"+
-			"\nReceived: %d", privKey.Size(), defaultRSABitLen/8)
+			"proper size.\nexpected: %d\nreceived: %d",
+			privKey.Size(), defaultRSABitLen/8)
 	}
 }
 
@@ -219,8 +219,8 @@ func TestScheme_GetDefaultKeySize(t *testing.T) {
 
 	if sLocal.GetDefaultKeySize() != defaultRSABitLen {
 		t.Fatalf("GetDefaultKeySize did not return the hardcoded value."+
-			"\nExpected: %d"+
-			"\nReceived: %d", defaultRSABitLen, sLocal.GetDefaultKeySize())
+			"\nexpected: %d\nreceived: %d",
+			defaultRSABitLen, sLocal.GetDefaultKeySize())
 	}
 
 }
@@ -231,7 +231,7 @@ func TestScheme_GetSoftMinKeySize(t *testing.T) {
 
 	if sLocal.GetSoftMinKeySize() != softMinRSABitLen {
 		t.Fatalf("GetSoftMinKeySize did not return the hardcoded value."+
-			"\nExpected: %d"+
-			"\nReceived: %d", softMinRSABitLen, sLocal.GetSoftMinKeySize())
+			"\nexpected: %d\nreceived: %d",
+			softMinRSABitLen, sLocal.GetSoftMinKeySize())
 	}
 }

@@ -3,27 +3,27 @@
 //                                                                            //
 // Use of this source code is governed by a license that can be found         //
 // in the LICENSE file.                                                       //
-// NOTE: This code is largely copied from golang's crypto/rsa pcakge, so it   //
+// NOTE: This code is largely copied from golang's crypto/rsa package, so it  //
 //       is 3-clause and not 2-clause BSD. Unchanged code (excepting type     //
 //       modifications) is noted at the bottom of this file.                  //
 ////////////////////////////////////////////////////////////////////////////////
 
-// oaep.go implemented "multicast" RSA encryption and decryption using
-// RSA-OAEP (ptimal Asymmetric Encryption Padding) style encrypt and decrypt
-// functions. What we mean by multicast in this context is one writer,
-// encrypting with the private RSA key, and many readers using the public key
-// to decrypt these broadcasts.
+// oaep.go implemented "multicast" RSA encryption and decryption using RSA-OAEP
+// (Optimal Asymmetric Encryption Padding) style encrypt and decrypt functions.
+// What we mean by multicast in this context is one writer encrypting with the
+// private RSA key and many readers using the public key to decrypt these
+// broadcasts.
 
-// In other words, you usa an RSA Private Key to encrypt and an RSA Public Key
-// to decrypt. The public key isn't published, per se, but instead shared
-// with the people targeted in the multicast.
+// In other words, you usa an RSA private key to encrypt and an RSA public key
+// to decrypt. The public key isn't published, per se, but instead shared with
+// the people targeted in the multicast.
 
 // NOTE: WARNING: It is generally not recommended to copy code, especially not
 //                crypto code. Do not do this if you can avoid it.
-//                We made an exception here because converting pubkeys to
-//                privkeys is non-obvious, and the internal checkPub()
-//                call to check the public is meant to keep e small, which
-//                we wished to replicate.
+//                We made an exception here because converting public keys to
+//                private keys is non-obvious, and the internal checkPub() call
+//                to check the public is meant to keep e small, which we wished
+//                to replicate.
 
 package rsa
 
@@ -35,7 +35,6 @@ import (
 
 	"gitlab.com/xx_network/crypto/large"
 )
-
 
 // EncryptOAEPMulticast encrypts the given message with RSA-OAEP using a
 // Private Key for multicast RSA.
@@ -54,8 +53,9 @@ import (
 // used for another by an attacker. If not required it can be empty.
 //
 // The message must be no longer than the length of the public modulus minus
-// twice the hash length, minus a further 2 per the OAEP Spec.
-func (priv *private)EncryptOAEPMulticast(hash hash.Hash, random io.Reader,
+// twice the hash length, minus a further 2 per the OAEP Spec. If it is longer,
+// then the error ErrMessageTooLong is returned.
+func (priv *private) EncryptOAEPMulticast(hash hash.Hash, random io.Reader,
 	msg []byte, label []byte) ([]byte, error) {
 	if err := checkPub(priv.Public()); err != nil {
 		return nil, err
@@ -94,17 +94,17 @@ func (priv *private)EncryptOAEPMulticast(hash hash.Hash, random io.Reader,
 	return c.FillBytes(out), nil
 }
 
-// DecryptOAEPMulticast decrypts ciphertext using RSA-OAEP using an RSA
-// Public Key for multicast RSA.
+// DecryptOAEPMulticast decrypts ciphertext using RSA-OAEP using an RSA public
+// key for multicast RSA.
 //
 // OAEP is parameterised by a hash function that is used as a random oracle.
 // Encryption and decryption of a given message must use the same hash function
 // and sha256.New() is a reasonable choice.
 //
 // The label parameter must match the value given when encrypting. See
-// PrivateKey.EncryptOAEPMulticast for details.
-func (pub *public)DecryptOAEPMulticast(hash hash.Hash, ciphertext []byte,
-	label []byte) ([]byte, error) {
+// [PrivateKey.EncryptOAEPMulticast] for details.
+func (pub *public) DecryptOAEPMulticast(
+	hash hash.Hash, ciphertext []byte, label []byte) ([]byte, error) {
 	if err := checkPub(pub); err != nil {
 		return nil, err
 	}
@@ -143,9 +143,9 @@ func (pub *public)DecryptOAEPMulticast(hash hash.Hash, ciphertext []byte,
 
 	// The remainder of the plaintext must be zero or more 0x00, followed
 	// by 0x01, followed by the message.
-	//   lookingForIndex: 1 iff we are still looking for the 0x01
-	//   index: the offset of the first 0x01 byte
-	//   invalid: 1 iff we saw a non-zero byte before the 0x01.
+	//  lookingForIndex: 1 iff we are still looking for the 0x01
+	//  index: the offset of the first 0x01 byte
+	//  invalid: 1 iff we saw a non-zero byte before the 0x01.
 	var lookingForIndex, index, invalid int
 	lookingForIndex = 1
 	rest := db[hash.Size():]
@@ -153,12 +153,9 @@ func (pub *public)DecryptOAEPMulticast(hash hash.Hash, ciphertext []byte,
 	for i := 0; i < len(rest); i++ {
 		equals0 := subtle.ConstantTimeByteEq(rest[i], 0)
 		equals1 := subtle.ConstantTimeByteEq(rest[i], 1)
-		index = subtle.ConstantTimeSelect(lookingForIndex&equals1, i,
-			index)
-		lookingForIndex = subtle.ConstantTimeSelect(equals1, 0,
-			lookingForIndex)
-		invalid = subtle.ConstantTimeSelect(lookingForIndex&^equals0, 1,
-			invalid)
+		index = subtle.ConstantTimeSelect(lookingForIndex&equals1, i, index)
+		lookingForIndex = subtle.ConstantTimeSelect(equals1, 0, lookingForIndex)
+		invalid = subtle.ConstantTimeSelect(lookingForIndex&^equals0, 1, invalid)
 	}
 
 	if firstByteIsZero&lHash2Good&^invalid&^lookingForIndex != 1 {
@@ -168,26 +165,31 @@ func (pub *public)DecryptOAEPMulticast(hash hash.Hash, ciphertext []byte,
 	return rest[index+1:], nil
 }
 
-
-// GetMaxOEAPPayloadSize returns the maximum size of a multicastRSA broadcast message
+// GetMaxOEAPPayloadSize returns the maximum size of a multicastRSA broadcast
+// message.
+//
 // The message must be no longer than the length of the public modulus minus
 // twice the hash length, minus a further 2.
-// This is done per the OEAP spec, example of how a similar thing is done in the
-// standard RSA: https://github.com/golang/go/blob/master/src/crypto/rsa/rsa.go#L452
-func (priv *private)GetMaxOEAPPayloadSize(hash hash.Hash) int {
+//
+// This is done per the OAEP spec. An example of how a similar thing is done in
+// the standard RSA can be found at
+// https://github.com/golang/go/blob/master/src/crypto/rsa/rsa.go#L452.
+func (priv *private) GetMaxOEAPPayloadSize(hash hash.Hash) int {
 	return getMaxOEAPPayloadSize(hash, priv.Public())
 }
 
-
-// GetMaxOEAPPayloadSize returns the maximum size of a multicastRSA broadcast message
+// GetMaxOEAPPayloadSize returns the maximum size of a multicastRSA broadcast
+// message.
+//
 // The message must be no longer than the length of the public modulus minus
 // twice the hash length, minus a further 2.
-// This is done per the OEAP spec, example of how a similar thing is done in the
-// standard RSA: https://github.com/golang/go/blob/master/src/crypto/rsa/rsa.go#L452
-func (pub *public)GetMaxOEAPPayloadSize(hash hash.Hash) int {
+//
+// This is done per the OAEP spec. An example of how a similar thing is done in
+// the standard RSA can be found at
+// https://github.com/golang/go/blob/master/src/crypto/rsa/rsa.go#L452.
+func (pub *public) GetMaxOEAPPayloadSize(hash hash.Hash) int {
 	return getMaxOEAPPayloadSize(hash, pub)
 }
-
 
 func encrypt(c *large.Int, priv PrivateKey, m *large.Int) *large.Int {
 	// Instead of m^e mod n we do m^d mod n
@@ -206,25 +208,20 @@ func decrypt(m *large.Int, pub PublicKey, c *large.Int) *large.Int {
 	return m
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// --- The following is copied from golang crypto/rsa package. --------------//
-///////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// -------- The following is copied from golang crypto/rsa package. --------- //
+////////////////////////////////////////////////////////////////////////////////
 
 // ErrMessageTooLong is returned when attempting to encrypt a message which is
 // too large for the size of the public key.
-var ErrMessageTooLong = errors.New("message too long for RSA public " +
-	"key size")
+var ErrMessageTooLong = errors.New("message too long for RSA public key size")
 
 // ErrDecryption represents a failure to decrypt a message.
 // It is deliberately vague to avoid adaptive attacks.
 var ErrDecryption = errors.New("decryption error")
 
-// ErrVerification represents a failure to verify a signature.
-// It is deliberately vague to avoid adaptive attacks.
-var ErrVerification = errors.New("verification error")
-
 var (
-	errPublicModulus = errors.New("missing public modulus")
+	errPublicModulus       = errors.New("missing public modulus")
 	errPublicExponentSmall = errors.New("public exponent too small")
 	errPublicExponentLarge = errors.New("public exponent too large")
 )
@@ -282,33 +279,39 @@ func mgf1XOR(out []byte, hash hash.Hash, seed []byte) {
 	}
 }
 
-// GetMaxOEAPPayloadSize returns the maximum size of a multicastRSA broadcast message
+// getMaxOEAPPayloadSize returns the maximum size of a multicastRSA broadcast
+// message.
+//
 // The message must be no longer than the length of the public modulus minus
 // twice the hash length, minus a further 2.
-// This is done per the OEAP spec, example of how a similar thing is done in the
-// standard RSA: https://github.com/golang/go/blob/master/src/crypto/rsa/rsa.go#L452
+//
+// This is done per the OAEP spec. An example of how a similar thing is done in
+// the standard RSA can be found at
+// https://github.com/golang/go/blob/master/src/crypto/rsa/rsa.go#L452.
 func getMaxOEAPPayloadSize(hash hash.Hash, key PublicKey) int {
 	return GetMaxOEAPPayloadSize(hash, key.Size())
 }
 
 // GetMaxOEAPPayloadSize returns the maximum size of a multicastRSA broadcast
-// message based on its keysize.
+// message based on its key size.
+//
 // The message must be no longer than the length of the public modulus minus
 // twice the hash length, minus a further 2.
-// This is done per the OEAP spec, example of how a similar thing is done in the
-// standard RSA: https://github.com/golang/go/blob/master/src/crypto/rsa/rsa.go#L452
-func GetMaxOEAPPayloadSize(hash hash.Hash, keysize int) int {
-	return keysize - GetMaxOEAPPayloadTakenSpace(hash)
+//
+// This is done per the OAEP spec. An example of how a similar thing is done in
+// the standard RSA can be found at
+// https://github.com/golang/go/blob/master/src/crypto/rsa/rsa.go#L452.
+func GetMaxOEAPPayloadSize(hash hash.Hash, keySize int) int {
+	return keySize - GetMaxOEAPPayloadTakenSpace(hash)
 }
-
 
 // GetMaxOEAPPayloadTakenSpace returns the space taken in the OAEP payload by
 // the protocol.
-// This is done per the OEAP spec, example of how a similar thing is done in the
-// standard RSA: https://github.com/golang/go/blob/master/src/crypto/rsa/rsa.go#L452
-func GetMaxOEAPPayloadTakenSpace(hash hash.Hash)int{
+//
+// This is done per the OAEP spec. An example of how a similar thing is done in
+// the standard RSA can be found at
+// https://github.com/golang/go/blob/master/src/crypto/rsa/rsa.go#L452.
+func GetMaxOEAPPayloadTakenSpace(hash hash.Hash) int {
 	hash.Reset()
-	return 2 * hash.Size() + 2
+	return 2*hash.Size() + 2
 }
-
-
