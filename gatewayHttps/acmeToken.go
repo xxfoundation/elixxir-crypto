@@ -17,22 +17,21 @@ import (
 var hashType = hash.CMixHash
 
 // SignAcmeToken signs the ACME token & other info sent with an AuthorizerCertRequest
-func SignAcmeToken(rng io.Reader, gwRsa *rsa.PrivateKey, ipAddress,
+func SignAcmeToken(rng io.Reader, gwRsa *rsa.PrivateKey,
 	acmeToken string, timestamp uint64) ([]byte, error) {
-	hashed := hashAcmeInfo(ipAddress, acmeToken, timestamp)
+	hashed := hashAcmeInfo(acmeToken, timestamp)
 	return rsa.Sign(rng, gwRsa, hashType, hashed, rsa.NewDefaultOptions())
 }
 
 // VerifyAcmeToken verifies the signature on an ACME token & other info sent with an AuthorizerCertRequest
-func VerifyAcmeToken(gwPub *rsa.PublicKey, sig []byte, ipAddress,
+func VerifyAcmeToken(gwPub *rsa.PublicKey, sig []byte,
 	acmeToken string, timestamp uint64) error {
-	hashed := hashAcmeInfo(ipAddress, acmeToken, timestamp)
+	hashed := hashAcmeInfo(acmeToken, timestamp)
 	return rsa.Verify(gwPub, hashType, hashed, sig, rsa.NewDefaultOptions())
 }
 
-func hashAcmeInfo(ipAddress, acmeToken string, timestamp uint64) []byte {
+func hashAcmeInfo(acmeToken string, timestamp uint64) []byte {
 	h := hashType.New()
-	h.Write([]byte(ipAddress))
 	h.Write([]byte(acmeToken))
 	tsBytes := make([]byte, 8)
 	binary.BigEndian.PutUint64(tsBytes, timestamp)
