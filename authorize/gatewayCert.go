@@ -5,9 +5,6 @@
 // LICENSE file.                                                              //
 ////////////////////////////////////////////////////////////////////////////////
 
-// Package gatewayHttps contains logic for signing and verifying info used for
-// serving via HTTPS on gateways - explicitly, for ACME tokens and the
-// well-formed certificates
 package authorize
 
 import (

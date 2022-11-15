@@ -7,6 +7,7 @@
 
 // Package authorize contains logic for signing and verifying a given timestamp.
 // This package is designed for usage with the authorizer to prevent DDoS attacks
+// Also contains https certificate signing and verifying logic
 package authorize
 
 import (
