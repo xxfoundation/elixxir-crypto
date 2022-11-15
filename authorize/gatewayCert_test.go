@@ -1,12 +1,9 @@
-package gatewayHttps
+package authorize
 
 import (
 	"bytes"
-	"fmt"
 	"gitlab.com/xx_network/crypto/csprng"
 	"gitlab.com/xx_network/crypto/signature/rsa"
-	"strconv"
-	"strings"
 	"testing"
 )
 
@@ -50,29 +47,4 @@ func TestSignVerify_GatewayCert_Consistency(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to verify signature on gateway cert: %+v", err)
 	}
-}
-
-type CountingReader struct {
-	count uint8
-}
-
-// Read just counts until 254 then starts over again
-func (c *CountingReader) Read(b []byte) (int, error) {
-	for i := 0; i < len(b); i++ {
-		c.count = (c.count + 1) % 255
-		b[i] = c.count
-	}
-	return len(b), nil
-}
-
-func parseData(b []byte) {
-	var membersArr []string
-	for _, m := range b {
-		membersArr = append(membersArr, strconv.Itoa(int(m)))
-	}
-
-	members := strings.Join(membersArr, ", ")
-
-	fmt.Printf("%v\n", members)
-
 }
