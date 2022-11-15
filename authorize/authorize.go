@@ -5,9 +5,9 @@
 // LICENSE file.                                                              //
 ////////////////////////////////////////////////////////////////////////////////
 
-// Package authorize contains logic for signing and verifying a given timestamp.
+// Package authorize contains logic for signing and verifying a given timestamp
+// and for signing & verifying certificate request info.
 // This package is designed for usage with the authorizer to prevent DDoS attacks
-// Also contains https certificate signing and verifying logic
 package authorize
 
 import (

@@ -37,10 +37,10 @@ func VerifyCertRequest(gwPub *rsa.PublicKey, sig []byte,
 	return rsa.Verify(gwPub, hashType, hashed, sig, rsa.NewDefaultOptions())
 }
 
-func hashCertRequestInfo(acmeToken string, now time.Time) ([]byte, error) {
+func hashCertRequestInfo(acmeToken string, timestamp time.Time) ([]byte, error) {
 	h := hashType.New()
 	h.Write([]byte(acmeToken))
-	nowBytes, err := now.MarshalBinary()
+	nowBytes, err := timestamp.MarshalBinary()
 	if err != nil {
 		return nil, err
 	}
