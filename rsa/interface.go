@@ -52,7 +52,7 @@ type Scheme interface {
 	// This acceptance criteria is not an endorsement of keys of those sizes
 	// being secure.
 	//
-	// Returns [ErrTooShortToUnmarshal] when the data is too short.
+	// Returns ErrTooShortToUnmarshal when the data is too short.
 	UnmarshalPublicKeyWire(b []byte) (PublicKey, error)
 
 	// GetDefaultKeySize returns the default key size, in bits, that the scheme
@@ -85,7 +85,7 @@ type PrivateKey interface {
 		[]byte, error)
 
 	// SignPKCS1v15 calculates the signature of hashed using
-	// RSASSA-PKCS1-V1_5-SIGN from RSA PKCS #1 v1.5.  Note that hashed must be
+	// RSASSA-PKCS1-V1_5-SIGN from RSA PKCS #1 v1.5. Note that hashed must be
 	// the result of hashing the input message using the given hash function. If
 	// hash is zero, hashed is signed directly. This isn't advisable except for
 	// interoperability.
@@ -112,7 +112,7 @@ type PrivateKey interface {
 	// encrypting.
 	//
 	// The label parameter must match the value given when encrypting. See
-	// [PublicKey.EncryptOAEP] for details.
+	// PublicKey.EncryptOAEP for details.
 	DecryptOAEP(hash hash.Hash, random io.Reader, ciphertext []byte,
 		label []byte) ([]byte, error)
 
@@ -135,7 +135,7 @@ type PrivateKey interface {
 	//
 	// The message must be no longer than the length of the public modulus minus
 	// twice the hash length, minus a further 2 per the OAEP Spec. If it is
-	// longer, then the error [ErrMessageTooLong] is returned.
+	// longer, then the error ErrMessageTooLong is returned.
 	EncryptOAEPMulticast(hash hash.Hash, random io.Reader, msg []byte,
 		label []byte) ([]byte, error)
 
@@ -147,7 +147,7 @@ type PrivateKey interface {
 	// information. If an attacker can cause this function to run repeatedly and
 	// learn whether each instance returned an error then they can decrypt and
 	// forge signatures as if they had the private key. See
-	// [PrivateKey.DecryptPKCS1v15SessionKey] for a way of solving this problem.
+	// PrivateKey.DecryptPKCS1v15SessionKey for a way of solving this problem.
 	DecryptPKCS1v15(random io.Reader, ciphertext []byte) ([]byte, error)
 
 	// DecryptPKCS1v15SessionKey decrypts a session key using RSA and the
@@ -178,10 +178,10 @@ type PrivateKey interface {
 	// Getters                                                                //
 	////////////////////////////////////////////////////////////////////////////
 
-	// Public returns the public key in [rsa.PublicKey] format.
+	// Public returns the public key in PublicKey format.
 	Public() PublicKey
 
-	// GetGoRSA returns the private key in the standard Go [crypto/rsa] format.
+	// GetGoRSA returns the private key in the standard Go crypto/rsa format.
 	GetGoRSA() *gorsa.PrivateKey
 
 	// GetOldRSA returns the private key in the old wrapper format for RSA
@@ -193,8 +193,7 @@ type PrivateKey interface {
 	// Size returns the key size, in bits, of the private key.
 	Size() int
 
-	// GetD returns the private exponent of the RSA private key as a
-	// [large.Int].
+	// GetD returns the private exponent of the RSA private key as a large.Int.
 	GetD() *large.Int
 
 	// GetPrimes returns the list of prime factors of N, which has >= 2
@@ -263,7 +262,7 @@ type PublicKey interface {
 	// function and sha256.New() is a reasonable choice.
 	//
 	// The label parameter must match the value given when encrypting. See
-	// [PrivateKey.EncryptOAEPMulticast] for details.
+	// PrivateKey.EncryptOAEPMulticast for details.
 	DecryptOAEPMulticast(
 		hash hash.Hash, ciphertext []byte, label []byte) ([]byte, error)
 
@@ -299,7 +298,7 @@ type PublicKey interface {
 	// Getters                                                                //
 	////////////////////////////////////////////////////////////////////////////
 
-	// GetGoRSA returns the public key in the standard Go [crypto/rsa] format.
+	// GetGoRSA returns the public key in the standard Go crypto/rsa format.
 	GetGoRSA() *gorsa.PublicKey
 
 	// GetOldRSA returns the public key in the old wrapper format for RSA
@@ -340,10 +339,10 @@ type PublicKey interface {
 	// exponent and the modulus.
 	//
 	// Notice: the size of the return will be 4 bytes longer than the key size.
-	// It can be found using [PublicKey.GetMarshalWireLength]
+	// It can be found using PublicKey.GetMarshalWireLength.
 	MarshalWire() []byte
 
 	// GetMarshalWireLength returns the length of a marshalled wire version of
-	// the public key returned from [PublicKey.MarshalWire]
+	// the public key returned from PublicKey.MarshalWire.
 	GetMarshalWireLength() int
 }

@@ -54,7 +54,7 @@ import (
 //
 // The message must be no longer than the length of the public modulus minus
 // twice the hash length, minus a further 2 per the OAEP Spec. If it is longer,
-// then the error [ErrMessageTooLong] is returned.
+// then the error ErrMessageTooLong is returned.
 func (priv *private) EncryptOAEPMulticast(hash hash.Hash, random io.Reader,
 	msg []byte, label []byte) ([]byte, error) {
 	if err := checkPub(priv.Public()); err != nil {
@@ -102,7 +102,7 @@ func (priv *private) EncryptOAEPMulticast(hash hash.Hash, random io.Reader,
 // and sha256.New() is a reasonable choice.
 //
 // The label parameter must match the value given when encrypting. See
-// [PrivateKey.EncryptOAEPMulticast] for details.
+// PrivateKey.EncryptOAEPMulticast for details.
 func (pub *public) DecryptOAEPMulticast(
 	hash hash.Hash, ciphertext []byte, label []byte) ([]byte, error) {
 	if err := checkPub(pub); err != nil {
@@ -209,7 +209,7 @@ func decrypt(m *large.Int, pub PublicKey, c *large.Int) *large.Int {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// -------- The following is copied from golang crypto/rsa package. --------- //
+// --------- The following is copied from Go's crypto/rsa package. ---------- //
 ////////////////////////////////////////////////////////////////////////////////
 
 // ErrMessageTooLong is returned when attempting to encrypt a message which is

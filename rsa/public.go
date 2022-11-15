@@ -91,7 +91,7 @@ func (pub *public) VerifyPSS(
 	return gorsa.VerifyPSS(&pub.PublicKey, hash, digest, sig, &opts.PSSOptions)
 }
 
-// GetGoRSA returns the public key in the standard Go [crypto/rsa] format.
+// GetGoRSA returns the public key in the standard Go crypto/rsa format.
 func (pub *public) GetGoRSA() *gorsa.PublicKey {
 	return &pub.PublicKey
 }
@@ -135,7 +135,7 @@ func (pub *public) MarshalPem() []byte {
 // and the modulus.
 //
 // Notice: the size of the return will be 4 bytes longer than the key size.
-// It can be found using [PublicKey.GetMarshalWireLength]
+// It can be found using PublicKey.GetMarshalWireLength.
 func (pub *public) MarshalWire() []byte {
 	buf := make([]byte, ELength)
 	binary.BigEndian.PutUint32(buf, uint32(pub.GetE()))
@@ -143,7 +143,7 @@ func (pub *public) MarshalWire() []byte {
 }
 
 // GetMarshalWireLength returns the length of a marshalled wire version of the
-// public key returned from [PublicKey.MarshalWire]
+// public key returned from PublicKey.MarshalWire.
 func (pub *public) GetMarshalWireLength() int {
 	return pub.Size() + ELength
 }

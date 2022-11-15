@@ -18,6 +18,8 @@ import (
 	"io"
 )
 
+// private wraps Go's crypto/rsa.PrivateKey to adhere to the PrivateKey
+// interface.
 type private struct {
 	gorsa.PrivateKey
 }
@@ -40,7 +42,7 @@ func (priv *private) SignPSS(rand io.Reader, hash crypto.Hash, hashed []byte,
 }
 
 // SignPKCS1v15 calculates the signature of hashed using RSASSA-PKCS1-V1_5-SIGN
-// from RSA PKCS #1 v1.5.  Note that hashed must be the result of hashing the
+// from RSA PKCS #1 v1.5. Note that hashed must be the result of hashing the
 // input message using the given hash function. If hash is zero, hashed is
 // signed directly. This isn't advisable except for interoperability.
 //
@@ -67,7 +69,7 @@ func (priv *private) SignPKCS1v15(
 // function – the random data need not match that used when encrypting.
 //
 // The label parameter must match the value given when encrypting. See
-// [PublicKey.EncryptOAEP] for details.
+// PublicKey.EncryptOAEP for details.
 func (priv *private) DecryptOAEP(hash hash.Hash, random io.Reader,
 	ciphertext []byte, label []byte) ([]byte, error) {
 	return gorsa.DecryptOAEP(hash, random, &priv.PrivateKey, ciphertext, label)
@@ -81,7 +83,7 @@ func (priv *private) DecryptOAEP(hash hash.Hash, random io.Reader,
 // information. If an attacker can cause this function to run repeatedly and
 // learn whether each instance returned an error then they can decrypt and forge
 // signatures as if they had the private key. See
-// [PrivateKey.DecryptPKCS1v15SessionKey] for a way of solving this problem.
+// PrivateKey.DecryptPKCS1v15SessionKey for a way of solving this problem.
 func (priv *private) DecryptPKCS1v15(
 	random io.Reader, ciphertext []byte) ([]byte, error) {
 	return gorsa.DecryptPKCS1v15(random, &priv.PrivateKey, ciphertext)
@@ -112,14 +114,14 @@ func (priv *private) DecryptPKCS1v15SessionKey(
 		random, &priv.PrivateKey, ciphertext, key)
 }
 
-// Public returns the public key in [rsa.PublicKey] format.
+// Public returns the public key in PublicKey format.
 func (priv *private) Public() PublicKey {
 	return &public{
 		PublicKey: priv.PublicKey,
 	}
 }
 
-// GetGoRSA returns the private key in the standard Go [crypto/rsa] format.
+// GetGoRSA returns the private key in the standard Go crypto/rsa format.
 func (priv *private) GetGoRSA() *gorsa.PrivateKey {
 	return &priv.PrivateKey
 }
@@ -137,7 +139,7 @@ func (priv *private) Size() int {
 	return priv.PublicKey.Size()
 }
 
-// GetD returns the private exponent of the RSA private key as a [large.Int].
+// GetD returns the private exponent of the RSA private key as a large.Int.
 func (priv *private) GetD() *large.Int {
 	return large.NewIntFromBigInt(priv.D)
 }

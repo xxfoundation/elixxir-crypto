@@ -8,7 +8,7 @@
 //       modifications) is noted at the bottom of this file.                  //
 ////////////////////////////////////////////////////////////////////////////////
 
-// oaep_test.go implements basic testing for broadcast RSA
+// oaep_test.go implements basic testing for broadcast RSA.
 
 package rsa
 
