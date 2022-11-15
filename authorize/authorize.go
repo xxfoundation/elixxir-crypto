@@ -5,7 +5,8 @@
 // LICENSE file.                                                              //
 ////////////////////////////////////////////////////////////////////////////////
 
-// Package authorize contains logic for signing and verifying a given timestamp.
+// Package authorize contains logic for signing and verifying a given timestamp
+// and for signing & verifying certificate request info.
 // This package is designed for usage with the authorizer to prevent DDoS attacks
 package authorize
 
@@ -40,12 +41,9 @@ func Verify(now time.Time, signedTS time.Time,
 	delta time.Duration, signature []byte) error {
 
 	// Check that the signed timestamp is within the delta passed in
-	lowerBound := now.Add(-delta)
-	upperBound := now.Add(delta)
-
-	if signedTS.After(upperBound) || signedTS.Before(lowerBound) {
-		return errors.Errorf("Signed timestamp (%s) is not within "+
-			"bounds given by delta (%s) and given current time (%s)", signedTS.String(), delta.String(), now.String())
+	err := checkTimeBound(now, signedTS, delta)
+	if err != nil {
+		return err
 	}
 
 	// Check that node ID passed in matches the
@@ -67,6 +65,18 @@ func Verify(now time.Time, signedTS time.Time,
 	// Verify the signature passed in
 	return rsa.Verify(pubkey, options.Hash, hashedData, signature, options)
 
+}
+
+func checkTimeBound(now time.Time, signedTS time.Time, delta time.Duration) error {
+	// Check that the signed timestamp is within the delta passed in
+	lowerBound := now.Add(-delta)
+	upperBound := now.Add(delta)
+
+	if signedTS.After(upperBound) || signedTS.Before(lowerBound) {
+		return errors.Errorf("Signed timestamp (%s) is not within "+
+			"bounds given by delta (%s) and given current time (%s)", signedTS.String(), delta.String(), now.String())
+	}
+	return nil
 }
 
 // digest serializes and hashes the given timestamp
