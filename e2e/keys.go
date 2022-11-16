@@ -1,15 +1,16 @@
-////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2020 xx network SEZC                                                       //
-//                                                                                        //
-// Use of this source code is governed by a license that can be found in the LICENSE file //
-////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx foundation                                             //
+//                                                                            //
+// Use of this source code is governed by a license that can be found in the  //
+// LICENSE file.                                                              //
+////////////////////////////////////////////////////////////////////////////////
 
 // Packagee 2e contains functions used in the end-to-end encryption algorithm, including
 // the end-to-end key rotation.
 package e2e
 
 import (
-	"fmt"
+	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/primitives/format"
 	"golang.org/x/crypto/blake2b"
@@ -31,8 +32,8 @@ func DeriveKey(basekey *cyclic.Int, keyNum uint32, salts ...[]byte) Key {
 	//get the hash
 	h, err := blake2b.New256(nil)
 	if err != nil {
-		panic(fmt.Sprintf("Failed to create hash for "+
-			"DeriveKey: %s", err))
+		jww.FATAL.Panicf("Failed to create hash for "+
+			"DeriveKey: %s", err)
 	}
 
 	//derive the key
@@ -56,8 +57,8 @@ func DeriveKeyFingerprint(dhkey *cyclic.Int, keyNum uint32, salts ...[]byte) for
 	//get the hash
 	h, err := blake2b.New256(nil)
 	if err != nil {
-		panic(fmt.Sprintf("Failed to create hash for "+
-			"DeriveKeyFingerprint(): %s", err))
+		jww.FATAL.Panicf("Failed to create hash for "+
+			"DeriveKeyFingerprint(): %s", err)
 	}
 	//derive the key
 	fpBytes := derive(h, data, keyNum, salts...)

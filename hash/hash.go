@@ -1,8 +1,9 @@
-////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2020 xx network SEZC                                                       //
-//                                                                                        //
-// Use of this source code is governed by a license that can be found in the LICENSE file //
-////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx foundation                                             //
+//                                                                            //
+// Use of this source code is governed by a license that can be found in the  //
+// LICENSE file.                                                              //
+////////////////////////////////////////////////////////////////////////////////
 
 // Package hash includes a general-purpose hashing algorithm, blake2b,
 // that should be suitable for most of our needs.
@@ -13,9 +14,9 @@ import (
 	"crypto"
 	"crypto/hmac"
 	"crypto/sha256"
+	jww "github.com/spf13/jwalterweatherman"
 	"golang.org/x/crypto/blake2b"
 	"hash"
-	"fmt"
 )
 
 // NewCMixHash returns the current cMix hash implementation
@@ -29,7 +30,7 @@ func NewCMixHash() (hash.Hash, error) {
 func DefaultHash() hash.Hash {
 	h, err := blake2b.New256(nil)
 	if err != nil {
-		panic(fmt.Sprintf("Could not initialize blake2b: %+v", err))
+		jww.FATAL.Panicf("Could not initialize blake2b: %+v", err)
 	}
 	return h
 }

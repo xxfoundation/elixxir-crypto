@@ -17,10 +17,10 @@ import (
 // defaultRSABitLen is the RSA key length used in the system, in bits.
 //
 // WARNING: This bit size is smaller than the minimum recommended bit size of
-//  3072. Do not use this in production. Only use it for testing.
+// 3072. Do not use this in production. Only use it for testing.
 //
-// FIXME: Once WebAssembly can run in a HTTPS server, this should not be
-//  necessary and needs to be removed. Do not use this is production.
+// FIXME: Once WebAssembly can run in an HTTPS server, this should not be
+// necessary and needs to be removed. Do not use this is production.
 var defaultRSABitLen = 1024
 
 func init() {

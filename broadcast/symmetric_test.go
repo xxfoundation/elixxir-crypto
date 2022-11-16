@@ -1,3 +1,10 @@
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx foundation                                             //
+//                                                                            //
+// Use of this source code is governed by a license that can be found in the  //
+// LICENSE file.                                                              //
+////////////////////////////////////////////////////////////////////////////////
+
 package broadcast
 
 import (
@@ -7,9 +14,11 @@ import (
 	"gitlab.com/elixxir/crypto/rsa"
 	oldRsa "gitlab.com/xx_network/crypto/signature/rsa"
 	"gitlab.com/xx_network/primitives/id"
+	"gitlab.com/xx_network/primitives/netTime"
 	"math/rand"
 	"reflect"
 	"testing"
+	"time"
 
 	"gitlab.com/xx_network/crypto/csprng"
 )
@@ -18,7 +27,8 @@ import (
 // Symmetric.Decrypt matches the original.
 func TestSymmetric_Encrypt_Decrypt(t *testing.T) {
 
-	s, _, err := NewChannel("alice", "description", 528, csprng.NewSystemRNG())
+	s, _, err := NewChannel(
+		"alice", "description", Public, 528, csprng.NewSystemRNG())
 	if err != nil {
 		panic(err)
 	}
@@ -28,7 +38,8 @@ func TestSymmetric_Encrypt_Decrypt(t *testing.T) {
 
 	packetSize := 1000
 
-	encryptedPayload, mac, fp, err := s.EncryptSymmetric(payload, packetSize, csprng.NewSystemRNG())
+	encryptedPayload, mac, fp, err := s.EncryptSymmetric(
+		payload, packetSize, csprng.NewSystemRNG())
 	if err != nil {
 		t.Errorf("Failed to enbcrypt payload: %+v", err)
 	}
@@ -48,7 +59,8 @@ func TestSymmetric_Encrypt_Decrypt(t *testing.T) {
 func TestSymmetric_Decrypt(t *testing.T) {
 	prng := rand.New(rand.NewSource(42))
 
-	s, _, err := NewChannel("alice", "description", 528, csprng.NewSystemRNG())
+	s, _, err := NewChannel(
+		"alice", "description", Public, 528, csprng.NewSystemRNG())
 	if err != nil {
 		panic(err)
 	}
@@ -58,7 +70,8 @@ func TestSymmetric_Decrypt(t *testing.T) {
 
 	packetSize := 1000
 
-	encryptedPayload, mac, fp, err := s.EncryptSymmetric(payload, packetSize, csprng.NewSystemRNG())
+	encryptedPayload, mac, fp, err := s.EncryptSymmetric(
+		payload, packetSize, csprng.NewSystemRNG())
 	if err != nil {
 		t.Errorf("Failed to enbcrypt payload: %+v", err)
 	}
@@ -111,16 +124,16 @@ func TestSymmetric_Marshal_UnmarshalSymmetric(t *testing.T) {
 func TestNewSymmetricKey_Consistency(t *testing.T) {
 	prng := rand.New(rand.NewSource(42))
 	expectedKeys := []string{
-		"YFcaO/zEULS9vMUstPJSGgcD+4rs+wRMmQwirYAf4TY=",
-		"Kww9lMeLE5Ud+Z60Y3dL6rmbVbDYgGGoEjuetejAj6A=",
-		"IDlVxZaxNr3VMBpxEC7fe2mF/H3+0HNdqbfd11wN84Y=",
-		"sTsbdAAk9GNhAcHQo1f2DOBTKKVwbCPdKzujjSlcQag=",
-		"2zWuXh4Cq8TPc1ffXJ05fT6POmeYcNOF9PuSmYFhA+E=",
-		"e/xUE3UQKEVE85Z/AC2BfrwAGa9HVcZ3EacgSTZWF7s=",
-		"7RzVqo2HHUySxAdp/s9FyNCWpZ/d8xXwnVTamr8o5hI=",
-		"pfu9fs8TAALiuGB0qLCiWlkpMvvsKkSZRUPfoIwPq04=",
-		"DKqeBhgZcCjB6izXjtSNjpC1JebEmwHhPKtMSSSID5g=",
-		"4bfnVYIqKT1+JKbeRchmg7wTWbTV86IkQxc223lAD/c=",
+		"Ozk4jUaSbqwNFNK5EuALfE2/nNAjwOmxheFtiWpui/A=",
+		"1DjLi5nYBgOHs1moUdqK/NFk1CIug7ctXfJdOxA+Pbc=",
+		"Mjuk2RaLaBMCYU7E4lECpBxUYrlfYU46R29h1zlJSto=",
+		"LjZmy2Pdxl4ztBXECXa198nPz1Dq56jkKj+xd+AnxlA=",
+		"AAt2sTU6rJt+KFJlr49GJ0Hos5RvA9txQ8tNIepw96c=",
+		"+cF4IVSZSaw5uVQVOHwG1L6Km40xcyShuNk4KGpAPjs=",
+		"vhOABoOEymIzYwDABQucXNhxsFRucNintcwFE/hxp6U=",
+		"IuyQVSrF7CJ6C7v+UcMVtrbwi5XGrIOxtDHFvS+G2Fs=",
+		"e2M/nSl+ao71r9GUsY5sMVDDfpPwd2BScFh3wh7LNLY=",
+		"f7pvcWpwCr1H6RCG0J+bq5+MG4sIjxjRGvfziNenNF4=",
 	}
 
 	secret := make([]byte, 32)
@@ -137,6 +150,8 @@ func TestNewSymmetricKey_Consistency(t *testing.T) {
 
 		key, err := NewSymmetricKey("alice",
 			"chan description",
+			Public,
+			time.Date(1955, 11, 5, 12, 0, 0, 0, time.UTC),
 			[]byte("salt"),
 			[]byte("my fake rsa key"),
 			secret)
@@ -172,6 +187,8 @@ func TestNewSymmetricKey_Unique(t *testing.T) {
 
 		key, err := NewSymmetricKey("alice",
 			"chan description",
+			Public,
+			netTime.Now(),
 			[]byte("salt"),
 			[]byte("my fake rsa key"),
 			secret)

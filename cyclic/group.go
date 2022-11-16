@@ -1,8 +1,9 @@
-////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2020 xx network SEZC                                                       //
-//                                                                                        //
-// Use of this source code is governed by a license that can be found in the LICENSE file //
-////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx foundation                                             //
+//                                                                            //
+// Use of this source code is governed by a license that can be found in the  //
+// LICENSE file.                                                              //
+////////////////////////////////////////////////////////////////////////////////
 
 // Package cyclic wraps our large.Int structure.  It is designed to be used in
 // conjunction with the cyclic.Group object. The cyclic.Group object
@@ -94,7 +95,7 @@ func (g *Group) NewInt(x int64) *Int {
 	val := large.NewInt(x)
 	n := &Int{value: val, fingerprint: g.fingerprint}
 	if !g.Inside(n.value) {
-		panic("NewInt: Attempted creation of cyclic outside of group")
+		jww.FATAL.Panic("NewInt: Attempted creation of cyclic outside of group")
 	}
 	return n
 }
@@ -103,7 +104,7 @@ func (g *Group) NewInt(x int64) *Int {
 func (g *Group) NewIntFromLargeInt(x *large.Int) *Int {
 	n := &Int{value: x, fingerprint: g.fingerprint}
 	if !g.Inside(n.value) {
-		panic("NewIntFromLargeInt: Attempted creation of cyclic outside of group")
+		jww.FATAL.Panic("NewIntFromLargeInt: Attempted creation of cyclic outside of group")
 	}
 	return n
 }
@@ -113,7 +114,7 @@ func (g *Group) NewIntFromBytes(buf []byte) *Int {
 	val := large.NewIntFromBytes(buf)
 	n := &Int{value: val, fingerprint: g.fingerprint}
 	if !g.Inside(n.value) {
-		panic("NewIntFromBytes: Attempted creation of cyclic outside of group")
+		jww.FATAL.Panic("NewIntFromBytes: Attempted creation of cyclic outside of group")
 	}
 	return n
 }
@@ -127,7 +128,7 @@ func (g *Group) NewIntFromString(str string, base int) *Int {
 	}
 	n := &Int{value: val, fingerprint: g.fingerprint}
 	if !g.Inside(n.value) {
-		panic("NewIntFromString: Attempted creation of cyclic outside of group")
+		jww.FATAL.Panic("NewIntFromString: Attempted creation of cyclic outside of group")
 	}
 	return n
 }
@@ -143,7 +144,7 @@ func (g *Group) NewIntFromUInt(i uint64) *Int {
 	val := large.NewIntFromUInt(i)
 	n := &Int{value: val, fingerprint: g.fingerprint}
 	if !g.Inside(n.value) {
-		panic("NewIntFromUInt: Attempted creation of cyclic outside of group")
+		jww.FATAL.Panic("NewIntFromUInt: Attempted creation of cyclic outside of group")
 	}
 	return n
 }
@@ -157,7 +158,7 @@ func (g *Group) NewIntFromBits(b large.Bits) *Int {
 		fingerprint: g.fingerprint,
 	}
 	if !g.Inside(n.value) {
-		panic("NewIntFromBits: Attempted creation of cyclic outside of group")
+		jww.FATAL.Panic("NewIntFromBits: Attempted creation of cyclic outside of group")
 	}
 	return n
 }

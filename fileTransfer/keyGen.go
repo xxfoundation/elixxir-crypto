@@ -1,8 +1,9 @@
-////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2020 xx network SEZC                                                       //
-//                                                                                        //
-// Use of this source code is governed by a license that can be found in the LICENSE file //
-////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx foundation                                             //
+//                                                                            //
+// Use of this source code is governed by a license that can be found in the  //
+// LICENSE file.                                                              //
+////////////////////////////////////////////////////////////////////////////////
 
 // Package fileTransfer contains all cryptographic functions pertaining to the
 // transfer of large (MB) files over the xx network. It is designed to use
@@ -17,6 +18,7 @@ package fileTransfer
 import (
 	"encoding/base64"
 	"encoding/binary"
+	"encoding/json"
 	"github.com/pkg/errors"
 	"gitlab.com/elixxir/crypto/hash"
 	"gitlab.com/xx_network/crypto/csprng"
@@ -31,7 +33,11 @@ const (
 
 // Error messages.
 const (
+	// NewTransferKey
 	trReadRandomErr = "failed to generate random bytes: %+v"
+
+	// TransferKey.UnmarshalJSON
+	unmarshalTransferKeyLenErr = "data must be %d bytes; received %d bytes"
 )
 
 // TransferKey is the 256-bit key used to generate the MAC for a file transfer.
@@ -82,13 +88,13 @@ func UnmarshalTransferKey(b []byte) TransferKey {
 }
 
 // Bytes returns the TransferKey as a byte slice.
-func (tr TransferKey) Bytes() []byte {
+func (tr *TransferKey) Bytes() []byte {
 	return tr[:]
 }
 
 // String returns the TransferKey as a base 64 encoded string. This functions
 // satisfies the fmt.Stringer interface.
-func (tr TransferKey) String() string {
+func (tr *TransferKey) String() string {
 	return base64.StdEncoding.EncodeToString(tr.Bytes())
 }
 
@@ -108,4 +114,28 @@ func (pk partKey) Bytes() []byte {
 // satisfies the fmt.Stringer interface.
 func (pk partKey) String() string {
 	return base64.StdEncoding.EncodeToString(pk.Bytes())
+}
+
+// MarshalJSON is part of the [json.Marshaler] interface and allows TransferKey
+// objects to be marshaled into JSON.
+func (tr *TransferKey) MarshalJSON() ([]byte, error) {
+	return json.Marshal(tr[:])
+}
+
+// UnmarshalJSON is part of the [json.Unmarshaler] interface and allows JSON to
+// be unmarshalled into TransferKey objects.
+func (tr *TransferKey) UnmarshalJSON(b []byte) error {
+	var buff []byte
+	if err := json.Unmarshal(b, &buff); err != nil {
+		return err
+	}
+
+	if len(buff) != TransferKeyLength {
+		return errors.Errorf(
+			unmarshalTransferKeyLenErr, TransferKeyLength, len(buff))
+	}
+
+	copy(tr[:], buff)
+
+	return nil
 }

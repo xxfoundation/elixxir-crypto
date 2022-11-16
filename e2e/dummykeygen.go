@@ -1,8 +1,9 @@
-////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2020 xx network SEZC                                                       //
-//                                                                                        //
-// Use of this source code is governed by a license that can be found in the LICENSE file //
-////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx foundation                                             //
+//                                                                            //
+// Use of this source code is governed by a license that can be found in the  //
+// LICENSE file.                                                              //
+////////////////////////////////////////////////////////////////////////////////
 
 // Packagee 2e contains functions used in the end-to-end encryption algorithm, including
 // the end-to-end key rotation.

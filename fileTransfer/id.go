@@ -1,8 +1,9 @@
-////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2020 xx network SEZC                                                       //
-//                                                                                        //
-// Use of this source code is governed by a license that can be found in the LICENSE file //
-////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx foundation                                             //
+//                                                                            //
+// Use of this source code is governed by a license that can be found in the  //
+// LICENSE file.                                                              //
+////////////////////////////////////////////////////////////////////////////////
 
 // Package fileTransfer contains all cryptographic functions pertaining to the
 // transfer of large (MB) files over the xx network. It is designed to use
@@ -16,6 +17,7 @@ package fileTransfer
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"github.com/pkg/errors"
 	"gitlab.com/xx_network/crypto/csprng"
 )
@@ -25,7 +27,11 @@ const TransferIdLength = 32
 
 // Error messages
 const (
+	// NewTransferID
 	tidReadRandomErr = "failed to generate random bytes: %+v"
+
+	// TransferID.UnmarshalJSON
+	unmarshalTransferIdLenErr = "data must be %d bytes; received %d bytes"
 )
 
 // TransferID is a 256-bit randomly generated ID that is used to track the
@@ -52,12 +58,36 @@ func UnmarshalTransferID(b []byte) TransferID {
 }
 
 // Bytes returns the TransferID as a byte slice.
-func (tid TransferID) Bytes() []byte {
+func (tid *TransferID) Bytes() []byte {
 	return tid[:]
 }
 
 // String returns the TransferID as a base 64 encoded string. This functions
 // satisfies the fmt.Stringer interface.
-func (tid TransferID) String() string {
+func (tid *TransferID) String() string {
 	return base64.StdEncoding.EncodeToString(tid.Bytes())
+}
+
+// MarshalJSON is part of the [json.Marshaler] interface and allows TransferID
+// objects to be marshaled into JSON.
+func (tid *TransferID) MarshalJSON() ([]byte, error) {
+	return json.Marshal(tid[:])
+}
+
+// UnmarshalJSON is part of the [json.Unmarshaler] interface and allows JSON to
+// be unmarshalled into TransferID objects.
+func (tid *TransferID) UnmarshalJSON(b []byte) error {
+	var buff []byte
+	if err := json.Unmarshal(b, &buff); err != nil {
+		return err
+	}
+
+	if len(buff) != TransferIdLength {
+		return errors.Errorf(
+			unmarshalTransferIdLenErr, TransferIdLength, len(buff))
+	}
+
+	copy(tid[:], buff)
+
+	return nil
 }
