@@ -60,12 +60,12 @@ type scheme struct{}
 
 // Generate generates an RSA keypair of the given bit size using the random
 // source random (for example, crypto/rand.Reader).
-func (*scheme) Generate(rng io.Reader, bits int) (PrivateKey, error) {
+func (*scheme) Generate(random io.Reader, bits int) (PrivateKey, error) {
 	if bits < softMinRSABitLen {
 		jww.WARN.Printf(softMinRSABitLenWarn, bits, softMinRSABitLen)
 	}
 
-	goPriv, err := gorsa.GenerateKey(rng, bits)
+	goPriv, err := gorsa.GenerateKey(random, bits)
 	if err != nil {
 		return nil, err
 	}
@@ -74,8 +74,8 @@ func (*scheme) Generate(rng io.Reader, bits int) (PrivateKey, error) {
 
 // GenerateDefault generates an RSA keypair of the library default bit size
 // using the random source random (for example, crypto/rand.Reader).
-func (s *scheme) GenerateDefault(rng io.Reader) (PrivateKey, error) {
-	return s.Generate(rng, defaultRSABitLen)
+func (s *scheme) GenerateDefault(random io.Reader) (PrivateKey, error) {
+	return s.Generate(random, defaultRSABitLen)
 }
 
 // UnmarshalPrivateKeyPEM unmarshalls the private key from a PEM format. It will

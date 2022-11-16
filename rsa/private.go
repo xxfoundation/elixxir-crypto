@@ -30,15 +30,16 @@ type private struct {
 // function. The opts argument may be nil, in which case sensible defaults are
 // used. If opts.Hash is set, it overrides hash.
 //
-// This function uses the standard crypto/rsa implementation.
-func (priv *private) SignPSS(rand io.Reader, hash crypto.Hash, hashed []byte,
+// This function uses the Go standard crypto/rsa implementation.
+func (priv *private) SignPSS(random io.Reader, hash crypto.Hash, hashed []byte,
 	opts *PSSOptions) ([]byte, error) {
 	if opts == nil {
 		opts = NewDefaultPSSOptions()
 		opts.Hash = hash
 	}
 
-	return gorsa.SignPSS(rand, &priv.PrivateKey, hash, hashed, &opts.PSSOptions)
+	return gorsa.SignPSS(
+		random, &priv.PrivateKey, hash, hashed, &opts.PSSOptions)
 }
 
 // SignPKCS1v15 calculates the signature of hashed using RSASSA-PKCS1-V1_5-SIGN
@@ -53,6 +54,8 @@ func (priv *private) SignPSS(rand io.Reader, hash crypto.Hash, hashed []byte,
 // small, an attacker may be able to build a map from messages to signatures and
 // identify the signed messages. As ever, signatures provide authenticity, not
 // confidentiality.
+//
+// This function uses the Go standard crypto/rsa implementation.
 func (priv *private) SignPKCS1v15(
 	random io.Reader, hash crypto.Hash, hashed []byte) ([]byte, error) {
 	return gorsa.SignPKCS1v15(random, &priv.PrivateKey, hash, hashed)
@@ -70,6 +73,8 @@ func (priv *private) SignPKCS1v15(
 //
 // The label parameter must match the value given when encrypting. See
 // PublicKey.EncryptOAEP for details.
+//
+// This function uses the Go standard crypto/rsa implementation.
 func (priv *private) DecryptOAEP(hash hash.Hash, random io.Reader,
 	ciphertext []byte, label []byte) ([]byte, error) {
 	return gorsa.DecryptOAEP(hash, random, &priv.PrivateKey, ciphertext, label)
@@ -84,6 +89,8 @@ func (priv *private) DecryptOAEP(hash hash.Hash, random io.Reader,
 // learn whether each instance returned an error then they can decrypt and forge
 // signatures as if they had the private key. See
 // PrivateKey.DecryptPKCS1v15SessionKey for a way of solving this problem.
+//
+// This function uses the Go standard crypto/rsa implementation.
 func (priv *private) DecryptPKCS1v15(
 	random io.Reader, ciphertext []byte) ([]byte, error) {
 	return gorsa.DecryptPKCS1v15(random, &priv.PrivateKey, ciphertext)
@@ -108,6 +115,8 @@ func (priv *private) DecryptPKCS1v15(
 // a random value was used (because it'll be different for the same ciphertext)
 // and thus whether the padding was correct. This defeats the point of this
 // function. Using at least a 16-byte key will protect against this attack.
+//
+// This function uses the Go standard crypto/rsa implementation.
 func (priv *private) DecryptPKCS1v15SessionKey(
 	random io.Reader, ciphertext []byte, key []byte) error {
 	return gorsa.DecryptPKCS1v15SessionKey(
@@ -116,9 +125,7 @@ func (priv *private) DecryptPKCS1v15SessionKey(
 
 // Public returns the public key in PublicKey format.
 func (priv *private) Public() PublicKey {
-	return &public{
-		PublicKey: priv.PublicKey,
-	}
+	return &public{priv.PublicKey}
 }
 
 // GetGoRSA returns the private key in the standard Go crypto/rsa format.

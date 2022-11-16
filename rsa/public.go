@@ -46,6 +46,8 @@ type public struct {
 //
 // The message must be no longer than the length of the public modulus minus
 // twice the hash length, minus a further 2.
+//
+// This function uses the Go standard crypto/rsa implementation.
 func (pub *public) EncryptOAEP(hash hash.Hash, random io.Reader, msg []byte,
 	label []byte) ([]byte, error) {
 	return gorsa.EncryptOAEP(hash, random, &pub.PublicKey, msg, label)
@@ -60,6 +62,8 @@ func (pub *public) EncryptOAEP(hash hash.Hash, random io.Reader, msg []byte,
 //
 // WARNING: use of this function to encrypt plaintexts other than session keys
 // is dangerous. Use RSA OAEP in new protocols.
+//
+// This function uses the Go standard crypto/rsa implementation.
 func (pub *public) EncryptPKCS1v15(
 	random io.Reader, msg []byte) ([]byte, error) {
 	return gorsa.EncryptPKCS1v15(random, &pub.PublicKey, msg)
@@ -71,6 +75,8 @@ func (pub *public) EncryptPKCS1v15(
 // function and sig is the signature. A valid signature is indicated by
 // returning a nil error. If hash is zero, then hashed is used directly.
 // This isn't advisable except for interoperability.
+//
+// This function uses the Go standard crypto/rsa implementation.
 func (pub *public) VerifyPKCS1v15(
 	hash crypto.Hash, hashed []byte, sig []byte) error {
 	return gorsa.VerifyPKCS1v15(&pub.PublicKey, hash, hashed, sig)
@@ -82,6 +88,8 @@ func (pub *public) VerifyPKCS1v15(
 // result of hashing the input message using the given hash function. The opts
 // argument may be nil; in which case, sensible defaults are used. opts.Hash is
 // ignored.
+//
+// This function uses the Go standard crypto/rsa implementation.
 func (pub *public) VerifyPSS(
 	hash crypto.Hash, digest []byte, sig []byte, opts *PSSOptions) error {
 	if opts == nil {

@@ -20,11 +20,11 @@ import (
 type Scheme interface {
 	// Generate generates an RSA keypair of the given bit size using the random
 	// source random (for example, crypto/rand.Reader).
-	Generate(rng io.Reader, bits int) (PrivateKey, error)
+	Generate(random io.Reader, bits int) (PrivateKey, error)
 
 	// GenerateDefault generates an RSA keypair of the library default bit size
 	// using the random source random (for example, crypto/rand.Reader).
-	GenerateDefault(rng io.Reader) (PrivateKey, error)
+	GenerateDefault(random io.Reader) (PrivateKey, error)
 
 	// UnmarshalPrivateKeyPEM unmarshalls the private key from a PEM format. It
 	// will refuse to unmarshal a key smaller than 64 bits—this is not an
@@ -81,8 +81,8 @@ type PrivateKey interface {
 	// hashed must be the result of hashing the input message using the given
 	// hash function. The opts argument may be nil, in which case sensible
 	// defaults are used. If opts.Hash is set, it overrides hash.
-	SignPSS(rand io.Reader, hash crypto.Hash, hashed []byte, opts *PSSOptions) (
-		[]byte, error)
+	SignPSS(random io.Reader, hash crypto.Hash, hashed []byte,
+		opts *PSSOptions) ([]byte, error)
 
 	// SignPKCS1v15 calculates the signature of hashed using
 	// RSASSA-PKCS1-V1_5-SIGN from RSA PKCS #1 v1.5. Note that hashed must be
