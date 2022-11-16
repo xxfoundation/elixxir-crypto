@@ -18,6 +18,7 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.0.0 // indirect
+	git.xx.network/elixxir/ctidh_cgo v0.0.0-20220929120408-d7b2cd265da7 // indirect
 	github.com/badoux/checkmail v1.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
