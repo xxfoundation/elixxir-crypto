@@ -71,8 +71,8 @@ func (c *Channel) EncryptRSAToPublic(payload []byte, privKey rsa.PrivateKey,
 	h, _ := channelHash(nil)
 	for n := 0; n < c.RSASubPayloads; n++ {
 		h.Reset()
-		subsample := permissiveSubsample(payload, subpayloadSize, n)
-		innerCiphertext, err := privkey.EncryptOAEPMulticast(h,
+		subsample := permissiveSubsample(payload, subPayloadSize, n)
+		innerCiphertext, err := privKey.EncryptOAEPMulticast(h,
 			csprng, subsample, c.label())
 		if err != nil {
 			return nil, nil, format.Fingerprint{},
@@ -184,7 +184,7 @@ func (c *Channel) EncryptRSAToPrivate(payload []byte, pubkey rsa.PublicKey,
 	for n := 0; n < numSubPayloads; n++ {
 		h.Reset()
 		innerCiphertext, err := pubkey.EncryptOAEP(h,
-			rng, permissiveSubsample(payload, subpayloadSize, n), c.label())
+			rng, permissiveSubsample(payload, subPayloadSize, n), c.label())
 		if err != nil {
 			return nil, nil, format.Fingerprint{},
 				errors.WithMessagef(err, "Failed to encrypt asymmetric "+

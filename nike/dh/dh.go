@@ -131,7 +131,7 @@ func (p *PrivateKey) Reset() {
 	p.privateKey = nil
 }
 
-func (p *privateKey) Bytes() []byte {
+func (p *PrivateKey) Bytes() []byte {
 	if p.privateKey == nil {
 		return nil
 	}
@@ -161,7 +161,7 @@ func (p *PublicKey) Reset() {
 	p.publicKey = nil
 }
 
-func (p *publicKey) Bytes() []byte {
+func (p *PublicKey) Bytes() []byte {
 	if p.publicKey == nil {
 		return nil
 	}
