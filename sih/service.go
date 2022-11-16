@@ -8,8 +8,9 @@
 package sih
 
 import (
-	"bytes"
 	"crypto"
+	"crypto/hmac"
+
 	"gitlab.com/elixxir/primitives/format"
 	_ "golang.org/x/crypto/blake2b"
 )
@@ -53,11 +54,11 @@ func MakePreimage(identifier []byte, tag string) Preimage {
 }
 
 func ForMe(preimage Preimage, contents, hash []byte) bool {
-	return bytes.Equal(Hash(preimage, contents), hash)
+	return hmac.Equal(Hash(preimage, contents), hash)
 }
 
 func ForMeFromMessageHash(preimage Preimage, messageHash, hash []byte) bool {
-	return bytes.Equal(HashFromMessageHash(preimage, messageHash), hash)
+	return hmac.Equal(HashFromMessageHash(preimage, messageHash), hash)
 }
 
 func GetMessageHash(messagePayload []byte) []byte {

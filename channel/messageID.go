@@ -1,7 +1,7 @@
 package channel
 
 import (
-	"bytes"
+	"crypto/hmac"
 	"encoding/base64"
 	"encoding/json"
 
@@ -60,7 +60,7 @@ func MakeMessageID(message []byte, chID *id.ID) MessageID {
 //
 // Not constant time.
 func (mid MessageID) Equals(mid2 MessageID) bool {
-	return bytes.Equal(mid[:], mid2[:])
+	return hmac.Equal(mid[:], mid2[:])
 }
 
 // String returns a base64 encoded MessageID for debugging. This function

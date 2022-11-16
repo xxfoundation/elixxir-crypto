@@ -11,9 +11,9 @@
 package group
 
 import (
-	"bytes"
-	"gitlab.com/elixxir/crypto/cyclic"
 	"crypto/hmac"
+
+	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/hash"
 )
 
@@ -36,5 +36,5 @@ func NewMAC(key CryptKey, encryptedInternalMsg []byte, recipientDhKey *cyclic.In
 func CheckMAC(mac []byte, key CryptKey, encryptedInternalMsg []byte,
 	recipientDhKey *cyclic.Int) bool {
 
-	return bytes.Equal(mac, NewMAC(key, encryptedInternalMsg, recipientDhKey))
+	return hmac.Equal(mac, NewMAC(key, encryptedInternalMsg, recipientDhKey))
 }

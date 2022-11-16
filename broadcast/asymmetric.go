@@ -8,7 +8,8 @@
 package broadcast
 
 import (
-	"bytes"
+	"crypto/hmac"
+
 	"github.com/pkg/errors"
 	"gitlab.com/elixxir/crypto/rsa"
 	"gitlab.com/elixxir/primitives/format"
@@ -18,7 +19,7 @@ import (
 // IsPublicKey returns true if the passed public key is the public key for the
 // given channel
 func (c *Channel) IsPublicKey(publicKey rsa.PublicKey) bool {
-	if bytes.Equal(c.RsaPubKeyHash, HashPubKey(publicKey)) {
+	if hmac.Equal(c.RsaPubKeyHash, HashPubKey(publicKey)) {
 		return true
 	}
 	return false
@@ -70,8 +71,8 @@ func (c *Channel) EncryptRSAToPublic(payload []byte, privKey rsa.PrivateKey,
 	h, _ := channelHash(nil)
 	for n := 0; n < c.RSASubPayloads; n++ {
 		h.Reset()
-		subsample := permissiveSubsample(payload, subPayloadSize, n)
-		innerCiphertext, err := privKey.EncryptOAEPMulticast(h,
+		subsample := permissiveSubsample(payload, subpayloadSize, n)
+		innerCiphertext, err := privkey.EncryptOAEPMulticast(h,
 			csprng, subsample, c.label())
 		if err != nil {
 			return nil, nil, format.Fingerprint{},
@@ -123,9 +124,10 @@ func (c *Channel) DecryptRSAToPublic(
 	decrypted := make([]byte, 0, rsaToPublicLength)
 	for n := 0; n < c.RSASubPayloads; n++ {
 		cypherText := permissiveSubsample(
-			innerCiphertext[wireProtocolLength:], c.RsaPubKeyLength, n)
-		decryptedPart, err :=
-			rsaPubKey.DecryptOAEPMulticast(h, cypherText, c.label())
+			innerCiphertext[wireProtocolLength:],
+			c.RsaPubKeyLength, n)
+		decryptedPart, err := rsaPubKey.DecryptOAEPMulticast(h,
+			cypherText, c.label())
 		if err != nil {
 			return nil, err
 		}
@@ -182,7 +184,7 @@ func (c *Channel) EncryptRSAToPrivate(payload []byte, pubkey rsa.PublicKey,
 	for n := 0; n < numSubPayloads; n++ {
 		h.Reset()
 		innerCiphertext, err := pubkey.EncryptOAEP(h,
-			rng, permissiveSubsample(payload, subPayloadSize, n), c.label())
+			rng, permissiveSubsample(payload, subpayloadSize, n), c.label())
 		if err != nil {
 			return nil, nil, format.Fingerprint{},
 				errors.WithMessagef(err, "Failed to encrypt asymmetric "+
@@ -212,7 +214,7 @@ func (c *Channel) DecryptRSAToPrivate(private rsa.PrivateKey, payload []byte,
 		return nil, err
 	}
 
-	// Chunk up the remaining payload into each RSA decryption and decrypt them
+	// chunk up the remaining payload into each RSA decryption and decrypt them
 	h, _ := channelHash(nil)
 	rsaToPublicLength, numSubPayloads, _ := c.GetRSAToPrivateMessageLength()
 	decrypted := make([]byte, 0, rsaToPublicLength)
@@ -229,8 +231,8 @@ func (c *Channel) DecryptRSAToPrivate(private rsa.PrivateKey, payload []byte,
 	return decrypted, nil
 }
 
-// permissiveSubsample returns the nth subsample of size s in b. Returns short
-// or empty subsamples if b is not long enough.
+// permissiveSubsample returns the nth subsample of size s in b, returning short or
+// empty subsamples if b is not long enough
 func permissiveSubsample(b []byte, size, n int) []byte {
 	begin := n * size
 	end := (n + 1) * size

@@ -8,7 +8,8 @@
 package auth
 
 import (
-	"bytes"
+	"crypto/hmac"
+
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/diffieHellman"
 	"gitlab.com/elixxir/crypto/hash"
@@ -44,7 +45,7 @@ func VerifyOwnershipProof(myHistoricalPrivKey, partnerHistoricalPubKey *cyclic.I
 	generatedProof := MakeOwnershipProof(myHistoricalPrivKey,
 		partnerHistoricalPubKey, grp)
 
-	return bytes.Equal(generatedProof, proof)
+	return hmac.Equal(generatedProof, proof)
 }
 
 // Ownership proofs allow users to build short proofs they own public DH keys
