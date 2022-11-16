@@ -16,20 +16,8 @@ import (
 
 const numTest = 5
 
-type CountingReader struct {
-	count uint8
-}
-
-// Read just counts until 254 then starts over again
-func (c *CountingReader) Read(b []byte) (int, error) {
-	for i := 0; i < len(b); i++ {
-		c.count = (c.count + 1) % 255
-		b[i] = c.count
-	}
-	return len(b), nil
-}
-
-// Smoke test. Ensure that VerifyPSS can verify the output for SignPSS.
+// Smoke test: ensure that PublicKey.VerifyPSS can verify the output for
+// PrivateKey.SignPSS.
 func TestSignVerifyPSS(t *testing.T) {
 	// Generate keys
 	sLocal := GetScheme()
@@ -58,7 +46,7 @@ func TestSignVerifyPSS(t *testing.T) {
 			t.Fatalf("SignPSS error: %+v", err)
 		}
 
-		//Verify signature
+		// Verify signature
 		err = pubKey.VerifyPSS(hashFunc, hashed, signed, opts)
 		if err != nil {
 			t.Fatalf("VerifyPSS error: %+v", err)
@@ -66,8 +54,8 @@ func TestSignVerifyPSS(t *testing.T) {
 	}
 }
 
-// Smoke test. Ensure that VerifyPKCS1v15 can verify the output for
-// SignPKCS1v15.
+// Smoke test: ensure that PublicKey.VerifyPKCS1v15 can verify the output for
+// PrivateKey.SignPKCS1v15.
 func TestPrivate_SignVerifyPKCS1v15(t *testing.T) {
 	// Generate keys
 	sLocal := GetScheme()

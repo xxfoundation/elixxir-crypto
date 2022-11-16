@@ -43,8 +43,8 @@ type dhNIKE struct{}
 // various types related to the DiffieHellman NIKE interface implementation.
 var DHNIKE = &dhNIKE{}
 
-var _ nike.PrivateKey = (*privateKey)(nil)
-var _ nike.PublicKey = (*publicKey)(nil)
+var _ nike.PrivateKey = (*PrivateKey)(nil)
+var _ nike.PublicKey = (*PublicKey)(nil)
 var _ nike.Nike = (*dhNIKE)(nil)
 
 func (d *dhNIKE) PublicKeySize() int {
@@ -56,13 +56,13 @@ func (d *dhNIKE) PrivateKeySize() int {
 }
 
 func (d *dhNIKE) NewEmptyPrivateKey() nike.PrivateKey {
-	return &privateKey{
+	return &PrivateKey{
 		privateKey: new(cyclic.Int),
 	}
 }
 
 func (d *dhNIKE) NewEmptyPublicKey() nike.PublicKey {
-	return &publicKey{
+	return &PublicKey{
 		publicKey: new(cyclic.Int),
 	}
 }
@@ -99,31 +99,35 @@ func (d *dhNIKE) NewKeypair() (nike.PrivateKey, nike.PublicKey) {
 	group := d.group()
 	privKey := diffieHellman.GeneratePrivateKey(privateKeySize, group, rng)
 	pubKey := diffieHellman.GeneratePublicKey(privKey, group)
-	return &privateKey{
+	return &PrivateKey{
 			privateKey: privKey,
-		}, &publicKey{
+		}, &PublicKey{
 			publicKey: pubKey,
 		}
 }
 
 func (d *dhNIKE) DerivePublicKey(privKey nike.PrivateKey) nike.PublicKey {
-	return &publicKey{
-		publicKey: diffieHellman.GeneratePublicKey(privKey.(*privateKey).privateKey, d.group()),
+	return &PublicKey{
+		publicKey: diffieHellman.GeneratePublicKey(privKey.(*PrivateKey).privateKey, d.group()),
 	}
 }
 
-type privateKey struct {
+type PrivateKey struct {
 	privateKey *cyclic.Int
 }
 
-func (p *privateKey) DeriveSecret(pubKey nike.PublicKey) []byte {
+func (p *PrivateKey) CyclicInt() *cyclic.Int {
+	return p.privateKey
+}
+
+func (p *PrivateKey) DeriveSecret(pubKey nike.PublicKey) []byte {
 	c := diffieHellman.GenerateSessionKey(p.privateKey,
-		(pubKey.(*publicKey)).publicKey,
+		(pubKey.(*PublicKey)).publicKey,
 		DHNIKE.group())
 	return c.Bytes()
 }
 
-func (p *privateKey) Reset() {
+func (p *PrivateKey) Reset() {
 	p.privateKey = nil
 }
 
@@ -134,22 +138,26 @@ func (p *privateKey) Bytes() []byte {
 	return p.privateKey.BinaryEncode()
 }
 
-func (p *privateKey) FromBytes(data []byte) error {
+func (p *PrivateKey) FromBytes(data []byte) error {
 	if len(data) != DHNIKE.PrivateKeySize() {
 		return errors.New("invalid key size")
 	}
 	return p.privateKey.BinaryDecode(data)
 }
 
-func (p *privateKey) Scheme() nike.Nike {
+func (p *PrivateKey) Scheme() nike.Nike {
 	return DHNIKE
 }
 
-type publicKey struct {
+type PublicKey struct {
 	publicKey *cyclic.Int
 }
 
-func (p *publicKey) Reset() {
+func (p *PublicKey) CyclicInt() *cyclic.Int {
+	return p.publicKey
+}
+
+func (p *PublicKey) Reset() {
 	p.publicKey = nil
 }
 
@@ -160,7 +168,7 @@ func (p *publicKey) Bytes() []byte {
 	return p.publicKey.BinaryEncode()
 }
 
-func (p *publicKey) FromBytes(data []byte) error {
+func (p *PublicKey) FromBytes(data []byte) error {
 	if len(data) != DHNIKE.PublicKeySize() {
 		return errors.New("invalid key size")
 	}
@@ -174,6 +182,6 @@ func (p *publicKey) FromBytes(data []byte) error {
 	return nil
 }
 
-func (p *publicKey) Scheme() nike.Nike {
+func (p *PublicKey) Scheme() nike.Nike {
 	return DHNIKE
 }

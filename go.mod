@@ -3,8 +3,6 @@ module gitlab.com/elixxir/crypto
 go 1.19
 
 require (
-	filippo.io/edwards25519 v1.0.0
-	git.xx.network/elixxir/ctidh_cgo v0.0.0-20220929120408-d7b2cd265da7
 	github.com/cloudflare/circl v1.1.0
 	github.com/liyue201/goqr v0.0.0-20200803022322-df443203d4ea
 	github.com/multiformats/go-multihash v0.2.1
@@ -13,14 +11,13 @@ require (
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/jwalterweatherman v1.1.0
 	github.com/stretchr/testify v1.8.0
-	gitlab.com/elixxir/primitives v0.0.3-0.20221025020430-f5d2eb330fbc
-	gitlab.com/xx_network/crypto v0.0.5-0.20221025020316-517fa8f91d2c
-	gitlab.com/xx_network/primitives v0.0.4-0.20221025020003-cbec15a71b8f
-	gitlab.com/yawning/nyquist.git v0.0.0-20221003103146-de5645224a22
+	gitlab.com/xx_network/crypto v0.0.5-0.20221110181048-76f0c556fe95
+	gitlab.com/xx_network/primitives v0.0.4-0.20221110180011-fd6ea3058225
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa
 )
 
 require (
+	filippo.io/edwards25519 v1.0.0 // indirect
 	github.com/badoux/checkmail v1.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
@@ -32,7 +29,9 @@ require (
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ttacon/libphonenumber v1.2.1 // indirect
 	github.com/zeebo/blake3 v0.1.1 // indirect
+	gitlab.com/elixxir/primitives v0.0.3-0.20221114231218-cc461261a6af // indirect
 	gitlab.com/yawning/bsaes.git v0.0.0-20190805113838-0a714cd429ec // indirect
+	gitlab.com/yawning/nyquist.git v0.0.0-20221003103146-de5645224a22 // indirect
 	gitlab.com/yawning/x448.git v0.0.0-20221003101044-617eb9b7d9b7 // indirect
 	golang.org/x/sys v0.0.0-20220928140112-f11e5e49a4ec // indirect
 	google.golang.org/protobuf v1.28.1 // indirect

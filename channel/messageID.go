@@ -3,11 +3,13 @@ package channel
 import (
 	"bytes"
 	"encoding/base64"
-	"github.com/pkg/errors"
-	"gitlab.com/xx_network/primitives/id"
-	"golang.org/x/crypto/blake2b"
+	"encoding/json"
 
+	"gitlab.com/xx_network/primitives/id"
+
+	"github.com/pkg/errors"
 	jww "github.com/spf13/jwalterweatherman"
+	"golang.org/x/crypto/blake2b"
 )
 
 const (
@@ -94,4 +96,30 @@ func UnmarshalMessageID(data []byte) (MessageID, error) {
 
 	copy(mid[:], data)
 	return mid, nil
+}
+
+// MarshalJSON handles the JSON marshaling of the MessageID. This function
+// adheres to the [json.Marshaler] interface.
+func (mid MessageID) MarshalJSON() ([]byte, error) {
+	// Note: Any changes to the output of this function can break storage in
+	// higher levels. Take care not to break the consistency test.
+	return json.Marshal(mid.Marshal())
+}
+
+// UnmarshalJSON handles the JSON unmarshalling of the MessageID. This function
+// adheres to the [json.Unmarshaler] interface.
+func (mid *MessageID) UnmarshalJSON(b []byte) error {
+	var buff []byte
+	if err := json.Unmarshal(b, &buff); err != nil {
+		return err
+	}
+
+	newMID, err := UnmarshalMessageID(buff)
+	if err != nil {
+		return err
+	}
+
+	*mid = newMID
+
+	return nil
 }
