@@ -26,6 +26,7 @@ build:
     - go mod vendor -v
     - go build ./...
     - go mod tidy
+    - go list
 
     - mkdir -p testdata
     - go-acc --covermode atomic --output testdata/coverage.out ./... -- -v
