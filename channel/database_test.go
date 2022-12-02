@@ -10,7 +10,10 @@ package channel
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"gitlab.com/xx_network/crypto/csprng"
+	"io"
+	"reflect"
 	"testing"
 )
 
@@ -43,7 +46,6 @@ func TestCrypt_EncryptDecrypt(t *testing.T) {
 			"\nExpected: %v"+
 			"\nRecieved: %v", expected, decryptedData)
 	}
-
 }
 
 // TestCrypt_EncryptDecrypt tests Cipher.Encrypt.
@@ -67,6 +69,104 @@ func TestCipher_Encrypt_PlaintextTooLarge(t *testing.T) {
 	_, err = c.Encrypt(plaintext)
 	if err == nil {
 		t.Fatalf("Encrypt should fail when plaintext is too large.")
+	}
+}
+
+// Tests that a Cipher can be JSON marshalled and unmarshalled.
+func TestCipher_MarshalJSON_UnmarshalJSON(t *testing.T) {
+	rng := csprng.NewSystemRNG()
+	rng2 := csprng.NewSystemRNG()
+	newCipher := func(internalPassword, salt []byte, plaintextBlockSize int,
+		csprng io.Reader) Cipher {
+		c, err := NewCipher(internalPassword, salt, plaintextBlockSize, csprng)
+		if err != nil {
+			t.Fatalf("Failed to create new Cipher: %+v", err)
+		}
+		return c
+	}
+
+	salt := make([]byte, 32)
+	_, _ = rng.Read(salt)
+
+	tests := []Cipher{
+		newCipher([]byte("hunter2"), []byte("mySalt"), 32, rng),
+		newCipher([]byte("myPassword"), salt, 256, rng),
+	}
+	for i, original := range tests {
+		data, err := json.Marshal(original)
+		if err != nil {
+			t.Fatalf("Failed to JSON marshal Cipher %d: %+v", i, err)
+		}
+
+		c, err := NewCipherFromJSON(data, rng2)
+		if err != nil {
+			t.Fatalf("Failed to JSON unmarshal Cipher %d: %+v", i, err)
+		}
+
+		if !reflect.DeepEqual(original, c) {
+			t.Errorf("Marshalled and unmarshaled Cipher does not match "+
+				"original (%d).\nexpected: %+v\nreceived: %+v", i, original, c)
+		}
+
+		// Test that the new cipher can encrypt and decrypt
+		plaintext := make([]byte, original.(*cipher).blockSize/2)
+		_, _ = rng.Read(plaintext)
+		ciphertext, err := c.Encrypt(plaintext)
+		if err != nil {
+			t.Errorf("Failed to encrypt with new Cipher (%d): %+v", i, err)
+		}
+
+		decryptedPlaintext, err := c.Decrypt(ciphertext)
+		if err != nil {
+			t.Errorf(
+				"New Cipher failed to decrypt ciphertext (%d): %+v", i, err)
+		}
+
+		if !bytes.Equal(plaintext, decryptedPlaintext) {
+			t.Errorf("Plaintext encrypted and decrypted by original Cipher "+
+				"does not match (%d).\nexpected: %v\nreceived: %v",
+				i, plaintext, decryptedPlaintext)
+		}
+
+		// Test plaintext encrypted by original Cipher can be decrypted by the
+		// new Cipher
+		_, _ = rng.Read(plaintext)
+		ciphertext, err = original.Encrypt(plaintext)
+		if err != nil {
+			t.Errorf("Failed to encrypt with original Cipher (%d): %+v", i, err)
+		}
+
+		decryptedPlaintext, err = c.Decrypt(ciphertext)
+		if err != nil {
+			t.Errorf("New Cipher failed to decrypt ciphertext from original "+
+				"Cipher (%d): %+v", i, err)
+		}
+
+		if !bytes.Equal(plaintext, decryptedPlaintext) {
+			t.Errorf("Plaintext encrypted by original Cipher and decrypted by "+
+				"the new Cipher does not match (%d).\nexpected: %v\nreceived: %v",
+				i, plaintext, decryptedPlaintext)
+		}
+
+		// Test plaintext encrypted by new Cipher can be decrypted by the
+		// original Cipher
+		_, _ = rng.Read(plaintext)
+		ciphertext, err = c.Encrypt(plaintext)
+		if err != nil {
+			t.Errorf("Failed to encrypt with new Cipher (%d): %+v", i, err)
+		}
+
+		decryptedPlaintext, err = original.Decrypt(ciphertext)
+		if err != nil {
+			t.Errorf("Original Cipher failed to decrypt ciphertext from new "+
+				"Cipher (%d): %+v", i, err)
+		}
+
+		if !bytes.Equal(plaintext, decryptedPlaintext) {
+			t.Errorf("Plaintext encrypted by new Cipher and decrypted by the "+
+				"original Cipher does not match (%d).\nexpected: %v\nreceived: %v",
+				i, plaintext, decryptedPlaintext)
+		}
 	}
 }
 

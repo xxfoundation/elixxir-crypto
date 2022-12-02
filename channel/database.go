@@ -9,6 +9,7 @@ package channel
 
 import (
 	"encoding/binary"
+	"encoding/json"
 	"github.com/pkg/errors"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/hash"
@@ -58,6 +59,14 @@ type Cipher interface {
 	// Decrypt decrypts the passed in ciphertext and returns the plaintext. Any
 	// padding added to the plaintext during encryption is stripped.
 	Decrypt(ciphertext []byte) (plaintext []byte, err error)
+
+	// Marshaler marshals the cryptographic information in the cypher for
+	// sending over the wire.
+	json.Marshaler
+
+	// Unmarshaler does not transfer the internal RNG. Use NewCipherFromJSON to
+	// properly reconstruct a cipher from JSON.
+	json.Unmarshaler
 }
 
 // cipher adheres to the Cipher interface.
@@ -95,6 +104,13 @@ func NewCipher(internalPassword, salt []byte, plaintextBlockSize int,
 		blockSize: plaintextBlockSize,
 		rng:       csprng,
 	}, nil
+}
+
+// NewCipherFromJSON generates a new Cipher from its marshalled JSON and a
+// CSPRNG.
+func NewCipherFromJSON(data []byte, csprng io.Reader) (Cipher, error) {
+	c := &cipher{rng: csprng}
+	return c, json.Unmarshal(data, &c)
 }
 
 // Encrypt encrypts the raw data. The returned ciphertext includes the nonce
@@ -152,7 +168,40 @@ func (c *cipher) Decrypt(ciphertext []byte) (plaintext []byte, err error) {
 	// Remove padding from plaintext
 	plaintext = discardPadding(paddedPlaintext)
 	return plaintext, nil
+}
 
+// cipherDisk represents a cipher for marshalling and unmarshalling.
+type cipherDisk struct {
+	Secret    []byte `json:"secret"`
+	BlockSize int    `json:"blockSize"`
+}
+
+// MarshalJSON marshals the cipher into valid JSON. This function adheres to the
+// json.Marshaler interface.
+func (c *cipher) MarshalJSON() ([]byte, error) {
+	disk := cipherDisk{
+		Secret:    c.secret,
+		BlockSize: c.blockSize,
+	}
+	return json.Marshal(disk)
+}
+
+// UnmarshalJSON unmarshalls JSON into the cipher. This function adheres to the
+// json.Unmarshaler interface.
+//
+// Note that this function does not transfer the internal RNG. Use
+// NewCipherFromJSON to properly reconstruct a cipher from JSON.
+func (c *cipher) UnmarshalJSON(data []byte) error {
+	var disk cipherDisk
+	err := json.Unmarshal(data, &disk)
+	if err != nil {
+		return err
+	}
+
+	c.secret = disk.Secret
+	c.blockSize = disk.BlockSize
+
+	return nil
 }
 
 // appendPadding adds padding to the end of a raw plaintext to make it the same
