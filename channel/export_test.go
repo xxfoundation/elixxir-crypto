@@ -263,7 +263,6 @@ func Test_getTagContents(t *testing.T) {
 // Tests that getTagContents returns the expected error for a set of strings
 // with invalid tag placement.
 func Test_getTagContents_MissingTagsError(t *testing.T) {
-
 	testData := map[string]string{
 		"ABC123" + headTag + "test1" + "ABC123":           noCloseTagErr,
 		"ABC123" + footTag + "test2" + headTag + "ABC123": swappedTagErr,

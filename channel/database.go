@@ -9,6 +9,7 @@ package channel
 
 import (
 	"encoding/binary"
+	"encoding/json"
 	"github.com/pkg/errors"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/hash"
@@ -17,62 +18,82 @@ import (
 
 // Error messages.
 const (
+	// NewCipher
+	cipherInvalidBlockSizeErr = "block size must be at least 1 byte; received %d bytes"
+
+	// cipher.Encrypt
+	plaintextTooLargeErr = "plaintext must be %d bytes or less; received %d bytes"
+	generateNoncePanic   = "Could not generate nonce for channel database message encryption: %+v"
+
+	// cipher.Decrypt
 	cipherCannotDecryptErr = "cannot decrypt ciphertext with secret: %+v"
-	cipherInvalidBlockSize = "cannot instantiate cipher with block size %d"
-	plaintextTooLargeErr   = "plaintext too long (%d > max of %d)"
-	shortPaddingReadErr    = "short read (%d != %d)"
+
+	// appendPadding
+	shortPaddingReadErr = "short read (%d != %d)"
 )
 
-// cipher constants
 const (
-	// lengthOfOverhead is the space allocated in bytes to represent the size
+	// lengthOfOverhead is the space allocated, in bytes, to represent the size
 	// of the plaintext. This will be added to the padded plaintext prior to
-	// encryption. Note that plaintext whose length cannot be expressed in
-	// the amount of bytes allocated here will result in an error.
+	// encryption.
+	//
+	// Note that plaintext with a length that cannot be expressed in this
+	// byte-size will result in an error.
 	lengthOfOverhead = 2
 )
 
-// Cipher is the interface for storing encrypted channel messages into a
-// database.
+// Cipher manages the encryption and decryption of channel messages that are
+// inserted into or read from the database.
 type Cipher interface {
-	// Encrypt will encrypt the raw data. The returned ciphertext includes the
-	// nonce (24 bytes) and the encrypted plaintext (with possible padding, if
-	// needed). Prior to encryption the plaintext has been appended with
-	// padding if the byte data is shorted than the pre-defined block size
-	// passed into NewCipher. If plaintext longer than this pre-defined block
-	// size is passed in, Encrypt will return an error.
-	Encrypt(raw []byte) ([]byte, error)
+	// Encrypt encrypts the raw data. The returned ciphertext includes the nonce
+	// (24 bytes) and the encrypted plaintext (with possible padding, if
+	// needed).
+	//
+	// Prior to encrypting the plaintext, a padding will be appended if it is
+	// shorter than the pre-defined block size passed into NewCipher.
+	//
+	// If the plaintext is longer than the block size, then Encrypt will return
+	// an error.
+	Encrypt(plaintext []byte) (ciphertext []byte, err error)
 
-	// Decrypt will decrypt the passed in encrypted value. The plaintext will
-	// be returned by this function. If the plaintext was padded, those
-	// modifications will be discarded prior to returning.
-	Decrypt(encrypted []byte) ([]byte, error)
+	// Decrypt decrypts the passed in ciphertext and returns the plaintext. Any
+	// padding added to the plaintext during encryption is stripped.
+	Decrypt(ciphertext []byte) (plaintext []byte, err error)
+
+	// Marshaler marshals the cryptographic information in the cypher for
+	// sending over the wire.
+	json.Marshaler
+
+	// Unmarshaler does not transfer the internal RNG. Use NewCipherFromJSON to
+	// properly reconstruct a cipher from JSON.
+	json.Unmarshaler
 }
 
-// cipher is an internal structure which adheres to the Cipher interface.
+// cipher adheres to the Cipher interface.
 type cipher struct {
-	// The secret is derived using deriveDatabaseSecret.
+	// secret is derived using deriveDatabaseSecret.
 	secret []byte
 
-	// blockSize is the maximum size of the plaintext. All plaintext passed
-	// into Cipher.Encrypt must be shorter than or equal to this value.
-	// Any plaintext shorter than this value will be padded such that
-	// encrypted data are of uniform length.
+	// blockSize is the maximum allowed length of the plaintext.
+	//
+	// Any plaintext that is shorter is padded to the length of blockSize so
+	// that all encrypted data is of the same length. Any plaintext that is
+	// longer is rejected.
 	blockSize int
 
-	// rng is used to generate a nonce for encryption.
+	// rng is the random number generator that is used to generate a nonce while
+	// encrypting.
 	rng io.Reader
 }
 
-// NewCipher is a constructor which builds a Cipher. PlaintextBlockSize is
-// the maximum size of the plaintext. Any plaintext shorted than this
-// will have padding appended prior to encryption. Any plaintext longer
-// than this will fail encryption.
+// NewCipher generates a new Cipher from a password and salt.
+//
+// plaintextBlockSize is the maximum allowed length of any encrypted plaintext.
 func NewCipher(internalPassword, salt []byte, plaintextBlockSize int,
 	csprng io.Reader) (Cipher, error) {
 
-	if plaintextBlockSize == 0 {
-		return nil, errors.Errorf(cipherInvalidBlockSize, plaintextBlockSize)
+	if plaintextBlockSize <= 0 {
+		return nil, errors.Errorf(cipherInvalidBlockSizeErr, plaintextBlockSize)
 	}
 
 	// Generate key
@@ -85,17 +106,29 @@ func NewCipher(internalPassword, salt []byte, plaintextBlockSize int,
 	}, nil
 }
 
-// Encrypt will encrypt the raw data. The ciphertext includes the
-// nonce (24 bytes) and the encrypted plaintext. Prior to encryption the
-// plaintext has been appended with padding if the byte data is shorted than
-// the pre-defined block size passed into NewCipher. If plaintext longer than
-// this pre-defined block size is passed in, Encrypt will return an error.
-func (c *cipher) Encrypt(plaintext []byte) ([]byte, error) {
+// NewCipherFromJSON generates a new Cipher from its marshalled JSON and a
+// CSPRNG.
+func NewCipherFromJSON(data []byte, csprng io.Reader) (Cipher, error) {
+	c := &cipher{rng: csprng}
+	return c, json.Unmarshal(data, &c)
+}
+
+// Encrypt encrypts the raw data. The returned ciphertext includes the nonce
+// (24 bytes) and the encrypted plaintext (with possible padding, if
+// needed).
+//
+// Prior to encrypting the plaintext, a padding will be appended if it is
+// shorter than the pre-defined block size passed into NewCipher.
+//
+// If the plaintext is longer than the block size, then Encrypt will return
+// an error.
+func (c *cipher) Encrypt(plaintext []byte) (ciphertext []byte, err error) {
 	if len(plaintext) > c.blockSize {
-		return nil, errors.Errorf(plaintextTooLargeErr, len(plaintext), c.blockSize)
+		return nil,
+			errors.Errorf(plaintextTooLargeErr, c.blockSize, len(plaintext))
 	}
 
-	plaintext, err := appendPadding(plaintext, c.blockSize, c.rng)
+	plaintext, err = appendPadding(plaintext, c.blockSize, c.rng)
 	if err != nil {
 		return nil, err
 	}
@@ -103,28 +136,27 @@ func (c *cipher) Encrypt(plaintext []byte) ([]byte, error) {
 	// Generate cipher and nonce
 	chaCipher := initChaCha20Poly1305(c.secret)
 	nonce := make([]byte, chaCipher.NonceSize())
-	if _, err := io.ReadFull(c.rng, nonce); err != nil {
-		jww.FATAL.Panicf("Could not generate nonce %+v", err)
+	if _, err = io.ReadFull(c.rng, nonce); err != nil {
+		jww.FATAL.Panicf(generateNoncePanic, err)
 	}
 
 	// Encrypt data and return
-	ciphertext := chaCipher.Seal(nonce, nonce, plaintext, nil)
+	ciphertext = chaCipher.Seal(nonce, nonce, plaintext, nil)
 	return ciphertext, nil
 }
 
-// Decrypt will decrypt the passed in encrypted value. The plaintext will
-// be returned by this function. If the plaintext was padded, those
-// modifications will be discarded prior to returning.
-func (c *cipher) Decrypt(ciphertext []byte) ([]byte, error) {
+// Decrypt decrypts the passed in ciphertext and returns the plaintext. Any
+// padding added to the plaintext during encryption is stripped.
+func (c *cipher) Decrypt(ciphertext []byte) (plaintext []byte, err error) {
 	// Generate cypher
 	chaCipher := initChaCha20Poly1305(c.secret)
 
 	nonceLen := chaCipher.NonceSize()
-	if (len(ciphertext) - nonceLen) <= 0 {
+	if len(ciphertext)-nonceLen <= 0 {
 		return nil, errors.Errorf(readNonceLenErr, len(ciphertext))
 	}
 
-	// The first nonceLen bytes of ciphertext are the nonce.
+	// The first nonceLen bytes of ciphertext are the nonce
 	nonce, encrypted := ciphertext[:nonceLen], ciphertext[nonceLen:]
 
 	// Decrypt ciphertext
@@ -134,27 +166,63 @@ func (c *cipher) Decrypt(ciphertext []byte) ([]byte, error) {
 	}
 
 	// Remove padding from plaintext
-	plaintext := discardPadding(paddedPlaintext)
-
+	plaintext = discardPadding(paddedPlaintext)
 	return plaintext, nil
-
 }
 
-// appendPadding is a helper function which adds padding to the raw plaintext,
-// if padding is necessary. If padding is necessary, the data will be
-// formatted as such after padding: amountOfPadding | data | padding
-// The amountOfPadding is the serialized uint64 byte data representing how long
-// padding is in bytes.
-func appendPadding(raw []byte, blockSize int, rng io.Reader) ([]byte, error) {
+// cipherDisk represents a cipher for marshalling and unmarshalling.
+type cipherDisk struct {
+	Secret    []byte `json:"secret"`
+	BlockSize int    `json:"blockSize"`
+}
+
+// MarshalJSON marshals the cipher into valid JSON. This function adheres to the
+// json.Marshaler interface.
+func (c *cipher) MarshalJSON() ([]byte, error) {
+	disk := cipherDisk{
+		Secret:    c.secret,
+		BlockSize: c.blockSize,
+	}
+	return json.Marshal(disk)
+}
+
+// UnmarshalJSON unmarshalls JSON into the cipher. This function adheres to the
+// json.Unmarshaler interface.
+//
+// Note that this function does not transfer the internal RNG. Use
+// NewCipherFromJSON to properly reconstruct a cipher from JSON.
+func (c *cipher) UnmarshalJSON(data []byte) error {
+	var disk cipherDisk
+	err := json.Unmarshal(data, &disk)
+	if err != nil {
+		return err
+	}
+
+	c.secret = disk.Secret
+	c.blockSize = disk.BlockSize
+
+	return nil
+}
+
+// appendPadding adds padding to the end of a raw plaintext to make it the same
+// length as the blockSize.
+//
+// If padding is added, it will result in a plaintext of the following form:
+//
+//	+-----------+-----------+---------+
+//	| plaintext |    raw    | padding |
+//	|   size    | plaintext |         |
+//	+-----------+-----------+---------+
+func appendPadding(plaintext []byte, blockSize int, rng io.Reader) ([]byte, error) {
 	// Initialize result
 	res := make([]byte, blockSize+lengthOfOverhead)
 
 	// Serialize length of plaintext
-	plaintextSize := len(raw)
+	plaintextSize := len(plaintext)
 	binary.PutUvarint(res, uint64(plaintextSize))
 
 	// Put plaintext in result
-	copy(res[lengthOfOverhead:], raw)
+	copy(res[lengthOfOverhead:], plaintext)
 
 	// Add padding to the result from where plaintext ends
 	padStart := lengthOfOverhead + plaintextSize
@@ -172,16 +240,15 @@ func appendPadding(raw []byte, blockSize int, rng io.Reader) ([]byte, error) {
 	return res, nil
 }
 
-// discardPadding is a helper function which will return the plaintext with the
-// padding removed.
+// discardPadding strips the padding and data size from the plaintext.
 func discardPadding(data []byte) []byte {
 	plaintextSizeBytes := data[:lengthOfOverhead]
 	plaintextSize, _ := binary.Uvarint(plaintextSizeBytes)
 	return data[lengthOfOverhead : lengthOfOverhead+plaintextSize]
 }
 
-// deriveDatabaseSecret is a helper function which will generate the key for
-// encryption/decryption of
+// deriveDatabaseSecret generates the key used for the encryption/decryption of
+// channel message contents.
 func deriveDatabaseSecret(password, salt []byte) []byte {
 	h, err := hash.NewCMixHash()
 	if err != nil {

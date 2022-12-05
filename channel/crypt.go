@@ -30,7 +30,7 @@ const (
 )
 
 // encryptIdentity encrypts the data for an Identity using XChaCha20-Poly1305.
-// The resulting encrypted data has the none prepended to it.
+// The resulting encrypted data has the nonce prepended to it.
 func encryptIdentity(data, key []byte, csprng io.Reader) []byte {
 	chaCipher := initChaCha20Poly1305(key)
 	nonce := make([]byte, chaCipher.NonceSize())
