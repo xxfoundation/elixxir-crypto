@@ -8,6 +8,7 @@
 package authorize
 
 import (
+	"encoding/binary"
 	"gitlab.com/elixxir/crypto/hash"
 	"gitlab.com/xx_network/crypto/signature/rsa"
 	"io"
@@ -43,10 +44,8 @@ func VerifyCertRequest(gwPub *rsa.PublicKey, sig []byte,
 func hashCertRequestInfo(acmeToken string, timestamp time.Time) ([]byte, error) {
 	h := hashType.New()
 	h.Write([]byte(acmeToken))
-	nowBytes, err := timestamp.MarshalBinary()
-	if err != nil {
-		return nil, err
-	}
-	h.Write(nowBytes)
+	tsBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(tsBytes, uint64(timestamp.UnixNano()))
+	h.Write(tsBytes)
 	return h.Sum(nil), nil
 }
