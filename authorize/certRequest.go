@@ -30,6 +30,9 @@ func SignCertRequest(rng io.Reader, gwRsa *rsa.PrivateKey,
 func VerifyCertRequest(gwPub *rsa.PublicKey, sig []byte,
 	acmeToken string, now, signedTS time.Time, delta time.Duration) error {
 	err := checkTimeBound(now, signedTS, delta)
+	if err != nil {
+		return err
+	}
 	hashed, err := hashCertRequestInfo(acmeToken, signedTS)
 	if err != nil {
 		return err
