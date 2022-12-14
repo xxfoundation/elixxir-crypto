@@ -66,6 +66,9 @@ type Scheme interface {
 	// GetMarshalWireLength returns the length of a Marshal Wire for a given key
 	// size, in bytes.
 	GetMarshalWireLength(size int) int
+
+	// Convert accepts a gorsa.PrivateKey and returns a PrivateKey interface
+	Convert(key *gorsa.PrivateKey) PrivateKey
 }
 
 // PrivateKey is an interface for an RSA private key that implements the

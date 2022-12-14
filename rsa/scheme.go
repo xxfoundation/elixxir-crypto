@@ -58,6 +58,11 @@ func GetScheme() Scheme {
 
 type scheme struct{}
 
+// Convert accepts a gorsa.PrivateKey and returns a PrivateKey interface
+func (*scheme) Convert(key *gorsa.PrivateKey) PrivateKey {
+	return &private{*key}
+}
+
 // Generate generates an RSA keypair of the given bit size using the random
 // source random (for example, crypto/rand.Reader).
 func (*scheme) Generate(random io.Reader, bits int) (PrivateKey, error) {
