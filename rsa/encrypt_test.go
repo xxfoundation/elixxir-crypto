@@ -13,6 +13,7 @@ import (
 	"encoding/base64"
 	"gitlab.com/elixxir/crypto/hash"
 	rand2 "math/rand"
+	"runtime"
 	"strconv"
 	"testing"
 )
@@ -116,6 +117,12 @@ var privateKeyPem = []byte{45, 45, 45, 45, 45, 66, 69, 71, 73, 78, 32, 82, 83,
 // Consistency test: given pre-canned deterministic input to generate a
 // PrivateKey, check that the output for PublicKey.EncryptOAEP is deterministic.
 func TestPrivateKey_PublicKey_EncryptOAEP_Consistency(t *testing.T) {
+	// Cannot run consistency test when running in Javascript
+	if runtime.GOOS == "js" {
+		t.Log("Javascript environment; skipping this test.")
+		return
+	}
+
 	// Using a PRNG with same source so the output is the same on each run
 	prng := rand2.New(rand2.NewSource(12))
 

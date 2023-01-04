@@ -20,7 +20,8 @@ import (
 // 3072. Do not use this in production. Only use it for testing.
 //
 // FIXME: Once WebAssembly can run in an HTTPS server, this should not be
-// necessary and needs to be removed. Do not use this is production.
+//
+//	necessary and needs to be removed. Do not use this is production.
 var defaultRSABitLen = 1024
 
 func init() {

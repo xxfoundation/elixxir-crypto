@@ -63,20 +63,6 @@ func (*scheme) Convert(key *gorsa.PrivateKey) PrivateKey {
 	return &private{*key}
 }
 
-// Generate generates an RSA keypair of the given bit size using the random
-// source random (for example, crypto/rand.Reader).
-func (*scheme) Generate(random io.Reader, bits int) (PrivateKey, error) {
-	if bits < softMinRSABitLen {
-		jww.WARN.Printf(softMinRSABitLenWarn, bits, softMinRSABitLen)
-	}
-
-	goPriv, err := gorsa.GenerateKey(random, bits)
-	if err != nil {
-		return nil, err
-	}
-	return &private{*goPriv}, nil
-}
-
 // GenerateDefault generates an RSA keypair of the library default bit size
 // using the random source random (for example, crypto/rand.Reader).
 func (s *scheme) GenerateDefault(random io.Reader) (PrivateKey, error) {
@@ -124,7 +110,7 @@ func (*scheme) UnmarshalPrivateKeyPEM(pemBytes []byte) (PrivateKey, error) {
 		jww.WARN.Printf(softMinRSABitLenWarn, bits, softMinRSABitLen)
 	}
 
-	return &private{*keyRSA}, nil
+	return makePrivateKey(*keyRSA)
 }
 
 // UnmarshalPublicKeyPEM unmarshalls the public key from a PEM file. It will

@@ -41,13 +41,13 @@ func TestSignVerifyPSS(t *testing.T) {
 		hashed := h.Sum(nil)
 
 		// Construct signature
-		signed, err := privKey.SignPSS(rng, hashFunc, hashed, opts)
-		if err != nil {
-			t.Fatalf("SignPSS error: %+v", err)
+		signed, err2 := privKey.SignPSS(rng, hashFunc, hashed, opts)
+		if err2 != nil {
+			t.Fatalf("SignPSS error: %+v", err2)
 		}
 
 		// Verify signature
-		err = pubKey.VerifyPSS(hashFunc, hashed, signed, opts)
+		err = pubKey.(*public).VerifyPSS(hashFunc, hashed, signed, opts)
 		if err != nil {
 			t.Fatalf("VerifyPSS error: %+v", err)
 		}
