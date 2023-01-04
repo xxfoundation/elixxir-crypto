@@ -39,6 +39,10 @@ const (
 	saltSize      = 32 // 256 bits
 	secretSize    = 32 // 256 bits
 
+	// packetWrapperReserveSize is the approximate size of a user packet
+	// wrapper, with some extra padding for safety, in bytes.
+	packetWrapperReserveSize = 160 // 1280 bits
+
 	// NameMinChars is the minimum number of UTF-8 characters allowed in a
 	// channel name.
 	NameMinChars = 3 // 3 characters
@@ -156,6 +160,14 @@ func NewChannelVariableKeyUnsafe(name, description string, level PrivacyLevel,
 	if !level.Verify() {
 		return nil, nil, errors.WithStack(InvalidPrivacyLevelErr)
 	}
+
+	// Subtract enough room from the max payload length to accommodate a user
+	// message wrapper, which will be required when replaying an admin message
+	// When admin messages are replayed by any user, the entire encrypted admin
+	// message must fit in a user message. So, the max size of a payload is
+	// limited to always include enough room for the user message wrapper, which
+	// is subtracted here.
+	packetPayloadLength -= packetWrapperReserveSize
 
 	// Get the key size and the number of fields
 	keySize, numSubPayloads :=

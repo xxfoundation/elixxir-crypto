@@ -16,15 +16,13 @@ import (
 	"testing"
 )
 
-func TestRSAToPublic_Encrypt_Decrypt_BigKey(t *testing.T) {
+func TestChannel_EncryptRSAToPublic_DecryptRSAToPublic_BigKey(t *testing.T) {
 	rng := csprng.NewSystemRNG()
-
 	packetSize := 1000
 	internalPacketSize := MaxSizedBroadcastPayloadSize(packetSize)
 	keySize, n := calculateKeySize(internalPacketSize, internalPacketSize)
-
 	if n != 1 {
-		t.Fatalf("Keysize isnt big")
+		t.Fatalf("Keysize is not big.\nexpected: %d\nreceived: %d", 1, n)
 	}
 
 	s := rsa.GetScheme()
@@ -39,8 +37,7 @@ func TestRSAToPublic_Encrypt_Decrypt_BigKey(t *testing.T) {
 	salt := cmix.NewSalt(rng, 32)
 
 	secret := make([]byte, 32)
-	_, err = rng.Read(secret)
-	if err != nil {
+	if _, err = rng.Read(secret); err != nil {
 		t.Fatal(err)
 	}
 
@@ -63,38 +60,35 @@ func TestRSAToPublic_Encrypt_Decrypt_BigKey(t *testing.T) {
 	}
 
 	maxPayloadLen, _, _ := ac.GetRSAToPublicMessageLength()
-
 	payload := make([]byte, maxPayloadLen)
-	_, err = rng.Read(payload)
-	if err != nil {
+	if _, err = rng.Read(payload); err != nil {
 		t.Fatalf("Failed to read random data to payload: %+v", err)
 	}
-	encrypted, mac, nonce, err :=
+
+	_, encrypted, mac, nonce, err :=
 		ac.EncryptRSAToPublic(payload, pk, packetSize, rng)
 	if err != nil {
 		t.Fatalf("Failed to encrypt payload: %+v", err)
 	}
 
-	decrypted, err := ac.DecryptRSAToPublic(encrypted, mac, nonce)
+	decrypted, _, err := ac.DecryptRSAToPublic(encrypted, mac, nonce)
 	if err != nil {
 		t.Fatalf("Failed to decrypt payload: %+v", err)
 	}
 
-	if bytes.Compare(decrypted, payload) != 0 {
+	if !bytes.Equal(decrypted, payload) {
 		t.Errorf("Decrypt did not return expected data"+
-			"\nexpected: %+v\nreceived: %+v", payload, decrypted)
+			"\nexpected: %v\nreceived: %v", payload, decrypted)
 	}
 }
 
-func TestRSAToPublic_Encrypt_Decrypt_BigKey_SmallPayload(t *testing.T) {
+func TestChannel_EncryptRSAToPublic_DecryptRSAToPublic_BigKey_SmallPayload(t *testing.T) {
 	rng := csprng.NewSystemRNG()
-
 	packetSize := 1000
 	internalPacketSize := MaxSizedBroadcastPayloadSize(packetSize)
 	keySize, n := calculateKeySize(internalPacketSize, internalPacketSize)
-
 	if n != 1 {
-		t.Fatalf("Keysize isnt big")
+		t.Fatalf("Keysize is not big.\nexpected: %d\nreceived: %d", 1, n)
 	}
 
 	s := rsa.GetScheme()
@@ -109,8 +103,7 @@ func TestRSAToPublic_Encrypt_Decrypt_BigKey_SmallPayload(t *testing.T) {
 	salt := cmix.NewSalt(rng, 32)
 
 	secret := make([]byte, 32)
-	_, err = rng.Read(secret)
-	if err != nil {
+	if _, err = rng.Read(secret); err != nil {
 		t.Fatal(err)
 	}
 
@@ -133,36 +126,33 @@ func TestRSAToPublic_Encrypt_Decrypt_BigKey_SmallPayload(t *testing.T) {
 	}
 
 	payload := make([]byte, 10)
-	_, err = rng.Read(payload)
-	if err != nil {
+	if _, err = rng.Read(payload); err != nil {
 		t.Fatalf("Failed to read random data to payload: %+v", err)
 	}
-	encrypted, mac, nonce, err :=
+
+	_, encrypted, mac, nonce, err :=
 		ac.EncryptRSAToPublic(payload, pk, internalPacketSize, rng)
 	if err != nil {
 		t.Fatalf("Failed to encrypt payload: %+v", err)
 	}
 
-	decrypted, err := ac.DecryptRSAToPublic(encrypted, mac, nonce)
+	decrypted, _, err := ac.DecryptRSAToPublic(encrypted, mac, nonce)
 	if err != nil {
 		t.Fatalf("Failed to decrypt payload: %+v", err)
 	}
 
-	if bytes.Compare(decrypted, payload) != 0 {
+	if !bytes.Equal(decrypted, payload) {
 		t.Errorf("Decrypt did not return expected data."+
-			"\nexpected: %+v\nreceived: %+v", payload, decrypted)
+			"\nexpected: %v\nreceived: %v", payload, decrypted)
 	}
 }
 
-func TestRSAToPublic_Encrypt_Decrypt_NewChannel(t *testing.T) {
+func TestChannel_EncryptRSAToPublic_DecryptRSAToPublic_NewChannel(t *testing.T) {
 	rng := csprng.NewSystemRNG()
-
 	packetSize := 1000
 
-	name := "Asymmetric_channel"
-	desc := "Asymmetric channel description"
-
-	ac, pk, err := NewChannel(name, desc, Public, packetSize, rng)
+	ac, pk, err := NewChannel(
+		"Asymmetric_channel", "Channel description", Public, packetSize, rng)
 	if err != nil {
 		t.Fatalf("Failed to make new channel: %+v", err)
 	}
@@ -170,35 +160,34 @@ func TestRSAToPublic_Encrypt_Decrypt_NewChannel(t *testing.T) {
 	maxPayloadLen, _, _ := ac.GetRSAToPublicMessageLength()
 
 	payload := make([]byte, maxPayloadLen)
-	_, err = rng.Read(payload)
-	if err != nil {
+	if _, err = rng.Read(payload); err != nil {
 		t.Fatalf("Failed to read random data to payload: %+v", err)
 	}
-	encrypted, mac, nonce, err :=
+
+	_, encrypted, mac, nonce, err :=
 		ac.EncryptRSAToPublic(payload, pk, packetSize, rng)
 	if err != nil {
 		t.Fatalf("Failed to encrypt payload: %+v", err)
 	}
 
-	decrypted, err := ac.DecryptRSAToPublic(encrypted, mac, nonce)
+	decrypted, _, err := ac.DecryptRSAToPublic(encrypted, mac, nonce)
 	if err != nil {
 		t.Fatalf("Failed to decrypt payload: %+v", err)
 	}
 
-	if bytes.Compare(decrypted, payload) != 0 {
+	if !bytes.Equal(decrypted, payload) {
 		t.Errorf("Decrypt did not return expected data."+
 			"\nexpected: %+v\nreceived: %+v", payload, decrypted)
 	}
 }
 
-func TestRSAToPublic_Encrypt_Decrypt_SmallKey(t *testing.T) {
+func TestChannel_EncryptRSAToPublic_DecryptRSAToPublic_SmallKey(t *testing.T) {
 	rng := csprng.NewSystemRNG()
-
 	packetSize := 1000
 	internalPacketSize := MaxSizedBroadcastPayloadSize(packetSize)
 	keySize, n := calculateKeySize(internalPacketSize, internalPacketSize/5)
 	if n < 4 {
-		t.Fatalf("Keysize isnt small")
+		t.Fatalf("Keysize is not small.\nexpected: < %d\nreceived: %d", 4, n)
 	}
 
 	s := rsa.GetScheme()
@@ -213,8 +202,7 @@ func TestRSAToPublic_Encrypt_Decrypt_SmallKey(t *testing.T) {
 	salt := cmix.NewSalt(rng, 32)
 
 	secret := make([]byte, 32)
-	_, err = rng.Read(secret)
-	if err != nil {
+	if _, err = rng.Read(secret); err != nil {
 		t.Fatal(err)
 	}
 
@@ -239,35 +227,34 @@ func TestRSAToPublic_Encrypt_Decrypt_SmallKey(t *testing.T) {
 	maxPayloadLen, _, _ := ac.GetRSAToPublicMessageLength()
 
 	payload := make([]byte, maxPayloadLen)
-	_, err = rng.Read(payload)
-	if err != nil {
+	if _, err = rng.Read(payload); err != nil {
 		t.Fatalf("Failed to read random data to payload: %+v", err)
 	}
-	encrypted, mac, nonce, err :=
+
+	_, encrypted, mac, nonce, err :=
 		ac.EncryptRSAToPublic(payload, pk, packetSize, rng)
 	if err != nil {
 		t.Fatalf("Failed to encrypt payload: %+v", err)
 	}
 
-	decrypted, err := ac.DecryptRSAToPublic(encrypted, mac, nonce)
+	decrypted, _, err := ac.DecryptRSAToPublic(encrypted, mac, nonce)
 	if err != nil {
 		t.Fatalf("Failed to decrypt payload: %+v", err)
 	}
 
-	if bytes.Compare(decrypted, payload) != 0 {
-		t.Errorf("Decrypt did not return expected data."+
-			"\nexpected: %+v\nreceived: %+v", payload, decrypted)
+	if !bytes.Equal(decrypted, payload) {
+		t.Errorf("Decrypt did not return expected data"+
+			"\nexpected: %v\nreceived: %v", payload, decrypted)
 	}
 }
 
-func TestRSAToPublic_Encrypt_Decrypt_SmallKey_SmallPayload(t *testing.T) {
+func TestChannel_EncryptRSAToPublic_DecryptRSAToPublic_SmallKey_SmallPayload(t *testing.T) {
 	rng := csprng.NewSystemRNG()
-
 	packetSize := 1000
 	internalPacketSize := MaxSizedBroadcastPayloadSize(packetSize)
 	keySize, n := calculateKeySize(internalPacketSize, internalPacketSize/5)
 	if n < 4 {
-		t.Fatalf("Keysize isnt small")
+		t.Fatalf("Keysize is not small.\nexpected: < %d\nreceived: %d", 4, n)
 	}
 
 	s := rsa.GetScheme()
@@ -282,8 +269,7 @@ func TestRSAToPublic_Encrypt_Decrypt_SmallKey_SmallPayload(t *testing.T) {
 	salt := cmix.NewSalt(rng, 32)
 
 	secret := make([]byte, 32)
-	_, err = rng.Read(secret)
-	if err != nil {
+	if _, err = rng.Read(secret); err != nil {
 		t.Fatal(err)
 	}
 
@@ -306,36 +292,33 @@ func TestRSAToPublic_Encrypt_Decrypt_SmallKey_SmallPayload(t *testing.T) {
 	}
 
 	payload := make([]byte, 10)
-	_, err = rng.Read(payload)
-	if err != nil {
+	if _, err = rng.Read(payload); err != nil {
 		t.Fatalf("Failed to read random data to payload: %+v", err)
 	}
-	encrypted, mac, nonce, err :=
+	_, encrypted, mac, nonce, err :=
 		ac.EncryptRSAToPublic(payload, pk, packetSize, rng)
 	if err != nil {
 		t.Fatalf("Failed to encrypt payload: %+v", err)
 	}
 
-	decrypted, err := ac.DecryptRSAToPublic(encrypted, mac, nonce)
+	decrypted, _, err := ac.DecryptRSAToPublic(encrypted, mac, nonce)
 	if err != nil {
 		t.Fatalf("Failed to decrypt payload: %+v", err)
 	}
 
-	if bytes.Compare(decrypted, payload) != 0 {
-		t.Errorf("Decrypt did not return expected data."+
-			"\nexpected: %+v\nreceived: %+v", payload, decrypted)
+	if !bytes.Equal(decrypted, payload) {
+		t.Errorf("Decrypt did not return expected data"+
+			"\nexpected: %v\nreceived: %v", payload, decrypted)
 	}
 }
 
-func TestRSAToPrivate_Encrypt_Decrypt_BigKey(t *testing.T) {
+func TestChannel_EncryptRSAToPrivate_DecryptRSAToPrivate_BigKey(t *testing.T) {
 	rng := csprng.NewSystemRNG()
-
 	packetSize := 1000
 	internalPacketSize := MaxSizedBroadcastPayloadSize(packetSize)
 	keySize, n := calculateKeySize(internalPacketSize, internalPacketSize)
-
 	if n != 1 {
-		t.Fatalf("Keysize isnt big")
+		t.Fatalf("Keysize is not big.\nexpected: %d\nreceived: %d", 1, n)
 	}
 
 	s := rsa.GetScheme()
@@ -350,8 +333,7 @@ func TestRSAToPrivate_Encrypt_Decrypt_BigKey(t *testing.T) {
 	salt := cmix.NewSalt(rng, 32)
 
 	secret := make([]byte, 32)
-	_, err = rng.Read(secret)
-	if err != nil {
+	if _, err = rng.Read(secret); err != nil {
 		t.Fatal(err)
 	}
 
@@ -376,10 +358,10 @@ func TestRSAToPrivate_Encrypt_Decrypt_BigKey(t *testing.T) {
 	maxPayloadLen, _, _ := ac.GetRSAToPublicMessageLength()
 
 	payload := make([]byte, maxPayloadLen)
-	_, err = rng.Read(payload)
-	if err != nil {
+	if _, err = rng.Read(payload); err != nil {
 		t.Fatalf("Failed to read random data to payload: %+v", err)
 	}
+
 	encrypted, mac, nonce, err :=
 		ac.EncryptRSAToPrivate(payload, pk.Public(), packetSize, rng)
 	if err != nil {
@@ -391,21 +373,19 @@ func TestRSAToPrivate_Encrypt_Decrypt_BigKey(t *testing.T) {
 		t.Fatalf("Failed to decrypt payload: %+v", err)
 	}
 
-	if bytes.Compare(decrypted, payload) != 0 {
-		t.Errorf("Decrypt did not return expected data."+
-			"\nexpected: %+v\nreceived: %+v", payload, decrypted)
+	if !bytes.Equal(decrypted, payload) {
+		t.Errorf("Decrypt did not return expected data"+
+			"\nexpected: %v\nreceived: %v", payload, decrypted)
 	}
 }
 
-func TestRSAToPrivate_Encrypt_Decrypt_BigKey_SmallPacket(t *testing.T) {
+func TestChannel_EncryptRSAToPrivate_DecryptRSAToPrivate_BigKey_SmallPacket(t *testing.T) {
 	rng := csprng.NewSystemRNG()
-
 	packetSize := 1000
 	internalPacketSize := MaxSizedBroadcastPayloadSize(packetSize)
 	keySize, n := calculateKeySize(internalPacketSize, internalPacketSize)
-
 	if n != 1 {
-		t.Fatalf("Keysize isnt big")
+		t.Fatalf("Keysize is not big.\nexpected: %d\nreceived: %d", 1, n)
 	}
 
 	s := rsa.GetScheme()
@@ -420,8 +400,7 @@ func TestRSAToPrivate_Encrypt_Decrypt_BigKey_SmallPacket(t *testing.T) {
 	salt := cmix.NewSalt(rng, 32)
 
 	secret := make([]byte, 32)
-	_, err = rng.Read(secret)
-	if err != nil {
+	if _, err = rng.Read(secret); err != nil {
 		t.Fatal(err)
 	}
 
@@ -444,10 +423,10 @@ func TestRSAToPrivate_Encrypt_Decrypt_BigKey_SmallPacket(t *testing.T) {
 	}
 
 	payload := make([]byte, 10)
-	_, err = rng.Read(payload)
-	if err != nil {
+	if _, err = rng.Read(payload); err != nil {
 		t.Fatalf("Failed to read random data to payload: %+v", err)
 	}
+
 	encrypted, mac, nonce, err :=
 		ac.EncryptRSAToPrivate(payload, pk.Public(), packetSize, rng)
 	if err != nil {
@@ -459,21 +438,19 @@ func TestRSAToPrivate_Encrypt_Decrypt_BigKey_SmallPacket(t *testing.T) {
 		t.Fatalf("Failed to decrypt payload: %+v", err)
 	}
 
-	if bytes.Compare(decrypted, payload) != 0 {
-		t.Errorf("Decrypt did not return expected data."+
-			"\nexpected: %+v\nreceived: %+v", payload, decrypted)
+	if !bytes.Equal(decrypted, payload) {
+		t.Errorf("Decrypt did not return expected data"+
+			"\nexpected: %v\nreceived: %v", payload, decrypted)
 	}
 }
 
-func TestRSAToPrivate_Encrypt_Decrypt_SmallKey(t *testing.T) {
+func TestChannel_EncryptRSAToPrivate_DecryptRSAToPrivate_SmallKey(t *testing.T) {
 	rng := csprng.NewSystemRNG()
-
 	packetSize := 1000
 	internalPacketSize := MaxSizedBroadcastPayloadSize(packetSize)
 	keySize, n := calculateKeySize(internalPacketSize, internalPacketSize/5)
-
 	if n < 4 {
-		t.Fatalf("Keysize isnt small")
+		t.Fatalf("Keysize is not small.\nexpected: < %d\nreceived: %d", 4, n)
 	}
 
 	s := rsa.GetScheme()
@@ -488,8 +465,7 @@ func TestRSAToPrivate_Encrypt_Decrypt_SmallKey(t *testing.T) {
 	salt := cmix.NewSalt(rng, 32)
 
 	secret := make([]byte, 32)
-	_, err = rng.Read(secret)
-	if err != nil {
+	if _, err = rng.Read(secret); err != nil {
 		t.Fatal(err)
 	}
 
@@ -514,10 +490,10 @@ func TestRSAToPrivate_Encrypt_Decrypt_SmallKey(t *testing.T) {
 	maxPayloadLen, _, _ := ac.GetRSAToPublicMessageLength()
 
 	payload := make([]byte, maxPayloadLen)
-	_, err = rng.Read(payload)
-	if err != nil {
+	if _, err = rng.Read(payload); err != nil {
 		t.Fatalf("Failed to read random data to payload: %+v", err)
 	}
+
 	encrypted, mac, nonce, err :=
 		ac.EncryptRSAToPrivate(payload, pk.Public(), packetSize, rng)
 	if err != nil {
@@ -529,21 +505,19 @@ func TestRSAToPrivate_Encrypt_Decrypt_SmallKey(t *testing.T) {
 		t.Fatalf("Failed to decrypt payload: %+v", err)
 	}
 
-	if bytes.Compare(decrypted, payload) != 0 {
-		t.Errorf("Decrypt did not return expected data."+
-			"\nexpected: %+v\nreceived: %+v", payload, decrypted)
+	if !bytes.Equal(decrypted, payload) {
+		t.Errorf("Decrypt did not return expected data"+
+			"\nexpected: %v\nreceived: %v", payload, decrypted)
 	}
 }
 
-func TestRSAToPrivate_Encrypt_Decrypt_SmallKey_SmallPacket(t *testing.T) {
+func TestChannel_EncryptRSAToPrivate_DecryptRSAToPrivate_SmallKey_SmallPacket(t *testing.T) {
 	rng := csprng.NewSystemRNG()
-
 	packetSize := 1000
 	internalPacketSize := MaxSizedBroadcastPayloadSize(packetSize)
 	keySize, n := calculateKeySize(internalPacketSize, internalPacketSize/5)
-
 	if n < 4 {
-		t.Fatalf("Keysize isnt small")
+		t.Fatalf("Keysize is not small.\nexpected: < %d\nreceived: %d", 4, n)
 	}
 
 	s := rsa.GetScheme()
@@ -558,8 +532,7 @@ func TestRSAToPrivate_Encrypt_Decrypt_SmallKey_SmallPacket(t *testing.T) {
 	salt := cmix.NewSalt(rng, 32)
 
 	secret := make([]byte, 32)
-	_, err = rng.Read(secret)
-	if err != nil {
+	if _, err = rng.Read(secret); err != nil {
 		t.Fatal(err)
 	}
 
@@ -582,10 +555,10 @@ func TestRSAToPrivate_Encrypt_Decrypt_SmallKey_SmallPacket(t *testing.T) {
 	}
 
 	payload := make([]byte, 10)
-	_, err = rng.Read(payload)
-	if err != nil {
+	if _, err = rng.Read(payload); err != nil {
 		t.Fatalf("Failed to read random data to payload: %+v", err)
 	}
+
 	encrypted, mac, nonce, err :=
 		ac.EncryptRSAToPrivate(payload, pk.Public(), packetSize, rng)
 	if err != nil {
@@ -597,8 +570,86 @@ func TestRSAToPrivate_Encrypt_Decrypt_SmallKey_SmallPacket(t *testing.T) {
 		t.Fatalf("Failed to decrypt payload: %+v", err)
 	}
 
-	if bytes.Compare(decrypted, payload) != 0 {
-		t.Errorf("Decrypt did not return expected data."+
-			"\nexpected: %+v\nreceived: %+v", payload, decrypted)
+	if !bytes.Equal(decrypted, payload) {
+		t.Errorf("Decrypt did not return expected data"+
+			"\nexpected: %v\nreceived: %v", payload, decrypted)
+	}
+}
+
+func TestChannel_DecryptRSAToPublicInner(t *testing.T) {
+	rng := csprng.NewSystemRNG()
+	packetSize := 1000
+	internalPacketSize := MaxSizedBroadcastPayloadSize(packetSize)
+	keySize, n := calculateKeySize(internalPacketSize, internalPacketSize)
+	if n != 1 {
+		t.Fatalf("Keysize is not big.\nexpected: %d\nreceived: %d", 1, n)
+	}
+
+	s := rsa.GetScheme()
+	pk, err := s.Generate(rng, keySize*8)
+	if err != nil {
+		t.Fatalf("Failed to generate private key: %+v", err)
+	}
+	name := "Asymmetric channel"
+	desc := "Asymmetric channel description"
+	level := Public
+	created := netTime.Now()
+	salt := cmix.NewSalt(rng, 32)
+
+	secret := make([]byte, 32)
+	if _, err = rng.Read(secret); err != nil {
+		t.Fatal(err)
+	}
+
+	rid, err := NewChannelID(
+		name, desc, level, created, salt, HashPubKey(pk.Public()), secret)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ac := Channel{
+		ReceptionID:     rid,
+		Name:            name,
+		Description:     desc,
+		Level:           level,
+		Created:         created,
+		Salt:            salt,
+		RsaPubKeyHash:   HashPubKey(pk.Public()),
+		RsaPubKeyLength: keySize,
+		RSASubPayloads:  n,
+		Secret:          secret,
+	}
+
+	maxPayloadLen, _, _ := ac.GetRSAToPublicMessageLength()
+	payload := make([]byte, maxPayloadLen)
+	if _, err = rng.Read(payload); err != nil {
+		t.Fatalf("Failed to read random data to payload: %+v", err)
+	}
+
+	singleEncryptedPayload, _, _, _, err :=
+		ac.EncryptRSAToPublic(payload, pk, packetSize, rng)
+	if err != nil {
+		t.Fatalf("Failed to encrypt payload: %+v", err)
+	}
+
+	decrypted, err := ac.DecryptRSAToPublicInner(singleEncryptedPayload)
+	if err != nil {
+		t.Fatalf("Failed to decrypt payload: %+v", err)
+	}
+
+	if !bytes.Equal(decrypted, payload) {
+		t.Errorf("Decrypt did not return expected data"+
+			"\nexpected: %v\nreceived: %v", payload, decrypted)
+	}
+
+	// Test that it properly trims payload that is too long
+	decrypted, err = ac.DecryptRSAToPublicInner(
+		append(singleEncryptedPayload, singleEncryptedPayload...))
+	if err != nil {
+		t.Fatalf("Failed to decrypt payload: %+v", err)
+	}
+
+	if !bytes.Equal(decrypted, payload) {
+		t.Errorf("Decrypt did not return expected data"+
+			"\nexpected: %v\nreceived: %v", payload, decrypted)
 	}
 }

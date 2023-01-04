@@ -10,6 +10,8 @@ package channel
 import (
 	"math/rand"
 	"testing"
+
+	"gitlab.com/elixxir/crypto/codename"
 )
 
 // Consistency test for decode version "0".
@@ -19,12 +21,12 @@ func Test_decodeVer0_Consistency(t *testing.T) {
 	var identities []PrivateIdentity
 
 	for i := 0; i < 10; i++ {
-		pi, err := GenerateIdentity(prng)
+		pi, err := codename.GenerateIdentity(prng)
 		if err != nil {
 			t.Fatalf("Failed to generate identity %d: %+v", i, err)
 		}
 
-		identities = append(identities, pi)
+		identities = append(identities, PrivateIdentity{pi})
 
 		password := make([]byte, 16)
 		prng.Read(password)

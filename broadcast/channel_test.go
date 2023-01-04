@@ -13,7 +13,6 @@ import (
 	"gitlab.com/elixxir/crypto/cmix"
 	"gitlab.com/elixxir/crypto/rsa"
 	"gitlab.com/xx_network/crypto/csprng"
-	oldRsa "gitlab.com/xx_network/crypto/signature/rsa"
 	"gitlab.com/xx_network/primitives/id"
 	"gitlab.com/xx_network/primitives/netTime"
 	"reflect"
@@ -69,7 +68,7 @@ func TestChannel_MarshalJson(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	pubKeyPem := oldRsa.CreatePublicKeyPem(pk.Public().GetOldRSA())
+	pubKeyPem := pk.Public().MarshalPem()
 	rid, err := NewChannelID(
 		name, desc, Public, netTime.Now(), secret, salt, HashSecret(pubKeyPem))
 	channel := Channel{
@@ -172,7 +171,7 @@ func TestRChanel_Marshal_Unmarshal(t *testing.T) {
 	}
 }
 
-func TestNewChannel_Verify(t *testing.T) {
+func TestChannel_Verify(t *testing.T) {
 	rng := csprng.NewSystemRNG()
 
 	name := "Asymmetric_channel"

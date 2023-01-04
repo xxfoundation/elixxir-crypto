@@ -8,8 +8,8 @@
 package singleUse
 
 import (
-	"bytes"
 	"crypto/hmac"
+
 	"gitlab.com/elixxir/crypto/hash"
 )
 
@@ -34,5 +34,5 @@ func MakeMAC(key []byte, encryptedPayload []byte) []byte {
 func VerifyMAC(key []byte, encryptedPayload, receivedMAC []byte) bool {
 	newMAC := MakeMAC(key, encryptedPayload)
 
-	return bytes.Equal(newMAC, receivedMAC)
+	return hmac.Equal(newMAC, receivedMAC)
 }

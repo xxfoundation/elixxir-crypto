@@ -1,4 +1,4 @@
-package channel
+package codename
 
 var colorsV0 = []string{
 	"0x1589FF",

@@ -12,9 +12,11 @@ package contact
 
 import (
 	"bytes"
+	"crypto/hmac"
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/binary"
+
 	"github.com/pkg/errors"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/primitives/fact"
@@ -89,7 +91,7 @@ func unmarshalVer2(b []byte) (Contact, error) {
 	checksum := buff.Next(checksumLength)
 
 	// Verify matching checksum
-	if !bytes.Equal(c.GetChecksum(), checksum) {
+	if !hmac.Equal(c.GetChecksum(), checksum) {
 		return c, errors.New(checksumErr)
 	}
 
@@ -164,7 +166,7 @@ func unmarshalVer1(b []byte) (Contact, error) {
 	checksum := buff.Next(checksumLength)
 
 	// Verify matching checksum
-	if !bytes.Equal(c.GetChecksumVer1(), checksum) {
+	if !hmac.Equal(c.GetChecksumVer1(), checksum) {
 		return c, errors.New(checksumErr)
 	}
 
