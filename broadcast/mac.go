@@ -8,8 +8,8 @@
 package broadcast
 
 import (
-	"bytes"
 	"crypto/hmac"
+
 	"gitlab.com/elixxir/crypto/hash"
 )
 
@@ -30,5 +30,5 @@ func makeMAC(key, encryptedPayload []byte) []byte {
 // Returns true if they match.
 func verifyMAC(key, encryptedPayload, mac []byte) bool {
 	testMAC := makeMAC(key, encryptedPayload)
-	return bytes.Equal(mac, testMAC)
+	return hmac.Equal(mac, testMAC)
 }

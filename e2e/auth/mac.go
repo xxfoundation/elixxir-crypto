@@ -12,9 +12,9 @@ package auth
 // channel payload.
 
 import (
-	"bytes"
-	"gitlab.com/elixxir/crypto/hash"
 	"crypto/hmac"
+
+	"gitlab.com/elixxir/crypto/hash"
 )
 
 // MakeMac returns the MAC for the given payload.
@@ -33,5 +33,5 @@ func MakeMac(baseKey, encryptedPayload []byte) []byte {
 // information. Returns true if they match.
 func VerifyMac(baseKey, encryptedPayload, mac []byte) bool {
 	testMAC := MakeMac(baseKey, encryptedPayload)
-	return bytes.Equal(mac, testMAC)
+	return hmac.Equal(mac, testMAC)
 }

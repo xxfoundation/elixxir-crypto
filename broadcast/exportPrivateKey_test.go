@@ -22,9 +22,9 @@ import (
 
 // Tests that a message signed with the private key can be verified with the
 // same key once is has been exported and imported.
-func Test_portablePrivKey_export_ImportPrivateKey_KeySign(t *testing.T) {
+func Test_ExportPrivateKey_ImportPrivateKey_KeySign(t *testing.T) {
 	rng := csprng.NewSystemRNG()
-	ppk := newPPK(256, rng, t)
+	ppk := newPPK(512, rng, t)
 
 	hashFunc := crypto.SHA256
 	h := hashFunc.New()
@@ -59,7 +59,7 @@ func Test_portablePrivKey_export_ImportPrivateKey_KeySign(t *testing.T) {
 // ExportPrivateKeyCustomParams and can be imported using ImportPrivateKey.
 func Test_ExportPrivateKeyCustomParams_ImportPrivateKey(t *testing.T) {
 	rng := csprng.NewSystemRNG()
-	ppk := newPPK(18, rng, t)
+	ppk := newPPK(178, rng, t)
 
 	password := "hunter2"
 	exported, err := ExportPrivateKeyCustomParams(ppk.channelID, ppk.privKey,
@@ -88,7 +88,7 @@ func Test_ExportPrivateKeyCustomParams_ImportPrivateKey(t *testing.T) {
 // using ImportPrivateKey matches the original.
 func Test_portablePrivKey_export_ImportPrivateKey(t *testing.T) {
 	rng := csprng.NewSystemRNG()
-	ppk := newPPK(18, rng, t)
+	ppk := newPPK(178, rng, t)
 
 	password := "hunter2"
 	exported, err := ppk.export(password, testParams(), rng)
@@ -116,7 +116,7 @@ func Test_portablePrivKey_export_ImportPrivateKey(t *testing.T) {
 // encryption fails due to the RNG being empty.
 func Test_portablePrivKey_export_EncryptError(t *testing.T) {
 	rng := bytes.NewBuffer([]byte{})
-	ppk := newPPK(18, csprng.NewSystemRNG(), t)
+	ppk := newPPK(178, csprng.NewSystemRNG(), t)
 	expectedErr := strings.Split(encryptErr, "%")[0]
 
 	_, err := ppk.export("", backup.DefaultParams(), rng)
@@ -161,7 +161,7 @@ func TestImportPrivateKey_MalformedImportsError(t *testing.T) {
 func Test_portablePrivKey_encrypt_decrypt(t *testing.T) {
 	password, params := "hunter2", testParams()
 	rng := csprng.NewSystemRNG()
-	ppk := newPPK(18, rng, t)
+	ppk := newPPK(178, rng, t)
 
 	encryptedData, salt, err := ppk.encrypt(password, params, rng)
 	if err != nil {
@@ -200,7 +200,7 @@ func Test_portablePrivKey_encrypt_MakeSaltError(t *testing.T) {
 func Test_portablePrivKey_decrypt_DecryptError(t *testing.T) {
 	password, params := "hunter2", testParams()
 	rng := csprng.NewSystemRNG()
-	ppk := newPPK(18, rng, t)
+	ppk := newPPK(178, rng, t)
 
 	encryptedData, salt, err := ppk.encrypt(password, params, rng)
 	if err != nil {
@@ -221,7 +221,7 @@ func Test_portablePrivKey_decrypt_DecryptError(t *testing.T) {
 func Test_portablePrivKey_decrypt_DecodeError(t *testing.T) {
 	password, params := "hunter2", testParams()
 	rng := csprng.NewSystemRNG()
-	ppk := newPPK(18, rng, t)
+	ppk := newPPK(178, rng, t)
 
 	// Generate encrypted data that is not a portablePrivKey
 	salt, _ := makeSalt(rng)
@@ -239,7 +239,7 @@ func Test_portablePrivKey_decrypt_DecodeError(t *testing.T) {
 // Tests that a portablePrivKey marshalled via portablePrivKey.encode and
 // unmarshalled via portablePrivKey.decode matches the original.
 func Test_portablePrivKey_encode_decode(t *testing.T) {
-	ppk := newPPK(18, csprng.NewSystemRNG(), t)
+	ppk := newPPK(178, csprng.NewSystemRNG(), t)
 	data := ppk.encode()
 
 	newPpk := &portablePrivKey{}
@@ -256,7 +256,7 @@ func Test_portablePrivKey_encode_decode(t *testing.T) {
 // Error path: Tests that portablePrivKey.decode returns the expected error when
 // the data passed in is of the wrong length.
 func Test_portablePrivKey_decode_DataLengthError(t *testing.T) {
-	ppk := newPPK(18, csprng.NewSystemRNG(), t)
+	ppk := newPPK(178, csprng.NewSystemRNG(), t)
 	data := ppk.encode()[:25]
 
 	expectedErr := fmt.Sprintf(unmarshalDataLenErr, encodedLenMin, len(data))
@@ -270,7 +270,7 @@ func Test_portablePrivKey_decode_DataLengthError(t *testing.T) {
 // Error path: Tests that portablePrivKey.decode returns the expected error when
 // the data has an incorrect version.
 func Test_portablePrivKey_decode_IncorrectVersionError(t *testing.T) {
-	ppk := newPPK(18, csprng.NewSystemRNG(), t)
+	ppk := newPPK(178, csprng.NewSystemRNG(), t)
 
 	data := ppk.encode()
 	data[0] = currentEncryptedVer + 1
@@ -286,7 +286,7 @@ func Test_portablePrivKey_decode_IncorrectVersionError(t *testing.T) {
 // Error path: Tests that portablePrivKey.decode returns the expected error when
 // there is an invalid RSA key PEM.
 func Test_portablePrivKey_decode_InvalidRsaKeyPEM(t *testing.T) {
-	ppk := newPPK(18, csprng.NewSystemRNG(), t)
+	ppk := newPPK(178, csprng.NewSystemRNG(), t)
 	data := ppk.encode()[:encodedLenMin+6]
 
 	expectedErr := strings.Split(decodePemErr, "%")[0]

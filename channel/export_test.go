@@ -11,18 +11,21 @@ import (
 	"bytes"
 	"crypto/ed25519"
 	"fmt"
-	"gitlab.com/elixxir/crypto/backup"
-	"gitlab.com/xx_network/crypto/csprng"
 	"reflect"
 	"strings"
 	"testing"
+
+	"gitlab.com/elixxir/crypto/backup"
+	"gitlab.com/elixxir/crypto/codename"
+	"gitlab.com/xx_network/crypto/csprng"
 )
 
 // Tests that a message signed with a PrivateIdentity can be verified with the
 // same identity once is has been exported and imported.
 func TestPrivateIdentity_export_ImportPrivateIdentity_KeySign(t *testing.T) {
 	rng := csprng.NewSystemRNG()
-	pi, _ := GenerateIdentity(rng)
+	cpi, _ := codename.GenerateIdentity(rng)
+	pi := PrivateIdentity{cpi}
 
 	message := make([]byte, 256)
 	_, _ = rng.Read(message)

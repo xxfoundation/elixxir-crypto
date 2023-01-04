@@ -8,9 +8,8 @@
 package registration
 
 import (
-	"bytes"
-	"hash"
 	"crypto/hmac"
+	"hash"
 )
 
 // This file contains logic constructing MACs related to any registration code path.
@@ -31,5 +30,5 @@ func VerifyClientHMAC(sessionKey, encryptedKey []byte,
 	h func() hash.Hash, receivedHmac []byte) bool {
 
 	expectedHmac := CreateClientHMAC(sessionKey, encryptedKey, h)
-	return bytes.Equal(receivedHmac, expectedHmac)
+	return hmac.Equal(receivedHmac, expectedHmac)
 }
