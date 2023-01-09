@@ -63,6 +63,11 @@ func (*scheme) Convert(key *gorsa.PrivateKey) PrivateKey {
 	return &private{*key}
 }
 
+// ConvertPublic accepts a gorsa.PublicKey and returns a PublicKey interface
+func (*scheme) ConvertPublic(key *gorsa.PublicKey) PublicKey {
+	return &public{*key}
+}
+
 // GenerateDefault generates an RSA keypair of the library default bit size
 // using the random source random (for example, crypto/rand.Reader).
 func (s *scheme) GenerateDefault(random io.Reader) (PrivateKey, error) {

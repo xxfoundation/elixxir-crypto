@@ -69,6 +69,9 @@ type Scheme interface {
 
 	// Convert accepts a gorsa.PrivateKey and returns a PrivateKey interface
 	Convert(key *gorsa.PrivateKey) PrivateKey
+
+	// ConvertPublic accepts a gorsa.PublicKey and returns a PublicKey interface
+	ConvertPublic(key *gorsa.PublicKey) PublicKey
 }
 
 // PrivateKey is an interface for an RSA private key that implements the
