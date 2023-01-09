@@ -13,7 +13,7 @@ require (
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/jwalterweatherman v1.1.0
 	github.com/stretchr/testify v1.8.0
-	gitlab.com/elixxir/primitives v0.0.3-0.20221214192222-988b44a6958a
+	gitlab.com/elixxir/primitives v0.0.3-0.20230109222259-f62b2a90b62c
 	gitlab.com/xx_network/crypto v0.0.5-0.20230109222209-557b66d73c33
 	gitlab.com/xx_network/primitives v0.0.4-0.20221219230308-4b5550a9247d
 	gitlab.com/yawning/nyquist.git v0.0.0-20221003103146-de5645224a22
