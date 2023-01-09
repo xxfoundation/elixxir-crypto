@@ -14,8 +14,8 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0
 	github.com/stretchr/testify v1.8.0
 	gitlab.com/elixxir/primitives v0.0.3-0.20221214192222-988b44a6958a
-	gitlab.com/xx_network/crypto v0.0.5-0.20221121220724-8eefdbb0eb46
-	gitlab.com/xx_network/primitives v0.0.4-0.20221209210320-376735467d58
+	gitlab.com/xx_network/crypto v0.0.5-0.20230109222209-557b66d73c33
+	gitlab.com/xx_network/primitives v0.0.4-0.20221219230308-4b5550a9247d
 	gitlab.com/yawning/nyquist.git v0.0.0-20221003103146-de5645224a22
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa
 )
@@ -36,6 +36,4 @@ require (
 	gitlab.com/yawning/x448.git v0.0.0-20221003101044-617eb9b7d9b7 // indirect
 	golang.org/x/sys v0.0.0-20220928140112-f11e5e49a4ec // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
-	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
