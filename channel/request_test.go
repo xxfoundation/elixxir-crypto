@@ -2,8 +2,8 @@ package channel
 
 import (
 	"crypto/ed25519"
+	"gitlab.com/elixxir/crypto/rsa"
 	"gitlab.com/xx_network/crypto/csprng"
-	"gitlab.com/xx_network/crypto/signature/rsa"
 	"testing"
 	"time"
 )
@@ -12,7 +12,8 @@ import (
 // Request using SignChannelIdentityRequest and VerifyChannelIdentityRequest.
 func TestSignVerify(t *testing.T) {
 	rng := csprng.NewSystemRNG()
-	rsaPriv, err := rsa.GenerateKey(rng, rsa.DefaultRSABitLen)
+	sch := rsa.GetScheme()
+	rsaPriv, err := sch.GenerateDefault(rng)
 	if err != nil {
 		t.Fatalf("Failed to generate rsa private key: %+v", err)
 	}
@@ -30,7 +31,7 @@ func TestSignVerify(t *testing.T) {
 	}
 
 	err = VerifyChannelIdentityRequest(
-		sig, edPub, time.Now(), ts, rsaPriv.GetPublic())
+		sig, edPub, time.Now(), ts, rsaPriv.Public())
 	if err != nil {
 		t.Fatalf("Failed to verify request: %+v", err)
 	}
