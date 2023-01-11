@@ -13,7 +13,7 @@ package authorize
 import (
 	"encoding/binary"
 	"github.com/pkg/errors"
-	"gitlab.com/xx_network/crypto/signature/rsa"
+	"gitlab.com/elixxir/crypto/rsa"
 	"gitlab.com/xx_network/crypto/xx"
 	"gitlab.com/xx_network/primitives/id"
 	"hash"
@@ -22,13 +22,13 @@ import (
 )
 
 // Sign takes in a node's current timestamp and signs that with its own private key
-func Sign(rand io.Reader, now time.Time, privKey *rsa.PrivateKey) ([]byte, error) {
+func Sign(rand io.Reader, now time.Time, privKey rsa.PrivateKey) ([]byte, error) {
 	// Construct the hash
-	options := rsa.NewDefaultOptions()
+	options := rsa.NewDefaultPSSOptions()
 	hashedData := digest(options.Hash.New(), now)
 
 	// Sign the data
-	return rsa.Sign(rand, privKey, options.Hash, hashedData, options)
+	return privKey.SignPSS(rand, options.Hash, hashedData, options)
 }
 
 // Verify confirms the node's signed timestamp. It performs a
@@ -37,7 +37,7 @@ func Sign(rand io.Reader, now time.Time, privKey *rsa.PrivateKey) ([]byte, error
 // Second it will check that the public key and salt make the passed in node ID
 // Finally it will verify the signature on the signedTS using the public key
 func Verify(now time.Time, signedTS time.Time,
-	pubkey *rsa.PublicKey, nid *id.ID, salt []byte,
+	pubkey rsa.PublicKey, nid *id.ID, salt []byte,
 	delta time.Duration, signature []byte) error {
 
 	// Check that the signed timestamp is within the delta passed in
@@ -59,11 +59,11 @@ func Verify(now time.Time, signedTS time.Time,
 	}
 
 	// Construct the hash
-	options := rsa.NewDefaultOptions()
+	options := rsa.NewDefaultPSSOptions()
 	hashedData := digest(options.Hash.New(), signedTS)
 
 	// Verify the signature passed in
-	return rsa.Verify(pubkey, options.Hash, hashedData, signature, options)
+	return pubkey.VerifyPSS(options.Hash, hashedData, signature, options)
 
 }
 
