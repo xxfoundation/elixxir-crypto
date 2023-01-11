@@ -14,6 +14,7 @@ import (
 	"encoding/binary"
 	"github.com/pkg/errors"
 	"gitlab.com/elixxir/crypto/rsa"
+	oldRsa "gitlab.com/xx_network/crypto/signature/rsa"
 	"gitlab.com/xx_network/crypto/xx"
 	"gitlab.com/xx_network/primitives/id"
 	"hash"
@@ -22,13 +23,13 @@ import (
 )
 
 // Sign takes in a node's current timestamp and signs that with its own private key
-func Sign(rand io.Reader, now time.Time, privKey rsa.PrivateKey) ([]byte, error) {
+func Sign(rand io.Reader, now time.Time, privKey *oldRsa.PrivateKey) ([]byte, error) {
 	// Construct the hash
-	options := rsa.NewDefaultPSSOptions()
+	options := oldRsa.NewDefaultOptions()
 	hashedData := digest(options.Hash.New(), now)
 
 	// Sign the data
-	return privKey.SignPSS(rand, options.Hash, hashedData, options)
+	return oldRsa.Sign(rand, privKey, options.Hash, hashedData, options)
 }
 
 // Verify confirms the node's signed timestamp. It performs a
