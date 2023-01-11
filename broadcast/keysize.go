@@ -41,6 +41,10 @@ func calculateKeySize(
 	// the appropriate key size back
 	selectedKeySize = (sizedPayloadSize - rsa.ELength) / (selectedN + 1)
 
+	// round down to the closest multiple of 8 (this is a requirement for
+	// subtleCrypto compatibility)
+	selectedKeySize = (selectedKeySize / 8) * 8
+
 	return
 }
 
