@@ -2,15 +2,15 @@ package authorize
 
 import (
 	"bytes"
+	"gitlab.com/elixxir/crypto/rsa"
 	"gitlab.com/xx_network/crypto/csprng"
-	"gitlab.com/xx_network/crypto/signature/rsa"
 	"testing"
 	"time"
 )
 
 func TestSignVerify_CertRequest(t *testing.T) {
 	rng := csprng.NewSystemRNG()
-	pk, err := rsa.GenerateKey(rng, 2048)
+	pk, err := rsa.GetScheme().Generate(rng, 2048)
 	if err != nil {
 		t.Fatalf("Failed to generate pk: %+v", err)
 	}
@@ -27,7 +27,7 @@ func TestSignVerify_CertRequest(t *testing.T) {
 		t.Fatalf("Failed to sign acme token")
 	}
 
-	err = VerifyCertRequest(pk.GetPublic(), sig, token, testNow, timestamp, testDelta)
+	err = VerifyCertRequest(pk.Public(), sig, token, testNow, timestamp, testDelta)
 	if err != nil {
 		t.Fatalf("Failed to verify signature on acme token: %+v", err)
 	}
@@ -35,7 +35,7 @@ func TestSignVerify_CertRequest(t *testing.T) {
 
 func TestSignVerify_CertRequest_Consistency(t *testing.T) {
 	rng := &CountingReader{count: uint8(0)}
-	pk, err := rsa.GenerateKey(rng, 1024)
+	pk, err := rsa.GetScheme().Generate(rng, 1024)
 	if err != nil {
 		t.Fatalf("Failed to generate pk: %+v", err)
 	}
@@ -57,7 +57,7 @@ func TestSignVerify_CertRequest_Consistency(t *testing.T) {
 		t.Fatalf("Failed to verify consistency for SignACMEToken\n\tExpected: %+v\n\tReceived: %+v", expectedSig, sig)
 	}
 
-	err = VerifyCertRequest(pk.GetPublic(), sig, token, testNow, timestamp, testDelta)
+	err = VerifyCertRequest(pk.Public(), sig, token, testNow, timestamp, testDelta)
 	if err != nil {
 		t.Fatalf("Failed to verify signature on acme token: %+v", err)
 	}

@@ -10,7 +10,7 @@ package authorize
 import (
 	"encoding/binary"
 	"gitlab.com/elixxir/crypto/hash"
-	"gitlab.com/xx_network/crypto/signature/rsa"
+	"gitlab.com/elixxir/crypto/rsa"
 	"io"
 	"time"
 )
@@ -18,17 +18,17 @@ import (
 var hashType = hash.CMixHash
 
 // SignCertRequest signs the ACME token & other info sent with an AuthorizerCertRequest
-func SignCertRequest(rng io.Reader, gwRsa *rsa.PrivateKey,
+func SignCertRequest(rng io.Reader, gwRsa rsa.PrivateKey,
 	acmeToken string, now time.Time) ([]byte, error) {
 	hashed, err := hashCertRequestInfo(acmeToken, now)
 	if err != nil {
 		return nil, err
 	}
-	return rsa.Sign(rng, gwRsa, hashType, hashed, rsa.NewDefaultOptions())
+	return gwRsa.SignPSS(rng, hashType, hashed, rsa.NewDefaultPSSOptions())
 }
 
 // VerifyCertRequest verifies the signature on an ACME token & other info sent with an AuthorizerCertRequest
-func VerifyCertRequest(gwPub *rsa.PublicKey, sig []byte,
+func VerifyCertRequest(gwPub rsa.PublicKey, sig []byte,
 	acmeToken string, now, signedTS time.Time, delta time.Duration) error {
 	err := checkTimeBound(now, signedTS, delta)
 	if err != nil {
@@ -38,7 +38,7 @@ func VerifyCertRequest(gwPub *rsa.PublicKey, sig []byte,
 	if err != nil {
 		return err
 	}
-	return rsa.Verify(gwPub, hashType, hashed, sig, rsa.NewDefaultOptions())
+	return gwPub.VerifyPSS(hashType, hashed, sig, rsa.NewDefaultPSSOptions())
 }
 
 func hashCertRequestInfo(acmeToken string, timestamp time.Time) ([]byte, error) {
