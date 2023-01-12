@@ -31,12 +31,10 @@ func calculateKeySize(payloadSize int) (selectedKeySize int, selectedN int) {
 	// truncate to ensure the calculated key size is a factor by 128
 	// to account for issues in javascript subtle crypto implementation
 	// of RSA
-	// this code takes advantage of the fact that 128 = 2^7, meaning
-	// a number can be set to be divisable by 128 by ensuring the
-	// bottom 7 bits are zero in 2s complement (signed) space
-	// note: the highest bit is 0 because it is always 0
-	// for positive numbers in 2s complement signed space
-	selectedKeySize = maxKeySize & 0x7fffffffffffff80
+	// this code takes advantage of the fact that division in integer
+	// space clamps down. As a result, this ensures the key size that the
+	// first factor of 128 below (or equal to) maxKeySize
+	selectedKeySize = (maxKeySize * 128) / 128
 
 	// there are 2 sub payloads, but 1 will be used for the public key,
 	// so the number of usable sub payloads is 1
