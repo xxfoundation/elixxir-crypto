@@ -34,7 +34,7 @@ func calculateKeySize(payloadSize int) (selectedKeySize int, selectedN int) {
 	// this code takes advantage of the fact that division in integer
 	// space clamps down. As a result, this ensures the key size that the
 	// first factor of 128 below (or equal to) maxKeySize
-	selectedKeySize = (maxKeySize * 128) / 128
+	selectedKeySize = (maxKeySize / 128) * 128
 
 	// there are 2 sub payloads, but 1 will be used for the public key,
 	// so the number of usable sub payloads is 1
