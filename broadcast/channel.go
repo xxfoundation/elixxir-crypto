@@ -175,10 +175,10 @@ func NewChannelVariableKeyUnsafe(name, description string, level PrivacyLevel,
 	if err != nil {
 		return nil, nil, err
 	}
-	if pk.Size() != keySize*8 {
+	if pk.Size() != keySize {
 		return nil, nil, errors.Errorf("Generated rsa key not "+
 			"the passed in size! input: %d bits, generated: %d bits",
-			keySize*8, pk.Size())
+			keySize*8, pk.Size()*8)
 	}
 	salt := cmix.NewSalt(rng, saltSize)
 
