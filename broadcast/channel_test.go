@@ -127,7 +127,7 @@ func TestChannel_MarshalJson(t *testing.T) {
 func TestRChanel_Marshal_Unmarshal(t *testing.T) {
 	rng := csprng.NewSystemRNG()
 	packetSize := 1000
-	keySize, _ := calculateKeySize(packetSize, packetSize)
+	keySize, _ := calculateKeySize(packetSize)
 	keySize = keySize * 8
 
 	s := rsa.GetScheme()
@@ -187,7 +187,7 @@ func TestChannel_Verify(t *testing.T) {
 func TestChannel_Verify_Happy(t *testing.T) {
 	rng := csprng.NewSystemRNG()
 	packetSize := 1000
-	keySize, _ := calculateKeySize(packetSize, packetSize)
+	keySize, _ := calculateKeySize(packetSize)
 	keySize = keySize * 8
 
 	s := rsa.GetScheme()
@@ -231,7 +231,7 @@ func TestChannel_Verify_Happy(t *testing.T) {
 func TestChannel_Verify_Fail_BadVerify(t *testing.T) {
 	rng := csprng.NewSystemRNG()
 	packetSize := 1000
-	keySize, _ := calculateKeySize(packetSize, packetSize)
+	keySize, _ := calculateKeySize(packetSize)
 	keySize = keySize * 8
 
 	s := rsa.GetScheme()
@@ -268,7 +268,7 @@ func TestChannel_Verify_Fail_BadVerify(t *testing.T) {
 func TestChannel_Verify_BadGeneration(t *testing.T) {
 	rng := csprng.NewSystemRNG()
 	packetSize := 1000
-	keySize, _ := calculateKeySize(packetSize, packetSize)
+	keySize, _ := calculateKeySize(packetSize)
 	keySize = keySize * 8
 
 	s := rsa.GetScheme()
