@@ -8,6 +8,7 @@
 package rsa
 
 import (
+	"github.com/pkg/errors"
 	"syscall/js"
 )
 
@@ -15,14 +16,34 @@ var (
 	subtleCrypto = js.Global().Get("crypto").Get("subtle")
 	array        = js.Global().Get("Array")
 
-	// Object is the Javascript Object type. It is used to perform Object
+	// object is the Javascript Object type. It is used to perform Object
 	// operations on the Javascript layer.
 	object = js.Global().Get("Object")
+
+	// json is the Javascript JSON type. It is used to perform JSON operations
+	// on the Javascript layer.
+	json = js.Global().Get("JSON")
 
 	// Uint8Array is the Javascript Uint8Array type. It is used to create new
 	// Uint8Array.
 	Uint8Array = js.Global().Get("Uint8Array")
 )
+
+// handleJsError converts a Javascript error to a Go error.
+func handleJsError(value js.Value) error {
+	if value.IsNull() || value.IsUndefined() {
+		return nil
+	}
+
+	errMessage := value.Get("message")
+	if !errMessage.IsUndefined() && errMessage.String() != "" {
+		return js.Error{Value: value}
+	}
+
+	properties := object.Call("getOwnPropertyNames", value)
+	errJson := json.Call("stringify", value, properties).String()
+	return errors.New("JavaScript error: " + errJson)
+}
 
 // CopyBytesToGo copies the Uint8Array stored in the js.Value to []byte.
 // This is a wrapper for js.CopyBytesToGo to make it more convenient.

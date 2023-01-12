@@ -56,7 +56,7 @@ func (pub *public) GetOldRSA() *oldrsa.PublicKey {
 	return &oldrsa.PublicKey{PublicKey: pub.PublicKey}
 }
 
-// Size returns the key size, in bits, of the public key.
+// Size returns the key size, in bytes, of the public key.
 func (pub *public) Size() int {
 	return pub.PublicKey.Size()
 }
