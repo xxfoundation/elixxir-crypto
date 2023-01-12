@@ -133,7 +133,7 @@ type Channel struct {
 func NewChannel(name, description string, level PrivacyLevel,
 	packetPayloadLength int, rng csprng.Source) (*Channel, rsa.PrivateKey, error) {
 	return NewChannelVariableKeyUnsafe(name, description, level, netTime.Now(),
-		packetPayloadLength, rsa.GetScheme().GetDefaultKeySize(), rng)
+		packetPayloadLength, rng)
 }
 
 // NewChannelVariableKeyUnsafe creates a new channel with a variable RSA key
@@ -144,12 +144,8 @@ func NewChannel(name, description string, level PrivacyLevel,
 // packetPayloadLength is in bytes. maxKeySizeBits is the length, in bits, of an
 // RSA key defining the channel in bits. It must be divisible by 8.
 func NewChannelVariableKeyUnsafe(name, description string, level PrivacyLevel,
-	created time.Time, packetPayloadLength, maxKeySizeBits int,
-	rng csprng.Source) (*Channel, rsa.PrivateKey, error) {
-
-	if maxKeySizeBits%8 != 0 {
-		return nil, nil, errors.New("maxKeySizeBits must be divisible by 8")
-	}
+	created time.Time, packetPayloadLength int, rng csprng.Source) (
+	*Channel, rsa.PrivateKey, error) {
 
 	if err := VerifyName(name); err != nil {
 		return nil, nil, err
@@ -171,7 +167,7 @@ func NewChannelVariableKeyUnsafe(name, description string, level PrivacyLevel,
 
 	// Get the key size and the number of fields
 	keySize, numSubPayloads :=
-		calculateKeySize(packetPayloadLength, maxKeySizeBits/8)
+		calculateKeySize(packetPayloadLength)
 
 	// Multiply the key size by 8 because Scheme.Generate expects a key size in
 	// bits not bytes
@@ -179,7 +175,11 @@ func NewChannelVariableKeyUnsafe(name, description string, level PrivacyLevel,
 	if err != nil {
 		return nil, nil, err
 	}
-
+	if pk.Size() != keySize*8 {
+		return nil, nil, errors.Errorf("Generated rsa key not "+
+			"the passed in size! input: %d bits, generated: %d bits",
+			keySize*8, pk.Size())
+	}
 	salt := cmix.NewSalt(rng, saltSize)
 
 	secret := make([]byte, secretSize)
