@@ -62,7 +62,7 @@ func (priv *private) SignPSS(_ io.Reader, hash crypto.Hash, hashed []byte,
 	result, awaitErr := Await(subtleCrypto.Call("sign",
 		algorithm, key, CopyBytesToJS(hashed)))
 	if awaitErr != nil {
-		return nil, js.Error{Value: awaitErr[0]}
+		return nil, handleJsError(awaitErr[0])
 	}
 
 	return CopyBytesToGo(Uint8Array.New(result[0])), nil
@@ -101,7 +101,7 @@ func (priv *private) SignPKCS1v15(
 	result, awaitErr := Await(subtleCrypto.Call("sign",
 		"RSASSA-PKCS1-v1_5", key, CopyBytesToJS(hashed)))
 	if awaitErr != nil {
-		return nil, js.Error{Value: awaitErr[0]}
+		return nil, handleJsError(awaitErr[0])
 	}
 
 	return CopyBytesToGo(Uint8Array.New(result[0])), nil
@@ -139,7 +139,7 @@ func (priv *private) DecryptOAEP(
 	result, awaitErr := Await(subtleCrypto.Call("decrypt",
 		algorithm, key, CopyBytesToJS(ciphertext)))
 	if awaitErr != nil {
-		return nil, js.Error{Value: awaitErr[0]}
+		return nil, handleJsError(awaitErr[0])
 	}
 
 	return CopyBytesToGo(Uint8Array.New(result[0])), nil
@@ -187,7 +187,7 @@ func (priv *private) getRsaCryptoKey(
 	result, awaitErr := Await(subtleCrypto.Call("importKey",
 		"pkcs8", CopyBytesToJS(key), algorithm, true, array.New(keyUsages...)))
 	if awaitErr != nil {
-		return js.Value{}, js.Error{Value: awaitErr[0]}
+		return js.Value{}, handleJsError(awaitErr[0])
 	}
 
 	return result[0], nil

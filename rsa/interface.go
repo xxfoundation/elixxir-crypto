@@ -196,7 +196,7 @@ type PrivateKey interface {
 	// Deprecated: Only use for compatibility during the transition.
 	GetOldRSA() *oldrsa.PrivateKey
 
-	// Size returns the key size, in bits, of the private key.
+	// Size returns the key size, in bytes, of the private key.
 	Size() int
 
 	// GetD returns the private exponent of the RSA private key as a large.Int.
@@ -313,7 +313,7 @@ type PublicKey interface {
 	// Deprecated: Only use for compatibility during the change.
 	GetOldRSA() *oldrsa.PublicKey
 
-	// Size returns the key size, in bits, of the public key.
+	// Size returns the key size, in bytes, of the public key.
 	Size() int
 
 	// GetN returns the RSA public key modulus.

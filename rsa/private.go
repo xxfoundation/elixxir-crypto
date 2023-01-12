@@ -89,7 +89,7 @@ func (priv *private) GetOldRSA() *oldrsa.PrivateKey {
 	return &oldrsa.PrivateKey{PrivateKey: priv.PrivateKey}
 }
 
-// Size returns the key size, in bits, of the private key.
+// Size returns the key size, in bytes, of the private key.
 func (priv *private) Size() int {
 	return priv.PublicKey.Size()
 }

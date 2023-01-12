@@ -12,6 +12,7 @@ import (
 	"crypto"
 	"crypto/rand"
 	"golang.org/x/crypto/blake2b"
+	"runtime"
 	"testing"
 )
 
@@ -32,15 +33,23 @@ func TestMarshalUnMarshalWire(t *testing.T) {
 		t.Fatal("byte slices don't match")
 	}
 
+	hashFunc := crypto.BLAKE2b_256
+
+	// Javascript only uses SHA-256
+	if runtime.GOOS == "js" {
+		hashFunc = crypto.SHA256
+		t.Log("Javascript environment; using SHA-256.")
+	}
+
 	message := []byte("fluffy bunny")
 	hashed := blake2b.Sum256(message)
 	signature, err :=
-		serverPrivKey.SignPSS(rand.Reader, crypto.BLAKE2b_256, hashed[:], nil)
+		serverPrivKey.SignPSS(rand.Reader, hashFunc, hashed[:], nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = serverPubKey2.VerifyPSS(crypto.BLAKE2b_256, hashed[:], signature, nil)
+	err = serverPubKey2.VerifyPSS(hashFunc, hashed[:], signature, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
