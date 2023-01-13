@@ -51,7 +51,7 @@ func TestChannel_ShareURL_DecodeShareURL(t *testing.T) {
 }
 
 func TestChannel_ShareURL(t *testing.T) {
-	url := "http://backdev.speakeasy.tech/join?0Name=test&1Description=12345&2Level=Public&3Created=1673634057548310321&e=2FS%2F3gHkP2aAfPkKUra9IGXRRQGzzbT9%2Fh0nY6qZ8f0%3D&k=0cvAavvd9F1igRdRjpNSk0f0X4Uh4pxcP44HR5qczVI%3D&l=256&m=0&p=1&s=SmLS%2B98uUto3I4ODb1xUtWEPe5tadgqCEgV4uTayaQc%3D&v=1"
+	url := "http://backdev.speakeasy.tech/join?0Name=aaaa&1Description=aaaaa&2Level=Public&3Created=1673641306768948209&e=RKinl7gyIKBGAdRwq3ZLRajX33Vo0vv%2FW5Mt1GVbWgY%3D&k=iLGoDv%2BJdHy7RameVqOa2NJ1mDLXmEyv%2FpXoysHAqcI%3D&l=368&m=0&p=1&s=9vjszGm8UJ3UdTsTF56VLMfMJv1eDk2Epw6r097MBNQ%3D&v=1"
 	ch, _ := DecodeShareURL(url, "")
 
 	t.Logf("name: %s", ch.Name)

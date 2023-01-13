@@ -32,7 +32,7 @@ const (
 	// softMinRSABitLen is the recommended minimum RSA key length allowed in
 	// production. Use of any bit length smaller than this will result in a
 	// warning log print.
-	softMinRSABitLen = 3072
+	softMinRSABitLen = 2816
 
 	// smallestPubkeyForUnmarshal is the smallest public key that the system can
 	// unmarshal. This is ONLY for edge checking, and not a security
