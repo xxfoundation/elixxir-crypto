@@ -157,13 +157,14 @@ func (*scheme) UnmarshalPublicKeyWire(b []byte) (PublicKey, error) {
 	if len(b)+ELength < smallestPubkeyForUnmarshalBytes {
 		return nil, ErrTooShortToUnmarshal
 	}
-	checkRSABitLen(len(b) * 8)
 
 	// Unmarshal
 	p := &public{}
 	p.E = int(binary.BigEndian.Uint32(b[:ELength]))
 	p.N = new(big.Int)
 	p.N.SetBytes(b[ELength:])
+
+	checkRSABitLen(p.PublicKey.Size())
 
 	return p, nil
 }
