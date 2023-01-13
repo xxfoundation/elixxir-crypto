@@ -17,9 +17,9 @@ import (
 	"crypto/x509"
 	"encoding/binary"
 	"encoding/pem"
+	"fmt"
 	"io"
 	"math/big"
-	"runtime/debug"
 
 	"github.com/pkg/errors"
 	jww "github.com/spf13/jwalterweatherman"
@@ -188,8 +188,9 @@ func (*scheme) GetMarshalWireLength(sizeBytes int) int {
 
 func checkRSABitLen(bits int) bool {
 	if bits < softMinRSABitLen {
-		jww.WARN.Printf(softMinRSABitLenWarn, bits, softMinRSABitLen)
-		debug.PrintStack()
+		err := errors.New(fmt.Sprintf(softMinRSABitLenWarn, bits,
+			softMinRSABitLen))
+		jww.WARN.Printf("%+v", err)
 		return false
 	}
 	return true
