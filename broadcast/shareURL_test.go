@@ -50,6 +50,15 @@ func TestChannel_ShareURL_DecodeShareURL(t *testing.T) {
 	}
 }
 
+func TestChannel_ShareURL(t *testing.T) {
+	url := "http://backdev.speakeasy.tech/join?0Name=test&1Description=12345&2Level=Public&3Created=1673634057548310321&e=2FS%2F3gHkP2aAfPkKUra9IGXRRQGzzbT9%2Fh0nY6qZ8f0%3D&k=0cvAavvd9F1igRdRjpNSk0f0X4Uh4pxcP44HR5qczVI%3D&l=256&m=0&p=1&s=SmLS%2B98uUto3I4ODb1xUtWEPe5tadgqCEgV4uTayaQc%3D&v=1"
+	ch, _ := DecodeShareURL(url, "")
+
+	t.Logf("name: %s", ch.Name)
+	t.Logf("RsaPubKeyLength: %d", ch.RsaPubKeyLength)
+	t.Logf("RSASubPayloads: %d", ch.RSASubPayloads)
+}
+
 // Error path: Tests that Channel.ShareURL returns an error for an invalid host.
 func TestChannel_ShareURL_ParseError(t *testing.T) {
 	rng := csprng.NewSystemRNG()
