@@ -21,24 +21,26 @@ func Test_calculateKeySize(t *testing.T) {
 			t.Errorf("returned keysize is too large")
 		}
 
-		//check that the returned key size is divisable by 128
-		if key%128 != 0 {
-			t.Errorf("returned keysize (%d) is not a factor of 128", key)
+		//check that the returned key size is divisable by 16 (128 bits in bytes)
+		if key%16 != 0 {
+			t.Errorf("returned keysize (%d) is not a factor of 16", key)
 		}
 	}
 }
 
 // Test_calculateKeySize_NetworkStandard verifies that the system gives the correct
 func Test_calculateKeySize_NetworkStandard(t *testing.T) {
-	payloadSize := 6016
+	payloadSize := 6016 / 8
 	key, n := calculateKeySize(payloadSize)
 
 	if n != 1 {
 		t.Errorf("wrong n recieved from calculate payload size: %d, expected 1", n)
 	}
 
-	if key != 2944 {
+	keyBits := key * 8
+
+	if keyBits != 2944 {
 		t.Errorf("wrong key size recieved from calculate payload size: %d, "+
-			"expected 2944", key)
+			"expected 2944", keyBits)
 	}
 }
