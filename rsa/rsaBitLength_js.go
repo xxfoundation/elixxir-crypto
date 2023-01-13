@@ -10,4 +10,4 @@
 package rsa
 
 // defaultRSABitLen is the RSA key length used in the system, in bits.
-var defaultRSABitLen = 2944
+var defaultRSABitLen = 4092
