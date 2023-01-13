@@ -112,7 +112,7 @@ func (*scheme) UnmarshalPrivateKeyPEM(pemBytes []byte) (PrivateKey, error) {
 		return nil, errors.New("decoded key is not an RSA key")
 	}
 
-	checkRSABitLen(keyRSA.Size())
+	checkRSABitLen(keyRSA.Size() * 8)
 
 	return makePrivateKey(*keyRSA)
 }
@@ -137,7 +137,7 @@ func (*scheme) UnmarshalPublicKeyPEM(pemBytes []byte) (PublicKey, error) {
 		return nil, err
 	}
 
-	checkRSABitLen(key.Size())
+	checkRSABitLen(key.Size() * 8)
 
 	return &public{*key}, nil
 }
@@ -164,7 +164,7 @@ func (*scheme) UnmarshalPublicKeyWire(b []byte) (PublicKey, error) {
 	p.N = new(big.Int)
 	p.N.SetBytes(b[ELength:])
 
-	checkRSABitLen(p.PublicKey.Size())
+	checkRSABitLen(p.PublicKey.Size() * 8)
 
 	return p, nil
 }

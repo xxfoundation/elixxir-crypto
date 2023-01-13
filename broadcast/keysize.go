@@ -5,10 +5,6 @@ import (
 	"gitlab.com/elixxir/crypto/rsa"
 )
 
-const (
-	minKeySize = 1024 / 8
-)
-
 // calculateKeySize finds the optimal key size and number of sub-packets smaller
 // than the key size and larger than the minKeySize. Both payloadSize and
 // maxKeySizeGoal should be in bytes.
@@ -33,8 +29,8 @@ func calculateKeySize(payloadSize int) (selectedKeySize int, selectedN int) {
 	// of RSA
 	// this code takes advantage of the fact that division in integer
 	// space clamps down. As a result, this ensures the key size that the
-	// first factor of 128 below (or equal to) maxKeySize
-	selectedKeySize = (maxKeySize / 128) * 128
+	// first factor of 128 in bytes, which is 16 below (or equal to) maxKeySize
+	selectedKeySize = (maxKeySize / 16) * 16
 
 	// there are 2 sub payloads, but 1 will be used for the public key,
 	// so the number of usable sub payloads is 1
