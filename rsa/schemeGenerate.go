@@ -12,7 +12,6 @@ package rsa
 
 import (
 	gorsa "crypto/rsa"
-	jww "github.com/spf13/jwalterweatherman"
 	"io"
 )
 
@@ -21,9 +20,7 @@ import (
 //
 // This function uses the Go standard crypto/rsa implementation.
 func (*scheme) Generate(random io.Reader, bits int) (PrivateKey, error) {
-	if bits < softMinRSABitLen {
-		jww.WARN.Printf(softMinRSABitLenWarn, bits, softMinRSABitLen)
-	}
+	checkRSABitLen(bits)
 
 	goPriv, err := gorsa.GenerateKey(random, bits)
 	if err != nil {
