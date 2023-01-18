@@ -155,3 +155,15 @@ func TestDerivePublicKey(t *testing.T) {
 	require.Equal(t, alicePubKey.Bytes(), pubKeyDerived.Bytes())
 
 }
+
+func BenchmarkECDH(b *testing.B) {
+	rng := csprng.NewSystemRNG()
+	alicePrivateKey, _ := ECDHNIKE.NewKeypair(rng)
+	_, bobPublicKey := ECDHNIKE.NewKeypair(rng)
+
+	for i := 0; i < b.N; i++ {
+		secret := alicePrivateKey.DeriveSecret(bobPublicKey)
+		require.Greater(b, len(secret), 0)
+	}
+
+}
