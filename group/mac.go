@@ -1,8 +1,9 @@
-////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2020 xx network SEZC                                                       //
-//                                                                                        //
-// Use of this source code is governed by a license that can be found in the LICENSE file //
-////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx foundation                                             //
+//                                                                            //
+// Use of this source code is governed by a license that can be found in the  //
+// LICENSE file.                                                              //
+////////////////////////////////////////////////////////////////////////////////
 
 // The MAC for the encrypted internal format proves the authenticity of the
 // message and sender.
@@ -10,9 +11,9 @@
 package group
 
 import (
-	"bytes"
-	"gitlab.com/elixxir/crypto/cyclic"
 	"crypto/hmac"
+
+	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/hash"
 )
 
@@ -35,5 +36,5 @@ func NewMAC(key CryptKey, encryptedInternalMsg []byte, recipientDhKey *cyclic.In
 func CheckMAC(mac []byte, key CryptKey, encryptedInternalMsg []byte,
 	recipientDhKey *cyclic.Int) bool {
 
-	return bytes.Equal(mac, NewMAC(key, encryptedInternalMsg, recipientDhKey))
+	return hmac.Equal(mac, NewMAC(key, encryptedInternalMsg, recipientDhKey))
 }

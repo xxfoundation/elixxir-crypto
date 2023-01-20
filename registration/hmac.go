@@ -1,15 +1,15 @@
-////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2020 xx network SEZC                                                       //
-//                                                                                        //
-// Use of this source code is governed by a license that can be found in the LICENSE file //
-////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx foundation                                             //
+//                                                                            //
+// Use of this source code is governed by a license that can be found in the  //
+// LICENSE file.                                                              //
+////////////////////////////////////////////////////////////////////////////////
 
 package registration
 
 import (
-	"bytes"
-	"hash"
 	"crypto/hmac"
+	"hash"
 )
 
 // This file contains logic constructing MACs related to any registration code path.
@@ -30,5 +30,5 @@ func VerifyClientHMAC(sessionKey, encryptedKey []byte,
 	h func() hash.Hash, receivedHmac []byte) bool {
 
 	expectedHmac := CreateClientHMAC(sessionKey, encryptedKey, h)
-	return bytes.Equal(receivedHmac, expectedHmac)
+	return hmac.Equal(receivedHmac, expectedHmac)
 }

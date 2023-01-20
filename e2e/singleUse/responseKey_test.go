@@ -1,9 +1,9 @@
-///////////////////////////////////////////////////////////////////////////////
-// Copyright © 2020 xx network SEZC                                          //
-//                                                                           //
-// Use of this source code is governed by a license that can be found in the //
-// LICENSE file                                                              //
-///////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx foundation                                             //
+//                                                                            //
+// Use of this source code is governed by a license that can be found in the  //
+// LICENSE file.                                                              //
+////////////////////////////////////////////////////////////////////////////////
 
 package singleUse
 
@@ -32,7 +32,8 @@ func TestNewResponseKey_Consistency(t *testing.T) {
 	prng := rand.New(rand.NewSource(42))
 
 	for i, expectedKey := range expectedKeys {
-		privKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength, getGrp(), prng)
+		privKey := diffieHellman.GeneratePrivateKey(
+			diffieHellman.DefaultPrivateKeyLength, getGrp(), prng)
 		pubKey := diffieHellman.GeneratePublicKey(privKey, getGrp())
 		dhKey := diffieHellman.GenerateSessionKey(privKey, pubKey, getGrp())
 
@@ -40,7 +41,7 @@ func TestNewResponseKey_Consistency(t *testing.T) {
 		testKeyBase64 := base64.StdEncoding.EncodeToString(testKey)
 
 		if expectedKey != testKeyBase64 {
-			t.Errorf("NewResponseKey() did not return the expected key (%d)."+
+			t.Errorf("NewResponseKey did not return the expected key (%d)."+
 				"\nexpected: %s\nreceived: %s", i, expectedKey, testKeyBase64)
 		}
 	}
@@ -57,7 +58,8 @@ func TestNewResponseKey_Unique(t *testing.T) {
 
 	// Test with same DH key but differing key numbers
 	for i := 0; i < testRuns; i++ {
-		privKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength+i, getGrp(), prng)
+		privKey := diffieHellman.GeneratePrivateKey(
+			diffieHellman.DefaultPrivateKeyLength+i, getGrp(), prng)
 		pubKey := diffieHellman.GeneratePublicKey(privKey, getGrp())
 		dhKey := diffieHellman.GenerateSessionKey(privKey, pubKey, getGrp())
 		for j := 0; j < testRuns; j++ {
@@ -84,7 +86,8 @@ func TestNewResponseKey_Unique(t *testing.T) {
 	// Test with same key number but differing DH keys
 	for i := 0; i < testRuns; i++ {
 		for j := 0; j < testRuns; j++ {
-			privKey := diffieHellman.GeneratePrivateKey(diffieHellman.DefaultPrivateKeyLength+j, getGrp(), prng)
+			privKey := diffieHellman.GeneratePrivateKey(
+				diffieHellman.DefaultPrivateKeyLength+j, getGrp(), prng)
 			pubKey := diffieHellman.GeneratePublicKey(privKey, getGrp())
 			dhKey := diffieHellman.GenerateSessionKey(privKey, pubKey, getGrp())
 			testKey := NewResponseKey(dhKey, uint64(i))

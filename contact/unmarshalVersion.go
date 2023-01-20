@@ -1,9 +1,9 @@
-///////////////////////////////////////////////////////////////////////////////
-// Copyright © 2020 xx network SEZC                                          //
-//                                                                           //
-// Use of this source code is governed by a license that can be found in the //
-// LICENSE file                                                              //
-///////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx foundation                                             //
+//                                                                            //
+// Use of this source code is governed by a license that can be found in the  //
+// LICENSE file.                                                              //
+////////////////////////////////////////////////////////////////////////////////
 
 // This file contains old versions of the Contact unmarshal function to maintain
 // backwards compatibility.
@@ -12,9 +12,11 @@ package contact
 
 import (
 	"bytes"
+	"crypto/hmac"
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/binary"
+
 	"github.com/pkg/errors"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/primitives/fact"
@@ -89,7 +91,8 @@ func unmarshalVer2(b []byte) (Contact, error) {
 	checksum := buff.Next(checksumLength)
 
 	// Verify matching checksum
-	if !bytes.Equal(c.GetChecksum(), checksum) {
+	curChecksum := c.GetChecksum()
+	if !hmac.Equal(curChecksum, checksum) {
 		return c, errors.New(checksumErr)
 	}
 
@@ -164,7 +167,7 @@ func unmarshalVer1(b []byte) (Contact, error) {
 	checksum := buff.Next(checksumLength)
 
 	// Verify matching checksum
-	if !bytes.Equal(c.GetChecksumVer1(), checksum) {
+	if !hmac.Equal(c.GetChecksumVer1(), checksum) {
 		return c, errors.New(checksumErr)
 	}
 

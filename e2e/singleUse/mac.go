@@ -1,21 +1,21 @@
-///////////////////////////////////////////////////////////////////////////////
-// Copyright © 2020 xx network SEZC                                          //
-//                                                                           //
-// Use of this source code is governed by a license that can be found in the //
-// LICENSE file                                                              //
-///////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx foundation                                             //
+//                                                                            //
+// Use of this source code is governed by a license that can be found in the  //
+// LICENSE file.                                                              //
+////////////////////////////////////////////////////////////////////////////////
 
 package singleUse
 
 import (
-	"bytes"
-	"gitlab.com/elixxir/crypto/hash"
 	"crypto/hmac"
+
+	"gitlab.com/elixxir/crypto/hash"
 )
 
 const macSalt = "singleUseMacSalt"
 
-// MakeMAC generates the MAC used in both the transmission and response CMIX
+// MakeMAC generates the MAC used in both the request and response cMix
 // messages.
 func MakeMAC(key []byte, encryptedPayload []byte) []byte {
 	h := hmac.New(hash.DefaultHash, key)
@@ -34,5 +34,5 @@ func MakeMAC(key []byte, encryptedPayload []byte) []byte {
 func VerifyMAC(key []byte, encryptedPayload, receivedMAC []byte) bool {
 	newMAC := MakeMAC(key, encryptedPayload)
 
-	return bytes.Equal(newMAC, receivedMAC)
+	return hmac.Equal(newMAC, receivedMAC)
 }

@@ -1,12 +1,15 @@
-////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2020 xx network SEZC                                                       //
-//                                                                                        //
-// Use of this source code is governed by a license that can be found in the LICENSE file //
-////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx foundation                                             //
+//                                                                            //
+// Use of this source code is governed by a license that can be found in the  //
+// LICENSE file.                                                              //
+////////////////////////////////////////////////////////////////////////////////
+
 package auth
 
 import (
-	"bytes"
+	"crypto/hmac"
+
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/diffieHellman"
 	"gitlab.com/elixxir/crypto/hash"
@@ -42,7 +45,7 @@ func VerifyOwnershipProof(myHistoricalPrivKey, partnerHistoricalPubKey *cyclic.I
 	generatedProof := MakeOwnershipProof(myHistoricalPrivKey,
 		partnerHistoricalPubKey, grp)
 
-	return bytes.Equal(generatedProof, proof)
+	return hmac.Equal(generatedProof, proof)
 }
 
 // Ownership proofs allow users to build short proofs they own public DH keys

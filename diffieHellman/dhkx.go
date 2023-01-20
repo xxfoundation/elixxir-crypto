@@ -1,15 +1,16 @@
-////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2020 xx network SEZC                                                       //
-//                                                                                        //
-// Use of this source code is governed by a license that can be found in the LICENSE file //
-////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx foundation                                             //
+//                                                                            //
+// Use of this source code is governed by a license that can be found in the  //
+// LICENSE file.                                                              //
+////////////////////////////////////////////////////////////////////////////////
 
 // Package diffieHellman implements a Diffie-Hellman key exchange. Includes creation of DH keypairs,
 // DH session keys, and checking the validity of DH public keys
 package diffieHellman
 
 import (
-	"fmt"
+	jww "github.com/spf13/jwalterweatherman"
 	"io"
 
 	"gitlab.com/elixxir/crypto/cyclic"
@@ -33,7 +34,7 @@ func GeneratePrivateKey(size int, group *cyclic.Group, source io.Reader) *cyclic
 	k1, err := csprng.GenerateInGroup(group.GetPBytes(), size, source)
 
 	if err != nil {
-		panic(fmt.Sprintf("Failed to generate key: %s", err.Error()))
+		jww.FATAL.Panicf("Failed to generate key: %s", err.Error())
 	}
 
 	privateKey := group.NewIntFromBytes(k1)

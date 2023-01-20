@@ -1,24 +1,26 @@
-///////////////////////////////////////////////////////////////////////////////
-// Copyright © 2020 xx network SEZC                                          //
-//                                                                           //
-// Use of this source code is governed by a license that can be found in the //
-// LICENSE file                                                              //
-///////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx foundation                                             //
+//                                                                            //
+// Use of this source code is governed by a license that can be found in the  //
+// LICENSE file.                                                              //
+////////////////////////////////////////////////////////////////////////////////
 
 package contact
 
 import (
 	"bytes"
 	"crypto"
+	"crypto/hmac"
 	"encoding/base64"
 	"encoding/binary"
+	"strings"
+
 	"github.com/pkg/errors"
 	"github.com/skip2/go-qrcode"
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/primitives/fact"
 	"gitlab.com/xx_network/primitives/id"
 	"golang.org/x/crypto/blake2b"
-	"strings"
 )
 
 // Tags indicate the start and end of data. The tags must only contain printable
@@ -288,7 +290,7 @@ func Equal(a, b Contact) bool {
 	}
 	return ((a.ID == nil && b.ID == nil) || a.ID.Cmp(b.ID)) &&
 		((a.DhPubKey == nil && b.DhPubKey == nil) || a.DhPubKey.Cmp(b.DhPubKey) == 0) &&
-		bytes.Equal(a.OwnershipProof, b.OwnershipProof) &&
+		hmac.Equal(a.OwnershipProof, b.OwnershipProof) &&
 		a.Facts.Stringify() == b.Facts.Stringify()
 }
 

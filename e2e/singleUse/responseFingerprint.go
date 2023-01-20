@@ -1,9 +1,9 @@
-///////////////////////////////////////////////////////////////////////////////
-// Copyright © 2020 xx network SEZC                                          //
-//                                                                           //
-// Use of this source code is governed by a license that can be found in the //
-// LICENSE file                                                              //
-///////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx foundation                                             //
+//                                                                            //
+// Use of this source code is governed by a license that can be found in the  //
+// LICENSE file.                                                              //
+////////////////////////////////////////////////////////////////////////////////
 
 package singleUse
 
@@ -23,8 +23,8 @@ func NewResponseFingerprint(dhKey *cyclic.Int, keyNum uint64) format.Fingerprint
 	// Create new hash
 	h, err := hash.NewCMixHash()
 	if err != nil {
-		jww.ERROR.Panicf("Failed to create new hash for single-use response "+
-			"fingerprint: %v", err)
+		jww.FATAL.Panicf("[SU] Failed to create new hash for single-use "+
+			"response fingerprint: %+v", err)
 	}
 
 	keyNumBytes := make([]byte, binary.MaxVarintLen64)

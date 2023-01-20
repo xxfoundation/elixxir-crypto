@@ -1,19 +1,21 @@
-////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2020 xx network SEZC                                                       //
-//                                                                                        //
-// Use of this source code is governed by a license that can be found in the LICENSE file //
-////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx foundation                                             //
+//                                                                            //
+// Use of this source code is governed by a license that can be found in the  //
+// LICENSE file.                                                              //
+////////////////////////////////////////////////////////////////////////////////
 
 // Package cmix derives new keys within the cyclic group from salts and a base key.
 // It also is used for managing keys and salts for communication between clients
 package cmix
 
 import (
-	"bytes"
+	"crypto/hmac"
 	"encoding/binary"
+	"hash"
+
 	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/xx_network/primitives/id"
-	"hash"
 )
 
 const kmacGenerationSalt = "cmixClientNodeKMACGenerationSalt"
@@ -61,5 +63,5 @@ func VerifyKMAC(expectedKmac, salt []byte, symmetricKey *cyclic.Int,
 	}
 
 	//Check that the generated kmac matches the kmac passed in
-	return bytes.Compare(expectedKmac, generated) == 0
+	return hmac.Equal(expectedKmac, generated)
 }

@@ -1,9 +1,9 @@
-///////////////////////////////////////////////////////////////////////////////
-// Copyright © 2020 xx network SEZC                                          //
-//                                                                           //
-// Use of this source code is governed by a license that can be found in the //
-// LICENSE file                                                              //
-///////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx foundation                                             //
+//                                                                            //
+// Use of this source code is governed by a license that can be found in the  //
+// LICENSE file.                                                              //
+////////////////////////////////////////////////////////////////////////////////
 
 package singleUse
 
@@ -15,15 +15,15 @@ import (
 )
 
 // NewRecipientID generates the recipient ID for a single-use sender. The ID is
-// generated from the hash of the unencrypted transmission payload. The
+// generated from the hash of the unencrypted request payload. The
 // unencryptedPayload must contain a nonce to prevent collision on the same
 // message being sent multiple times.
 func NewRecipientID(pubKey *cyclic.Int, unencryptedPayload []byte) *id.ID {
 	// Create new hash
 	h, err := hash.NewCMixHash()
 	if err != nil {
-		jww.ERROR.Panicf("Failed to create new hash for single-use "+
-			"communication recipient ID: %v", err)
+		jww.FATAL.Panicf("[SU] Failed to create new hash for single-use "+
+			"recipient ID: %+v", err)
 	}
 
 	// Hash the public key and unencrypted payload

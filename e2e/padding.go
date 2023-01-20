@@ -1,19 +1,21 @@
-////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright © 2020 xx network SEZC                                                       //
-//                                                                                        //
-// Use of this source code is governed by a license that can be found in the LICENSE file //
-////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx foundation                                             //
+//                                                                            //
+// Use of this source code is governed by a license that can be found in the  //
+// LICENSE file.                                                              //
+////////////////////////////////////////////////////////////////////////////////
 
 // Packagee 2e contains functions used in the end-to-end encryption algorithm, including
 // the end-to-end key rotation.
 package e2e
 
 import (
-	"bytes"
+	"crypto/hmac"
 	"crypto/rand"
 	"errors"
-	jww "github.com/spf13/jwalterweatherman"
 	"io"
+
+	jww "github.com/spf13/jwalterweatherman"
 )
 
 // See length checking in RFC 3447 7.2.1-1
@@ -77,7 +79,7 @@ func Unpad(encMsg []byte) (msg []byte, err error) {
 	// encMsg = 0x00 || 0x02 || paddingString || 0x00 || message
 
 	// Check padding prefix
-	if !bytes.Equal(encMsg[0:2], []byte{0x00, 0x02}) {
+	if !hmac.Equal(encMsg[0:2], []byte{0x00, 0x02}) {
 		return nil, ErrPaddingPrefix
 	}
 

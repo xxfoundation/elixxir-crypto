@@ -1,9 +1,9 @@
-///////////////////////////////////////////////////////////////////////////////
-// Copyright © 2020 xx network SEZC                                          //
-//                                                                           //
-// Use of this source code is governed by a license that can be found in the //
-// LICENSE file                                                              //
-///////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2022 xx foundation                                             //
+//                                                                            //
+// Use of this source code is governed by a license that can be found in the  //
+// LICENSE file.                                                              //
+////////////////////////////////////////////////////////////////////////////////
 
 package singleUse
 
@@ -22,8 +22,8 @@ func NewResponseKey(dhKey *cyclic.Int, keyNum uint64) []byte {
 	// Create new hash
 	h, err := hash.NewCMixHash()
 	if err != nil {
-		jww.ERROR.Panicf("Failed to create new hash for single-use response "+
-			"key: %v", err)
+		jww.FATAL.Panicf(
+			"[SU] Failed to create new hash for single-use response key: %+v", err)
 	}
 
 	keyNumBytes := make([]byte, binary.MaxVarintLen64)
