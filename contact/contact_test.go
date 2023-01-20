@@ -12,6 +12,12 @@ import (
 	"crypto"
 	"encoding/base64"
 	"fmt"
+	"image"
+	"math/rand"
+	"reflect"
+	"strings"
+	"testing"
+
 	"github.com/liyue201/goqr"
 	"github.com/skip2/go-qrcode"
 	"gitlab.com/elixxir/crypto/cyclic"
@@ -19,11 +25,6 @@ import (
 	"gitlab.com/xx_network/crypto/csprng"
 	"gitlab.com/xx_network/crypto/large"
 	"gitlab.com/xx_network/primitives/id"
-	"image"
-	"math/rand"
-	"reflect"
-	"strings"
-	"testing"
 )
 
 // Tests marshaling and unmarshalling of a common Contact.

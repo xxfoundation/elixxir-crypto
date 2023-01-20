@@ -91,7 +91,8 @@ func unmarshalVer2(b []byte) (Contact, error) {
 	checksum := buff.Next(checksumLength)
 
 	// Verify matching checksum
-	if !hmac.Equal(c.GetChecksum(), checksum) {
+	curChecksum := c.GetChecksum()
+	if !hmac.Equal(curChecksum, checksum) {
 		return c, errors.New(checksumErr)
 	}
 
