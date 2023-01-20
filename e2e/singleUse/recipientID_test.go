@@ -8,8 +8,8 @@
 package singleUse
 
 import (
-	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/diffieHellman"
+	"gitlab.com/xx_network/crypto/cyclic"
 	"gitlab.com/xx_network/primitives/id"
 	"math/rand"
 	"testing"

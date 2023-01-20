@@ -28,7 +28,7 @@ import (
 
 	"gitlab.com/elixxir/crypto/broadcast/escape"
 	"gitlab.com/elixxir/crypto/cmix"
-	"gitlab.com/elixxir/crypto/rsa"
+	"gitlab.com/xx_network/crypto/rsa"
 )
 
 const (

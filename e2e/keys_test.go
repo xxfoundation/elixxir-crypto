@@ -11,14 +11,14 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/xx_network/crypto/cyclic"
 	"gitlab.com/xx_network/primitives/id"
 	"math/rand"
 	"reflect"
 	"testing"
 )
 
-//test consistency for DeriveKey
+// test consistency for DeriveKey
 func TestDeriveKey_Consistency(t *testing.T) {
 	expectedKeys := []string{
 		"2gQs27wW7ckb6zGUBibdyYs6/aBqJxK2YFW6hToO2EI=",
@@ -76,7 +76,7 @@ func TestDeriveKey_Consistency_doubleSalt(t *testing.T) {
 	deriveConsistencyTester(t, expectedKeys, d, "DeriveKey()")
 }
 
-//test consistency for DeriveKeyFingerprint
+// test consistency for DeriveKeyFingerprint
 func TestDeriveKeyFingerprint_Consistency(t *testing.T) {
 	expectedKeys := []string{
 		"biUwFTuy+udrvH9iMCjBfen4seZAC9Q/5yZMwtVVTyk=",
@@ -126,7 +126,7 @@ func deriveConsistencyTester(t *testing.T, expectedKeys []string, d func(dhkey *
 	}
 }
 
-//verifies that all derived fingerprints and keys are different
+// verifies that all derived fingerprints and keys are different
 func TestAllDifferent(t *testing.T) {
 	const numtests = 25
 

@@ -13,8 +13,8 @@ package cmix
 import (
 	"crypto/sha256"
 	"encoding/binary"
-	"gitlab.com/elixxir/crypto/cyclic"
-	"gitlab.com/elixxir/crypto/hash"
+	"gitlab.com/xx_network/crypto/cyclic"
+	"gitlab.com/xx_network/crypto/hash"
 	"gitlab.com/xx_network/primitives/id"
 	goHash "hash"
 )

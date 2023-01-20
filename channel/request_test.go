@@ -2,8 +2,8 @@ package channel
 
 import (
 	"crypto/ed25519"
-	"gitlab.com/elixxir/crypto/rsa"
 	"gitlab.com/xx_network/crypto/csprng"
+	"gitlab.com/xx_network/crypto/rsa"
 	"testing"
 	"time"
 )

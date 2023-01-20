@@ -14,7 +14,7 @@ import (
 	"encoding/binary"
 	"hash"
 
-	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/xx_network/crypto/cyclic"
 	"gitlab.com/xx_network/primitives/id"
 )
 

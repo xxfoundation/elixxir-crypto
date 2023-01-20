@@ -18,8 +18,8 @@ import (
 	"encoding/binary"
 
 	"github.com/pkg/errors"
-	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/primitives/fact"
+	"gitlab.com/xx_network/crypto/cyclic"
 	"gitlab.com/xx_network/primitives/id"
 )
 

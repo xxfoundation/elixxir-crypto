@@ -14,7 +14,7 @@ import (
 	"encoding/json"
 
 	"github.com/pkg/errors"
-	"gitlab.com/elixxir/crypto/hash"
+	"gitlab.com/xx_network/crypto/hash"
 	"gitlab.com/xx_network/primitives/id"
 )
 

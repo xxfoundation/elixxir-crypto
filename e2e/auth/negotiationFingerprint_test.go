@@ -10,9 +10,9 @@ package auth
 import (
 	"encoding/base64"
 	"github.com/cloudflare/circl/dh/sidh"
-	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/diffieHellman"
 	"gitlab.com/xx_network/crypto/csprng"
+	"gitlab.com/xx_network/crypto/cyclic"
 	"io"
 	"math/rand"
 	"testing"

@@ -12,8 +12,8 @@ import (
 	"math/rand"
 	"testing"
 
-	"gitlab.com/elixxir/crypto/hash"
 	"gitlab.com/elixxir/primitives/format"
+	"gitlab.com/xx_network/crypto/hash"
 	"gitlab.com/xx_network/primitives/id"
 )
 

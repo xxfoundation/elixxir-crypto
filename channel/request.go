@@ -8,7 +8,7 @@ import (
 	"io"
 	"time"
 
-	"gitlab.com/elixxir/crypto/rsa"
+	"gitlab.com/xx_network/crypto/rsa"
 )
 
 var (

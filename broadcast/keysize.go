@@ -2,7 +2,7 @@ package broadcast
 
 import (
 	jww "github.com/spf13/jwalterweatherman"
-	"gitlab.com/elixxir/crypto/rsa"
+	"gitlab.com/xx_network/crypto/rsa"
 )
 
 // calculateKeySize finds the optimal key size and number of sub-packets smaller

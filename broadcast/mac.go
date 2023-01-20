@@ -10,7 +10,7 @@ package broadcast
 import (
 	"crypto/hmac"
 
-	"gitlab.com/elixxir/crypto/hash"
+	"gitlab.com/xx_network/crypto/hash"
 )
 
 // makeMAC returns the MAC for the given payload. It is an HMAC with proper H

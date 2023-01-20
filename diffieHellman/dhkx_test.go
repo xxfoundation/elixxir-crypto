@@ -9,8 +9,8 @@ package diffieHellman
 
 import (
 	"encoding/hex"
-	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/xx_network/crypto/csprng"
+	"gitlab.com/xx_network/crypto/cyclic"
 	"gitlab.com/xx_network/crypto/large"
 	"testing"
 )
@@ -56,7 +56,7 @@ func TestGeneratePrivateKey(t *testing.T) {
 	}
 }
 
-//tests public keys are generated correctly
+// tests public keys are generated correctly
 func TestGeneratePublicKey(t *testing.T) {
 	const numTests = 50
 
@@ -97,7 +97,7 @@ func TestGeneratePublicKey(t *testing.T) {
 	}
 }
 
-//tests Session keys are generated correctly
+// tests Session keys are generated correctly
 func TestGenerateSessionKey(t *testing.T) {
 	const numTests = 50
 
@@ -196,7 +196,7 @@ func TestCheckPublicKey(t *testing.T) {
 
 }
 
-//benchmarks session key creation
+// benchmarks session key creation
 func BenchmarkCreateDHSessionKey(b *testing.B) {
 	primeString := "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
 		"29024E088A67CC74020BBEA63B139B22514A08798E3404DD" +

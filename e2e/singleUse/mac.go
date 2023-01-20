@@ -10,7 +10,7 @@ package singleUse
 import (
 	"crypto/hmac"
 
-	"gitlab.com/elixxir/crypto/hash"
+	"gitlab.com/xx_network/crypto/hash"
 )
 
 const macSalt = "singleUseMacSalt"

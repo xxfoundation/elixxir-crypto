@@ -13,8 +13,8 @@ import (
 	jww "github.com/spf13/jwalterweatherman"
 	"io"
 
-	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/xx_network/crypto/csprng"
+	"gitlab.com/xx_network/crypto/cyclic"
 )
 
 const DefaultPrivateKeyLengthBits = 256

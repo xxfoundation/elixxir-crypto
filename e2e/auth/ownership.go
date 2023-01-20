@@ -10,10 +10,10 @@ package auth
 import (
 	"crypto/hmac"
 
-	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/diffieHellman"
-	"gitlab.com/elixxir/crypto/hash"
 	"gitlab.com/elixxir/primitives/format"
+	"gitlab.com/xx_network/crypto/cyclic"
+	"gitlab.com/xx_network/crypto/hash"
 )
 
 const ownershipVector = "ownershipVector"

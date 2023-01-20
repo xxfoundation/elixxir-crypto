@@ -8,7 +8,7 @@
 package auth
 
 import (
-	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/xx_network/crypto/cyclic"
 )
 
 // Encrypts the payload for use in authenticated channels and provides a MAC
@@ -17,7 +17,7 @@ func Encrypt(myPrivKey, partnerPubKey *cyclic.Int, payload []byte,
 	grp *cyclic.Group) (ecrPayload, mac []byte) {
 
 	// Generate the base key
-	authKey, vec := MakeAuthKey(myPrivKey, partnerPubKey,grp)
+	authKey, vec := MakeAuthKey(myPrivKey, partnerPubKey, grp)
 
 	// Encrypt the payload
 	ecrPayload = Crypt(authKey, vec, payload)

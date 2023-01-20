@@ -1,7 +1,7 @@
 package broadcast
 
 import (
-	"gitlab.com/elixxir/crypto/rsa"
+	"gitlab.com/xx_network/crypto/rsa"
 	"testing"
 )
 

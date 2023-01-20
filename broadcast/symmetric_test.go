@@ -11,7 +11,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"gitlab.com/elixxir/crypto/cmix"
-	"gitlab.com/elixxir/crypto/rsa"
+	"gitlab.com/xx_network/crypto/rsa"
 	oldRsa "gitlab.com/xx_network/crypto/signature/rsa"
 	"gitlab.com/xx_network/primitives/id"
 	"gitlab.com/xx_network/primitives/netTime"

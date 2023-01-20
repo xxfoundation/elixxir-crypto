@@ -9,13 +9,13 @@ package e2e
 
 import (
 	"bytes"
-	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/xx_network/crypto/cyclic"
 	"gitlab.com/xx_network/crypto/large"
 	"gitlab.com/xx_network/primitives/id"
 	"testing"
 )
 
-//show that every input changes the output hash
+// show that every input changes the output hash
 func TestMakeRelationshipFingerprint(t *testing.T) {
 	grp := getGroup()
 

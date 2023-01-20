@@ -61,6 +61,8 @@ gitlab.com/xx_network/crypto v0.0.5-0.20230113190331-06f2eb12b97f h1:fY97KmNOyH1
 gitlab.com/xx_network/crypto v0.0.5-0.20230113190331-06f2eb12b97f/go.mod h1:1zOTNhUZmMrus0eI227vWggdKJLeMvMPXcxm29dgt1Q=
 gitlab.com/xx_network/crypto v0.0.5-0.20230120185816-1788861281c9 h1:zYAU/+zKmBTpyOJpupKVAzT+qr/DCLeLVjXV9UmEDZs=
 gitlab.com/xx_network/crypto v0.0.5-0.20230120185816-1788861281c9/go.mod h1:YXQqutM8DxFihrirM5fgippte9dsFq3TZlSlLt0hXy0=
+gitlab.com/xx_network/crypto v0.0.5-0.20230120192824-c0516b176d84 h1:oYwG7zCbR6otwgxQg0x+rbQtOfAQ577aobu/OaJzWkY=
+gitlab.com/xx_network/crypto v0.0.5-0.20230120192824-c0516b176d84/go.mod h1:YXQqutM8DxFihrirM5fgippte9dsFq3TZlSlLt0hXy0=
 gitlab.com/xx_network/primitives v0.0.4-0.20221219230308-4b5550a9247d h1:D9hEtiQ7xj0yFBkDkb4X4S95RfNoeXxtB1eE4UuFHtk=
 gitlab.com/xx_network/primitives v0.0.4-0.20221219230308-4b5550a9247d/go.mod h1:wUxbEBGOBJZ/RkAiVAltlC1uIlIrU0dE113Nq7HiOhw=
 gitlab.com/yawning/bsaes.git v0.0.0-20190805113838-0a714cd429ec h1:FpfFs4EhNehiVfzQttTuxanPIT43FtkkCFypIod8LHo=

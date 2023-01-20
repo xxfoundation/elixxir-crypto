@@ -9,7 +9,7 @@ package registration
 
 import (
 	"bytes"
-	"gitlab.com/elixxir/crypto/hash"
+	"gitlab.com/xx_network/crypto/hash"
 	"testing"
 )
 
