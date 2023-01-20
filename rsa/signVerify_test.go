@@ -10,6 +10,7 @@ package rsa
 import (
 	"crypto"
 	"crypto/rand"
+	"runtime"
 	"strconv"
 	"testing"
 )
@@ -33,6 +34,13 @@ func TestSignVerifyPSS(t *testing.T) {
 	// Construct signing options
 	opts := NewDefaultPSSOptions()
 	hashFunc := opts.HashFunc()
+
+	// Javascript only uses SHA-256
+	if runtime.GOOS == "js" {
+		opts.Hash = crypto.SHA256
+		hashFunc = opts.HashFunc()
+		t.Log("Javascript environment; using SHA-256.")
+	}
 
 	for i := 0; i < numTest; i++ {
 		// Create hash
@@ -78,9 +86,9 @@ func TestPrivate_SignVerifyPKCS1v15(t *testing.T) {
 		hashed := h.Sum(nil)
 
 		// Construct signature
-		signed, err := privKey.SignPKCS1v15(rng, hashFunc, hashed)
-		if err != nil {
-			t.Fatalf("SignPKCS1v15 error: %+v", err)
+		signed, err2 := privKey.SignPKCS1v15(rng, hashFunc, hashed)
+		if err2 != nil {
+			t.Fatalf("SignPKCS1v15 error: %+v", err2)
 		}
 
 		// Verify signature

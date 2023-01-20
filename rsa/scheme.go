@@ -17,10 +17,12 @@ import (
 	"crypto/x509"
 	"encoding/binary"
 	"encoding/pem"
-	"github.com/pkg/errors"
-	jww "github.com/spf13/jwalterweatherman"
+	"fmt"
 	"io"
 	"math/big"
+
+	"github.com/pkg/errors"
+	jww "github.com/spf13/jwalterweatherman"
 )
 
 // Memoization of the scheme object.
@@ -30,7 +32,7 @@ const (
 	// softMinRSABitLen is the recommended minimum RSA key length allowed in
 	// production. Use of any bit length smaller than this will result in a
 	// warning log print.
-	softMinRSABitLen = 3072
+	softMinRSABitLen = 2816
 
 	// smallestPubkeyForUnmarshal is the smallest public key that the system can
 	// unmarshal. This is ONLY for edge checking, and not a security
@@ -110,10 +112,7 @@ func (*scheme) UnmarshalPrivateKeyPEM(pemBytes []byte) (PrivateKey, error) {
 		return nil, errors.New("decoded key is not an RSA key")
 	}
 
-	// Do edge checks: check if the keying material has a size issue
-	if bits := keyRSA.Size() * 8; bits < softMinRSABitLen {
-		jww.WARN.Printf(softMinRSABitLenWarn, bits, softMinRSABitLen)
-	}
+	checkRSABitLen(keyRSA.Size() * 8)
 
 	return makePrivateKey(*keyRSA)
 }
@@ -138,10 +137,7 @@ func (*scheme) UnmarshalPublicKeyPEM(pemBytes []byte) (PublicKey, error) {
 		return nil, err
 	}
 
-	// check if the keying material has a size issue
-	if bits := key.Size() * 8; bits < softMinRSABitLen {
-		jww.WARN.Printf(softMinRSABitLenWarn, bits, softMinRSABitLen)
-	}
+	checkRSABitLen(key.Size() * 8)
 
 	return &public{*key}, nil
 }
@@ -161,15 +157,14 @@ func (*scheme) UnmarshalPublicKeyWire(b []byte) (PublicKey, error) {
 	if len(b)+ELength < smallestPubkeyForUnmarshalBytes {
 		return nil, ErrTooShortToUnmarshal
 	}
-	if bits := len(b) * 8; bits < softMinRSABitLen {
-		jww.WARN.Printf(softMinRSABitLenWarn, bits, softMinRSABitLen)
-	}
 
 	// Unmarshal
 	p := &public{}
 	p.E = int(binary.BigEndian.Uint32(b[:ELength]))
 	p.N = new(big.Int)
 	p.N.SetBytes(b[ELength:])
+
+	checkRSABitLen(p.PublicKey.Size() * 8)
 
 	return p, nil
 }
@@ -190,4 +185,14 @@ func (*scheme) GetSoftMinKeySize() int {
 // size, in bytes.
 func (*scheme) GetMarshalWireLength(sizeBytes int) int {
 	return sizeBytes + ELength
+}
+
+func checkRSABitLen(bits int) bool {
+	if bits < softMinRSABitLen {
+		err := errors.New(fmt.Sprintf(softMinRSABitLenWarn, bits,
+			softMinRSABitLen))
+		jww.WARN.Printf("%+v", err)
+		return false
+	}
+	return true
 }

@@ -58,7 +58,7 @@ func (pub *public) EncryptOAEP(
 	result, awaitErr := Await(subtleCrypto.Call("encrypt",
 		algorithm, key, CopyBytesToJS(msg)))
 	if awaitErr != nil {
-		return nil, js.Error{Value: awaitErr[0]}
+		return nil, handleJsError(awaitErr[0])
 	}
 
 	return CopyBytesToGo(Uint8Array.New(result[0])), nil
@@ -90,7 +90,7 @@ func (pub *public) VerifyPKCS1v15(
 	result, awaitErr := Await(subtleCrypto.Call("verify",
 		"RSASSA-PKCS1-v1_5", key, CopyBytesToJS(sig), CopyBytesToJS(hashed)))
 	if awaitErr != nil {
-		return js.Error{Value: awaitErr[0]}
+		return handleJsError(awaitErr[0])
 	}
 
 	if !result[0].Bool() {
@@ -140,7 +140,7 @@ func (pub *public) VerifyPSS(
 	result, awaitErr := Await(subtleCrypto.Call("verify",
 		algorithm, key, CopyBytesToJS(sig), CopyBytesToJS(digest)))
 	if awaitErr != nil {
-		return js.Error{Value: awaitErr[0]}
+		return handleJsError(awaitErr[0])
 	}
 
 	if !result[0].Bool() {
@@ -192,7 +192,7 @@ func (pub *public) getRsaCryptoKey(
 	result, awaitErr := Await(subtleCrypto.Call("importKey",
 		"spki", CopyBytesToJS(key), algorithm, true, array.New(keyUsages...)))
 	if awaitErr != nil {
-		return js.Value{}, js.Error{Value: awaitErr[0]}
+		return js.Value{}, handleJsError(awaitErr[0])
 	}
 
 	return result[0], nil

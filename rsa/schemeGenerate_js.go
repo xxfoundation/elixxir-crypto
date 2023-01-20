@@ -29,13 +29,13 @@ func (*scheme) Generate(_ io.Reader, bits int) (PrivateKey, error) {
 	result, awaitErr := Await(subtleCrypto.Call("generateKey",
 		algorithm, true, array.New("sign")))
 	if awaitErr != nil {
-		return nil, js.Error{Value: awaitErr[0]}
+		return nil, handleJsError(awaitErr[0])
 	}
 
 	result, awaitErr = Await(
 		subtleCrypto.Call("exportKey", "pkcs8", result[0].Get("privateKey")))
 	if awaitErr != nil {
-		return nil, js.Error{Value: awaitErr[0]}
+		return nil, handleJsError(awaitErr[0])
 	}
 
 	keyData := CopyBytesToGo(Uint8Array.New(result[0]))

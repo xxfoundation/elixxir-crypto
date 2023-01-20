@@ -108,3 +108,15 @@ func TestPublicKey_Scheme(t *testing.T) {
 	}
 
 }
+
+func BenchmarkDH(b *testing.B) {
+	rng := csprng.NewSystemRNG()
+	alicePrivateKey, _ := DHNIKE.NewKeypair(rng)
+	_, bobPublicKey := DHNIKE.NewKeypair(rng)
+
+	for i := 0; i < b.N; i++ {
+		secret := alicePrivateKey.DeriveSecret(bobPublicKey)
+		require.Greater(b, len(secret), 0)
+	}
+
+}
