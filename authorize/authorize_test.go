@@ -11,8 +11,7 @@ import (
 	"bytes"
 	"crypto/rand"
 	"fmt"
-	"gitlab.com/elixxir/crypto/rsa"
-	oldrsa "gitlab.com/xx_network/crypto/signature/rsa"
+	"gitlab.com/xx_network/crypto/signature/rsa"
 	"gitlab.com/xx_network/crypto/xx"
 	"gitlab.com/xx_network/primitives/id"
 	"strconv"
@@ -34,7 +33,7 @@ func TestSignVerify_Consistency(t *testing.T) {
 	// use insecure seeded rng to reproduce key
 	notRand := &CountingReader{count: uint8(0)}
 
-	serverPrivKey, err := oldrsa.GenerateKey(notRand, 1024)
+	serverPrivKey, err := rsa.GenerateKey(notRand, 1024)
 	if err != nil {
 		t.Fatalf("SignVerify error: "+
 			"Could not generate key: %v", err.Error())
@@ -118,7 +117,7 @@ func TestDigest_Consistency(t *testing.T) {
 	}
 
 	// Construct the hash
-	options := rsa.NewDefaultPSSOptions()
+	options := rsa.NewDefaultOptions()
 
 	receivedDigest := digest(options.Hash.New(), testTime)
 
@@ -146,7 +145,7 @@ func TestSignVerify(t *testing.T) {
 	testSalt := make([]byte, 32)
 	copy(testSalt, "salt")
 
-	serverPrivKey, err := oldrsa.GenerateKey(rand.Reader, 1024)
+	serverPrivKey, err := rsa.GenerateKey(rand.Reader, 1024)
 	if err != nil {
 		t.Fatalf("SignVerify error: "+
 			"Could not generate key: %v", err.Error())
@@ -177,7 +176,7 @@ func TestSignVerify(t *testing.T) {
 // Error path for verify
 func TestVerify_Error(t *testing.T) {
 	// Set up test
-	serverPrivKey, err := oldrsa.GenerateKey(rand.Reader, 1024)
+	serverPrivKey, err := rsa.GenerateKey(rand.Reader, 1024)
 	if err != nil {
 		t.Fatalf("SignVerify error: "+
 			"Could not generate key: %v", err.Error())
