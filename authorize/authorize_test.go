@@ -12,6 +12,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"gitlab.com/elixxir/crypto/rsa"
+	oldrsa "gitlab.com/xx_network/crypto/signature/rsa"
 	"gitlab.com/xx_network/crypto/xx"
 	"gitlab.com/xx_network/primitives/id"
 	"strconv"
@@ -33,14 +34,14 @@ func TestSignVerify_Consistency(t *testing.T) {
 	// use insecure seeded rng to reproduce key
 	notRand := &CountingReader{count: uint8(0)}
 
-	serverPrivKey, err := rsa.GetScheme().Generate(notRand, 1024)
+	serverPrivKey, err := oldrsa.GenerateKey(notRand, 1024)
 	if err != nil {
 		t.Fatalf("SignVerify error: "+
 			"Could not generate key: %v", err.Error())
 	}
-	serverPrivKey.GetGoRSA().Precompute()
+	serverPrivKey.Precompute()
 
-	publicKey := serverPrivKey.Public()
+	publicKey := serverPrivKey.GetPublic()
 	if bytes.Compare(publicKey.GetN().Bytes(), expected_N) != 0 {
 		t.Fatalf("SignVerify error: "+
 			"Bad N value in pre-canned private key."+
@@ -90,14 +91,14 @@ func TestSignVerify_Consistency(t *testing.T) {
 	testSalt := make([]byte, 32)
 	copy(testSalt, "salt")
 
-	testId, err := xx.NewID(serverPrivKey.Public(), testSalt, id.Node)
+	testId, err := xx.NewID(serverPrivKey.GetPublic(), testSalt, id.Node)
 	if err != nil {
 		t.Fatalf("SignVerify error: "+
 			"Could not generate a test signature: %v", err)
 	}
 
 	// Test the verification
-	err = Verify(testNow, testTime, serverPrivKey.Public(), testId,
+	err = Verify(testNow, testTime, serverPrivKey.GetPublic(), testId,
 		testSalt, delta, sig)
 	if err != nil {
 		t.Fatalf("SignVerify error: "+
@@ -145,7 +146,7 @@ func TestSignVerify(t *testing.T) {
 	testSalt := make([]byte, 32)
 	copy(testSalt, "salt")
 
-	serverPrivKey, err := rsa.GetScheme().Generate(rand.Reader, 1024)
+	serverPrivKey, err := oldrsa.GenerateKey(rand.Reader, 1024)
 	if err != nil {
 		t.Fatalf("SignVerify error: "+
 			"Could not generate key: %v", err.Error())
@@ -157,14 +158,14 @@ func TestSignVerify(t *testing.T) {
 			"Could not sign data: %v", err.Error())
 	}
 
-	testId, err := xx.NewID(serverPrivKey.Public(), testSalt, id.Node)
+	testId, err := xx.NewID(serverPrivKey.GetPublic(), testSalt, id.Node)
 	if err != nil {
 		t.Fatalf("SignVerify error: "+
 			"Could not generate a test signature: %v", err)
 	}
 
 	// Test the verification
-	err = Verify(testNow, testTime, serverPrivKey.Public(), testId,
+	err = Verify(testNow, testTime, serverPrivKey.GetPublic(), testId,
 		testSalt, delta, sig)
 	if err != nil {
 		t.Fatalf("SignVerify error: "+
@@ -176,7 +177,7 @@ func TestSignVerify(t *testing.T) {
 // Error path for verify
 func TestVerify_Error(t *testing.T) {
 	// Set up test
-	serverPrivKey, err := rsa.GetScheme().Generate(rand.Reader, 1024)
+	serverPrivKey, err := oldrsa.GenerateKey(rand.Reader, 1024)
 	if err != nil {
 		t.Fatalf("SignVerify error: "+
 			"Could not generate key: %v", err.Error())
@@ -202,7 +203,7 @@ func TestVerify_Error(t *testing.T) {
 	testSalt := make([]byte, 32)
 	copy(testSalt, "salt")
 
-	testId, err := xx.NewID(serverPrivKey.Public(), testSalt, id.Node)
+	testId, err := xx.NewID(serverPrivKey.GetPublic(), testSalt, id.Node)
 	if err != nil {
 		t.Fatalf("SignVerify error: "+
 			"Could not generate a test signature: %v", err)
@@ -212,7 +213,7 @@ func TestVerify_Error(t *testing.T) {
 	delta := 24 * time.Hour * 2
 	testNow := signedTime.Add(delta * 3)
 	// Test the verification
-	err = Verify(testNow, signedTime, serverPrivKey.Public(), testId,
+	err = Verify(testNow, signedTime, serverPrivKey.GetPublic(), testId,
 		testSalt, delta, sig)
 	if err == nil {
 		t.Fatalf("SignVerify error: "+
@@ -222,7 +223,7 @@ func TestVerify_Error(t *testing.T) {
 	// Check when signed timestamp is out of bounds (above the upper bound)
 	testNow = signedTime.Add(-delta * 3)
 	// Test the verification
-	err = Verify(testNow, signedTime, serverPrivKey.Public(), testId,
+	err = Verify(testNow, signedTime, serverPrivKey.GetPublic(), testId,
 		testSalt, delta, sig)
 	if err == nil {
 		t.Fatalf("SignVerify error: "+
@@ -236,7 +237,7 @@ func TestVerify_Error(t *testing.T) {
 	badSalt := make([]byte, 32)
 	copy(badSalt, "error")
 
-	err = Verify(testNow, signedTime, serverPrivKey.Public(), testId,
+	err = Verify(testNow, signedTime, serverPrivKey.GetPublic(), testId,
 		badSalt, delta, sig)
 	if err == nil {
 		t.Fatalf("SignVerify error: " +
@@ -245,7 +246,7 @@ func TestVerify_Error(t *testing.T) {
 
 	// Trigger failed signature check
 	badSig := []byte("signature")
-	err = Verify(testNow, signedTime, serverPrivKey.Public(), testId,
+	err = Verify(testNow, signedTime, serverPrivKey.GetPublic(), testId,
 		testSalt, delta, badSig)
 	if err == nil {
 		t.Fatalf("SignVerify error: " +
