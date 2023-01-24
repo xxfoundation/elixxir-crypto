@@ -9,9 +9,9 @@ package registration
 
 import (
 	"crypto/sha256"
+	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/diffieHellman"
-	"gitlab.com/xx_network/crypto/cyclic"
-	"gitlab.com/xx_network/crypto/hash"
+	"gitlab.com/elixxir/crypto/hash"
 	"gitlab.com/xx_network/crypto/large"
 	"math/rand"
 	"testing"

@@ -16,7 +16,7 @@ import (
 	"encoding/binary"
 	"github.com/pkg/errors"
 	"gitlab.com/elixxir/crypto/contact"
-	"gitlab.com/xx_network/crypto/cyclic"
+	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/xx_network/primitives/id"
 	"golang.org/x/crypto/blake2b"
 	"sort"

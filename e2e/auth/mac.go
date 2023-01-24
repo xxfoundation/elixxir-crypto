@@ -14,7 +14,7 @@ package auth
 import (
 	"crypto/hmac"
 
-	"gitlab.com/xx_network/crypto/hash"
+	"gitlab.com/elixxir/crypto/hash"
 )
 
 // MakeMac returns the MAC for the given payload.

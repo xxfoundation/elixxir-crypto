@@ -3,7 +3,7 @@ package broadcast
 import (
 	"bytes"
 	"encoding/hex"
-	"gitlab.com/xx_network/crypto/rsa"
+	"gitlab.com/elixxir/crypto/rsa"
 	"gitlab.com/xx_network/primitives/netTime"
 	"hash"
 	"io"

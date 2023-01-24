@@ -8,7 +8,7 @@
 package cmix
 
 import (
-	"gitlab.com/xx_network/crypto/cyclic"
+	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/xx_network/crypto/large"
 	"gitlab.com/xx_network/primitives/id"
 	"testing"

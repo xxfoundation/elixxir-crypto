@@ -9,8 +9,8 @@ package authorize
 
 import (
 	"encoding/binary"
-	"gitlab.com/xx_network/crypto/hash"
-	"gitlab.com/xx_network/crypto/rsa"
+	"gitlab.com/elixxir/crypto/hash"
+	"gitlab.com/elixxir/crypto/rsa"
 	"io"
 	"time"
 )

@@ -13,10 +13,10 @@ import (
 
 	"github.com/pkg/errors"
 	jww "github.com/spf13/jwalterweatherman"
+	"gitlab.com/elixxir/crypto/hash"
 	"gitlab.com/elixxir/crypto/nike"
 	"gitlab.com/elixxir/crypto/nike/ecdh"
 	"gitlab.com/xx_network/crypto/csprng"
-	"gitlab.com/xx_network/crypto/hash"
 	"golang.org/x/crypto/chacha20poly1305"
 )
 

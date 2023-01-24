@@ -14,9 +14,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/crypto/diffieHellman"
 	"gitlab.com/elixxir/crypto/nike/dh"
-	"gitlab.com/xx_network/crypto/cyclic"
 	"gitlab.com/xx_network/crypto/large"
 )
 

@@ -11,8 +11,8 @@ package e2e
 
 import (
 	jww "github.com/spf13/jwalterweatherman"
+	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/primitives/format"
-	"gitlab.com/xx_network/crypto/cyclic"
 	"golang.org/x/crypto/blake2b"
 )
 

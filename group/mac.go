@@ -13,8 +13,8 @@ package group
 import (
 	"crypto/hmac"
 
-	"gitlab.com/xx_network/crypto/cyclic"
-	"gitlab.com/xx_network/crypto/hash"
+	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/elixxir/crypto/hash"
 )
 
 // NewMAC generates a MAC for the encrypted internal message and the recipient's

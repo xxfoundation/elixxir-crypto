@@ -17,8 +17,8 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/skip2/go-qrcode"
+	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/primitives/fact"
-	"gitlab.com/xx_network/crypto/cyclic"
 	"gitlab.com/xx_network/primitives/id"
 	"golang.org/x/crypto/blake2b"
 )

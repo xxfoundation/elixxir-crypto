@@ -9,9 +9,9 @@ package cmix
 
 import (
 	jww "github.com/spf13/jwalterweatherman"
+	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/primitives/format"
 	"gitlab.com/xx_network/crypto/csprng"
-	"gitlab.com/xx_network/crypto/cyclic"
 )
 
 // SetGroupBits takes a message and a cyclic group and randomly sets

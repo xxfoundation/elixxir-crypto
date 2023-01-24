@@ -11,7 +11,7 @@ import (
 	"bytes"
 	"crypto/rand"
 	"fmt"
-	"gitlab.com/xx_network/crypto/rsa"
+	"gitlab.com/elixxir/crypto/rsa"
 	"gitlab.com/xx_network/crypto/xx"
 	"gitlab.com/xx_network/primitives/id"
 	"strconv"
@@ -70,7 +70,7 @@ func TestSignVerify_Consistency(t *testing.T) {
 	}
 
 	// Sign data
-	sig, err := Sign(notRand, testTime, serverPrivKey.GetOldRSA())
+	sig, err := Sign(notRand, testTime, serverPrivKey)
 	if err != nil {
 		t.Fatalf("SignVerify error: "+
 			"Could not sign data: %v", err.Error())
@@ -151,7 +151,7 @@ func TestSignVerify(t *testing.T) {
 			"Could not generate key: %v", err.Error())
 	}
 
-	sig, err := Sign(rand.Reader, testTime, serverPrivKey.GetOldRSA())
+	sig, err := Sign(rand.Reader, testTime, serverPrivKey)
 	if err != nil {
 		t.Fatalf("SignVerify error: "+
 			"Could not sign data: %v", err.Error())
@@ -193,7 +193,7 @@ func TestVerify_Error(t *testing.T) {
 	// use insecure seeded rng to reproduce key
 	notRand := &CountingReader{count: uint8(0)}
 
-	sig, err := Sign(notRand, signedTime, serverPrivKey.GetOldRSA())
+	sig, err := Sign(notRand, signedTime, serverPrivKey)
 	if err != nil {
 		t.Fatalf("SignVerify error: "+
 			"Could not sign data: %v", err.Error())

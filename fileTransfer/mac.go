@@ -18,7 +18,7 @@ package fileTransfer
 import (
 	"crypto/hmac"
 
-	"gitlab.com/xx_network/crypto/hash"
+	"gitlab.com/elixxir/crypto/hash"
 )
 
 // CreateTransferMAC creates a MAC for the entire file. This is for consistency

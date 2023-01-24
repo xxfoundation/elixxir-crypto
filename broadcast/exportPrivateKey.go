@@ -14,7 +14,7 @@ import (
 	"github.com/pkg/errors"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/backup"
-	"gitlab.com/xx_network/crypto/rsa"
+	"gitlab.com/elixxir/crypto/rsa"
 	"gitlab.com/xx_network/primitives/id"
 	"golang.org/x/crypto/argon2"
 	"golang.org/x/crypto/blake2b"

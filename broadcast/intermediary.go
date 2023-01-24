@@ -3,7 +3,7 @@ package broadcast
 import (
 	"encoding/binary"
 	jww "github.com/spf13/jwalterweatherman"
-	"gitlab.com/xx_network/crypto/rsa"
+	"gitlab.com/elixxir/crypto/rsa"
 	"hash"
 	"time"
 )

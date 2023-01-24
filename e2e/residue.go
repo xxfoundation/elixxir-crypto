@@ -10,7 +10,7 @@ package e2e
 import (
 	"encoding/base64"
 	"github.com/pkg/errors"
-	"gitlab.com/xx_network/crypto/hash"
+	"gitlab.com/elixxir/crypto/hash"
 )
 
 // KeyResidue generation constants.

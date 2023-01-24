@@ -20,9 +20,9 @@ import (
 
 	"github.com/liyue201/goqr"
 	"github.com/skip2/go-qrcode"
+	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/elixxir/primitives/fact"
 	"gitlab.com/xx_network/crypto/csprng"
-	"gitlab.com/xx_network/crypto/cyclic"
 	"gitlab.com/xx_network/crypto/large"
 	"gitlab.com/xx_network/primitives/id"
 )

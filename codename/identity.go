@@ -15,7 +15,7 @@ import (
 
 	"github.com/pkg/errors"
 	jww "github.com/spf13/jwalterweatherman"
-	"gitlab.com/xx_network/crypto/hash"
+	"gitlab.com/elixxir/crypto/hash"
 	"golang.org/x/crypto/blake2b"
 )
 

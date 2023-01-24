@@ -11,9 +11,9 @@ import (
 	"bytes"
 	"github.com/pkg/errors"
 	jww "github.com/spf13/jwalterweatherman"
+	"gitlab.com/elixxir/crypto/rsa"
 	"gitlab.com/elixxir/primitives/format"
 	"gitlab.com/xx_network/crypto/csprng"
-	"gitlab.com/xx_network/crypto/rsa"
 )
 
 // IsPublicKey returns true if the passed public key is the public key for the

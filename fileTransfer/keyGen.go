@@ -20,8 +20,8 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"github.com/pkg/errors"
+	"gitlab.com/elixxir/crypto/hash"
 	"gitlab.com/xx_network/crypto/csprng"
-	"gitlab.com/xx_network/crypto/hash"
 )
 
 // Key length constants, in bytes.

@@ -9,7 +9,7 @@ package singleUse
 
 import (
 	"encoding/base64"
-	"gitlab.com/xx_network/crypto/cyclic"
+	"gitlab.com/elixxir/crypto/cyclic"
 	"gitlab.com/xx_network/crypto/large"
 	"math/rand"
 	"testing"

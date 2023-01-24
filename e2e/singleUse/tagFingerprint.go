@@ -10,7 +10,7 @@ package singleUse
 import (
 	"encoding/base64"
 	jww "github.com/spf13/jwalterweatherman"
-	"gitlab.com/xx_network/crypto/hash"
+	"gitlab.com/elixxir/crypto/hash"
 )
 
 const tagFpSalt = "singleUseTagFingerprintSalt"

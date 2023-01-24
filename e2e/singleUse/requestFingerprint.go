@@ -9,9 +9,9 @@ package singleUse
 
 import (
 	jww "github.com/spf13/jwalterweatherman"
+	"gitlab.com/elixxir/crypto/cyclic"
+	"gitlab.com/elixxir/crypto/hash"
 	"gitlab.com/elixxir/primitives/format"
-	"gitlab.com/xx_network/crypto/cyclic"
-	"gitlab.com/xx_network/crypto/hash"
 )
 
 const requestFpSalt = "singleUseTransmitFingerprintSalt"

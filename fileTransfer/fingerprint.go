@@ -15,8 +15,8 @@ package fileTransfer
 
 import (
 	"encoding/binary"
+	"gitlab.com/elixxir/crypto/hash"
 	"gitlab.com/elixxir/primitives/format"
-	"gitlab.com/xx_network/crypto/hash"
 )
 
 const fingerprintVector = "FileTransferKeyFingerprint"

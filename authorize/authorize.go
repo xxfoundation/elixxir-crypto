@@ -13,7 +13,7 @@ package authorize
 import (
 	"encoding/binary"
 	"github.com/pkg/errors"
-	"gitlab.com/xx_network/crypto/rsa"
+	"gitlab.com/elixxir/crypto/rsa"
 	oldRsa "gitlab.com/xx_network/crypto/signature/rsa"
 	"gitlab.com/xx_network/crypto/xx"
 	"gitlab.com/xx_network/primitives/id"

@@ -9,9 +9,9 @@ package auth
 
 import (
 	jww "github.com/spf13/jwalterweatherman"
+	"gitlab.com/elixxir/crypto/cyclic"
 	dh "gitlab.com/elixxir/crypto/diffieHellman"
-	"gitlab.com/xx_network/crypto/cyclic"
-	"gitlab.com/xx_network/crypto/hash"
+	"gitlab.com/elixxir/crypto/hash"
 )
 
 // Const string which gets hashed into the auth key
