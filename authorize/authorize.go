@@ -37,7 +37,7 @@ func Sign(rand io.Reader, now time.Time, privKey *rsa.PrivateKey) ([]byte, error
 // Second it will check that the public key and salt make the passed in node ID
 // Finally it will verify the signature on the signedTS using the public key
 func Verify(now time.Time, signedTS time.Time,
-	pubkey *rsa.PublicKey, nid *id.ID, salt []byte,
+	pubKey *rsa.PublicKey, nid *id.ID, salt []byte,
 	delta time.Duration, signature []byte) error {
 
 	// Check that the signed timestamp is within the delta passed in
@@ -48,7 +48,7 @@ func Verify(now time.Time, signedTS time.Time,
 
 	// Check that node ID passed in matches the
 	// passed in public key and salt
-	generatedId, err := xx.NewID(pubkey, salt, id.Node)
+	generatedId, err := xx.NewID(pubKey, salt, id.Node)
 	if err != nil {
 		return errors.Errorf("Issue generating ID for authorization check: %v", err)
 	}
@@ -63,7 +63,7 @@ func Verify(now time.Time, signedTS time.Time,
 	hashedData := digest(options.Hash.New(), signedTS)
 
 	// Verify the signature passed in
-	return rsa.Verify(pubkey, options.Hash, hashedData, signature, options)
+	return rsa.Verify(pubKey, options.Hash, hashedData, signature, options)
 
 }
 
