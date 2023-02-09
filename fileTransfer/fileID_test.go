@@ -52,11 +52,18 @@ func TestNewID_DifferentFiles(t *testing.T) {
 // Tests that a file ID serialised via ID.Marshal and unmarshalled via
 // UnmarshalID matches the original.
 func TestID_Marshal_UnmarshalID(t *testing.T) {
+	prng := rand.New(rand.NewSource(42))
+	fileData := make([]byte, 512)
+
 	for i := 0; i < 10; i++ {
-		id := newTestID()
+		prng.Read(fileData)
+		id := NewID(fileData)
 
 		idBytes := id.Marshal()
-		newID := UnmarshalID(idBytes)
+		newID, err := UnmarshalID(idBytes)
+		if err != nil {
+			t.Errorf("Failed to unmarshal ID: %+v", err)
+		}
 
 		if id != newID {
 			t.Errorf("Unmarshalled ID #%d does not match original."+
@@ -65,39 +72,54 @@ func TestID_Marshal_UnmarshalID(t *testing.T) {
 	}
 }
 
+// Error path: Tests that UnmarshalID returns an error when the data is of the
+// wrong length.
+func Test_UnmarshalID_LengthError(t *testing.T) {
+	data := []byte("invalid")
+	_, err := UnmarshalID(data)
+	if err == nil {
+		t.Error("Failed to error for invalid data")
+	}
+}
+
 // Consistency test of ID.String.
 func TestID_String(t *testing.T) {
+	prng := rand.New(rand.NewSource(42))
+	fileData := make([]byte, 512)
+
 	expectedStrings := []string{
-		"O+pvWzr23gN0NmxHGeQ6GwZ9ibx/AfH1c5gWWaRP8Xo=",
-		"THIVo7U56x5YScYHfbtXIvVxeiiaJm+XZHmBmY6+qJw=",
-		"C0s3OXARXoLtb0ElyPpzEeTX3vqSLarneGZn9+k2zU8=",
-		"JKv334ZrqlYDg2etYUXeHuj0qLCZPr34iDoK2L6cOXg=",
-		"sEiD5WoVao3lY6+kZ9Sd7GpA6aHQB/AzwoIwYb3Q6qU=",
-		"n45NpkMBBSINCyloi3NLjqDzypk26EYfENd8luqAp6Y=",
-		"ZfYG9qY7fz39JWfBiXnk1g8maG2b8vsmyQH/NUzeFgc=",
-		"7ilLOfMrfHgiumT4SrQ8oMbmuRwf076JkENBedOvRJE=",
-		"o2kBLbktGE/DnRc0/1cWQolTu2hl/PkrDDoXyQKL6ZE=",
-		"TrdknGyTR4AJedGDA1bypUw96rKktEddY6++j7Vph8c=",
-		"f1gYUm8YFL6CM1DqsTk18x2ESEUX6SSu94rhUcAHVZI=",
-		"WDa3B1iFZQww7CmjcDk0v1CijaECl13tp351hXnqPf4=",
+		"Po/2zJFIQEBflQ0reu8XsrlMWWy5t0q1lO9P28/5Ys8=",
+		"5RugyARGQxo6U4ScnaDxmBa8EwJGj9qjEEC9jRpSotw=",
+		"Os6Al8pQHIi0TNSFqbvk0wBZn3ZN7nnpmBAKouRHNpw=",
+		"QjCc42N9bCJdCidSix8sAKjOxDriQKsX+zbuGJ/dVO8=",
+		"voa/1b7QeIvICPykrNSP954MeIc6FYGM0vzkSAkx3wc=",
+		"wUx5hJ3C5AoxByNio19DkXhOk01mKwyYPQhjLkhsBCE=",
+		"Jv2ywOF9mcT9vTbQt6cGjzZIZ80rzVwVTcXYiZycFeU=",
+		"GYq1NE9fI5ANg3e8P0cUu/bjvtCZzvKJtFSR8QGqKlA=",
+		"7hLC1deqNpkBS2ONrzlPoeEZ2kXjJEs1rqn6N096+Js=",
+		"iHMegxbKttsIi5I5lp0gplloDHhmTOB0W8uWlbcYat0=",
+		"UwQ4YKRVBJLuVKuZfmW8ibA2Ei9gwmYtmCgSHxKOIMo=",
+		"PK+Iw6KpBQUpSmlrijc7qx/bRE0ypGZ6DAXMr8AxFrc=",
 	}
 
 	for i, expected := range expectedStrings {
-		id := newTestID()
+		prng.Read(fileData)
+		id := NewID(fileData)
 
 		if expected != id.String() {
 			t.Errorf("ID #%d string does not match expected."+
 				"\nexpected: %s\nreceived: %s", i, expected, id.String())
 		}
-
-		// fmt.Printf("%q,\n", id.String())
 	}
 }
 
 // Tests that a file ID can be JSON marshalled and unmarshalled and that the
 // result matches the original.
 func TestID_JSON_Marshal_Unmarshal(t *testing.T) {
-	id := newTestID()
+	prng := rand.New(rand.NewSource(42))
+	fileData := make([]byte, 512)
+	prng.Read(fileData)
+	id := NewID(fileData)
 
 	data, err := json.Marshal(&id)
 	if err != nil {
@@ -128,12 +150,22 @@ func TestID_UnmarshalJSON_LengthError(t *testing.T) {
 	var newID ID
 	err = json.Unmarshal(data, &newID)
 	if err == nil {
-		t.Error("Failed to error for invalid data")
+		t.Error("Failed to error for invalid data.")
 	}
 }
 
-func newTestID() ID {
+// Error path: Tests that ID.UnmarshalJSON returns an error when the data is
+// invalid JSON.
+func TestID_UnmarshalJSON_JsonError(t *testing.T) {
+	data := []byte("invalid")
+	data, err := json.Marshal(&data)
+	if err != nil {
+		t.Errorf("Failed to JSON marshal data: %+v", err)
+	}
+
 	var id ID
-	rand.Read(id[:])
-	return id
+	err = id.UnmarshalJSON([]byte("invalid JSON"))
+	if err == nil {
+		t.Error("Failed to error for invalid JSON.")
+	}
 }

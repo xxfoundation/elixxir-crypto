@@ -15,6 +15,7 @@ import (
 	"gitlab.com/elixxir/crypto/hash"
 )
 
+// IdLen is the length of a File ID.
 const IdLen = 32
 
 // ID identifies each unique file. It is a perceptual hash of a file so that all
@@ -39,10 +40,15 @@ func (id ID) Marshal() []byte {
 }
 
 // UnmarshalID converts the byte slice to a file ID.
-func UnmarshalID(b []byte) ID {
+func UnmarshalID(b []byte) (ID, error) {
+	if len(b) != IdLen {
+		return ID{}, errors.Errorf(
+			"read %d bytes; %d bytes required", len(b), IdLen)
+	}
+
 	var id ID
 	copy(id[:], b[:])
-	return id
+	return id, nil
 }
 
 // String returns the file ID as a base 64 encoded string. This function adheres
@@ -63,12 +69,11 @@ func (id *ID) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	if len(buff) != IdLen {
-		return errors.Errorf(
-			"read %d bytes; %d bytes required", len(buff), IdLen)
+	newID, err := UnmarshalID(buff)
+	if err != nil {
+		return err
 	}
 
-	copy(id[:], buff)
-
-	return nil
+	*id = newID
+	return err
 }
