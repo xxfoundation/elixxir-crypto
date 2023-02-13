@@ -13,9 +13,9 @@ require (
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/jwalterweatherman v1.1.0
 	github.com/stretchr/testify v1.8.1
-	gitlab.com/elixxir/primitives v0.0.3-0.20230109222259-f62b2a90b62c
-	gitlab.com/xx_network/crypto v0.0.5-0.20230124215920-951bed503c49
-	gitlab.com/xx_network/primitives v0.0.4-0.20221219230308-4b5550a9247d
+	gitlab.com/elixxir/primitives v0.0.3-0.20230213192156-9265807064bb
+	gitlab.com/xx_network/crypto v0.0.5-0.20230213192124-20f056b9cc7d
+	gitlab.com/xx_network/primitives v0.0.4-0.20230203173415-81c2cb07da44
 	gitlab.com/yawning/nyquist.git v0.0.0-20221003103146-de5645224a22
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa
 )
