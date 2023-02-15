@@ -25,9 +25,18 @@ var loremIpsum2 []byte
 //go:embed testFiles/ioremLpsum.txt
 var ioremLpsum []byte
 
-// TestNewID_SameFiles tests that NewID returns the same ID for the same file
-// data.
-func TestNewID_SameFiles(t *testing.T) {
+//go:embed testFiles/Jelly-Beans1.jpg
+var jellyBeans1 []byte
+
+//go:embed testFiles/Jelly-Beans2.jpg
+var jellyBeans2 []byte
+
+//go:embed testFiles/house.tiff
+var house []byte
+
+// TestNewID_SameFiles tests that NewID returns the same ID for the same ASCII
+// file data.
+func TestNewID_SameFiles_ASCII(t *testing.T) {
 	id1 := NewID(loremIpsum1)
 	id2 := NewID(loremIpsum2)
 
@@ -38,10 +47,34 @@ func TestNewID_SameFiles(t *testing.T) {
 }
 
 // TestNewID_DifferentFiles tests that NewID returns different IDs for different
-// file data.
-func TestNewID_DifferentFiles(t *testing.T) {
+// ASCII file data.
+func TestNewID_DifferentFiles_ASCII(t *testing.T) {
 	id1 := NewID(loremIpsum1)
 	id2 := NewID(ioremLpsum)
+
+	if bytes.Equal(id1[:], id2[:]) {
+		t.Errorf("IDs for different files are he same.\nfile 1: %s\nfile 2: %s",
+			id1, id2)
+	}
+}
+
+// TestNewID_SameFiles tests that NewID returns the same ID for the same binary
+// file data.
+func TestNewID_SameFiles_Binary(t *testing.T) {
+	id1 := NewID(jellyBeans1)
+	id2 := NewID(jellyBeans2)
+
+	if !bytes.Equal(id1[:], id2[:]) {
+		t.Errorf("IDs for the same file are different.\nfile 1: %s\nfile 2: %s",
+			id1, id2)
+	}
+}
+
+// TestNewID_DifferentFiles tests that NewID returns different IDs for different
+// binary file data.
+func TestNewID_DifferentFiles_Binary(t *testing.T) {
+	id1 := NewID(jellyBeans1)
+	id2 := NewID(house)
 
 	if bytes.Equal(id1[:], id2[:]) {
 		t.Errorf("IDs for different files are he same.\nfile 1: %s\nfile 2: %s",
