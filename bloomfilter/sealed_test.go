@@ -38,3 +38,57 @@ func TestSealedInit(t *testing.T) {
 	unsealed.Unseal(ciphertext)
 	require.Equal(t, orig, unsealed)
 }
+
+// TestSealedFuncs creates, adds, checks, encrypts, unseals, and
+// checks again on a Sealed filter
+func TestSealedFuncs(t *testing.T) {
+	testVals := [][]byte{
+		[]byte("How"),
+		[]byte("Are"),
+		[]byte("You"),
+		[]byte("Doing"),
+		[]byte("My"),
+		[]byte("Friend"),
+		[]byte("8675309"),
+		[]byte("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"),
+	}
+	key := blake2b.Sum256([]byte("Hello World!"))
+	nonce := blake2b.Sum256(key[:])
+
+	orig, err := InitByParameters(key[:], nonce[:24], 200, 10)
+	require.NoError(t, err)
+	unsealed, err := InitByParameters(key[:], nonce[:24], 200, 10)
+	require.NoError(t, err)
+
+	// Add a few values and Test
+	for i := 0; i < len(testVals); i++ {
+		orig.Add(testVals[i])
+	}
+
+	for i := 0; i < len(testVals); i++ {
+		require.True(t, orig.Test(testVals[i]))
+	}
+
+	// Now check encryption
+	ciphertext, err := orig.Seal()
+	require.NoError(t, err)
+	// Note: 200/8 = 25
+	require.Equal(t, 25, len(ciphertext))
+	unsealed.Unseal(ciphertext)
+	require.Equal(t, orig, unsealed)
+	// Other aspects
+	require.Equal(t, 200, int(unsealed.GetSize()))
+	require.Equal(t, orig.GetSize(), unsealed.GetSize())
+	require.Equal(t, orig.GetHashOpCount(), unsealed.GetHashOpCount())
+
+	for i := 0; i < len(testVals); i++ {
+		require.True(t, unsealed.Test(testVals[i]))
+	}
+
+	// Reset and make sure we can't find anything
+	orig.Reset()
+	for i := 0; i < len(testVals); i++ {
+		require.False(t, orig.Test(testVals[i]))
+	}
+
+}
