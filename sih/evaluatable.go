@@ -15,16 +15,17 @@ package sih
 import (
 	"math"
 
-	"gitlab.com/elixxir/crypto/bloomfilter"
+	bloomfilter "gitlab.com/elixxir/crypto/sealedBloomfilter"
+	"gitlab.com/elixxir/primitives/format"
 	"gitlab.com/xx_network/primitives/id"
 )
 
 // filterSize is SIH, which is 200 bits, so that must be our filter size.
-var filterSize = uint64(200)
+var filterSize = uint64(format.SIHLen * 8)
 
 // The recommendate number of hash ops is (m / float64(elements)) * math.Log(2),
-// where m is the number of bits. We take a guess here that # of elements is 20.
-var numHashOps = uint64((float64(filterSize) / 20.0) * math.Log(2))
+// where m is the number of bits. Our design assumes that # of elements is 5.
+var numHashOps = uint64((float64(filterSize) / 5.0) * math.Log(2))
 
 var compressedTag = "CompressedSIH"
 
@@ -89,10 +90,14 @@ func makeFilterKey(pickup *id.ID) []byte {
 	data := blake.Sum(pickup.Bytes())
 	return data[:32]
 }
+
+// return up to 24 bytes of the msgHash as the nonce
 func makeFilterNonce(msgHash []byte) []byte {
-	blake := hasher()
-	data := blake.Sum(msgHash)
-	return data[:24]
+	data := msgHash
+	if len(data) > 24 {
+		data = data[:24]
+	}
+	return data
 }
 
 func makeSIHEntry(msgHash, identifier []byte) []byte {
