@@ -25,7 +25,7 @@ var filterSize = uint64(format.SIHLen * 8)
 
 // The recommendate number of hash ops is (m / float64(elements)) * math.Log(2),
 // where m is the number of bits. Our design assumes that # of elements is 5.
-var numHashOps = uint64((float64(filterSize) / 5.0) * math.Log(2))
+var numHashOps = uint64(math.Round((float64(filterSize) / 5.0) * math.Log(2)))
 
 var compressedTag = "CompressedSIH"
 
