@@ -16,42 +16,38 @@ import (
 )
 
 func TestCompressed(t *testing.T) {
-	numSvcs := 10
-	svcs := make([]evaluatableService, numSvcs)
-	for i := 0; i < numSvcs; i++ {
-		svcs[i] = &testEvSvc{
-			tag: fmt.Sprintf("Tag: %d", i),
-		}
+	identifier := []byte("MyIdentifier")
+	numTags := 10
+	tags := make([]string, numTags)
+	for i := 0; i < numTags; i++ {
+		tags[i] = fmt.Sprintf("Tag: %d", i)
 	}
 
-	lookFor := []evaluatableService{svcs[1], svcs[6]}
+	lookFor := []string{tags[1], tags[6]}
 
 	pickup := &id.DummyUser
 	msgHash := []byte("8675309 This IS a dummy messsage hash")
 
-	sih, err := MakeCompessedSIH(pickup, msgHash, svcs)
+	sih, err := MakeCompessedSIH(pickup, msgHash, identifier, tags)
 	require.NoError(t, err)
 
 	// SIH must be 200 bits, 25 bytes
 	require.Equal(t, 25, len(sih))
 
-	results, err := EvaluateCompessedSIH(pickup, msgHash, lookFor, sih)
+	results, err := EvaluateCompessedSIH(pickup, msgHash, identifier,
+		lookFor, sih)
 	require.NoError(t, err)
 
 	require.Equal(t, len(lookFor), len(results))
 	for i := 0; i < len(lookFor); i++ {
-		require.Contains(t, results, lookFor[i].Tag())
+		require.Contains(t, results, lookFor[i])
 	}
-}
 
-type testEvSvc struct {
-	tag string
-}
+	// Make sure it doesn't work when the identifier is wrong
+	badIdentifier := []byte("BadIdentifier")
+	results, err = EvaluateCompessedSIH(pickup, msgHash, badIdentifier,
+		lookFor, sih)
+	require.NoError(t, err)
 
-func (t *testEvSvc) Hash(contents []byte) []byte {
-	return nil
-}
-
-func (t *testEvSvc) Tag() string {
-	return t.tag
+	require.Equal(t, 0, len(results))
 }

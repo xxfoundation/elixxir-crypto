@@ -7,12 +7,16 @@
 
 package sih
 
+// An evaluatable service is a service hash which has multiple tag entries in
+// it (i.e., "this notification applies to these user IDs in a
+// channel", or "these tags are a part of this message"). These functions
+// support matching on such a construction.
+
 import (
 	"math"
 
 	"gitlab.com/elixxir/crypto/bloomfilter"
 	"gitlab.com/xx_network/primitives/id"
-	"golang.org/x/crypto/blake2b"
 )
 
 // filterSize is SIH, which is 200 bits, so that must be our filter size.
@@ -22,39 +26,34 @@ var filterSize = uint64(200)
 // where m is the number of bits. We take a guess here that # of elements is 20.
 var numHashOps = uint64((float64(filterSize) / 20.0) * math.Log(2))
 
-// evaluatablesimpleService is a service hash which has multiple entries in
-// it (i.e., "this notification applies to these user IDs in a
-// channel", or "these tags are a part of this message")
-type evaluatableService interface {
-	Hash(contents []byte) []byte
-	Tag() string
-}
+var compressedTag = "CompressedSIH"
 
 // MakeCompressedSIH creates an SIH with multiple services that can be
 // checked for by stuffing each Hash into a bloom filter. It then uses
-// the pick ID as the key and the msgHash as the nonce to encrypt
-// the filter and returns the result.
-func MakeCompessedSIH(pickup *id.ID, msgHash []byte,
-	services []evaluatableService) ([]byte, error) {
+// the pickup ID as the key and the msgHash as the nonce to encrypt
+// the filter and returns the result. The identifier is added to the
+// bloom like an SIH (hash of msgHash + identifier) to confirm it
+// belongs to the SIH quickly on evaluation.
+func MakeCompessedSIH(pickup *id.ID, msgHash, identifier []byte,
+	tags []string) ([]byte, error) {
 	filter, err := makeFilter(pickup, msgHash)
 	if err != nil {
 		return nil, err
 	}
-	for i := 0; i < len(services); i++ {
-		// Should we be using hash here? with what inputs?
-		// doesn't the hash defeat the purpose of murmurhash?
-		filter.Add([]byte(services[i].Tag()))
+
+	filter.Add(makeSIHEntry(msgHash, identifier))
+	for i := 0; i < len(tags); i++ {
+		filter.Add([]byte(tags[i]))
 	}
 	return filter.Seal()
 }
 
 // EvaluatedCompressedSIH decrypts an encrypted bloomfilter using the
 // pickup ID and msgHash as the key and nonce, respectively. It
-// decodes the result into a bloom filter, then it returns the .Tag()
-// of any services passed in which are marked as present in the bloom
-// filter.
-func EvaluateCompessedSIH(pickup *id.ID, msgHash []byte,
-	services []evaluatableService, sih []byte) ([]string, error) {
+// decodes the result into a bloom filter, then it returns the tags
+// passed in which are marked as present in the bloom filter.
+func EvaluateCompessedSIH(pickup *id.ID, msgHash, identifier []byte,
+	tags []string, sih []byte) ([]string, error) {
 	filter, err := makeFilter(pickup, msgHash)
 	if err != nil {
 		return nil, err
@@ -64,9 +63,13 @@ func EvaluateCompessedSIH(pickup *id.ID, msgHash []byte,
 		return nil, err
 	}
 
+	// If the identifier entry doesn't exist, skip processing tags
+	if !filter.Test(makeSIHEntry(msgHash, identifier)) {
+		return nil, nil
+	}
 	results := make([]string, 0)
-	for i := 0; i < len(services); i++ {
-		curTag := services[i].Tag()
+	for i := 0; i < len(tags); i++ {
+		curTag := tags[i]
 		if filter.Test([]byte(curTag)) {
 			results = append(results, curTag)
 		}
@@ -82,10 +85,17 @@ func makeFilter(pickup *id.ID, msgHash []byte) (bloomfilter.Sealed, error) {
 }
 
 func makeFilterKey(pickup *id.ID) []byte {
-	data := blake2b.Sum256(pickup.Bytes())
-	return data[:]
+	blake := hasher()
+	data := blake.Sum(pickup.Bytes())
+	return data[:32]
 }
 func makeFilterNonce(msgHash []byte) []byte {
-	data := blake2b.Sum256(msgHash)
+	blake := hasher()
+	data := blake.Sum(msgHash)
 	return data[:24]
+}
+
+func makeSIHEntry(msgHash, identifier []byte) []byte {
+	return HashFromMessageHash(MakePreimage(identifier, compressedTag),
+		msgHash)
 }
