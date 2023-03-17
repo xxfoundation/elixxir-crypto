@@ -68,7 +68,7 @@ func EvaluateCompessedSIH(pickup *id.ID, msgHash, identifier []byte,
 	if !filter.Test(makeSIHEntry(msgHash, identifier)) {
 		return nil, false, nil
 	}
-	results := make([]string, 0)
+	results := make([]string, 0, len(tags))
 	for i := 0; i < len(tags); i++ {
 		curTag := tags[i]
 		if filter.Test([]byte(curTag)) {
