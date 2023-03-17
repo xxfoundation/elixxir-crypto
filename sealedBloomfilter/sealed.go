@@ -44,8 +44,11 @@ type Sealed interface {
 	// indicates that the data is not in the ring.
 	Test(data []byte) bool
 
-	// Merges the sent Bloom into itself.
-	Merge(m *bloomfilter.Bloom) error
+	// Merge merges the sent Bloom into itself.
+	Merge(m Sealed) error
+
+	// Return the underlying, unencrypted bloom filter.
+	Bloom() *bloomfilter.Bloom
 }
 
 type sealed struct {
@@ -112,30 +115,6 @@ func InitByParameters(key, nonce []byte, size,
 	}, nil
 }
 
-func (s *sealed) Add(data []byte) {
-	s.filter.Add(data)
-}
-
-func (s *sealed) GetSize() uint64 {
-	return s.filter.GetSize()
-}
-
-func (s *sealed) GetHashOpCount() uint64 {
-	return s.filter.GetHashOpCount()
-}
-
-func (s *sealed) Reset() {
-	s.filter.Reset()
-}
-
-func (s *sealed) Test(data []byte) bool {
-	return s.filter.Test(data)
-}
-
-func (s *sealed) Merge(m *bloomfilter.Bloom) error {
-	return s.filter.Merge(m)
-}
-
 func (s *sealed) Seal() ([]byte, error) {
 	data, err := s.filter.MarshalStorage()
 	if err != nil {
@@ -158,4 +137,32 @@ func (s *sealed) Unseal(ciphertext []byte) error {
 	}
 	cipher.XORKeyStream(plaintext, ciphertext)
 	return s.filter.UnmarshalStorage(plaintext)
+}
+
+func (s *sealed) Add(data []byte) {
+	s.filter.Add(data)
+}
+
+func (s *sealed) GetSize() uint64 {
+	return s.filter.GetSize()
+}
+
+func (s *sealed) GetHashOpCount() uint64 {
+	return s.filter.GetHashOpCount()
+}
+
+func (s *sealed) Reset() {
+	s.filter.Reset()
+}
+
+func (s *sealed) Test(data []byte) bool {
+	return s.filter.Test(data)
+}
+
+func (s *sealed) Merge(m Sealed) error {
+	return s.filter.Merge(m.Bloom())
+}
+
+func (s *sealed) Bloom() *bloomfilter.Bloom {
+	return &s.filter
 }
