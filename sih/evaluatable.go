@@ -54,19 +54,19 @@ func MakeCompessedSIH(pickup *id.ID, msgHash, identifier []byte,
 // decodes the result into a bloom filter, then it returns the tags
 // passed in which are marked as present in the bloom filter.
 func EvaluateCompessedSIH(pickup *id.ID, msgHash, identifier []byte,
-	tags []string, sih []byte) ([]string, error) {
+	tags []string, sih []byte) ([]string, bool, error) {
 	filter, err := makeFilter(pickup, msgHash)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	err = filter.Unseal(sih)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	// If the identifier entry doesn't exist, skip processing tags
 	if !filter.Test(makeSIHEntry(msgHash, identifier)) {
-		return nil, nil
+		return nil, false, nil
 	}
 	results := make([]string, 0)
 	for i := 0; i < len(tags); i++ {
@@ -75,7 +75,7 @@ func EvaluateCompessedSIH(pickup *id.ID, msgHash, identifier []byte,
 			results = append(results, curTag)
 		}
 	}
-	return results, nil
+	return results, true, nil
 }
 
 func makeFilter(pickup *id.ID, msgHash []byte) (bloomfilter.Sealed, error) {

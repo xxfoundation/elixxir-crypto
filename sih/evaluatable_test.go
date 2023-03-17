@@ -34,8 +34,9 @@ func TestCompressed(t *testing.T) {
 	// SIH must be 200 bits, 25 bytes
 	require.Equal(t, 25, len(sih))
 
-	results, err := EvaluateCompessedSIH(pickup, msgHash, identifier,
+	results, ok, err := EvaluateCompessedSIH(pickup, msgHash, identifier,
 		lookFor, sih)
+	require.True(t, ok)
 	require.NoError(t, err)
 
 	require.Equal(t, len(lookFor), len(results))
@@ -45,8 +46,9 @@ func TestCompressed(t *testing.T) {
 
 	// Make sure it doesn't work when the identifier is wrong
 	badIdentifier := []byte("BadIdentifier")
-	results, err = EvaluateCompessedSIH(pickup, msgHash, badIdentifier,
+	results, ok, err = EvaluateCompessedSIH(pickup, msgHash, badIdentifier,
 		lookFor, sih)
+	require.False(t, ok)
 	require.NoError(t, err)
 
 	require.Equal(t, 0, len(results))
