@@ -197,17 +197,20 @@ func (p *PublicKey) FromBytes(data []byte) error {
 		return errors.New("invalid key size")
 	}
 	edwards := ed25519.PublicKey(data)
-	p.FromEdwards(edwards)
-	return nil
+	return p.FromEdwards(edwards)
 }
 
 // FromEdwards implements the edwards to montgomery
 // Per RFC 7748, EDDSA Public keys can be trivially
 // converted (https://www.rfc-editor.org/rfc/rfc7748.html#page-14)
-func (p *PublicKey) FromEdwards(publicKey ed25519.PublicKey) {
+func (p *PublicKey) FromEdwards(publicKey ed25519.PublicKey) error {
 	p.edwards = publicKey
-	ed_pub, _ := new(edwards25519.Point).SetBytes(publicKey)
+	ed_pub, err := new(edwards25519.Point).SetBytes(publicKey)
+	if err != nil {
+		return err
+	}
 	p.publicKey = ed_pub.BytesMontgomery()
+	return nil
 }
 
 // panicOnError is a helper function which will panic if the
