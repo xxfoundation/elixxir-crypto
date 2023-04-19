@@ -19,9 +19,9 @@ func TestSealedInit(t *testing.T) {
 	key := blake2b.Sum256([]byte("Hello World!"))
 	nonce := blake2b.Sum256(key[:])
 
-	orig, err := Init(key[:], nonce[:24], 30, 0.05)
+	orig, err := Init(key[:], nonce[:24], 30, 0.05, 2)
 	require.NoError(t, err)
-	unsealed, err := Init(key[:], nonce[:24], 30, 0.05)
+	unsealed, err := Init(key[:], nonce[:24], 30, 0.05, 2)
 	require.NoError(t, err)
 
 	// Test internal functionality as a smoke test.
@@ -33,10 +33,13 @@ func TestSealedInit(t *testing.T) {
 	require.Equal(t, orgObj.filter, unsealedObj.filter)
 
 	// Now check encryption
-	ciphertext, err := orig.Seal()
+	metadata := []byte{42, 69}
+	ciphertext, err := orig.Seal(metadata)
 	require.NoError(t, err)
-	unsealed.Unseal(ciphertext)
+	recievedMetadata, err := unsealed.Unseal(ciphertext)
+	require.NoError(t, err)
 	require.Equal(t, orig, unsealed)
+	require.Equal(t, metadata, recievedMetadata)
 }
 
 // TestSealedFuncs creates, adds, checks, encrypts, unseals, and
@@ -55,9 +58,9 @@ func TestSealedFuncs(t *testing.T) {
 	key := blake2b.Sum256([]byte("Hello World!"))
 	nonce := blake2b.Sum256(key[:])
 
-	orig, err := InitByParameters(key[:], nonce[:24], 200, 10)
+	orig, err := InitByParameters(key[:], nonce[:24], 200, 10, 0)
 	require.NoError(t, err)
-	unsealed, err := InitByParameters(key[:], nonce[:24], 200, 10)
+	unsealed, err := InitByParameters(key[:], nonce[:24], 200, 10, 0)
 	require.NoError(t, err)
 
 	// Add a few values and Test
@@ -70,12 +73,14 @@ func TestSealedFuncs(t *testing.T) {
 	}
 
 	// Now check encryption
-	ciphertext, err := orig.Seal()
+	ciphertext, err := orig.Seal(nil)
 	require.NoError(t, err)
 	// Note: 200/8 = 25
 	require.Equal(t, 25, len(ciphertext))
-	unsealed.Unseal(ciphertext)
+	metadata, err := unsealed.Unseal(ciphertext)
+	require.NoError(t, err)
 	require.Equal(t, orig, unsealed)
+	require.Equal(t, 0, len(metadata))
 	// Other aspects
 	require.Equal(t, 200, int(unsealed.GetSize()))
 	require.Equal(t, orig.GetSize(), unsealed.GetSize())
