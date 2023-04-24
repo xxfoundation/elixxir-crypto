@@ -64,6 +64,16 @@ const (
 		createdLen
 )
 
+// Link type constants.
+const (
+	// share indicates the link being created for simple URL creation.
+	share = false
+	// invite indicates the link being created is intended for invitations.
+	invite = true
+
+	// NOTE: If more types are added, this may be refactored into an enum.
+)
+
 // Error messages.
 const (
 	// Channel.ShareURL
@@ -85,7 +95,7 @@ const (
 	maxUsesUrlErr       = "max uses in URL %d does not match expected %d"
 	newReceptionIdErr   = "could not create new channel ID: %+v"
 
-	// Channel.decodePublicShareURL
+	// Channel.decodePublicURL
 	parseCreatedErr         = "failed to parse creation time: %+v"
 	parseLevelErr           = "failed to parse privacy Level: %+v"
 	parseSaltErr            = "failed to parse Salt: %+v"
@@ -94,13 +104,13 @@ const (
 	parseRsaSubPayloadsErr  = "failed to parse RSASubPayloads: %+v"
 	parseSecretErr          = "failed to parse Secret: %+v"
 
-	// Channel.decodePrivateShareURL and Channel.decodeSecretShareURL
+	// Channel.decodePrivateURL and Channel.decodeSecretURL
 	decodeEncryptedErr = "could not decode encrypted data string: %+v"
 	decryptErr         = "could not decrypt encrypted data: %+v"
 	unmarshalUrlErr    = "could not unmarshal data: %+v"
 
-	// Channel.unmarshalPrivateShareUrlSecrets and
-	// Channel.unmarshalSecretShareUrlSecrets
+	// Channel.unmarshalPrivateURLSecrets and
+	// Channel.unmarshalSecretURLSecrets
 	unmarshalPrivateDataLenErr = "data must be %d bytes, data received is %d bytes"
 	unmarshalSecretDataLenErr  = "data must be at least %d bytes, data received is %d bytes"
 	unmarshalSecretDataLenErr2 = "data must be %d bytes, data received is %d bytes"
@@ -113,11 +123,7 @@ const (
 // It can be set to nil for Public channels. No password is returned for Public
 // channels.
 //
-// A URL comes in one of three forms based on the privacy Level set when
-// generating the channel. Each privacy Level hides more information than the
-// last with the lowest Level revealing everything and the highest Level
-// revealing nothing. For any Level above the lowest, a password is returned,
-// which will be required when decoding the URL.
+// See [Channel.Level] for information on URL privacy.
 //
 // The maxUses is the maximum number of times this URL can be used to join a
 // channel. If it is set to 0, then it can be shared unlimited times. The max
@@ -127,14 +133,84 @@ const (
 // [DecodeShareURL]. There is no enforcement for public URLs.
 func (c *Channel) ShareURL(
 	url string, maxUses int, csprng io.Reader) (string, string, error) {
+	return c.getURL(url, maxUses, csprng, share)
+}
+
+// DecodeShareURL decodes the given URL to a Channel. If the channel is Private
+// or Secret, then a password is required. Otherwise, an error is returned.
+func DecodeShareURL(url, password string) (*Channel, error) {
+	return decodeURL(url, password, share)
+}
+
+// InviteURL generates a URL that can be used to create an invitation for this
+// channel with others on the given host.
+//
+// See [Channel.Level] for information on URL privacy.
+//
+// The maxUses is the maximum number of times this URL can be used to join a
+// channel. If it is set to 0, then it can be shared unlimited times. The max
+// uses is set as a URL parameter using the key [MaxUsesKey]. Note that this
+// number is also encoded in the secret data for private and secret URLs, so if
+// the number is changed in the URL, is will be verified when calling
+// [DecodeInviteURL]. There is no enforcement for public URLs.
+func (c *Channel) InviteURL(url string, maxUses int) (string, error) {
+	u, _, err := c.getURL(url, maxUses, nil, invite)
+	return u, err
+}
+
+// DecodeInviteURL decodes the given invite URL to a Channel.
+func DecodeInviteURL(url string) (*Channel, error) {
+	return decodeURL(url, "", invite)
+}
+
+// GetURLType determines the PrivacyLevel of the channel's URL.
+func GetURLType(url string) (PrivacyLevel, error) {
+	u, err := goUrl.Parse(url)
+	if err != nil {
+		return 0, errors.Errorf(parseShareUrlErr, err)
+	}
+
+	q := u.Query()
+
+	// Check the version
+	versionString := q.Get(versionKey)
+	if versionString == "" {
+		return 0, errors.New(urlVersionErr)
+	}
+	v, err := strconv.Atoi(versionString)
+	if err != nil {
+		return 0, errors.Errorf(parseVersionErr, err)
+	} else if v != shareUrlVersion {
+		return 0, errors.Errorf(versionErr, shareUrlVersion, v)
+	}
+
+	// Decode the URL based on the information available (e.g., only the public
+	// URL has a salt, so if the saltKey is specified, it is a public URL)
+	switch {
+	case q.Has(saltKey):
+		return Public, nil
+	case q.Has(nameKey):
+		return Private, nil
+	case q.Has(dataKey):
+		return Secret, nil
+	default:
+		return 0, errors.New(malformedUrlErr)
+	}
+}
+
+// getURL is a helper function which constructs the URL for sharing or
+// invitation.
+func (c *Channel) getURL(url string, maxUses int, csprng io.Reader,
+	isInvite bool) (string, string, error) {
 	u, err := goUrl.Parse(url)
 	if err != nil {
 		return "", "", errors.Errorf(parseHostUrlErr, err)
 	}
 
-	// If the privacy Level is Private or Secret, then generate a password
+	// If this is for a sharable link and the privacy Level is Private or
+	// Secret, then generate a password
 	var password string
-	if c.Level != Public {
+	if isInvite && c.Level != Public {
 		password, err = generatePhrasePassword(8, csprng)
 		if err != nil {
 			return "", "", errors.Errorf(generatePhrasePasswordErr, err)
@@ -148,11 +224,11 @@ func (c *Channel) ShareURL(
 	// Generate URL queries based on the privacy Level
 	switch c.Level {
 	case Public:
-		u.RawQuery = c.encodePublicShareURL(q).Encode()
+		u.RawQuery = c.encodePublicURL(q).Encode()
 	case Private:
-		u.RawQuery = c.encodePrivateShareURL(q, password, maxUses, csprng).Encode()
+		u.RawQuery = c.encodePrivateURL(q, password, maxUses, csprng, isInvite).Encode()
 	case Secret:
-		u.RawQuery = c.encodeSecretShareURL(q, password, maxUses, csprng).Encode()
+		u.RawQuery = c.encodeSecretURL(q, password, maxUses, csprng, isInvite).Encode()
 	}
 
 	u.RawQuery = q.Encode()
@@ -160,9 +236,9 @@ func (c *Channel) ShareURL(
 	return u.String(), password, nil
 }
 
-// DecodeShareURL decodes the given URL to a Channel. If the channel is Private
-// or Secret, then a password is required. Otherwise, an error is returned.
-func DecodeShareURL(url, password string) (*Channel, error) {
+// decodeURL is a helper function which decodes a URL, either for sharing or
+// invitation.
+func decodeURL(url, password string, isInvite bool) (*Channel, error) {
 	u, err := goUrl.Parse(url)
 	if err != nil {
 		return nil, errors.Errorf(parseShareUrlErr, err)
@@ -199,7 +275,7 @@ func DecodeShareURL(url, password string) (*Channel, error) {
 	// URL has a salt, so if the saltKey is specified, it is a public URL)
 	switch {
 	case q.Has(saltKey):
-		err = c.decodePublicShareURL(q)
+		err = c.decodePublicURL(q)
 		if err != nil {
 			return nil, errors.Errorf(decodePublicUrlErr, err)
 		}
@@ -207,7 +283,7 @@ func DecodeShareURL(url, password string) (*Channel, error) {
 		if password == "" {
 			return nil, errors.New(noPasswordErr)
 		}
-		maxUses, err = c.decodePrivateShareURL(q, password)
+		maxUses, err = c.decodePrivateURL(q, password, isInvite)
 		if err != nil {
 			return nil, errors.Errorf(decodePrivateUrlErr, err)
 		}
@@ -215,7 +291,7 @@ func DecodeShareURL(url, password string) (*Channel, error) {
 		if password == "" {
 			return nil, errors.New(noPasswordErr)
 		}
-		maxUses, err = c.decodeSecretShareURL(q, password)
+		maxUses, err = c.decodeSecretURL(q, password, isInvite)
 		if err != nil {
 			return nil, errors.Errorf(decodeSecretUrlErr, err)
 		}
@@ -250,43 +326,8 @@ func DecodeShareURL(url, password string) (*Channel, error) {
 	return c, nil
 }
 
-// GetShareUrlType determines the PrivacyLevel of the channel's URL.
-func GetShareUrlType(url string) (PrivacyLevel, error) {
-	u, err := goUrl.Parse(url)
-	if err != nil {
-		return 0, errors.Errorf(parseShareUrlErr, err)
-	}
-
-	q := u.Query()
-
-	// Check the version
-	versionString := q.Get(versionKey)
-	if versionString == "" {
-		return 0, errors.New(urlVersionErr)
-	}
-	v, err := strconv.Atoi(versionString)
-	if err != nil {
-		return 0, errors.Errorf(parseVersionErr, err)
-	} else if v != shareUrlVersion {
-		return 0, errors.Errorf(versionErr, shareUrlVersion, v)
-	}
-
-	// Decode the URL based on the information available (e.g., only the public
-	// URL has a salt, so if the saltKey is specified, it is a public URL)
-	switch {
-	case q.Has(saltKey):
-		return Public, nil
-	case q.Has(nameKey):
-		return Private, nil
-	case q.Has(dataKey):
-		return Secret, nil
-	default:
-		return 0, errors.New(malformedUrlErr)
-	}
-}
-
-// encodePublicShareURL encodes the channel to a Public share URL.
-func (c *Channel) encodePublicShareURL(q goUrl.Values) goUrl.Values {
+// encodePublicURL encodes the channel to a Public share URL.
+func (c *Channel) encodePublicURL(q goUrl.Values) goUrl.Values {
 	q.Set(nameKey, c.Name)
 	q.Set(descKey, c.Description)
 	q.Set(levelKey, c.Level.Marshal())
@@ -300,9 +341,9 @@ func (c *Channel) encodePublicShareURL(q goUrl.Values) goUrl.Values {
 	return q
 }
 
-// decodePublicShareURL decodes the values in the url.Values from a Public share
+// decodePublicURL decodes the values in the url.Values from a Public share
 // URL to a channel.
-func (c *Channel) decodePublicShareURL(q goUrl.Values) error {
+func (c *Channel) decodePublicURL(q goUrl.Values) error {
 	var err error
 
 	c.Name = q.Get(nameKey)
@@ -347,24 +388,25 @@ func (c *Channel) decodePublicShareURL(q goUrl.Values) error {
 	return nil
 }
 
-// encodePrivateShareURL encodes the channel to a Private share URL.
-func (c *Channel) encodePrivateShareURL(
-	q goUrl.Values, password string, maxUses int, csprng io.Reader) goUrl.Values {
-	marshalledSecrets := c.marshalPrivateShareUrlSecrets(maxUses)
-	encryptedSecrets := encryptShareURL(marshalledSecrets, password, csprng)
+// encodePrivateURL encodes the channel to a Private URL.
+func (c *Channel) encodePrivateURL(q goUrl.Values, password string, maxUses int,
+	csprng io.Reader, isInvite bool) goUrl.Values {
+
+	data := createDataForURL(c.marshalPrivateURLSecrets(maxUses),
+		password, csprng, isInvite)
 
 	q.Set(nameKey, c.Name)
 	q.Set(descKey, c.Description)
 	q.Set(createdKey, strconv.FormatInt(c.Created.UnixNano(), 10))
-	q.Set(dataKey, base64.StdEncoding.EncodeToString(encryptedSecrets))
+	q.Set(dataKey, base64.StdEncoding.EncodeToString(data))
 
 	return q
 }
 
-// decodePrivateShareURL decodes the values in the url.Values from a Private
+// decodePrivateURL decodes the values in the url.Values from a Private
 // share URL to a channel.
-func (c *Channel) decodePrivateShareURL(
-	q goUrl.Values, password string) (int, error) {
+func (c *Channel) decodePrivateURL(
+	q goUrl.Values, password string, isInvite bool) (int, error) {
 	c.Name = q.Get(nameKey)
 	c.Description = q.Get(descKey)
 
@@ -374,17 +416,17 @@ func (c *Channel) decodePrivateShareURL(
 	}
 	c.Created = time.Unix(0, created)
 
-	encryptedData, err := base64.StdEncoding.DecodeString(q.Get(dataKey))
+	dataFromUrl, err := base64.StdEncoding.DecodeString(q.Get(dataKey))
 	if err != nil {
 		return 0, errors.Errorf(decodeEncryptedErr, err)
 	}
 
-	data, err := decryptShareURL(encryptedData, password)
+	data, err := retrieveDataFromURL(dataFromUrl, password, isInvite)
 	if err != nil {
-		return 0, errors.Errorf(decryptErr, err)
+		return 0, err
 	}
 
-	maxUses, err := c.unmarshalPrivateShareUrlSecrets(data)
+	maxUses, err := c.unmarshalPrivateURLSecrets(data)
 	if err != nil {
 		return 0, errors.Errorf(unmarshalUrlErr, err)
 	}
@@ -392,33 +434,34 @@ func (c *Channel) decodePrivateShareURL(
 	return maxUses, nil
 }
 
-// encodeSecretShareURL encodes the channel to a Secret share URL.
-func (c *Channel) encodeSecretShareURL(
-	q goUrl.Values, password string, maxUses int, csprng io.Reader) goUrl.Values {
-	marshalledSecrets := c.marshalSecretShareUrlSecrets(maxUses)
-	encryptedSecrets := encryptShareURL(marshalledSecrets, password, csprng)
+// encodeSecretURL encodes the channel to a Secret share URL.
+func (c *Channel) encodeSecretURL(q goUrl.Values, password string,
+	maxUses int, csprng io.Reader, isInvite bool) goUrl.Values {
+	data := createDataForURL(c.marshalSecretURLSecrets(maxUses),
+		password, csprng, isInvite)
 
 	q.Set(versionKey, strconv.Itoa(shareUrlVersion))
-	q.Set(dataKey, base64.StdEncoding.EncodeToString(encryptedSecrets))
+	q.Set(dataKey, base64.StdEncoding.EncodeToString(data))
 
 	return q
 }
 
-// decodePrivateShareURL decodes the values in the url.Values from a Secret
+// decodePrivateURL decodes the values in the url.Values from a Secret
 // share URL to a channel.
-func (c *Channel) decodeSecretShareURL(
-	q goUrl.Values, password string) (int, error) {
-	encryptedData, err := base64.StdEncoding.DecodeString(q.Get(dataKey))
+func (c *Channel) decodeSecretURL(
+	q goUrl.Values, password string, isInvite bool) (int, error) {
+
+	dataFromUrl, err := base64.StdEncoding.DecodeString(q.Get(dataKey))
 	if err != nil {
 		return 0, errors.Errorf(decodeEncryptedErr, err)
 	}
 
-	data, err := decryptShareURL(encryptedData, password)
+	data, err := retrieveDataFromURL(dataFromUrl, password, isInvite)
 	if err != nil {
-		return 0, errors.Errorf(decryptErr, err)
+		return 0, err
 	}
 
-	maxUses, err := c.unmarshalSecretShareUrlSecrets(data)
+	maxUses, err := c.unmarshalSecretURLSecrets(data)
 	if err != nil {
 		return 0, errors.Errorf(unmarshalUrlErr, err)
 	}
@@ -426,7 +469,28 @@ func (c *Channel) decodeSecretShareURL(
 	return maxUses, nil
 }
 
-// marshalPrivateShareUrlSecrets marshals the channel's Level, Salt,
+// createDataForURL is a helper function which creates the channel data placed
+// within the URL. This is handled differently for sharing and invitation URLs.
+func createDataForURL(marshalledSecrets []byte, password string,
+	csprng io.Reader, isInvite bool) []byte {
+	if isInvite {
+		return marshalledSecrets
+	}
+	return encryptShareURL(marshalledSecrets, password, csprng)
+}
+
+// retrieveDataFromURL is a helper function which retrieves the channel data
+// within the URL.
+func retrieveDataFromURL(dataFromURL []byte, password string,
+	isInvite bool) ([]byte, error) {
+	if isInvite {
+		return dataFromURL, nil
+	}
+
+	return decryptShareURL(dataFromURL, password)
+}
+
+// marshalPrivateURLSecrets marshals the channel's Level, Salt,
 // RsaPubKeyHash, RsaPubKeyLength, RSASubPayloads, Secret, and max uses into a
 // byte slice.
 //
@@ -435,7 +499,7 @@ func (c *Channel) decodeSecretShareURL(
 //	|  Level  |  32   |               |                 |                |          |          |
 //	| 1 byte  | bytes |    32 bytes   |     2 bytes     |     2 bytes    | 32 bytes |  2 bytes |
 //	+---------+-------+---------------+-----------------+----------------+----------+----------+
-func (c *Channel) marshalPrivateShareUrlSecrets(maxUses int) []byte {
+func (c *Channel) marshalPrivateURLSecrets(maxUses int) []byte {
 	var buff bytes.Buffer
 	buff.Grow(marshaledPrivateLen)
 
@@ -469,10 +533,10 @@ func (c *Channel) marshalPrivateShareUrlSecrets(maxUses int) []byte {
 	return buff.Bytes()
 }
 
-// unmarshalPrivateShareUrlSecrets unmarshalls the byte slice into the channel's
+// unmarshalPrivateURLSecrets unmarshalls the byte slice into the channel's
 // Level, Salt, RsaPubKeyHash, RsaPubKeyLength, RSASubPayloads, and Secret and
 // returns the max uses.
-func (c *Channel) unmarshalPrivateShareUrlSecrets(data []byte) (int, error) {
+func (c *Channel) unmarshalPrivateURLSecrets(data []byte) (int, error) {
 	if len(data) != marshaledPrivateLen {
 		return 0, errors.Errorf(
 			unmarshalPrivateDataLenErr, marshaledPrivateLen, len(data))
@@ -493,7 +557,7 @@ func (c *Channel) unmarshalPrivateShareUrlSecrets(data []byte) (int, error) {
 	return maxUses, nil
 }
 
-// marshalSecretShareUrlSecrets marshals the channel's Level, Name, Description,
+// marshalSecretURLSecrets marshals the channel's Level, Name, Description,
 // Salt, RsaPubKeyHash, RsaPubKeyLength, RSASubPayloads, and Secret into a byte
 // slice.
 //
@@ -502,7 +566,7 @@ func (c *Channel) unmarshalPrivateShareUrlSecrets(data []byte) (int, error) {
 //	|  Level  | Length  |   Length    | Name | Description |         |  32   |               |                 |                |          |          |
 //	| 1 byte  | 2 bytes |   2 bytes   |      |             | 8 bytes | bytes |    32 bytes   |     2 bytes     |     2 bytes    | 32 bytes |  2 bytes |
 //	+---------+---------+-------------+------+-------------+----------+-------+---------------+-----------------+----------------+----------+----------+
-func (c *Channel) marshalSecretShareUrlSecrets(maxUses int) []byte {
+func (c *Channel) marshalSecretURLSecrets(maxUses int) []byte {
 	var buff bytes.Buffer
 	buff.Grow(len(c.Name) + len(c.Description) + marshaledSecretLen)
 
@@ -557,10 +621,10 @@ func (c *Channel) marshalSecretShareUrlSecrets(maxUses int) []byte {
 	return buff.Bytes()
 }
 
-// unmarshalPrivateShareUrlSecrets unmarshalls the byte slice into the channel's
+// unmarshalPrivateURLSecrets unmarshalls the byte slice into the channel's
 // Level, Name, Description, Salt, RsaPubKeyHash, RsaPubKeyLength,
 // RSASubPayloads, and Secret and returns the max uses.
-func (c *Channel) unmarshalSecretShareUrlSecrets(data []byte) (int, error) {
+func (c *Channel) unmarshalSecretURLSecrets(data []byte) (int, error) {
 	if len(data) < marshaledSecretLen {
 		return 0, errors.Errorf(
 			unmarshalSecretDataLenErr, marshaledSecretLen, len(data))
