@@ -210,7 +210,7 @@ func (c *Channel) getURL(url string, maxUses int, csprng io.Reader,
 	// If this is for a sharable link and the privacy Level is Private or
 	// Secret, then generate a password
 	var password string
-	if isInvite && c.Level != Public {
+	if !isInvite && c.Level != Public {
 		password, err = generatePhrasePassword(8, csprng)
 		if err != nil {
 			return "", "", errors.Errorf(generatePhrasePasswordErr, err)
@@ -280,7 +280,7 @@ func decodeURL(url, password string, isInvite bool) (*Channel, error) {
 			return nil, errors.Errorf(decodePublicUrlErr, err)
 		}
 	case q.Has(nameKey):
-		if password == "" {
+		if !isInvite && password == "" {
 			return nil, errors.New(noPasswordErr)
 		}
 		maxUses, err = c.decodePrivateURL(q, password, isInvite)
@@ -288,7 +288,7 @@ func decodeURL(url, password string, isInvite bool) (*Channel, error) {
 			return nil, errors.Errorf(decodePrivateUrlErr, err)
 		}
 	case q.Has(dataKey):
-		if password == "" {
+		if !isInvite && password == "" {
 			return nil, errors.New(noPasswordErr)
 		}
 		maxUses, err = c.decodeSecretURL(q, password, isInvite)
@@ -299,7 +299,7 @@ func decodeURL(url, password string, isInvite bool) (*Channel, error) {
 		return nil, errors.New(malformedUrlErr)
 	}
 
-	if c.Level == Private || c.Level == Secret {
+	if !isInvite && (c.Level == Private || c.Level == Secret) {
 		if maxUses != maxUsesFromURL {
 			return nil, errors.Errorf(maxUsesUrlErr, maxUsesFromURL, maxUses)
 		}
@@ -324,6 +324,7 @@ func decodeURL(url, password string, isInvite bool) (*Channel, error) {
 	}
 
 	return c, nil
+
 }
 
 // encodePublicURL encodes the channel to a Public share URL.
@@ -423,7 +424,7 @@ func (c *Channel) decodePrivateURL(
 
 	data, err := retrieveDataFromURL(dataFromUrl, password, isInvite)
 	if err != nil {
-		return 0, err
+		return 0, errors.Errorf(decryptErr, err)
 	}
 
 	maxUses, err := c.unmarshalPrivateURLSecrets(data)
@@ -458,7 +459,7 @@ func (c *Channel) decodeSecretURL(
 
 	data, err := retrieveDataFromURL(dataFromUrl, password, isInvite)
 	if err != nil {
-		return 0, err
+		return 0, errors.Errorf(decryptErr, err)
 	}
 
 	maxUses, err := c.unmarshalSecretURLSecrets(data)

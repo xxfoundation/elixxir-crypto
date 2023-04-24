@@ -641,33 +641,6 @@ func TestDecodeInviteURL_DecodeError(t *testing.T) {
 	}
 }
 
-// Error path: Tests that Channel.InviteURL returns the expected error when the
-// max uses in the URL does not match the max uses in the secret data.
-func TestChannel_DecodeInviteURL_MaxUsesMismatchError(t *testing.T) {
-	host := "https://internet.speakeasy.tech/"
-	rng := csprng.NewSystemRNG()
-	c, _, err := NewChannel("ABC", "B", Secret, 512, rng)
-	if err != nil {
-		t.Fatalf("Failed to create new channel: %+v", err)
-	}
-
-	oldMaxUses := 5
-	url, err := c.InviteURL(host, oldMaxUses)
-	if err != nil {
-		t.Fatalf("Failed to create URL: %+v", err)
-	}
-
-	// Change max uses in URL
-	newMaxUses := 6
-	url = strings.ReplaceAll(url,
-		"&"+MaxUsesKey+"="+strconv.Itoa(oldMaxUses),
-		"&"+MaxUsesKey+"="+strconv.Itoa(newMaxUses))
-
-	expectedErr := fmt.Sprintf(maxUsesUrlErr, newMaxUses, oldMaxUses)
-	_, err = DecodeInviteURL(url)
-	require.ErrorContains(t, err, expectedErr)
-}
-
 // Tests that DecodeInviteURL returns an error when NewChannelID returns an error
 // due to the salt size being incorrect.
 func TestDecodeInviteURL_NewChannelIDError(t *testing.T) {
