@@ -13,6 +13,7 @@ require (
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/jwalterweatherman v1.1.0
 	github.com/stretchr/testify v1.8.2
+	gitlab.com/elixxir/bloomfilter v0.0.0-20230322223210-fa84f6842de8
 	gitlab.com/elixxir/primitives v0.0.3-0.20230214180039-9a25e2d3969c
 	gitlab.com/xx_network/crypto v0.0.5-0.20230214003943-8a09396e95dd
 	gitlab.com/xx_network/primitives v0.0.4-0.20230203173415-81c2cb07da44
@@ -31,7 +32,6 @@ require (
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ttacon/libphonenumber v1.2.1 // indirect
 	github.com/zeebo/blake3 v0.1.1 // indirect
-	gitlab.com/elixxir/bloomfilter v0.0.0-20230315224936-a4459418f300 // indirect
 	gitlab.com/yawning/bsaes.git v0.0.0-20190805113838-0a714cd429ec // indirect
 	gitlab.com/yawning/x448.git v0.0.0-20221003101044-617eb9b7d9b7 // indirect
 	golang.org/x/sys v0.0.0-20220928140112-f11e5e49a4ec // indirect

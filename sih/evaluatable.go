@@ -21,7 +21,10 @@ import (
 )
 
 // filterSize is SIH, which is 200 bits, so that must be our filter size.
-var filterSize = uint64(format.SIHLen * 8)
+const (
+	metadataSize = 2
+	filterSize   = uint64((format.SIHLen - metadataSize) * 8)
+)
 
 // The recommendate number of hash ops is (m / float64(elements)) * math.Log(2),
 // where m is the number of bits. Our design assumes that # of elements is 5.
@@ -35,8 +38,9 @@ var compressedTag = "CompressedSIH"
 // the filter and returns the result. The identifier is added to the
 // bloom like an SIH (hash of msgHash + identifier) to confirm it
 // belongs to the SIH quickly on evaluation.
-func MakeCompessedSIH(pickup *id.ID, msgHash, identifier []byte,
-	tags []string) ([]byte, error) {
+// the metadata will be appended and returned to the receiver
+func MakeCompressedSIH(pickup *id.ID, msgHash, identifier []byte,
+	tags []string, metadata []byte) ([]byte, error) {
 	filter, err := makeFilter(pickup, msgHash)
 	if err != nil {
 		return nil, err
@@ -46,27 +50,28 @@ func MakeCompessedSIH(pickup *id.ID, msgHash, identifier []byte,
 	for i := 0; i < len(tags); i++ {
 		filter.Add([]byte(tags[i]))
 	}
-	return filter.Seal()
+	return filter.Seal(metadata)
 }
 
-// EvaluatedCompressedSIH decrypts an encrypted bloomfilter using the
+// EvaluateCompressedSIH decrypts an encrypted bloomfilter using the
 // pickup ID and msgHash as the key and nonce, respectively. It
 // decodes the result into a bloom filter, then it returns the tags
 // passed in which are marked as present in the bloom filter.
-func EvaluateCompessedSIH(pickup *id.ID, msgHash, identifier []byte,
-	tags []string, sih []byte) ([]string, bool, error) {
+// Returns the metadata stored in the bloom filter
+func EvaluateCompressedSIH(pickup *id.ID, msgHash, identifier []byte,
+	tags []string, sih []byte) ([]string, []byte, bool, error) {
 	filter, err := makeFilter(pickup, msgHash)
 	if err != nil {
-		return nil, false, err
+		return nil, nil, false, err
 	}
-	err = filter.Unseal(sih)
+	metadata, err := filter.Unseal(sih)
 	if err != nil {
-		return nil, false, err
+		return nil, nil, false, err
 	}
 
 	// If the identifier entry doesn't exist, skip processing tags
 	if !filter.Test(makeSIHEntry(msgHash, identifier)) {
-		return nil, false, nil
+		return nil, nil, false, nil
 	}
 	results := make([]string, 0, len(tags))
 	for i := 0; i < len(tags); i++ {
@@ -75,14 +80,14 @@ func EvaluateCompessedSIH(pickup *id.ID, msgHash, identifier []byte,
 			results = append(results, curTag)
 		}
 	}
-	return results, true, nil
+	return results, metadata, true, nil
 }
 
 func makeFilter(pickup *id.ID, msgHash []byte) (bloomfilter.Sealed, error) {
 	key := makeFilterKey(pickup)
 	nonce := makeFilterNonce(msgHash)
 	return bloomfilter.InitByParameters(key, nonce, filterSize,
-		uint64(numHashOps))
+		numHashOps, metadataSize)
 }
 
 func makeFilterKey(pickup *id.ID) []byte {
