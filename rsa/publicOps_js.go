@@ -47,10 +47,6 @@ var ErrVerification = errors.New("Javascript SubtleCrypto: verification error")
 // Doc: https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/encrypt
 func (pub *public) EncryptOAEP(
 	_ hash.Hash, _ io.Reader, msg []byte, label []byte) ([]byte, error) {
-	if subtleCrypto.IsUndefined() {
-		return nil, ErrSubtleCrypto
-	}
-
 	algorithm := makeRsaOaepParams(label)
 
 	key, err := pub.getOAEP()
@@ -81,10 +77,6 @@ func (pub *public) EncryptOAEP(
 // Doc: https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/verify
 func (pub *public) VerifyPKCS1v15(
 	hash crypto.Hash, hashed []byte, sig []byte) error {
-	if subtleCrypto.IsUndefined() {
-		return ErrSubtleCrypto
-	}
-
 	if hash != crypto.SHA256 {
 		return ErrInvalidHash
 	}
@@ -122,9 +114,6 @@ func (pub *public) VerifyPKCS1v15(
 // Doc: https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/verify
 func (pub *public) VerifyPSS(
 	hash crypto.Hash, digest []byte, sig []byte, opts *PSSOptions) error {
-	if subtleCrypto.IsUndefined() {
-		return ErrSubtleCrypto
-	}
 
 	if (opts == nil && hash != crypto.SHA256) ||
 		(opts != nil && opts.Hash != crypto.SHA256) {
@@ -192,10 +181,6 @@ func (pub *public) getOAEP() (js.Value, error) {
 // should be a string or list of strings indicating how the key will be used.
 func (pub *public) getRsaCryptoKey(
 	scheme, hash string, keyUsages ...any) (js.Value, error) {
-	if subtleCrypto.IsUndefined() {
-		return js.Value{}, ErrSubtleCrypto
-	}
-
 	key, err := x509.MarshalPKIXPublicKey(&pub.PublicKey)
 	if err != nil {
 		return js.Value{}, err

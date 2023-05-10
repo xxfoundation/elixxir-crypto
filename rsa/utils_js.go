@@ -8,12 +8,15 @@
 package rsa
 
 import (
-	"github.com/pkg/errors"
 	"syscall/js"
+
+	"github.com/pkg/errors"
+
+	jww "github.com/spf13/jwalterweatherman"
 )
 
 var (
-	subtleCrypto = js.Global().Get("crypto").Get("subtle")
+	subtleCrypto js.Value
 	array        = js.Global().Get("Array")
 
 	// object is the Javascript Object type. It is used to perform Object
@@ -29,9 +32,13 @@ var (
 	Uint8Array = js.Global().Get("Uint8Array")
 )
 
-// ErrSubtleCrypto is returned when SubtleCrypto is undefined.
-var ErrSubtleCrypto = errors.New(
-	"SubtleCrypto unavailable; is a secure context (TLS/https) enabled?")
+func init() {
+	subtleCrypto = js.Global().Get("crypto").Get("subtle")
+	if subtleCrypto.IsUndefined() {
+		jww.FATAL.Panicf(
+			"SubtleCrypto unavailable; is a secure context (TLS/https) enabled?")
+	}
+}
 
 // handleJsError converts a Javascript error to a Go error.
 func handleJsError(value js.Value) error {

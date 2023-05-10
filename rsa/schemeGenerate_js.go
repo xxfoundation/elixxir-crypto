@@ -19,10 +19,6 @@ import (
 // Generate generates an RSA keypair of the given bit size using the random
 // source random (for example, crypto/rand.Reader).
 func (*scheme) Generate(_ io.Reader, bits int) (PrivateKey, error) {
-	if subtleCrypto.IsUndefined() {
-		return nil, ErrSubtleCrypto
-	}
-
 	if bits < softMinRSABitLen {
 		jww.WARN.Printf(softMinRSABitLenWarn, bits, softMinRSABitLen)
 	}
