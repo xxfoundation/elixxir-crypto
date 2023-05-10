@@ -29,6 +29,9 @@ var (
 	Uint8Array = js.Global().Get("Uint8Array")
 )
 
+// ErrSubtleCrypto is returned when SubtleCrypto is undefined.
+var ErrSubtleCrypto = errors.New("SubtleCrypto not found")
+
 // handleJsError converts a Javascript error to a Go error.
 func handleJsError(value js.Value) error {
 	if value.IsNull() || value.IsUndefined() {

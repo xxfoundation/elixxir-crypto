@@ -37,6 +37,9 @@ var ErrInvalidHash = errors.Errorf("%s hash required", crypto.SHA256)
 // Doc: https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/sign
 func (priv *private) SignPSS(_ io.Reader, hash crypto.Hash, hashed []byte,
 	opts *PSSOptions) ([]byte, error) {
+	if subtleCrypto.IsUndefined() {
+		return nil, ErrSubtleCrypto
+	}
 
 	if (opts == nil && hash != crypto.SHA256) ||
 		(opts != nil && opts.Hash != crypto.SHA256) {
@@ -88,6 +91,9 @@ func (priv *private) SignPSS(_ io.Reader, hash crypto.Hash, hashed []byte,
 // Doc: https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/sign
 func (priv *private) SignPKCS1v15(
 	_ io.Reader, hash crypto.Hash, hashed []byte) ([]byte, error) {
+	if subtleCrypto.IsUndefined() {
+		return nil, ErrSubtleCrypto
+	}
 
 	if hash != crypto.SHA256 {
 		return nil, ErrInvalidHash
@@ -128,6 +134,9 @@ func (priv *private) SignPKCS1v15(
 // Doc: https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/decrypt
 func (priv *private) DecryptOAEP(
 	_ hash.Hash, _ io.Reader, ciphertext []byte, label []byte) ([]byte, error) {
+	if subtleCrypto.IsUndefined() {
+		return nil, ErrSubtleCrypto
+	}
 
 	algorithm := makeRsaOaepParams(label)
 
@@ -177,6 +186,10 @@ func (priv *private) getOAEP() (js.Value, error) {
 // should be a string or list of strings indicating how the key will be used.
 func (priv *private) getRsaCryptoKey(
 	scheme, hash string, keyUsages ...any) (js.Value, error) {
+	if subtleCrypto.IsUndefined() {
+		return js.Value{}, ErrSubtleCrypto
+	}
+
 	key, err := x509.MarshalPKCS8PrivateKey(&priv.PrivateKey)
 	if err != nil {
 		return js.Value{}, err
