@@ -30,7 +30,8 @@ var (
 )
 
 // ErrSubtleCrypto is returned when SubtleCrypto is undefined.
-var ErrSubtleCrypto = errors.New("SubtleCrypto not found")
+var ErrSubtleCrypto = errors.New(
+	"SubtleCrypto unavailable; is a secure context (TLS/https) enabled?")
 
 // handleJsError converts a Javascript error to a Go error.
 func handleJsError(value js.Value) error {
