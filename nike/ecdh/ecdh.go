@@ -12,6 +12,7 @@ import (
 	"crypto/ed25519"
 	"crypto/sha512"
 	"errors"
+	"fmt"
 	"io"
 	"runtime"
 
@@ -142,7 +143,8 @@ func (p *PrivateKey) FromBytes(data []byte) error {
 	if len(data) != ECDHNIKE.PrivateKeySize() {
 		return errors.New("invalid key size")
 	}
-	edwards := ed25519.PrivateKey(data)
+	edwards := make(ed25519.PrivateKey, ECDHNIKE.PrivateKeySize())
+	copy(edwards[:], data)
 	p.FromEdwards(edwards)
 	return nil
 }
@@ -196,21 +198,29 @@ func (p *PublicKey) FromBytes(data []byte) error {
 	if len(data) != ECDHNIKE.PublicKeySize() {
 		return errors.New("invalid key size")
 	}
-	edwards := ed25519.PublicKey(data)
+	edwards := make(ed25519.PublicKey, ECDHNIKE.PublicKeySize())
+	copy(edwards[:], data)
 	return p.FromEdwards(edwards)
 }
 
 // FromEdwards implements the edwards to montgomery
 // Per RFC 7748, EDDSA Public keys can be trivially
 // converted (https://www.rfc-editor.org/rfc/rfc7748.html#page-14)
-func (p *PublicKey) FromEdwards(publicKey ed25519.PublicKey) error {
+func (p *PublicKey) FromEdwards(publicKey ed25519.PublicKey) (err error) {
+	defer func() {
+		// fillipo's library panics on invalid pubkey, which
+		// we don't want
+		if recover() != nil {
+			err = fmt.Errorf("invalid pubkey: %+v", publicKey)
+		}
+	}()
 	p.edwards = publicKey
 	ed_pub, err := new(edwards25519.Point).SetBytes(publicKey)
 	if err != nil {
 		return err
 	}
 	p.publicKey = ed_pub.BytesMontgomery()
-	return nil
+	return err
 }
 
 // panicOnError is a helper function which will panic if the
