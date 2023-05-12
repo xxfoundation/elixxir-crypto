@@ -16,6 +16,7 @@ import (
 	"github.com/pkg/errors"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/hash"
+	"gitlab.com/elixxir/crypto/nike/ecdh"
 	"golang.org/x/crypto/blake2b"
 )
 
@@ -58,16 +59,32 @@ func UnmarshalPrivateIdentity(data []byte) (PrivateIdentity, error) {
 	}
 
 	version := data[0]
-	privKey := ed25519.PrivateKey(data[1 : 1+ed25519.PrivateKeySize])
-	pubKey := ed25519.PublicKey(data[1+ed25519.PrivateKeySize:])
+	// Note: The FromBytes calls make copies, so we don't need to
+	// do it here.
+	privKeyBytes := data[1 : 1+ed25519.PrivateKeySize]
+	pubKeyBytes := data[1+ed25519.PrivateKeySize:]
 
-	identity, err := ConstructIdentity(pubKey, version)
+	pubkey := ecdh.ECDHNIKE.NewEmptyPublicKey()
+	err := pubkey.FromBytes(pubKeyBytes)
+	if err != nil {
+		return PrivateIdentity{}, err
+	}
+	edPubKey := ecdh.ECDHNIKE2EdwardsPublicKey(pubkey)
+
+	privkey := ecdh.ECDHNIKE.NewEmptyPrivateKey()
+	err = privkey.FromBytes(privKeyBytes)
+	if err != nil {
+		return PrivateIdentity{}, err
+	}
+	edPrivKey := ed25519.PrivateKey(privkey.Bytes())
+
+	identity, err := ConstructIdentity(*edPubKey, version)
 	if err != nil {
 		return PrivateIdentity{}, err
 	}
 
 	pi := PrivateIdentity{
-		Privkey:  &privKey,
+		Privkey:  &edPrivKey,
 		Identity: identity,
 	}
 
@@ -184,9 +201,15 @@ func UnmarshalIdentity(data []byte) (Identity, error) {
 	}
 
 	version := data[0]
-	pubkey := ed25519.PublicKey(data[1:])
+	pubkey := ecdh.ECDHNIKE.NewEmptyPublicKey()
+	// This makes a copy so we don't need to copy here
+	err := pubkey.FromBytes(data[1:])
+	if err != nil {
+		return Identity{}, err
+	}
+	edPubKey := ecdh.ECDHNIKE2EdwardsPublicKey(pubkey)
 
-	return ConstructIdentity(pubkey, version)
+	return ConstructIdentity(*edPubKey, version)
 }
 
 // hashPrivateKey is a helper function which generates a DM token.
