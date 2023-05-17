@@ -32,6 +32,7 @@ require (
 	github.com/ttacon/libphonenumber v1.2.1 // indirect
 	github.com/zeebo/blake3 v0.1.1 // indirect
 	gitlab.com/elixxir/bloomfilter v0.0.0-20230315224936-a4459418f300 // indirect
+	gitlab.com/elixxir/wasm-utils v0.0.0-20230517220713-7418aa4da283 // indirect
 	gitlab.com/yawning/bsaes.git v0.0.0-20190805113838-0a714cd429ec // indirect
 	gitlab.com/yawning/x448.git v0.0.0-20221003101044-617eb9b7d9b7 // indirect
 	golang.org/x/sys v0.0.0-20220928140112-f11e5e49a4ec // indirect
