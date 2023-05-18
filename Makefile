@@ -29,3 +29,15 @@ update_master:
 master: update_master clean build
 
 release: update_release clean build
+
+wasmException = "vendor/gitlab.com/elixxir/wasm-utils/exception"
+
+wasm_tests:
+	echo $(wasmException)
+	cp $(wasmException)/throw_js.s $(wasmException)/throw_js.s.bak
+	cp $(wasmException)/throws.go $(wasmException)/throws.go.bak
+	> $(wasmException)/throw_js.s
+	cp $(wasmException)/throws.dev $(wasmException)/throws.go
+	-GOOS=js GOARCH=wasm go test -v ./rsa/...
+	mv $(wasmException)/throw_js.s.bak $(wasmException)/throw_js.s
+	mv $(wasmException)/throws.go.bak $(wasmException)/throws.go

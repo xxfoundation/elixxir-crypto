@@ -11,10 +11,13 @@ import (
 	"crypto"
 	gorsa "crypto/rsa"
 	"crypto/x509"
-	"github.com/pkg/errors"
 	"hash"
 	"io"
 	"syscall/js"
+
+	"github.com/pkg/errors"
+
+	"gitlab.com/elixxir/wasm-utils/utils"
 )
 
 // ErrInvalidHash represents a failure to use a valid hashing algorithm.
@@ -59,13 +62,13 @@ func (priv *private) SignPSS(_ io.Reader, hash crypto.Hash, hashed []byte,
 		return nil, err
 	}
 
-	result, awaitErr := Await(subtleCrypto.Call("sign",
-		algorithm, key, CopyBytesToJS(hashed)))
+	result, awaitErr := utils.Await(subtleCrypto.Call("sign",
+		algorithm, key, utils.CopyBytesToJS(hashed)))
 	if awaitErr != nil {
-		return nil, handleJsError(awaitErr[0])
+		return nil, js.Error{Value: awaitErr[0]}
 	}
 
-	return CopyBytesToGo(Uint8Array.New(result[0])), nil
+	return utils.CopyBytesToGo(utils.Uint8Array.New(result[0])), nil
 }
 
 // SignPKCS1v15 calculates the signature of hashed using RSASSA-PKCS1-V1_5-SIGN
@@ -98,13 +101,13 @@ func (priv *private) SignPKCS1v15(
 		return nil, err
 	}
 
-	result, awaitErr := Await(subtleCrypto.Call("sign",
-		"RSASSA-PKCS1-v1_5", key, CopyBytesToJS(hashed)))
+	result, awaitErr := utils.Await(subtleCrypto.Call("sign",
+		"RSASSA-PKCS1-v1_5", key, utils.CopyBytesToJS(hashed)))
 	if awaitErr != nil {
-		return nil, handleJsError(awaitErr[0])
+		return nil, js.Error{Value: awaitErr[0]}
 	}
 
-	return CopyBytesToGo(Uint8Array.New(result[0])), nil
+	return utils.CopyBytesToGo(utils.Uint8Array.New(result[0])), nil
 }
 
 // DecryptOAEP decrypts ciphertext using RSA-OAEP.
@@ -136,13 +139,13 @@ func (priv *private) DecryptOAEP(
 		return nil, err
 	}
 
-	result, awaitErr := Await(subtleCrypto.Call("decrypt",
-		algorithm, key, CopyBytesToJS(ciphertext)))
+	result, awaitErr := utils.Await(subtleCrypto.Call("decrypt",
+		algorithm, key, utils.CopyBytesToJS(ciphertext)))
 	if awaitErr != nil {
-		return nil, handleJsError(awaitErr[0])
+		return nil, js.Error{Value: awaitErr[0]}
 	}
 
-	return CopyBytesToGo(Uint8Array.New(result[0])), nil
+	return utils.CopyBytesToGo(utils.Uint8Array.New(result[0])), nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -184,10 +187,10 @@ func (priv *private) getRsaCryptoKey(
 
 	algorithm := makeRsaHashedImportParams(scheme, hash)
 
-	result, awaitErr := Await(subtleCrypto.Call("importKey",
-		"pkcs8", CopyBytesToJS(key), algorithm, true, array.New(keyUsages...)))
+	result, awaitErr := utils.Await(subtleCrypto.Call("importKey",
+		"pkcs8", utils.CopyBytesToJS(key), algorithm, true, keyUsages))
 	if awaitErr != nil {
-		return js.Value{}, handleJsError(awaitErr[0])
+		return js.Value{}, js.Error{Value: awaitErr[0]}
 	}
 
 	return result[0], nil
@@ -203,7 +206,7 @@ func (priv *private) getRsaCryptoKey(
 //
 // Doc: https://developer.mozilla.org/en-US/docs/Web/API/RsaHashedImportParams
 func makeRsaHashedImportParams(scheme, hash string) js.Value {
-	algorithm := object.New()
+	algorithm := utils.Object.New()
 	algorithm.Set("name", scheme)
 	algorithm.Set("hash", hash)
 	return algorithm
@@ -215,7 +218,7 @@ func makeRsaHashedImportParams(scheme, hash string) js.Value {
 //
 // Doc: https://developer.mozilla.org/en-US/docs/Web/API/RsaPssParams
 func makeRsaPssParams(saltLength int) js.Value {
-	algorithm := object.New()
+	algorithm := utils.Object.New()
 	algorithm.Set("name", "RSA-PSS")
 	algorithm.Set("saltLength", saltLength)
 	return algorithm
@@ -226,8 +229,8 @@ func makeRsaPssParams(saltLength int) js.Value {
 //
 // A digest of the label is part of the input to the encryption operation.
 func makeRsaOaepParams(label []byte) js.Value {
-	algorithm := object.New()
+	algorithm := utils.Object.New()
 	algorithm.Set("name", "RSA-OAEP")
-	algorithm.Set("label", CopyBytesToJS(label))
+	algorithm.Set("label", utils.CopyBytesToJS(label))
 	return algorithm
 }

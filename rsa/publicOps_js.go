@@ -11,10 +11,13 @@ import (
 	"crypto"
 	gorsa "crypto/rsa"
 	"crypto/x509"
-	"github.com/pkg/errors"
 	"hash"
 	"io"
 	"syscall/js"
+
+	"github.com/pkg/errors"
+
+	"gitlab.com/elixxir/wasm-utils/utils"
 )
 
 // ErrVerification represents a failure to verify a signature by a Javascript
@@ -55,13 +58,13 @@ func (pub *public) EncryptOAEP(
 		return nil, err
 	}
 
-	result, awaitErr := Await(subtleCrypto.Call("encrypt",
-		algorithm, key, CopyBytesToJS(msg)))
+	result, awaitErr := utils.Await(subtleCrypto.Call("encrypt",
+		algorithm, key, utils.CopyBytesToJS(msg)))
 	if awaitErr != nil {
-		return nil, handleJsError(awaitErr[0])
+		return nil, js.Error{Value: awaitErr[0]}
 	}
 
-	return CopyBytesToGo(Uint8Array.New(result[0])), nil
+	return utils.CopyBytesToGo(utils.Uint8Array.New(result[0])), nil
 }
 
 // VerifyPKCS1v15 verifies an RSA PKCS #1 v1.5 signature.
@@ -87,10 +90,10 @@ func (pub *public) VerifyPKCS1v15(
 		return err
 	}
 
-	result, awaitErr := Await(subtleCrypto.Call("verify",
-		"RSASSA-PKCS1-v1_5", key, CopyBytesToJS(sig), CopyBytesToJS(hashed)))
+	result, awaitErr := utils.Await(subtleCrypto.Call("verify",
+		"RSASSA-PKCS1-v1_5", key, utils.CopyBytesToJS(sig), utils.CopyBytesToJS(hashed)))
 	if awaitErr != nil {
-		return handleJsError(awaitErr[0])
+		return js.Error{Value: awaitErr[0]}
 	}
 
 	if !result[0].Bool() {
@@ -137,10 +140,10 @@ func (pub *public) VerifyPSS(
 		return err
 	}
 
-	result, awaitErr := Await(subtleCrypto.Call("verify",
-		algorithm, key, CopyBytesToJS(sig), CopyBytesToJS(digest)))
+	result, awaitErr := utils.Await(subtleCrypto.Call("verify",
+		algorithm, key, utils.CopyBytesToJS(sig), utils.CopyBytesToJS(digest)))
 	if awaitErr != nil {
-		return handleJsError(awaitErr[0])
+		return js.Error{Value: awaitErr[0]}
 	}
 
 	if !result[0].Bool() {
@@ -189,10 +192,10 @@ func (pub *public) getRsaCryptoKey(
 
 	algorithm := makeRsaHashedImportParams(scheme, hash)
 
-	result, awaitErr := Await(subtleCrypto.Call("importKey",
-		"spki", CopyBytesToJS(key), algorithm, true, array.New(keyUsages...)))
+	result, awaitErr := utils.Await(subtleCrypto.Call("importKey",
+		"spki", utils.CopyBytesToJS(key), algorithm, true, keyUsages))
 	if awaitErr != nil {
-		return js.Value{}, handleJsError(awaitErr[0])
+		return js.Value{}, js.Error{Value: awaitErr[0]}
 	}
 
 	return result[0], nil
