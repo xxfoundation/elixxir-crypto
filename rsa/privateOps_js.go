@@ -62,13 +62,7 @@ func (priv *private) SignPSS(_ io.Reader, hash crypto.Hash, hashed []byte,
 		return nil, err
 	}
 
-	result, awaitErr := utils.Await(subtleCrypto.Call("sign",
-		algorithm, key, utils.CopyBytesToJS(hashed)))
-	if awaitErr != nil {
-		return nil, js.Error{Value: awaitErr[0]}
-	}
-
-	return utils.CopyBytesToGo(utils.Uint8Array.New(result[0])), nil
+	return subtleCrypto.Sign(algorithm, key, hashed)
 }
 
 // SignPKCS1v15 calculates the signature of hashed using RSASSA-PKCS1-V1_5-SIGN
@@ -96,18 +90,14 @@ func (priv *private) SignPKCS1v15(
 		return nil, ErrInvalidHash
 	}
 
+	algorithm := map[string]any{"name": "RSASSA-PKCS1-v1_5"}
+
 	key, err := priv.getPKCS1()
 	if err != nil {
 		return nil, err
 	}
 
-	result, awaitErr := utils.Await(subtleCrypto.Call("sign",
-		"RSASSA-PKCS1-v1_5", key, utils.CopyBytesToJS(hashed)))
-	if awaitErr != nil {
-		return nil, js.Error{Value: awaitErr[0]}
-	}
-
-	return utils.CopyBytesToGo(utils.Uint8Array.New(result[0])), nil
+	return subtleCrypto.Sign(algorithm, key, hashed)
 }
 
 // DecryptOAEP decrypts ciphertext using RSA-OAEP.
@@ -139,13 +129,7 @@ func (priv *private) DecryptOAEP(
 		return nil, err
 	}
 
-	result, awaitErr := utils.Await(subtleCrypto.Call("decrypt",
-		algorithm, key, utils.CopyBytesToJS(ciphertext)))
-	if awaitErr != nil {
-		return nil, js.Error{Value: awaitErr[0]}
-	}
-
-	return utils.CopyBytesToGo(utils.Uint8Array.New(result[0])), nil
+	return subtleCrypto.Decrypt(algorithm, key, ciphertext)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -180,20 +164,14 @@ func (priv *private) getOAEP() (js.Value, error) {
 // should be a string or list of strings indicating how the key will be used.
 func (priv *private) getRsaCryptoKey(
 	scheme, hash string, keyUsages ...any) (js.Value, error) {
+	algorithm := makeRsaHashedImportParams(scheme, hash)
+
 	key, err := x509.MarshalPKCS8PrivateKey(&priv.PrivateKey)
 	if err != nil {
 		return js.Value{}, err
 	}
 
-	algorithm := makeRsaHashedImportParams(scheme, hash)
-
-	result, awaitErr := utils.Await(subtleCrypto.Call("importKey",
-		"pkcs8", utils.CopyBytesToJS(key), algorithm, true, keyUsages))
-	if awaitErr != nil {
-		return js.Value{}, js.Error{Value: awaitErr[0]}
-	}
-
-	return result[0], nil
+	return subtleCrypto.ImportKey("pkcs8", key, algorithm, true, keyUsages)
 }
 
 // makeRsaHashedImportParams creates a Javascript RsaHashedImportParams object.
@@ -205,11 +183,11 @@ func (priv *private) getRsaCryptoKey(
 // (discouraged), "SHA-256", "SHA-384", or "SHA-512".
 //
 // Doc: https://developer.mozilla.org/en-US/docs/Web/API/RsaHashedImportParams
-func makeRsaHashedImportParams(scheme, hash string) js.Value {
-	algorithm := utils.Object.New()
-	algorithm.Set("name", scheme)
-	algorithm.Set("hash", hash)
-	return algorithm
+func makeRsaHashedImportParams(scheme, hash string) map[string]any {
+	return map[string]any{
+		"name": scheme,
+		"hash": hash,
+	}
 }
 
 // makeRsaPssParams creates a Javascript RsaPssParams object.
@@ -217,20 +195,20 @@ func makeRsaHashedImportParams(scheme, hash string) js.Value {
 // saltLength is the length of the random salt to use, in bytes.
 //
 // Doc: https://developer.mozilla.org/en-US/docs/Web/API/RsaPssParams
-func makeRsaPssParams(saltLength int) js.Value {
-	algorithm := utils.Object.New()
-	algorithm.Set("name", "RSA-PSS")
-	algorithm.Set("saltLength", saltLength)
-	return algorithm
+func makeRsaPssParams(saltLength int) map[string]any {
+	return map[string]any{
+		"name":       "RSA-PSS",
+		"saltLength": saltLength,
+	}
 }
 
 // makeRsaOaepParams creates a Javascript object with the name and label fields
 // required when encrypting/decrypting using an RSA-OAEP key.
 //
 // A digest of the label is part of the input to the encryption operation.
-func makeRsaOaepParams(label []byte) js.Value {
-	algorithm := utils.Object.New()
-	algorithm.Set("name", "RSA-OAEP")
-	algorithm.Set("label", utils.CopyBytesToJS(label))
-	return algorithm
+func makeRsaOaepParams(label []byte) map[string]any {
+	return map[string]any{
+		"name":  "RSA-OAEP",
+		"label": utils.CopyBytesToJS(label),
+	}
 }

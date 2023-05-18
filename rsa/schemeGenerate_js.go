@@ -11,26 +11,12 @@ import (
 	gorsa "crypto/rsa"
 	"crypto/x509"
 	"io"
-	"syscall/js"
 
 	"github.com/pkg/errors"
 	jww "github.com/spf13/jwalterweatherman"
 
-	"gitlab.com/elixxir/wasm-utils/exception"
 	"gitlab.com/elixxir/wasm-utils/utils"
 )
-
-var subtleCrypto js.Value
-
-func init() {
-	subtleCrypto = js.Global().Get("crypto").Get("subtle")
-	if subtleCrypto.IsUndefined() {
-		err := errors.New("SubtleCrypto unavailable; " +
-			"is a secure context (TLS/https) enabled?")
-		jww.FATAL.Printf("%+v", err)
-		exception.ThrowTrace(err)
-	}
-}
 
 // Generate generates an RSA keypair of the given bit size using the random
 // source random (for example, crypto/rand.Reader).
@@ -42,19 +28,15 @@ func (*scheme) Generate(_ io.Reader, bits int) (PrivateKey, error) {
 	algorithm := makeRsaHashedKeyGenParams(
 		"RSASSA-PKCS1-v1_5", bits, []byte{0x01, 0x00, 0x01}, "SHA-256")
 
-	result, awaitErr := utils.Await(subtleCrypto.Call("generateKey",
-		algorithm, true, []any{"sign"}))
-	if awaitErr != nil {
-		return nil, js.Error{Value: awaitErr[0]}
+	result, err := subtleCrypto.GenerateKey(algorithm, true, "sign")
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to generate RSA key")
 	}
 
-	result, awaitErr = utils.Await(
-		subtleCrypto.Call("exportKey", "pkcs8", result[0].Get("privateKey")))
-	if awaitErr != nil {
-		return nil, js.Error{Value: awaitErr[0]}
+	keyData, err := subtleCrypto.ExportKey("pkcs8", result.Get("privateKey"))
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to export key as pkcs8")
 	}
-
-	keyData := utils.CopyBytesToGo(utils.Uint8Array.New(result[0]))
 
 	key, err := x509.ParsePKCS8PrivateKey(keyData)
 	if err != nil {
@@ -85,11 +67,11 @@ func (*scheme) Generate(_ io.Reader, bits int) (PrivateKey, error) {
 //
 // Doc: https://developer.mozilla.org/en-US/docs/Web/API/RsaHashedKeyGenParams
 func makeRsaHashedKeyGenParams(scheme string, modulusLength int,
-	publicExponent []byte, hash string) js.Value {
-	algorithm := utils.Object.New()
-	algorithm.Set("name", scheme)
-	algorithm.Set("modulusLength", modulusLength)
-	algorithm.Set("publicExponent", utils.CopyBytesToJS(publicExponent))
-	algorithm.Set("hash", hash)
-	return algorithm
+	publicExponent []byte, hash string) map[string]any {
+	return map[string]any{
+		"name":           scheme,
+		"modulusLength":  modulusLength,
+		"publicExponent": utils.CopyBytesToJS(publicExponent),
+		"hash":           hash,
+	}
 }
