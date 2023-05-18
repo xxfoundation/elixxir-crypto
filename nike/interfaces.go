@@ -17,7 +17,8 @@ type Key interface {
 	// Bytes serializes key material into a byte slice.
 	Bytes() []byte
 
-	// FromBytes loads key material from the given byte slice.
+	// FromBytes copys key material from the given byte slice and
+	// initializes the Key
 	FromBytes(data []byte) error
 
 	Scheme() Nike
