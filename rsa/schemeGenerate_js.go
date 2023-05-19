@@ -10,10 +10,12 @@ package rsa
 import (
 	gorsa "crypto/rsa"
 	"crypto/x509"
+	"io"
+
 	"github.com/pkg/errors"
 	jww "github.com/spf13/jwalterweatherman"
-	"io"
-	"syscall/js"
+
+	"gitlab.com/elixxir/wasm-utils/utils"
 )
 
 // Generate generates an RSA keypair of the given bit size using the random
@@ -26,19 +28,15 @@ func (*scheme) Generate(_ io.Reader, bits int) (PrivateKey, error) {
 	algorithm := makeRsaHashedKeyGenParams(
 		"RSASSA-PKCS1-v1_5", bits, []byte{0x01, 0x00, 0x01}, "SHA-256")
 
-	result, awaitErr := Await(subtleCrypto.Call("generateKey",
-		algorithm, true, array.New("sign")))
-	if awaitErr != nil {
-		return nil, handleJsError(awaitErr[0])
+	result, err := sc.generateKey(algorithm, true, "sign")
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to generate RSA key")
 	}
 
-	result, awaitErr = Await(
-		subtleCrypto.Call("exportKey", "pkcs8", result[0].Get("privateKey")))
-	if awaitErr != nil {
-		return nil, handleJsError(awaitErr[0])
+	keyData, err := sc.exportKey("pkcs8", result.Get("privateKey"))
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to export key as pkcs8")
 	}
-
-	keyData := CopyBytesToGo(Uint8Array.New(result[0]))
 
 	key, err := x509.ParsePKCS8PrivateKey(keyData)
 	if err != nil {
@@ -69,11 +67,11 @@ func (*scheme) Generate(_ io.Reader, bits int) (PrivateKey, error) {
 //
 // Doc: https://developer.mozilla.org/en-US/docs/Web/API/RsaHashedKeyGenParams
 func makeRsaHashedKeyGenParams(scheme string, modulusLength int,
-	publicExponent []byte, hash string) js.Value {
-	algorithm := object.New()
-	algorithm.Set("name", scheme)
-	algorithm.Set("modulusLength", modulusLength)
-	algorithm.Set("publicExponent", CopyBytesToJS(publicExponent))
-	algorithm.Set("hash", hash)
-	return algorithm
+	publicExponent []byte, hash string) map[string]any {
+	return map[string]any{
+		"name":           scheme,
+		"modulusLength":  modulusLength,
+		"publicExponent": utils.CopyBytesToJS(publicExponent),
+		"hash":           hash,
+	}
 }
