@@ -1,11 +1,14 @@
 package notifications
 
-import "testing"
+import (
+	"strconv"
+	"testing"
+)
 
 func TestNotificationTag_String(t *testing.T) {
 	expected := make([]string, 256)
 	for i := 0; i < 256; i++ {
-		expected[i] = "UnknownTag"
+		expected[i] = "UnknownTag: " + strconv.Itoa(i)
 	}
 	expected[RegisterTokenTag] = "RegisterTokenTag"
 	expected[UnregisterTokenTag] = "UnregisterTokenTag"

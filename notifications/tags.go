@@ -1,5 +1,7 @@
 package notifications
 
+import "strconv"
+
 type NotificationTag uint8
 
 // Tags defining which operation is being executed, they ensure that
@@ -22,6 +24,6 @@ func (nt NotificationTag) String() string {
 	case UnregisterTrackedIDTag:
 		return "UnregisterTrackedIDTag"
 	default:
-		return "UnknownTag"
+		return "UnknownTag: " + strconv.Itoa(int(nt))
 	}
 }
