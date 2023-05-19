@@ -28,12 +28,12 @@ func (*scheme) Generate(_ io.Reader, bits int) (PrivateKey, error) {
 	algorithm := makeRsaHashedKeyGenParams(
 		"RSASSA-PKCS1-v1_5", bits, []byte{0x01, 0x00, 0x01}, "SHA-256")
 
-	result, err := subtleCrypto.GenerateKey(algorithm, true, "sign")
+	result, err := sc.generateKey(algorithm, true, "sign")
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate RSA key")
 	}
 
-	keyData, err := subtleCrypto.ExportKey("pkcs8", result.Get("privateKey"))
+	keyData, err := sc.exportKey("pkcs8", result.Get("privateKey"))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to export key as pkcs8")
 	}

@@ -62,7 +62,7 @@ func (priv *private) SignPSS(_ io.Reader, hash crypto.Hash, hashed []byte,
 		return nil, err
 	}
 
-	return subtleCrypto.Sign(algorithm, key, hashed)
+	return sc.sign(algorithm, key, hashed)
 }
 
 // SignPKCS1v15 calculates the signature of hashed using RSASSA-PKCS1-V1_5-SIGN
@@ -97,7 +97,7 @@ func (priv *private) SignPKCS1v15(
 		return nil, err
 	}
 
-	return subtleCrypto.Sign(algorithm, key, hashed)
+	return sc.sign(algorithm, key, hashed)
 }
 
 // DecryptOAEP decrypts ciphertext using RSA-OAEP.
@@ -129,7 +129,7 @@ func (priv *private) DecryptOAEP(
 		return nil, err
 	}
 
-	return subtleCrypto.Decrypt(algorithm, key, ciphertext)
+	return sc.decrypt(algorithm, key, ciphertext)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -171,7 +171,7 @@ func (priv *private) getRsaCryptoKey(
 		return js.Value{}, err
 	}
 
-	return subtleCrypto.ImportKey("pkcs8", key, algorithm, true, keyUsages)
+	return sc.importKey("pkcs8", key, algorithm, true, keyUsages)
 }
 
 // makeRsaHashedImportParams creates a Javascript RsaHashedImportParams object.

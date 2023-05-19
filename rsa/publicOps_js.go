@@ -56,7 +56,7 @@ func (pub *public) EncryptOAEP(
 		return nil, err
 	}
 
-	return subtleCrypto.Encrypt(algorithm, key, msg)
+	return sc.encrypt(algorithm, key, msg)
 }
 
 // VerifyPKCS1v15 verifies an RSA PKCS #1 v1.5 signature.
@@ -84,7 +84,7 @@ func (pub *public) VerifyPKCS1v15(
 		return err
 	}
 
-	valid, err := subtleCrypto.Verify(algorithm, key, sig, hashed)
+	valid, err := sc.verify(algorithm, key, sig, hashed)
 	if err != nil {
 		return err
 	} else if !valid {
@@ -131,7 +131,7 @@ func (pub *public) VerifyPSS(
 		return err
 	}
 
-	valid, err := subtleCrypto.Verify(algorithm, key, sig, digest)
+	valid, err := sc.verify(algorithm, key, sig, digest)
 	if err != nil {
 		return err
 	} else if !valid {
@@ -180,5 +180,5 @@ func (pub *public) getRsaCryptoKey(
 
 	algorithm := makeRsaHashedImportParams(scheme, hash)
 
-	return subtleCrypto.ImportKey("spki", key, algorithm, true, keyUsages)
+	return sc.importKey("spki", key, algorithm, true, keyUsages)
 }

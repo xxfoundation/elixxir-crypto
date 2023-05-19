@@ -17,15 +17,15 @@ import (
 	"gitlab.com/elixxir/wasm-utils/utils"
 )
 
-var subtleCrypto SubtleCrypto
+var sc subtleCrypto
 
-type SubtleCrypto struct {
+type subtleCrypto struct {
 	js.Value
 }
 
 func init() {
-	subtleCrypto.Value = js.Global().Get("crypto").Get("subtle")
-	if subtleCrypto.IsUndefined() {
+	sc.Value = js.Global().Get("crypto").Get("subtle")
+	if sc.IsUndefined() {
 		err := errors.New("SubtleCrypto unavailable; " +
 			"is a secure context (TLS/https) enabled?")
 		jww.FATAL.Printf("%+v", err)
@@ -33,14 +33,17 @@ func init() {
 	}
 }
 
-// Encrypt encrypts data using SubtleCrypto.
+// encrypt encrypts data using SubtleCrypto.
 //
 // Doc: https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/encrypt
-func (sc *SubtleCrypto) Encrypt(algorithm map[string]any, key js.Value,
+func (sc *subtleCrypto) encrypt(algorithm map[string]any, key js.Value,
 	plaintext []byte) (ciphertext []byte, err error) {
-	defer exception.Catch(&err)
-	result, awaitErr := utils.Await(sc.Value.Call("encrypt",
-		algorithm, key, utils.CopyBytesToJS(plaintext)))
+	promise, err := sc.callCatch("encrypt",
+		algorithm, key, utils.CopyBytesToJS(plaintext))
+	if err != nil {
+		return nil, err
+	}
+	result, awaitErr := utils.Await(promise)
 	if awaitErr != nil {
 		return nil, js.Error{Value: awaitErr[0]}
 	}
@@ -48,14 +51,25 @@ func (sc *SubtleCrypto) Encrypt(algorithm map[string]any, key js.Value,
 	return utils.CopyBytesToGo(utils.Uint8Array.New(result[0])), nil
 }
 
-// Decrypt decrypts data using SubtleCrypto.
+// callCatch does a JavaScript call to the method m of SubtleCrypto with the
+// given arguments. It catches and returns all thrown exceptions.
+func (sc *subtleCrypto) callCatch(
+	m string, args ...any) (result js.Value, err error) {
+	defer exception.Catch(&err)
+	return sc.Value.Call(m, args...), nil
+}
+
+// decrypt decrypts data using SubtleCrypto.
 //
 // Doc: https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/decrypt
-func (sc *SubtleCrypto) Decrypt(algorithm map[string]any, key js.Value,
+func (sc *subtleCrypto) decrypt(algorithm map[string]any, key js.Value,
 	ciphertext []byte) (plaintext []byte, err error) {
-	defer exception.Catch(&err)
-	result, awaitErr := utils.Await(sc.Value.Call("decrypt",
-		algorithm, key, utils.CopyBytesToJS(ciphertext)))
+	promise, err := sc.callCatch("decrypt",
+		algorithm, key, utils.CopyBytesToJS(ciphertext))
+	if err != nil {
+		return nil, err
+	}
+	result, awaitErr := utils.Await(promise)
 	if awaitErr != nil {
 		return nil, js.Error{Value: awaitErr[0]}
 	}
@@ -63,14 +77,17 @@ func (sc *SubtleCrypto) Decrypt(algorithm map[string]any, key js.Value,
 	return utils.CopyBytesToGo(utils.Uint8Array.New(result[0])), nil
 }
 
-// Sign generates a digital signature using SubtleCrypto.
+// sign generates a digital signature using SubtleCrypto.
 //
 // Doc: https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/sign
-func (sc *SubtleCrypto) Sign(algorithm map[string]any, key js.Value,
+func (sc *subtleCrypto) sign(algorithm map[string]any, key js.Value,
 	data []byte) (signature []byte, err error) {
-	defer exception.Catch(&err)
-	result, awaitErr := utils.Await(sc.Value.Call("sign",
-		algorithm, key, utils.CopyBytesToJS(data)))
+	promise, err := sc.callCatch("sign",
+		algorithm, key, utils.CopyBytesToJS(data))
+	if err != nil {
+		return nil, err
+	}
+	result, awaitErr := utils.Await(promise)
 	if awaitErr != nil {
 		return nil, js.Error{Value: awaitErr[0]}
 	}
@@ -78,15 +95,17 @@ func (sc *SubtleCrypto) Sign(algorithm map[string]any, key js.Value,
 	return utils.CopyBytesToGo(utils.Uint8Array.New(result[0])), nil
 }
 
-// Verify verifies a digital signature using SubtleCrypto.
+// verify verifies a digital signature using SubtleCrypto.
 //
 // Doc: https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/verify
-func (sc *SubtleCrypto) Verify(algorithm map[string]any, key js.Value,
+func (sc *subtleCrypto) verify(algorithm map[string]any, key js.Value,
 	signature, data []byte) (valid bool, err error) {
-	defer exception.Catch(&err)
-	result, awaitErr := utils.Await(sc.Value.Call("verify",
-		algorithm, key, utils.CopyBytesToJS(signature),
-		utils.CopyBytesToJS(data)))
+	promise, err := sc.callCatch("verify",
+		algorithm, key, utils.CopyBytesToJS(signature), utils.CopyBytesToJS(data))
+	if err != nil {
+		return false, err
+	}
+	result, awaitErr := utils.Await(promise)
 	if awaitErr != nil {
 		return false, js.Error{Value: awaitErr[0]}
 	}
@@ -94,14 +113,17 @@ func (sc *SubtleCrypto) Verify(algorithm map[string]any, key js.Value,
 	return result[0].Bool(), nil
 }
 
-// Digest generates a digest of the given data using SubtleCrypto.
+// digest generates a digest of the given data using SubtleCrypto.
 //
 // Doc: https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest
-func (sc *SubtleCrypto) Digest(algorithm map[string]any, data []byte) (
+func (sc *subtleCrypto) digest(algorithm map[string]any, data []byte) (
 	digest []byte, err error) {
-	defer exception.Catch(&err)
-	result, awaitErr := utils.Await(sc.Value.Call("digest",
-		algorithm, utils.CopyBytesToJS(data)))
+	promise, err := sc.callCatch("digest",
+		algorithm, utils.CopyBytesToJS(data))
+	if err != nil {
+		return nil, err
+	}
+	result, awaitErr := utils.Await(promise)
 	if awaitErr != nil {
 		return nil, js.Error{Value: awaitErr[0]}
 	}
@@ -109,46 +131,55 @@ func (sc *SubtleCrypto) Digest(algorithm map[string]any, data []byte) (
 	return utils.CopyBytesToGo(utils.Uint8Array.New(result[0])), nil
 }
 
-// GenerateKey generates a new key (for symmetric algorithms) or key pair (for
+// generateKey generates a new key (for symmetric algorithms) or key pair (for
 // public-key algorithms) using SubtleCrypto.
 //
 // Doc: https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/generateKey
-func (sc *SubtleCrypto) GenerateKey(algorithm map[string]any, extractable bool,
+func (sc *subtleCrypto) generateKey(algorithm map[string]any, extractable bool,
 	keyUsages ...any) (key js.Value, err error) {
-	defer exception.Catch(&err)
-	result, awaitErr := utils.Await(sc.Value.Call("generateKey",
-		algorithm, extractable, keyUsages))
+	promise, err := sc.callCatch("generateKey",
+		algorithm, extractable, keyUsages)
+	if err != nil {
+		return js.Undefined(), err
+	}
+	result, awaitErr := utils.Await(promise)
 	if awaitErr != nil {
-		return js.Value{}, js.Error{Value: awaitErr[0]}
+		return js.Undefined(), js.Error{Value: awaitErr[0]}
 	}
 
 	return result[0], nil
 }
 
-// ImportKey takes a key in an external, portable format and return a CryptoKey
+// importKey takes a key in an external, portable format and return a CryptoKey
 // object that can be used in the Web Crypto API.
 //
 // Doc: https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/importKey
-func (sc *SubtleCrypto) ImportKey(format string, keyData []byte,
+func (sc *subtleCrypto) importKey(format string, keyData []byte,
 	algorithm map[string]any, extractable bool, keyUsages ...any) (
 	key js.Value, err error) {
-	defer exception.Catch(&err)
-	result, awaitErr := utils.Await(sc.Value.Call("importKey",
-		format, utils.CopyBytesToJS(keyData), algorithm, extractable, keyUsages))
+	promise, err := sc.callCatch("importKey",
+		format, utils.CopyBytesToJS(keyData), algorithm, extractable, keyUsages)
+	if err != nil {
+		return js.Undefined(), err
+	}
+	result, awaitErr := utils.Await(promise)
 	if awaitErr != nil {
-		return js.Value{}, js.Error{Value: awaitErr[0]}
+		return js.Undefined(), js.Error{Value: awaitErr[0]}
 	}
 
 	return result[0], nil
 }
 
-// ExportKey returns the CryptoKey object in an external, portable format.
+// exportKey returns the CryptoKey object in an external, portable format.
 //
 // Doc: https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/exportKey
-func (sc *SubtleCrypto) ExportKey(format string, key js.Value) (
+func (sc *subtleCrypto) exportKey(format string, key js.Value) (
 	portableKey []byte, err error) {
-	defer exception.Catch(&err)
-	result, awaitErr := utils.Await(sc.Value.Call("exportKey", format, key))
+	promise, err := sc.callCatch("exportKey", format, key)
+	if err != nil {
+		return nil, err
+	}
+	result, awaitErr := utils.Await(promise)
 	if awaitErr != nil {
 		return nil, js.Error{Value: awaitErr[0]}
 	}
