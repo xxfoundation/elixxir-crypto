@@ -13,9 +13,8 @@ require (
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/jwalterweatherman v1.1.0
 	github.com/stretchr/testify v1.8.2
-	gitlab.com/elixxir/bloomfilter v0.0.0-20230315224936-a4459418f300
+	gitlab.com/elixxir/bloomfilter v0.0.0-20230322223210-fa84f6842de8
 	gitlab.com/elixxir/primitives v0.0.3-0.20230214180039-9a25e2d3969c
-	gitlab.com/elixxir/wasm-utils v0.0.0-20230519212008-29635852d8c7
 	gitlab.com/xx_network/crypto v0.0.5-0.20230214003943-8a09396e95dd
 	gitlab.com/xx_network/primitives v0.0.4-0.20230203173415-81c2cb07da44
 	gitlab.com/yawning/nyquist.git v0.0.0-20221003103146-de5645224a22

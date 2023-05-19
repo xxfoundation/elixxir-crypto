@@ -26,30 +26,32 @@ func TestCompressed(t *testing.T) {
 	lookFor := []string{tags[1], tags[6]}
 
 	pickup := &id.DummyUser
-	msgHash := []byte("8675309 This IS a dummy messsage hash")
-
-	sih, err := MakeCompessedSIH(pickup, msgHash, identifier, tags)
+	msgHash := []byte("8675309 This IS a dummy message hash")
+	metaData := []byte{1, 2}
+	sih, err := MakeCompressedSIH(pickup, msgHash, identifier, tags, metaData)
 	require.NoError(t, err)
 
 	// SIH must be 200 bits, 25 bytes
 	require.Equal(t, 25, len(sih))
 
-	results, ok, err := EvaluateCompessedSIH(pickup, msgHash, identifier,
-		lookFor, sih)
-	require.True(t, ok)
+	matchedTags, receivedMetadata, identifierFound, err :=
+		EvaluateCompressedSIH(pickup, msgHash, identifier, lookFor, sih)
+	require.True(t, identifierFound)
 	require.NoError(t, err)
+	require.Equal(t, metaData, receivedMetadata)
 
-	require.Equal(t, len(lookFor), len(results))
+	require.Equal(t, len(lookFor), len(matchedTags))
 	for i := 0; i < len(lookFor); i++ {
-		require.Contains(t, results, lookFor[i])
+		require.Contains(t, matchedTags, lookFor[i])
 	}
 
 	// Make sure it doesn't work when the identifier is wrong
 	badIdentifier := []byte("BadIdentifier")
-	results, ok, err = EvaluateCompessedSIH(pickup, msgHash, badIdentifier,
-		lookFor, sih)
-	require.False(t, ok)
+	matchedTags, receivedMetadata, identifierFound, err =
+		EvaluateCompressedSIH(pickup, msgHash, badIdentifier, lookFor, sih)
+	require.False(t, identifierFound)
 	require.NoError(t, err)
 
-	require.Equal(t, 0, len(results))
+	require.Equal(t, 0, len(matchedTags))
+	require.Equal(t, 0, len(receivedMetadata))
 }
