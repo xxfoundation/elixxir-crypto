@@ -26,7 +26,7 @@ const (
 	filterSize   = uint64((format.SIHLen - metadataSize) * 8)
 )
 
-// The recommendate number of hash ops is (m / float64(elements)) * math.Log(2),
+// The recommended number of hash ops is (m / float64(elements)) * math.Log(2),
 // where m is the number of bits. Our design assumes that # of elements is 5.
 var numHashOps = uint64(math.Round((float64(filterSize) / 5.0) * math.Log(2)))
 
@@ -59,12 +59,13 @@ func MakeCompressedSIH(pickup *id.ID, msgHash, identifier []byte,
 // passed in which are marked as present in the bloom filter.
 // Returns the metadata stored in the bloom filter
 func EvaluateCompressedSIH(pickup *id.ID, msgHash, identifier []byte,
-	tags []string, sih []byte) ([]string, []byte, bool, error) {
+	tags []string, sih []byte) (matchedTags map[string]struct{}, metadata []byte,
+	identifierFound bool, err error) {
 	filter, err := makeFilter(pickup, msgHash)
 	if err != nil {
 		return nil, nil, false, err
 	}
-	metadata, err := filter.Unseal(sih)
+	metadata, err = filter.Unseal(sih)
 	if err != nil {
 		return nil, nil, false, err
 	}
@@ -73,14 +74,15 @@ func EvaluateCompressedSIH(pickup *id.ID, msgHash, identifier []byte,
 	if !filter.Test(makeSIHEntry(msgHash, identifier)) {
 		return nil, nil, false, nil
 	}
-	results := make([]string, 0, len(tags))
+
+	matchedTags = make(map[string]struct{}, len(tags))
 	for i := 0; i < len(tags); i++ {
 		curTag := tags[i]
 		if filter.Test([]byte(curTag)) {
-			results = append(results, curTag)
+			matchedTags[curTag] = struct{}{}
 		}
 	}
-	return results, metadata, true, nil
+	return matchedTags, metadata, true, nil
 }
 
 func makeFilter(pickup *id.ID, msgHash []byte) (bloomfilter.Sealed, error) {
