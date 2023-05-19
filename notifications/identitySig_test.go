@@ -21,7 +21,7 @@ func TestSignVerifyIdentity(t *testing.T) {
 		t.Errorf("GenerateDefault: %v", err)
 	}
 
-	identity := []byte("testIdentity")
+	identity := [][]byte{[]byte("testIdentity"), []byte("testIdentity2")}
 	ts := time.Now()
 	tag := RegisterTrackedIDTag
 
@@ -43,7 +43,7 @@ func TestSignVerifyIdentity(t *testing.T) {
 	}
 
 	// bad Identity
-	err = VerifyIdentity(privKey.Public(), []byte("bad"), ts, tag, sig)
+	err = VerifyIdentity(privKey.Public(), [][]byte{[]byte("bad")}, ts, tag, sig)
 	if err == nil {
 		t.Errorf("Verified when it shouldnt: %+v", err)
 	}
