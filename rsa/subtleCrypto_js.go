@@ -51,14 +51,6 @@ func (sc *subtleCrypto) encrypt(algorithm map[string]any, key js.Value,
 	return utils.CopyBytesToGo(utils.Uint8Array.New(result[0])), nil
 }
 
-// callCatch does a JavaScript call to the method m of SubtleCrypto with the
-// given arguments. It catches and returns all thrown exceptions.
-func (sc *subtleCrypto) callCatch(
-	m string, args ...any) (result js.Value, err error) {
-	defer exception.Catch(&err)
-	return sc.Value.Call(m, args...), nil
-}
-
 // decrypt decrypts data using SubtleCrypto.
 //
 // Doc: https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/decrypt
@@ -185,4 +177,12 @@ func (sc *subtleCrypto) exportKey(format string, key js.Value) (
 	}
 
 	return utils.CopyBytesToGo(utils.Uint8Array.New(result[0])), nil
+}
+
+// callCatch does a JavaScript call to the method m of SubtleCrypto with the
+// given arguments. It catches and returns all thrown exceptions.
+func (sc *subtleCrypto) callCatch(
+	m string, args ...any) (result js.Value, err error) {
+	defer exception.Catch(&err)
+	return sc.Value.Call(m, args...), nil
 }
