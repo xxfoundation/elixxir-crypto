@@ -1,8 +1,8 @@
 package notifications
 
 import (
+	"crypto"
 	"encoding/binary"
-	"gitlab.com/elixxir/crypto/hash"
 	"gitlab.com/elixxir/crypto/rsa"
 	"golang.org/x/crypto/blake2b"
 	"io"
@@ -17,7 +17,7 @@ import (
 func SignToken(priv rsa.PrivateKey, token, app string, timestamp time.Time,
 	tag NotificationTag, rand io.Reader) ([]byte, error) {
 	hashed := hashToken(token, app, timestamp, tag)
-	return priv.SignPSS(rand, hash.CMixHash, hashed, nil)
+	return priv.SignPSS(rand, crypto.SHA256, hashed, nil)
 }
 
 // VerifyToken is the server side verifying code for a client trying to
@@ -30,7 +30,7 @@ func SignToken(priv rsa.PrivateKey, token, app string, timestamp time.Time,
 func VerifyToken(pub rsa.PublicKey, token, app string, timestamp time.Time,
 	tag NotificationTag, sig []byte) error {
 	hashed := hashToken(token, app, timestamp, tag)
-	return pub.VerifyPSS(hash.CMixHash, hashed, sig, nil)
+	return pub.VerifyPSS(crypto.SHA256, hashed, sig, nil)
 }
 
 func hashToken(token, app string, timestamp time.Time, tag NotificationTag) []byte {

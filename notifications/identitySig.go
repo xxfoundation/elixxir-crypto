@@ -1,8 +1,8 @@
 package notifications
 
 import (
+	"crypto"
 	"encoding/binary"
-	"gitlab.com/elixxir/crypto/hash"
 	"gitlab.com/elixxir/crypto/rsa"
 	"golang.org/x/crypto/blake2b"
 	"io"
@@ -17,7 +17,7 @@ import (
 func SignIdentity(priv rsa.PrivateKey, identity [][]byte, timestamp time.Time,
 	tag NotificationTag, rand io.Reader) ([]byte, error) {
 	hashed := hashIdentity(identity, timestamp, tag)
-	return priv.SignPSS(rand, hash.CMixHash, hashed, nil)
+	return priv.SignPSS(rand, crypto.SHA256, hashed, nil)
 }
 
 // VerifyIdentity is the server side verifying code for a client trying to
@@ -30,7 +30,7 @@ func SignIdentity(priv rsa.PrivateKey, identity [][]byte, timestamp time.Time,
 func VerifyIdentity(pub rsa.PublicKey, identity [][]byte, timestamp time.Time,
 	tag NotificationTag, sig []byte) error {
 	hashed := hashIdentity(identity, timestamp, tag)
-	return pub.VerifyPSS(hash.CMixHash, hashed, sig, nil)
+	return pub.VerifyPSS(crypto.SHA256, hashed, sig, nil)
 }
 
 func hashIdentity(identity [][]byte, timestamp time.Time, tag NotificationTag) []byte {
