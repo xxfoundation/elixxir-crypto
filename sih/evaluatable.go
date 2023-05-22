@@ -13,6 +13,7 @@ package sih
 // support matching on such a construction.
 
 import (
+	jww "github.com/spf13/jwalterweatherman"
 	"math"
 
 	bloomfilter "gitlab.com/elixxir/crypto/sealedBloomfilter"
@@ -65,6 +66,14 @@ func EvaluateCompressedSIH(pickup *id.ID, msgHash, identifier []byte,
 	if err != nil {
 		return nil, nil, false, err
 	}
+	jww.INFO.Printf("Filter size: %d, sealedSize: %d, MetaData: %d, filterSizeConst: %d, sih: %d",
+		filter.GetSize(), filter.SealedSize(), metadata, filterSize, len(sih))
+	jww.INFO.Printf("sih: %x", sih)
+	jww.INFO.Printf("msgHash: %x", msgHash)
+	jww.INFO.Printf("identifier: %x", identifier)
+	jww.INFO.Printf("tags: %s", tags)
+	jww.INFO.Printf("pickup: %s", pickup)
+
 	metadata, err = filter.Unseal(sih)
 	if err != nil {
 		return nil, nil, false, err
