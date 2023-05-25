@@ -5,19 +5,23 @@
 // LICENSE file.                                                              //
 ////////////////////////////////////////////////////////////////////////////////
 
-package channel
+package database
 
 import (
+	cryptoCipher "crypto/cipher"
 	"encoding/binary"
 	"encoding/json"
 	"github.com/pkg/errors"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/hash"
+	"golang.org/x/crypto/blake2b"
+	"golang.org/x/crypto/chacha20poly1305"
 	"io"
 )
 
 // Error messages.
 const (
+	readNonceLenErr = "read %d bytes, too short to decrypt"
 	// NewCipher
 	cipherInvalidBlockSizeErr = "block size must be at least 1 byte; received %d bytes"
 
@@ -257,4 +261,16 @@ func deriveDatabaseSecret(password, salt []byte) []byte {
 	h.Write(password)
 	h.Write(salt)
 	return h.Sum(nil)
+}
+
+// initChaCha20Poly1305 returns a XChaCha20-Poly1305 cipher.AEAD that uses the
+// given password hashed into a 256-bit key.
+func initChaCha20Poly1305(key []byte) cryptoCipher.AEAD {
+	pwHash := blake2b.Sum256(key)
+	chaCipher, err := chacha20poly1305.NewX(pwHash[:])
+	if err != nil {
+		jww.FATAL.Panicf("Could not init XChaCha20Poly1305 mode: %+v", err)
+	}
+
+	return chaCipher
 }
