@@ -94,10 +94,10 @@ type sealed struct {
 func Init(key, nonce []byte, elements int,
 	falsePositive float64, metadataSize uint) (Sealed, error) {
 	if len(nonce) != chacha20.NonceSizeX {
-		return nil, ErrNonceSize
+		return nil, errors.WithStack(ErrNonceSize)
 	}
 	if len(key) != chacha20.KeySize {
-		return nil, ErrKeySize
+		return nil, errors.WithStack(ErrKeySize)
 	}
 
 	bloom, err := bloomfilter.Init(elements, falsePositive)
@@ -125,10 +125,10 @@ func Init(key, nonce []byte, elements int,
 func InitByParameters(key, nonce []byte, size,
 	hashFunctions uint64, metadataSize uint) (Sealed, error) {
 	if len(nonce) != chacha20.NonceSizeX {
-		return nil, ErrNonceSize
+		return nil, errors.WithStack(ErrNonceSize)
 	}
 	if len(key) != chacha20.KeySize {
-		return nil, ErrKeySize
+		return nil, errors.WithStack(ErrKeySize)
 	}
 
 	bloom, err := bloomfilter.InitByParameters(size, hashFunctions)
@@ -153,7 +153,7 @@ func (s *sealed) Seal(metadata []byte) ([]byte, error) {
 	// check the metadata
 	if (s.metadataSize == 0 && metadata != nil) ||
 		uint(len(metadata)) != s.metadataSize {
-		return nil, ErrInvalidMetadataLen
+		return nil, errors.WithStack(ErrInvalidMetadataLen)
 	}
 
 	// append the metadata to the marshaled filter
@@ -169,7 +169,7 @@ func (s *sealed) Seal(metadata []byte) ([]byte, error) {
 	ciphertext := make([]byte, len(data))
 	cipher, err := chacha20.NewUnauthenticatedCipher(s.key, s.nonce)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	cipher.XORKeyStream(ciphertext, data)
 	return ciphertext, nil
@@ -184,7 +184,7 @@ func (s *sealed) Seal(metadata []byte) ([]byte, error) {
 // be returned
 func (s *sealed) Unseal(ciphertext []byte) ([]byte, error) {
 	if len(ciphertext) != s.SealedSize() {
-		return nil, ErrInvalidSealedLen
+		return nil, errors.WithStack(ErrInvalidSealedLen)
 	}
 	plaintext := make([]byte, len(ciphertext))
 	cipher, err := chacha20.NewUnauthenticatedCipher(s.key, s.nonce)
