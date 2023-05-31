@@ -5,12 +5,13 @@
 // LICENSE file.                                                              //
 ////////////////////////////////////////////////////////////////////////////////
 
-package database
+package indexedDb
 
 import (
 	cryptoCipher "crypto/cipher"
 	"encoding/binary"
 	"encoding/json"
+	"github.com/Max-Sum/base32768"
 	"github.com/pkg/errors"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/hash"
@@ -34,9 +35,7 @@ const (
 
 	// appendPadding
 	shortPaddingReadErr = "short read (%d != %d)"
-)
 
-const (
 	// lengthOfOverhead is the space allocated, in bytes, to represent the size
 	// of the plaintext. This will be added to the padded plaintext prior to
 	// encryption.
@@ -49,20 +48,20 @@ const (
 // Cipher manages the encryption and decryption of channel messages that are
 // inserted into or read from the database.
 type Cipher interface {
-	// Encrypt encrypts the raw data. The returned ciphertext includes the nonce
-	// (24 bytes) and the encrypted plaintext (with possible padding, if
-	// needed).
+	// Encrypt encrypts the raw data. The returned ciphertext is encoded and
+	// includes the nonce (24 bytes) and the encrypted plaintext
+	// (with possible padding, if needed).
 	//
 	// Prior to encrypting the plaintext, a padding will be appended if it is
 	// shorter than the pre-defined block size passed into NewCipher.
 	//
 	// If the plaintext is longer than the block size, then Encrypt will return
 	// an error.
-	Encrypt(plaintext []byte) (ciphertext []byte, err error)
+	Encrypt(plainText []byte) (cipherText string, err error)
 
-	// Decrypt decrypts the passed in ciphertext and returns the plaintext. Any
-	// padding added to the plaintext during encryption is stripped.
-	Decrypt(ciphertext []byte) (plaintext []byte, err error)
+	// Decrypt decrypts the given encoded ciphertext and returns the plaintext.
+	// Any padding added to the plaintext during encryption is stripped.
+	Decrypt(cipherText string) (plainText []byte, err error)
 
 	// Marshaler marshals the cryptographic information in the cypher for
 	// sending over the wire.
@@ -99,7 +98,6 @@ func NewCipher(internalPassword, salt []byte, plaintextBlockSize int,
 	if plaintextBlockSize <= 0 {
 		return nil, errors.Errorf(cipherInvalidBlockSizeErr, plaintextBlockSize)
 	}
-
 	// Generate key
 	key := deriveDatabaseSecret(internalPassword, salt)
 
@@ -117,24 +115,24 @@ func NewCipherFromJSON(data []byte, csprng io.Reader) (Cipher, error) {
 	return c, json.Unmarshal(data, &c)
 }
 
-// Encrypt encrypts the raw data. The returned ciphertext includes the nonce
-// (24 bytes) and the encrypted plaintext (with possible padding, if
-// needed).
+// Encrypt encrypts the raw data. The returned ciphertext is encoded and
+// includes the nonce (24 bytes) and the encrypted plaintext
+// (with possible padding, if needed).
 //
 // Prior to encrypting the plaintext, a padding will be appended if it is
 // shorter than the pre-defined block size passed into NewCipher.
 //
 // If the plaintext is longer than the block size, then Encrypt will return
 // an error.
-func (c *cipher) Encrypt(plaintext []byte) (ciphertext []byte, err error) {
-	if len(plaintext) > c.blockSize {
-		return nil,
-			errors.Errorf(plaintextTooLargeErr, c.blockSize, len(plaintext))
+func (c *cipher) Encrypt(plainText []byte) (cipherText string, err error) {
+	if len(plainText) > c.blockSize {
+		return "",
+			errors.Errorf(plaintextTooLargeErr, c.blockSize, len(plainText))
 	}
 
-	plaintext, err = appendPadding(plaintext, c.blockSize, c.rng)
+	plainText, err = appendPadding(plainText, c.blockSize, c.rng)
 	if err != nil {
-		return nil, err
+		return "nil", err
 	}
 
 	// Generate cipher and nonce
@@ -144,34 +142,41 @@ func (c *cipher) Encrypt(plaintext []byte) (ciphertext []byte, err error) {
 		jww.FATAL.Panicf(generateNoncePanic, err)
 	}
 
-	// Encrypt data and return
-	ciphertext = chaCipher.Seal(nonce, nonce, plaintext, nil)
-	return ciphertext, nil
+	// Encrypt data, encode, and return
+	cipherBytes := chaCipher.Seal(nonce, nonce, plainText, nil)
+	cipherText = base32768.SafeEncoding.EncodeToString(cipherBytes)
+	return
 }
 
-// Decrypt decrypts the passed in ciphertext and returns the plaintext. Any
-// padding added to the plaintext during encryption is stripped.
-func (c *cipher) Decrypt(ciphertext []byte) (plaintext []byte, err error) {
+// Decrypt decrypts the given encoded ciphertext and returns the plaintext.
+// Any padding added to the plaintext during encryption is stripped.
+func (c *cipher) Decrypt(cipherText string) (plainText []byte, err error) {
+	// Decode to bytes
+	decoded, err := base32768.SafeEncoding.DecodeString(cipherText)
+	if err != nil {
+		return nil, err
+	}
+
 	// Generate cypher
 	chaCipher := initChaCha20Poly1305(c.secret)
 
 	nonceLen := chaCipher.NonceSize()
-	if len(ciphertext)-nonceLen <= 0 {
-		return nil, errors.Errorf(readNonceLenErr, len(ciphertext))
+	if len(decoded)-nonceLen <= 0 {
+		return nil, errors.Errorf(readNonceLenErr, len(decoded))
 	}
 
-	// The first nonceLen bytes of ciphertext are the nonce
-	nonce, encrypted := ciphertext[:nonceLen], ciphertext[nonceLen:]
+	// The first nonceLen bytes of cipherText are the nonce
+	nonce, encrypted := decoded[:nonceLen], decoded[nonceLen:]
 
-	// Decrypt ciphertext
+	// Decrypt cipherText
 	paddedPlaintext, err := chaCipher.Open(nil, nonce, encrypted, nil)
 	if err != nil {
 		return nil, errors.Errorf(cipherCannotDecryptErr, err)
 	}
 
-	// Remove padding from plaintext
-	plaintext = discardPadding(paddedPlaintext)
-	return plaintext, nil
+	// Remove padding from plainText
+	plainText = discardPadding(paddedPlaintext)
+	return plainText, nil
 }
 
 // cipherDisk represents a cipher for marshalling and unmarshalling.
