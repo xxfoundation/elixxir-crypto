@@ -12,6 +12,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/require"
 	"gitlab.com/xx_network/crypto/csprng"
 	goUrl "net/url"
 	"reflect"
@@ -19,6 +20,10 @@ import (
 	"strings"
 	"testing"
 )
+
+////////////////////////////////////////////////////////////////////////////////
+// Share URL Tests
+////////////////////////////////////////////////////////////////////////////////
 
 // Tests that a URL created via Channel.ShareURL can be decoded using
 // DecodeShareURL and that it matches the original.
@@ -541,4 +546,245 @@ func Test_decryptShareURL_ShortData(t *testing.T) {
 	if err == nil || err.Error()[:len(expectedErrMsg)] != expectedErrMsg {
 		t.Errorf("Unexpected error: %+v", err)
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Invite URL Tests
+////////////////////////////////////////////////////////////////////////////////
+
+// Tests that a URL created via Channel.InviteURL can be decoded using
+// DecodeInviteURL and that it matches the original.
+func TestChannel_InviteURL_DecodeInviteURL(t *testing.T) {
+	host := "https://internet.speakeasy.tech/"
+	rng := csprng.NewSystemRNG()
+
+	for i, level := range []PrivacyLevel{Public, Private, Secret} {
+		c, _, err := NewChannel("My_Channel",
+			"Here is information about my channel.", level, 512, rng)
+		require.NoError(t, err)
+
+		url, password, err := c.InviteURL(host, i, rng)
+		require.NoError(t, err)
+
+		newChannel, err := DecodeInviteURL(url, password)
+		require.NoError(t, err)
+
+		require.Equal(t, *c, *newChannel)
+	}
+}
+
+func TestChannel_InviteURL(t *testing.T) {
+	url := "http://backdev.speakeasy.tech/join?0Name=aaaa&1Description=aaaaa&2Level=Public&3Created=1673641306768948209&e=RKinl7gyIKBGAdRwq3ZLRajX33Vo0vv%2FW5Mt1GVbWgY%3D&k=iLGoDv%2BJdHy7RameVqOa2NJ1mDLXmEyv%2FpXoysHAqcI%3D&l=368&m=0&p=1&s=9vjszGm8UJ3UdTsTF56VLMfMJv1eDk2Epw6r097MBNQ%3D&v=1"
+	rng := csprng.NewSystemRNG()
+	password, err := generatePhrasePassword(8, rng)
+	require.NoError(t, err)
+	ch, _ := DecodeInviteURL(url, password)
+
+	t.Logf("name: %s", ch.Name)
+	t.Logf("RsaPubKeyLength: %d", ch.RsaPubKeyLength)
+	t.Logf("RSASubPayloads: %d", ch.RSASubPayloads)
+}
+
+// Error path: Tests that Channel.InviteURL returns an error for an invalid host.
+func TestChannel_InviteURL_ParseError(t *testing.T) {
+	rng := csprng.NewSystemRNG()
+	c, _, err := NewChannel("ABC", "B", Public, 512, rng)
+	if err != nil {
+		t.Fatalf("Failed to create new channel: %+v", err)
+	}
+
+	host := "invalidHost\x7f"
+	expectedErr := strings.Split(parseHostUrlErr, "%")[0]
+
+	_, _, err = c.InviteURL(host, 0, rng)
+	require.ErrorContains(t, err, expectedErr)
+}
+
+// Error path: Tests that DecodeInviteURL returns an error for an invalid host.
+func TestDecodeInviteURL_ParseError(t *testing.T) {
+	host := "invalidHost\x7f"
+	expectedErr := strings.Split(parseShareUrlErr, "%")[0]
+	rng := csprng.NewSystemRNG()
+	password, err := generatePhrasePassword(8, rng)
+	require.NoError(t, err)
+
+	_, err = DecodeInviteURL(host, password)
+	require.ErrorContains(t, err, expectedErr)
+}
+
+// Error path: Tests that DecodeInviteURL returns errors for a list of invalid
+// URLs.
+func TestDecodeInviteURL_DecodeError(t *testing.T) {
+	type test struct {
+		url, password, err string
+	}
+
+	tests := []test{
+		{"test?", "", urlVersionErr},
+		{"test?v=q", "", parseVersionErr},
+		{"test?v=2", "", versionErr},
+		{"test?v=1", "", noMaxUsesErr},
+		{"test?v=1&m=t", "", parseMaxUsesErr},
+		{"test?v=1&m=0", "", malformedUrlErr},
+		{"test?v=1&s=AA==&m=0&3Created=0", "", parseLevelErr},
+		{"test?v=1&s=A&2Level=Public&m=0&3Created=0", "", parseSaltErr},
+		{"test?v=1&s=AA==&2Level=Public&k=A&m=0&3Created=0", "",
+			parseRsaPubKeyHashErr},
+		{"test?v=1&s=AA==&2Level=Public&k=AA==&l=q&m=0&3Created=0", "",
+			parseRsaPubKeyLengthErr},
+		{"test?v=1&s=AA==&2Level=Public&k=AA==&l=5&p=t&m=0&3Created=0", "",
+			parseRsaSubPayloadsErr},
+		{"test?v=1&s=AA==&2Level=Public&k=AA==&l=5&p=1&e=A&m=0&3Created=0", "",
+			parseSecretErr},
+		{"test?v=1&d=2&m=0", "hello", decodeEncryptedErr},
+	}
+
+	for _, tt := range tests {
+		expected := strings.Split(tt.err, "%")[0]
+
+		_, err := DecodeInviteURL(tt.url, tt.password)
+		require.ErrorContains(t, err, expected)
+	}
+}
+
+// Tests that DecodeInviteURL returns an error when NewChannelID returns an error
+// due to the salt size being incorrect.
+func TestDecodeInviteURL_NewChannelIDError(t *testing.T) {
+	url := "https://internet.speakeasy.tech/" +
+		"?0Name=MyChannel" +
+		"&1Description=Here+is+information+about+my+channel." +
+		"&2Level=Public" +
+		"&3Created=0" +
+		"&e=z73XYenRG65WHmJh8r%2BanZ71r2rPOHjTgCSEh05TUlQ%3D" +
+		"&k=9b1UtGnZ%2B%2FM3hnXTfNRN%2BZKXcsHyZE00vZ9We0oDP90%3D" +
+		"&l=493" +
+		"&p=1" +
+		"&s=8tJb%2FC9j26MJEfb%2F2463YQ%3D%3D" +
+		"&v=1" +
+		"&m=0"
+	expectedErr := strings.Split(newReceptionIdErr, "%")[0]
+
+	_, err := DecodeInviteURL(url, "")
+	require.ErrorContains(t, err, expectedErr)
+}
+
+// Tests that DecodeInviteURL returns an error when the name in the URL is too
+// long.
+func TestDecodeInviteURL_NameMaxLengthError(t *testing.T) {
+	url := "https://internet.speakeasy.tech/" +
+		"?0Name=" + strings.Repeat("A", NameMaxChars+1) +
+		"&1Description=Here+is+information+about+my+channel." +
+		"&2Level=Public" +
+		"&3Created=0" +
+		"&e=GBBSbhYkAWj58b1befVCOQIUpnyv3nw2B97oe3Z0%2B6A%3D" +
+		"&k=ktKmxghB12i9I3ava5bX4hqH82gVCFnbOccKicNIBwk%3D" +
+		"&l=493" +
+		"&m=0" +
+		"&p=1" +
+		"&s=95flF3q1rSlqQXbrksem9HHK%2BFeG2iHn7AEoGk%2BI230%3D" +
+		"&v=1"
+
+	_, err := DecodeInviteURL(url, "")
+	require.EqualError(t, errors.Unwrap(err), MaxNameCharLenErr.Error())
+}
+
+// Tests that DecodeInviteURL returns an error when the description in the URL is
+// too long.
+func TestDecodeInviteURL_DescriptionMaxLengthError(t *testing.T) {
+	url := "https://internet.speakeasy.tech/" +
+		"?0Name=Channel" +
+		"&1Description=" + strings.Repeat("A", DescriptionMaxChars+1) +
+		"&2Level=Public" +
+		"&3Created=0" +
+		"&e=GBBSbhYkAWj58b1befVCOQIUpnyv3nw2B97oe3Z0%2B6A%3D" +
+		"&k=ktKmxghB12i9I3ava5bX4hqH82gVCFnbOccKicNIBwk%3D" +
+		"&l=493" +
+		"&m=0" +
+		"&p=1" +
+		"&s=95flF3q1rSlqQXbrksem9HHK%2BFeG2iHn7AEoGk%2BI230%3D" +
+		"&v=1"
+
+	_, err := DecodeInviteURL(url, "")
+	require.EqualError(t, errors.Unwrap(err), MaxDescriptionCharLenErr.Error())
+}
+
+// Tests that a channel can be encoded to a URL using
+// Channel.encodePublicInviteURL and decoded to a new channel using
+// Channel.decodePublicInviteURL and that it matches the original.
+func TestChannel_encodePublicInviteURL_decodePublicInviteURL(t *testing.T) {
+	rng := csprng.NewSystemRNG()
+	c, _, err := NewChannel("Test_Channel", "Description", Public, 512, rng)
+	require.NoError(t, err)
+	urlValues := make(goUrl.Values)
+	urlValues = c.encodePublicShareURL(urlValues)
+
+	var newChannel Channel
+	err = newChannel.decodePublicShareURL(urlValues)
+	require.NoError(t, err)
+	// Reception ID is set at the layer above
+	newChannel.ReceptionID = c.ReceptionID
+
+	require.Equal(t, *c, newChannel)
+}
+
+// Tests that a channel can be encoded to a URL using
+// Channel.encodePrivateInviteURL and decoded to a new channel using
+// Channel.decodePrivateInviteURL and that it matches the original.
+func TestChannel_encodePrivateInviteURL_decodePrivateInviteURL(t *testing.T) {
+	rng := csprng.NewSystemRNG()
+	c, _, err := NewChannel("Test_Channel", "Description", Private, 512, rng)
+	require.NoError(t, err)
+
+	maxUses := 12
+	urlValues := make(goUrl.Values)
+	urlValues = c.encodePrivateShareURL(urlValues, "", maxUses, rng)
+
+	var newChannel Channel
+	loadedMaxUses, err := newChannel.decodePrivateShareURL(urlValues, "")
+	require.NoError(t, err)
+
+	if maxUses != loadedMaxUses {
+		t.Errorf("Did not get expected max uses.\nexpected: %d\nreceived: %d",
+			maxUses, loadedMaxUses)
+	}
+
+	// Reception ID is set at the layer above
+	newChannel.ReceptionID = c.ReceptionID
+	require.Equal(t, *c, newChannel)
+}
+
+// Error path: Tests Channel.decodePrivateInviteURL returns the expected error
+// when decoding the data fails.
+func TestChannel_decodeInviteURL(t *testing.T) {
+	urlValues := make(goUrl.Values)
+	urlValues.Set(createdKey, "5")
+	urlValues.Set(dataKey, "invalid data")
+
+	var newChannel Channel
+	expectedErr := strings.Split(decodeEncryptedErr, "%")[0]
+	_, err := newChannel.decodePrivateShareURL(urlValues, "")
+	require.ErrorContains(t, err, expectedErr)
+}
+
+// Tests that a channel can be encoded to a URL using
+// Channel.encodeSecretInviteURL and decoded to a new channel using
+// Channel.decodeSecretInviteURL and that it matches the original.
+func TestChannel_encodeSecretInviteURL_decodeSecretInviteURL(t *testing.T) {
+	rng := csprng.NewSystemRNG()
+	c, _, err := NewChannel("Test_Channel", "Description", Secret, 512, rng)
+	require.NoError(t, err)
+
+	maxUses := 2
+	urlValues := make(goUrl.Values)
+	urlValues = c.encodeSecretShareURL(urlValues, "", maxUses, rng)
+
+	var newChannel Channel
+	loadedMaxUses, err := newChannel.decodeSecretShareURL(urlValues, "")
+	require.NoError(t, err)
+
+	require.Equal(t, maxUses, loadedMaxUses)
+
+	// Reception ID is set at the layer above
+	newChannel.ReceptionID = c.ReceptionID
+	require.Equal(t, *c, newChannel)
 }
