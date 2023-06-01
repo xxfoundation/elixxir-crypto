@@ -130,21 +130,80 @@ func (c *Channel) ShareURL(
 
 	// If the privacy Level is Private or Secret, then generate a password
 	var password string
+	var pwHash string
 	var err error
 	if c.Level != Public {
 		password, err = generatePhrasePassword(8, csprng)
 		if err != nil {
 			return "", "", errors.Errorf(generatePhrasePasswordErr, err)
 		}
+
+		pwHash = HashURLPassword(password)
 	}
 
-	url, err := c.getURL(host, password, maxUses, csprng)
+	url, err := c.getURL(host, pwHash, maxUses, csprng)
 	return url, password, err
 }
 
 // DecodeShareURL decodes the given URL to a Channel. If the channel is Private
 // or Secret, then a password is required. Otherwise, an error is returned.
 func DecodeShareURL(url, password string) (*Channel, error) {
+	return decodeUrl(url, HashURLPassword(password))
+
+}
+
+// DecodeInviteURL decodes the given URL to a Channel. If the channel is Private
+// or Secret, then a password is required. Otherwise, an error is returned.
+func DecodeInviteURL(url, password string) (*Channel, error) {
+	return decodeUrl(url, password)
+}
+
+// HashURLPassword will hash the password given by [Channel.ShareURL].
+func HashURLPassword(password string) string {
+	if password == "" {
+		return ""
+	}
+
+	pwHash := blake2b.Sum256([]byte(password))
+	return string(pwHash[:])
+}
+
+// GetShareUrlType determines the PrivacyLevel of the channel's URL.
+func GetShareUrlType(url string) (PrivacyLevel, error) {
+	u, err := goUrl.Parse(url)
+	if err != nil {
+		return 0, errors.Errorf(parseShareUrlErr, err)
+	}
+
+	q := u.Query()
+
+	// Check the version
+	versionString := q.Get(versionKey)
+	if versionString == "" {
+		return 0, errors.New(urlVersionErr)
+	}
+	v, err := strconv.Atoi(versionString)
+	if err != nil {
+		return 0, errors.Errorf(parseVersionErr, err)
+	} else if v != shareUrlVersion {
+		return 0, errors.Errorf(versionErr, shareUrlVersion, v)
+	}
+
+	// Decode the URL based on the information available (e.g., only the public
+	// URL has a salt, so if the saltKey is specified, it is a public URL)
+	switch {
+	case q.Has(saltKey):
+		return Public, nil
+	case q.Has(nameKey):
+		return Private, nil
+	case q.Has(dataKey):
+		return Secret, nil
+	default:
+		return 0, errors.New(malformedUrlErr)
+	}
+}
+
+func decodeUrl(url, pwHash string) (*Channel, error) {
 	u, err := goUrl.Parse(url)
 	if err != nil {
 		return nil, errors.Errorf(parseShareUrlErr, err)
@@ -186,18 +245,18 @@ func DecodeShareURL(url, password string) (*Channel, error) {
 			return nil, errors.Errorf(decodePublicUrlErr, err)
 		}
 	case q.Has(nameKey):
-		if password == "" {
+		if pwHash == "" {
 			return nil, errors.New(noPasswordErr)
 		}
-		maxUses, err = c.decodePrivateShareURL(q, password)
+		maxUses, err = c.decodePrivateShareURL(q, pwHash)
 		if err != nil {
 			return nil, errors.Errorf(decodePrivateUrlErr, err)
 		}
 	case q.Has(dataKey):
-		if password == "" {
+		if pwHash == "" {
 			return nil, errors.New(noPasswordErr)
 		}
-		maxUses, err = c.decodeSecretShareURL(q, password)
+		maxUses, err = c.decodeSecretShareURL(q, pwHash)
 		if err != nil {
 			return nil, errors.Errorf(decodeSecretUrlErr, err)
 		}
@@ -230,87 +289,7 @@ func DecodeShareURL(url, password string) (*Channel, error) {
 	}
 
 	return c, nil
-}
 
-// InviteURL generates a URL that can be used to create an invitation for this
-// channel with others on the given host.
-//
-// See [Channel.Level] for information on URL privacy.
-//
-// The maxUses is the maximum number of times this URL can be used to join a
-// channel. If it is set to 0, then it can be shared unlimited times. The max
-// uses is set as a URL parameter using the key [MaxUsesKey]. Note that this
-// number is also encoded in the secret data for private and secret URLs, so if
-// the number is changed in the URL, is will be verified when calling
-// [DecodeInviteURL]. There is no enforcement for public URLs.
-func (c *Channel) InviteURL(host string, maxUses int, csprng io.Reader) (
-	string, string, error) {
-	// If the privacy Level is Private or Secret, then generate a password
-	var password string
-	var err error
-	if c.Level != Public {
-		password, err = generatePhrasePassword(8, csprng)
-		if err != nil {
-			return "", "", errors.Errorf(generatePhrasePasswordErr, err)
-		}
-	}
-
-	pwHash := string(HashInvitePassword(password))
-	url, err := c.getURL(host, pwHash, maxUses, csprng)
-	return url, password, err
-}
-
-// DecodeInviteURL decodes the given URL to a Channel. If the channel is Private
-// or Secret, then a password is required. Otherwise, an error is returned.
-func DecodeInviteURL(url, password string) (*Channel, error) {
-	pwHash := HashInvitePassword(password)
-	return DecodeShareURL(url, string(pwHash))
-}
-
-// HashInvitePassword will hash the password used for the [Channel.InviteURL].
-// This is what the URL data will be
-func HashInvitePassword(password string) []byte {
-	if password == "" {
-		return []byte{}
-	}
-
-	pwHash := blake2b.Sum256([]byte(password))
-	return pwHash[:]
-}
-
-// GetShareUrlType determines the PrivacyLevel of the channel's URL.
-func GetShareUrlType(url string) (PrivacyLevel, error) {
-	u, err := goUrl.Parse(url)
-	if err != nil {
-		return 0, errors.Errorf(parseShareUrlErr, err)
-	}
-
-	q := u.Query()
-
-	// Check the version
-	versionString := q.Get(versionKey)
-	if versionString == "" {
-		return 0, errors.New(urlVersionErr)
-	}
-	v, err := strconv.Atoi(versionString)
-	if err != nil {
-		return 0, errors.Errorf(parseVersionErr, err)
-	} else if v != shareUrlVersion {
-		return 0, errors.Errorf(versionErr, shareUrlVersion, v)
-	}
-
-	// Decode the URL based on the information available (e.g., only the public
-	// URL has a salt, so if the saltKey is specified, it is a public URL)
-	switch {
-	case q.Has(saltKey):
-		return Public, nil
-	case q.Has(nameKey):
-		return Private, nil
-	case q.Has(dataKey):
-		return Secret, nil
-	default:
-		return 0, errors.New(malformedUrlErr)
-	}
 }
 
 // getURL is a helper function which constructs the URL for sharing or

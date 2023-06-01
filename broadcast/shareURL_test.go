@@ -563,10 +563,11 @@ func TestChannel_InviteURL_DecodeInviteURL(t *testing.T) {
 			"Here is information about my channel.", level, 512, rng)
 		require.NoError(t, err)
 
-		url, password, err := c.InviteURL(host, i, rng)
+		url, password, err := c.ShareURL(host, i, rng)
 		require.NoError(t, err)
 
-		newChannel, err := DecodeInviteURL(url, password)
+		pwHash := HashURLPassword(password)
+		newChannel, err := DecodeInviteURL(url, pwHash)
 		require.NoError(t, err)
 
 		require.Equal(t, *c, *newChannel)
@@ -596,7 +597,7 @@ func TestChannel_InviteURL_ParseError(t *testing.T) {
 	host := "invalidHost\x7f"
 	expectedErr := strings.Split(parseHostUrlErr, "%")[0]
 
-	_, _, err = c.InviteURL(host, 0, rng)
+	_, _, err = c.ShareURL(host, 0, rng)
 	require.ErrorContains(t, err, expectedErr)
 }
 
