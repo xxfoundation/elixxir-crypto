@@ -141,7 +141,7 @@ func (c *Channel) ShareURL(
 		pwHash = HashURLPassword(password)
 	}
 
-	url, err := c.getURL(host, string(pwHash), maxUses, csprng)
+	url, err := c.getURL(host, pwHash, maxUses, csprng)
 	return url, password, err
 }
 
@@ -152,7 +152,7 @@ func (c *Channel) ShareURL(
 // exactly what is returned from [Channel.ShareURL].
 func DecodeShareURL(url, password string) (*Channel, error) {
 	pwHash := HashURLPassword(password)
-	return decodeUrl(url, string(pwHash))
+	return decodeUrl(url, pwHash)
 
 }
 
@@ -161,7 +161,7 @@ func DecodeShareURL(url, password string) (*Channel, error) {
 //
 // This should be used for invite URLs, and the user should pass in a hash of the
 // password, rather than the plain password (see [HashURLPassword]).
-func DecodeInviteURL(url, password string) (*Channel, error) {
+func DecodeInviteURL(url string, password []byte) (*Channel, error) {
 	return decodeUrl(url, password)
 }
 
@@ -210,7 +210,7 @@ func GetShareUrlType(url string) (PrivacyLevel, error) {
 	}
 }
 
-func decodeUrl(url, pwHash string) (*Channel, error) {
+func decodeUrl(url string, pwHash []byte) (*Channel, error) {
 	u, err := goUrl.Parse(url)
 	if err != nil {
 		return nil, errors.Errorf(parseShareUrlErr, err)
@@ -252,7 +252,7 @@ func decodeUrl(url, pwHash string) (*Channel, error) {
 			return nil, errors.Errorf(decodePublicUrlErr, err)
 		}
 	case q.Has(nameKey):
-		if pwHash == "" {
+		if len(pwHash) == 0 {
 			return nil, errors.New(noPasswordErr)
 		}
 		maxUses, err = c.decodePrivateShareURL(q, pwHash)
@@ -260,7 +260,7 @@ func decodeUrl(url, pwHash string) (*Channel, error) {
 			return nil, errors.Errorf(decodePrivateUrlErr, err)
 		}
 	case q.Has(dataKey):
-		if pwHash == "" {
+		if len(pwHash) == 0 {
 			return nil, errors.New(noPasswordErr)
 		}
 		maxUses, err = c.decodeSecretShareURL(q, pwHash)
@@ -301,7 +301,7 @@ func decodeUrl(url, pwHash string) (*Channel, error) {
 
 // getURL is a helper function which constructs the URL for sharing or
 // invitation.
-func (c *Channel) getURL(url, password string,
+func (c *Channel) getURL(url string, password []byte,
 	maxUses int, csprng io.Reader) (
 	string, error) {
 
@@ -395,7 +395,7 @@ func (c *Channel) decodePublicShareURL(q goUrl.Values) error {
 
 // encodePrivateShareURL encodes the channel to a Private share URL.
 func (c *Channel) encodePrivateShareURL(
-	q goUrl.Values, password string, maxUses int, csprng io.Reader) goUrl.Values {
+	q goUrl.Values, password []byte, maxUses int, csprng io.Reader) goUrl.Values {
 	marshalledSecrets := c.marshalPrivateShareUrlSecrets(maxUses)
 	encryptedSecrets := encryptShareURL(marshalledSecrets, password, csprng)
 
@@ -410,7 +410,7 @@ func (c *Channel) encodePrivateShareURL(
 // decodePrivateShareURL decodes the values in the url.Values from a Private
 // share URL to a channel.
 func (c *Channel) decodePrivateShareURL(
-	q goUrl.Values, password string) (int, error) {
+	q goUrl.Values, password []byte) (int, error) {
 	c.Name = q.Get(nameKey)
 	c.Description = q.Get(descKey)
 
@@ -440,7 +440,7 @@ func (c *Channel) decodePrivateShareURL(
 
 // encodeSecretShareURL encodes the channel to a Secret share URL.
 func (c *Channel) encodeSecretShareURL(
-	q goUrl.Values, password string, maxUses int, csprng io.Reader) goUrl.Values {
+	q goUrl.Values, password []byte, maxUses int, csprng io.Reader) goUrl.Values {
 	marshalledSecrets := c.marshalSecretShareUrlSecrets(maxUses)
 	encryptedSecrets := encryptShareURL(marshalledSecrets, password, csprng)
 
@@ -453,7 +453,7 @@ func (c *Channel) encodeSecretShareURL(
 // decodePrivateShareURL decodes the values in the url.Values from a Secret
 // share URL to a channel.
 func (c *Channel) decodeSecretShareURL(
-	q goUrl.Values, password string) (int, error) {
+	q goUrl.Values, password []byte) (int, error) {
 	encryptedData, err := base64.StdEncoding.DecodeString(q.Get(dataKey))
 	if err != nil {
 		return 0, errors.Errorf(decodeEncryptedErr, err)
@@ -658,7 +658,7 @@ func generatePhrasePassword(numWords int, csprng io.Reader) (string, error) {
 }
 
 // encryptShareURL encrypts the data for a shared URL using XChaCha20-Poly1305.
-func encryptShareURL(data []byte, password string, csprng io.Reader) []byte {
+func encryptShareURL(data, password []byte, csprng io.Reader) []byte {
 	chaCipher := initChaCha20Poly1305(password)
 	nonce := make([]byte, chaCipher.NonceSize())
 	if _, err := io.ReadFull(csprng, nonce); err != nil {
@@ -670,7 +670,7 @@ func encryptShareURL(data []byte, password string, csprng io.Reader) []byte {
 
 // decryptShareURL decrypts the encrypted data from a shared URL using
 // XChaCha20-Poly1305.
-func decryptShareURL(data []byte, password string) ([]byte, error) {
+func decryptShareURL(data, password []byte) ([]byte, error) {
 	chaCipher := initChaCha20Poly1305(password)
 	nonceLen := chaCipher.NonceSize()
 	if (len(data) - nonceLen) <= 0 {
@@ -687,8 +687,8 @@ func decryptShareURL(data []byte, password string) ([]byte, error) {
 
 // initChaCha20Poly1305 returns a XChaCha20-Poly1305 cipher.AEAD that uses the
 // given password hashed into a 256-bit key.
-func initChaCha20Poly1305(password string) cipher.AEAD {
-	pwHash := blake2b.Sum256([]byte(password))
+func initChaCha20Poly1305(password []byte) cipher.AEAD {
+	pwHash := blake2b.Sum256(password)
 	chaCipher, err := chacha20poly1305.NewX(pwHash[:])
 	if err != nil {
 		jww.FATAL.Panicf("Could not init XChaCha20Poly1305 mode: %+v", err)

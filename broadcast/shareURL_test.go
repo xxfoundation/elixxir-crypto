@@ -358,10 +358,10 @@ func TestChannel_encodePrivateShareURL_decodePrivateShareURL(t *testing.T) {
 	const password = "password"
 	maxUses := 12
 	urlValues := make(goUrl.Values)
-	urlValues = c.encodePrivateShareURL(urlValues, password, maxUses, rng)
+	urlValues = c.encodePrivateShareURL(urlValues, []byte(password), maxUses, rng)
 
 	var newChannel Channel
-	loadedMaxUses, err := newChannel.decodePrivateShareURL(urlValues, password)
+	loadedMaxUses, err := newChannel.decodePrivateShareURL(urlValues, []byte(password))
 	if err != nil {
 		t.Errorf("Error decoding URL values: %+v", err)
 	}
@@ -389,7 +389,7 @@ func TestChannel_decodePrivateShareURL(t *testing.T) {
 
 	var newChannel Channel
 	expectedErr := strings.Split(decodeEncryptedErr, "%")[0]
-	_, err := newChannel.decodePrivateShareURL(urlValues, "")
+	_, err := newChannel.decodePrivateShareURL(urlValues, []byte(""))
 	if err == nil || !strings.Contains(err.Error(), expectedErr) {
 		t.Errorf("Did not receive expected error when the data is invalid."+
 			"\nexpected: %s\nreceived: %+v", expectedErr, err)
@@ -406,7 +406,7 @@ func TestChannel_encodeSecretShareURL_decodeSecretShareURL(t *testing.T) {
 		t.Fatalf("Failed to create new channel: %+v", err)
 	}
 
-	const password = "password"
+	var password = []byte("password")
 	maxUses := 2
 	urlValues := make(goUrl.Values)
 	urlValues = c.encodeSecretShareURL(urlValues, password, maxUses, rng)
@@ -506,7 +506,7 @@ func TestChannel_marshalSecretShareUrlSecrets_unmarshalSecretShareUrlSecrets(
 // Smoke test of encryptShareURL and decryptShareURL.
 func Test_encryptShareURL_decryptShareURL(t *testing.T) {
 	plaintext := []byte("Hello, World!")
-	password := "test_password"
+	password := []byte("test_password")
 	ciphertext := encryptShareURL(plaintext, password, rand.Reader)
 	decrypted, err := decryptShareURL(ciphertext, password)
 	if err != nil {
@@ -525,7 +525,7 @@ func Test_decryptShareURL_ShortData(t *testing.T) {
 	// Anything under 24 should cause an error.
 	ciphertext := []byte{
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-	_, err := decryptShareURL(ciphertext, "dummyPassword")
+	_, err := decryptShareURL(ciphertext, []byte("dummyPassword"))
 	if err == nil {
 		t.Errorf("Expected error on short decryption")
 	}
@@ -537,7 +537,7 @@ func Test_decryptShareURL_ShortData(t *testing.T) {
 
 	// Empty string shouldn't panic should cause an error.
 	ciphertext = []byte{}
-	_, err = decryptShareURL(ciphertext, "dummyPassword")
+	_, err = decryptShareURL(ciphertext, []byte("dummyPassword"))
 	if err == nil {
 		t.Errorf("Expected error on short decryption")
 	}
@@ -567,7 +567,7 @@ func TestChannel_InviteURL_DecodeInviteURL(t *testing.T) {
 		require.NoError(t, err)
 
 		pwHash := HashURLPassword(password)
-		newChannel, err := DecodeInviteURL(url, string(pwHash))
+		newChannel, err := DecodeInviteURL(url, pwHash)
 		require.NoError(t, err)
 
 		require.Equal(t, *c, *newChannel)
@@ -579,7 +579,7 @@ func TestChannel_InviteURL(t *testing.T) {
 	rng := csprng.NewSystemRNG()
 	password, err := generatePhrasePassword(8, rng)
 	require.NoError(t, err)
-	ch, _ := DecodeInviteURL(url, password)
+	ch, _ := DecodeInviteURL(url, []byte(password))
 
 	t.Logf("name: %s", ch.Name)
 	t.Logf("RsaPubKeyLength: %d", ch.RsaPubKeyLength)
@@ -609,7 +609,7 @@ func TestDecodeInviteURL_ParseError(t *testing.T) {
 	password, err := generatePhrasePassword(8, rng)
 	require.NoError(t, err)
 
-	_, err = DecodeInviteURL(host, password)
+	_, err = DecodeInviteURL(host, []byte(password))
 	require.ErrorContains(t, err, expectedErr)
 }
 
@@ -643,7 +643,7 @@ func TestDecodeInviteURL_DecodeError(t *testing.T) {
 	for _, tt := range tests {
 		expected := strings.Split(tt.err, "%")[0]
 
-		_, err := DecodeInviteURL(tt.url, tt.password)
+		_, err := DecodeInviteURL(tt.url, []byte(tt.password))
 		require.ErrorContains(t, err, expected)
 	}
 }
@@ -665,7 +665,7 @@ func TestDecodeInviteURL_NewChannelIDError(t *testing.T) {
 		"&m=0"
 	expectedErr := strings.Split(newReceptionIdErr, "%")[0]
 
-	_, err := DecodeInviteURL(url, "")
+	_, err := DecodeInviteURL(url, []byte(""))
 	require.ErrorContains(t, err, expectedErr)
 }
 
@@ -685,7 +685,7 @@ func TestDecodeInviteURL_NameMaxLengthError(t *testing.T) {
 		"&s=95flF3q1rSlqQXbrksem9HHK%2BFeG2iHn7AEoGk%2BI230%3D" +
 		"&v=1"
 
-	_, err := DecodeInviteURL(url, "")
+	_, err := DecodeInviteURL(url, []byte(""))
 	require.EqualError(t, errors.Unwrap(err), MaxNameCharLenErr.Error())
 }
 
@@ -705,7 +705,7 @@ func TestDecodeInviteURL_DescriptionMaxLengthError(t *testing.T) {
 		"&s=95flF3q1rSlqQXbrksem9HHK%2BFeG2iHn7AEoGk%2BI230%3D" +
 		"&v=1"
 
-	_, err := DecodeInviteURL(url, "")
+	_, err := DecodeInviteURL(url, []byte(""))
 	require.EqualError(t, errors.Unwrap(err), MaxDescriptionCharLenErr.Error())
 }
 
@@ -738,10 +738,10 @@ func TestChannel_encodePrivateInviteURL_decodePrivateInviteURL(t *testing.T) {
 
 	maxUses := 12
 	urlValues := make(goUrl.Values)
-	urlValues = c.encodePrivateShareURL(urlValues, "", maxUses, rng)
+	urlValues = c.encodePrivateShareURL(urlValues, []byte(""), maxUses, rng)
 
 	var newChannel Channel
-	loadedMaxUses, err := newChannel.decodePrivateShareURL(urlValues, "")
+	loadedMaxUses, err := newChannel.decodePrivateShareURL(urlValues, []byte(""))
 	require.NoError(t, err)
 
 	if maxUses != loadedMaxUses {
@@ -763,7 +763,7 @@ func TestChannel_decodeInviteURL(t *testing.T) {
 
 	var newChannel Channel
 	expectedErr := strings.Split(decodeEncryptedErr, "%")[0]
-	_, err := newChannel.decodePrivateShareURL(urlValues, "")
+	_, err := newChannel.decodePrivateShareURL(urlValues, []byte(""))
 	require.ErrorContains(t, err, expectedErr)
 }
 
@@ -777,10 +777,10 @@ func TestChannel_encodeSecretInviteURL_decodeSecretInviteURL(t *testing.T) {
 
 	maxUses := 2
 	urlValues := make(goUrl.Values)
-	urlValues = c.encodeSecretShareURL(urlValues, "", maxUses, rng)
+	urlValues = c.encodeSecretShareURL(urlValues, []byte(""), maxUses, rng)
 
 	var newChannel Channel
-	loadedMaxUses, err := newChannel.decodeSecretShareURL(urlValues, "")
+	loadedMaxUses, err := newChannel.decodeSecretShareURL(urlValues, []byte(""))
 	require.NoError(t, err)
 
 	require.Equal(t, maxUses, loadedMaxUses)
