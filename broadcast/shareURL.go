@@ -130,7 +130,7 @@ func (c *Channel) ShareURL(
 
 	// If the privacy Level is Private or Secret, then generate a password
 	var password string
-	var pwHash string
+	var pwHash []byte
 	var err error
 	if c.Level != Public {
 		password, err = generatePhrasePassword(8, csprng)
@@ -141,31 +141,38 @@ func (c *Channel) ShareURL(
 		pwHash = HashURLPassword(password)
 	}
 
-	url, err := c.getURL(host, pwHash, maxUses, csprng)
+	url, err := c.getURL(host, string(pwHash), maxUses, csprng)
 	return url, password, err
 }
 
 // DecodeShareURL decodes the given URL to a Channel. If the channel is Private
 // or Secret, then a password is required. Otherwise, an error is returned.
+//
+// This should be used for share URLs only. The password passed in should be
+// exactly what is returned from [Channel.ShareURL].
 func DecodeShareURL(url, password string) (*Channel, error) {
-	return decodeUrl(url, HashURLPassword(password))
+	pwHash := HashURLPassword(password)
+	return decodeUrl(url, string(pwHash))
 
 }
 
 // DecodeInviteURL decodes the given URL to a Channel. If the channel is Private
 // or Secret, then a password is required. Otherwise, an error is returned.
+//
+// This should be used for invite URLs, and the user should pass in a hash of the
+// password, rather than the plain password (see [HashURLPassword]).
 func DecodeInviteURL(url, password string) (*Channel, error) {
 	return decodeUrl(url, password)
 }
 
 // HashURLPassword will hash the password given by [Channel.ShareURL].
-func HashURLPassword(password string) string {
+func HashURLPassword(password string) []byte {
 	if password == "" {
-		return ""
+		return []byte{}
 	}
 
 	pwHash := blake2b.Sum256([]byte(password))
-	return string(pwHash[:])
+	return pwHash[:]
 }
 
 // GetShareUrlType determines the PrivacyLevel of the channel's URL.

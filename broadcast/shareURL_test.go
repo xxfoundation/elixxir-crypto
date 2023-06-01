@@ -567,7 +567,7 @@ func TestChannel_InviteURL_DecodeInviteURL(t *testing.T) {
 		require.NoError(t, err)
 
 		pwHash := HashURLPassword(password)
-		newChannel, err := DecodeInviteURL(url, pwHash)
+		newChannel, err := DecodeInviteURL(url, string(pwHash))
 		require.NoError(t, err)
 
 		require.Equal(t, *c, *newChannel)
