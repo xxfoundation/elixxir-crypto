@@ -19,14 +19,14 @@ func TestEdwardsUtils(t *testing.T) {
 	edpubKey, edprivKey, err := ed25519.GenerateKey(rand.Reader)
 	require.NoError(t, err)
 
-	privKey := Edwards2ECDHNIKEPrivateKey(&edprivKey)
+	privKey := Edwards2ECDHNIKEPrivateKey(edprivKey)
 	pubDerived := ECDHNIKE.DerivePublicKey(privKey)
 
-	pubConverted := Edwards2ECDHNIKEPublicKey(&edpubKey)
+	pubConverted := Edwards2ECDHNIKEPublicKey(edpubKey)
 
 	require.Equal(t, pubDerived.Bytes(), pubConverted.Bytes())
 
-	pubDownConverted := *ECDHNIKE2EdwardsPublicKey(pubConverted)
+	pubDownConverted := ECDHNIKE2EdwardsPublicKey(pubConverted)
 
 	require.Equal(t, edpubKey[:], pubDownConverted[:])
 }

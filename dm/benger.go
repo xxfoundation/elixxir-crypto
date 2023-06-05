@@ -14,6 +14,13 @@ import (
 	"golang.org/x/crypto/blake2b"
 )
 
+// benger code is a partially deniable forgeable hmac. The hmac is forgeable
+// by the receiving party, making it so that it is impossible for the existence
+// of the code to tell a third party that a specific party created it, but
+// it is possible for the receiver to know the sender created it because they
+// know if they forged it or not
+
+// isValidBengerCode checks if the benger code is valid
 func isValidBengerCode(readCode, key, msg []byte) bool {
 	derivBengerCode := makeBengerCode(key, msg)
 	if !hmac.Equal(readCode, derivBengerCode) {

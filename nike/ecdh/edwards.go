@@ -13,27 +13,27 @@ import (
 )
 
 // Edwards2ECDHNIKEPublicKey converts a public key from a signing key to a NIKE
-// (key exchange compatible) version of the the public key.
+// (key exchange compatible) version of the public key.
 func Edwards2ECDHNIKEPublicKey(
-	publicEdwardsKey *ed25519.PublicKey) nike.PublicKey {
+	publicEdwardsKey ed25519.PublicKey) nike.PublicKey {
 	publicKey := ECDHNIKE.NewEmptyPublicKey()
-	publicKey.(*PublicKey).FromEdwards(*publicEdwardsKey)
+	publicKey.(*PublicKey).FromEdwards(publicEdwardsKey)
 	return publicKey
 }
 
-// nike2EdwardsPublicKey converts a public key from a signing key to a NIKE
+// ECDHNIKE2EdwardsPublicKey converts a public key from a signing key to a NIKE
 // (key exchange compatible) version of the the public key.
-func ECDHNIKE2EdwardsPublicKey(publicKey nike.PublicKey) *ed25519.PublicKey {
+func ECDHNIKE2EdwardsPublicKey(publicKey nike.PublicKey) ed25519.PublicKey {
 	p := ed25519.PublicKey(publicKey.Bytes())
-	return &p
+	return p
 }
 
 // Edwards2ECDHNIKEPrivateKey converts a private key from a signing
 // key to a NIKE (key exchange compatible) version of the the private
 // key.
 func Edwards2ECDHNIKEPrivateKey(
-	privateEdwardsKey *ed25519.PrivateKey) nike.PrivateKey {
+	privateEdwardsKey ed25519.PrivateKey) nike.PrivateKey {
 	privateKey := ECDHNIKE.NewEmptyPrivateKey()
-	privateKey.(*PrivateKey).FromEdwards(*privateEdwardsKey)
+	privateKey.(*PrivateKey).FromEdwards(privateEdwardsKey)
 	return privateKey
 }

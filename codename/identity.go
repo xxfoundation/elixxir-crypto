@@ -78,7 +78,7 @@ func UnmarshalPrivateIdentity(data []byte) (PrivateIdentity, error) {
 	}
 	edPrivKey := ed25519.PrivateKey(privkey.Bytes())
 
-	identity, err := ConstructIdentity(*edPubKey, version)
+	identity, err := ConstructIdentity(edPubKey, version)
 	if err != nil {
 		return PrivateIdentity{}, err
 	}
@@ -209,7 +209,7 @@ func UnmarshalIdentity(data []byte) (Identity, error) {
 	}
 	edPubKey := ecdh.ECDHNIKE2EdwardsPublicKey(pubkey)
 
-	return ConstructIdentity(*edPubKey, version)
+	return ConstructIdentity(edPubKey, version)
 }
 
 // hashPrivateKey is a helper function which generates a DM token.
