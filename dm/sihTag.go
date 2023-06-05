@@ -10,12 +10,12 @@ import (
 
 const sihTagSalt = "sihTagSalt"
 
-// MakeSIHTag returns a tag for a recipient and a sender under a DH construction
+// MakeSihTag returns a tag for a recipient and a sender under a DH construction
 // so that only they can generate it
-func MakeSIHTag(them ed25519.PublicKey, me ed25519.PrivateKey,
+func MakeSihTag(them ed25519.PublicKey, me ed25519.PrivateKey,
 	recipientID *id.ID) string {
-	themECDH := ecdh.Edwards2ECDHNIKEPublicKey(them)
-	meECDH := ecdh.Edwards2ECDHNIKEPrivateKey(me)
+	themECDH := ecdh.Edwards2EcdhNikePublicKey(them)
+	meECDH := ecdh.Edwards2EcdhNikePrivateKey(me)
 
 	dhKey := meECDH.DeriveSecret(themECDH)
 

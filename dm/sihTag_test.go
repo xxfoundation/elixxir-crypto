@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestMakeSIHTag_Consistency(t *testing.T) {
+func TestMakeSihTag_Consistency(t *testing.T) {
 	expecteds := []string{
 		"7dblkU0g84UxNEn3iWP6MnzVBWF0yilScRm3OtLjymY=",
 		"1Kct4dhzw7UP3/5V423TTyaKMMO8h6ZdFIkAEhZnY8g=",
@@ -24,7 +24,7 @@ func TestMakeSIHTag_Consistency(t *testing.T) {
 
 		meID, _ := id.NewRandomID(rng, id.User)
 
-		tag := MakeSIHTag(themPub, mePriv, meID)
+		tag := MakeSihTag(themPub, mePriv, meID)
 		if tag != expected {
 			t.Errorf("Tag does not equal expected "+
 				"\nexpected: '%s'\ntag: '%s'", expected, tag)
@@ -32,7 +32,7 @@ func TestMakeSIHTag_Consistency(t *testing.T) {
 	}
 }
 
-func TestMakeSIGHTTag_Differences(t *testing.T) {
+func TestMakeSihTag_Differences(t *testing.T) {
 	const numTests = 1000
 
 	rng := rand.New(rand.NewSource(123456))
@@ -51,16 +51,16 @@ func TestMakeSIGHTTag_Differences(t *testing.T) {
 		// will be the same. outputs that are the same mathematical parity
 		// will be the same, different parity's will be different.
 
-		tag := MakeSIHTag(themPub, mePriv, meID)
+		tag := MakeSihTag(themPub, mePriv, meID)
 		results = append(results, tag)
 
-		tag = MakeSIHTag(themPub, mePriv, themID)
+		tag = MakeSihTag(themPub, mePriv, themID)
 		results = append(results, tag)
 
-		tag = MakeSIHTag(mePub, themPriv, meID)
+		tag = MakeSihTag(mePub, themPriv, meID)
 		results = append(results, tag)
 
-		tag = MakeSIHTag(mePub, themPriv, themID)
+		tag = MakeSihTag(mePub, themPriv, themID)
 		results = append(results, tag)
 
 		for x := 0; x < 4; x++ {
