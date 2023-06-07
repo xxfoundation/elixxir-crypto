@@ -5,7 +5,7 @@
 // LICENSE file.                                                              //
 ////////////////////////////////////////////////////////////////////////////////
 
-package channel
+package indexedDb
 
 import (
 	"bytes"
