@@ -2,47 +2,62 @@ package dm
 
 import (
 	"crypto/ed25519"
-	"gitlab.com/xx_network/primitives/id"
 	"math/rand"
 	"testing"
 )
 
-func TestMakeSihTag_Consistency(t *testing.T) {
-	expecteds := []string{
-		"7dblkU0g84UxNEn3iWP6MnzVBWF0yilScRm3OtLjymY=",
-		"1Kct4dhzw7UP3/5V423TTyaKMMO8h6ZdFIkAEhZnY8g=",
-		"39rZmPauxgqnt2rGvmL+P7Nk2KyxW8W5sqM9c7VYL9w=",
-		"ku7SPT6gHC1mU2LY+gJ+9hFdsPycNBNQFmz3GAoGjMY=",
-		"HzPD5DakK7hmnnsrfAPkAHGHEFIq70g2EGrxuPXjykk=",
+func TestMakeSenderSihTag_Consistency(t *testing.T) {
+	expected := []string{
+		"o5zhSEohWggRFFyK2xGVG+TTFeOGaKzOiqJ9FsqUnvI=",
+		"hhhGy8geMNAlWVxMS+PKQ07G+Nx9aoxY+TDZox6VYbw=",
+		"lOQN8y4jgyz+beWIudg5P8Qm0JLXdovOw30Dca+bGto=",
+		"gYMGjCWg0M33c5WBpMmhtl37NyQuVw5SU51eLtenZ20=",
+		"LBPETMFjo3Snu/4DDcUM2tVCwVieUvCOl4L3bhC0Glw=",
 	}
 
-	rng := rand.New(rand.NewSource(123456))
+	rng := rand.New(rand.NewSource(980592))
 
-	for _, expected := range expecteds {
+	for _, exp := range expected {
 		_, mePriv, _ := ed25519.GenerateKey(rng)
 		themPub, _, _ := ed25519.GenerateKey(rng)
 
-		meID, _ := id.NewRandomID(rng, id.User)
-
-		tag := MakeSihTag(themPub, mePriv, meID)
-		if tag != expected {
-			t.Errorf("Tag does not equal expected "+
-				"\nexpected: '%s'\ntag: '%s'", expected, tag)
+		tag := MakeSenderSihTag(themPub, mePriv)
+		if tag != exp {
+			t.Errorf("Unexpected tag.\nexpected: %q\nreceived: %q", exp, tag)
 		}
 	}
 }
 
-func TestMakeSihTag_Differences(t *testing.T) {
+func TestMakeReceiverSihTag_Consistency(t *testing.T) {
+	expected := []string{
+		"uOEdUQbiRLnJWuqWxTbVQOwKrNMVZmJOffYBdcYbGs4=",
+		"eWlwtjd79mzLiLjKOP11RWrDU9rYf23xzdbKcRTimXI=",
+		"ErkmZsLHKdEKlFP/BQhutsJCHT/0aQxmK+OF0LyA9Qg=",
+		"9vhwk5EL1wQN5tA7RO1KXfVNSK9vezOHBjgVqzHLUgg=",
+		"9l6flgusfpbUneRdnAOGGLC4t3H6EvY+itQvK/64fpk=",
+	}
+
+	rng := rand.New(rand.NewSource(439884))
+
+	for _, exp := range expected {
+		_, mePriv, _ := ed25519.GenerateKey(rng)
+		themPub, _, _ := ed25519.GenerateKey(rng)
+
+		tag := MakeReceiverSihTag(themPub, mePriv)
+		if tag != exp {
+			t.Errorf("Unexpected tag.\nexpected: %q\nreceived: %q", exp, tag)
+		}
+	}
+}
+
+func TestMakeSihTag_Differences2(t *testing.T) {
 	const numTests = 1000
 
-	rng := rand.New(rand.NewSource(123456))
+	rng := rand.New(rand.NewSource(761489))
 
 	for i := 0; i < numTests; i++ {
 		mePub, mePriv, _ := ed25519.GenerateKey(rng)
 		themPub, themPriv, _ := ed25519.GenerateKey(rng)
-
-		meID, _ := id.NewRandomID(rng, id.User)
-		themID, _ := id.NewRandomID(rng, id.User)
 
 		results := make([]string, 0, 4)
 
@@ -51,16 +66,84 @@ func TestMakeSihTag_Differences(t *testing.T) {
 		// will be the same. outputs that are the same mathematical parity
 		// will be the same, different parity's will be different.
 
-		tag := MakeSihTag(themPub, mePriv, meID)
+		tag := MakeReceiverSihTag(themPub, mePriv)
 		results = append(results, tag)
 
-		tag = MakeSihTag(themPub, mePriv, themID)
+		tag = MakeReceiverSihTag(mePub, themPriv)
 		results = append(results, tag)
 
-		tag = MakeSihTag(mePub, themPriv, meID)
+		tag = MakeSenderSihTag(mePub, themPriv)
 		results = append(results, tag)
 
-		tag = MakeSihTag(mePub, themPriv, themID)
+		tag = MakeSenderSihTag(themPub, mePriv)
+		results = append(results, tag)
+
+		for x := 0; x < 4; x++ {
+			for y := x + 1; y < 4; y++ {
+				if x%2 == y%2 {
+					if results[x] != results[y] {
+						t.Errorf("on test %d result %d (%s) not the same "+
+							"as %d (%s)", i, x, results[x], y, results[y])
+					}
+				} else {
+					if results[x] == results[y] {
+						t.Errorf("on test %d result %d (%s) is the same "+
+							"as %d (%s)", i, x, results[x], y, results[y])
+					}
+				}
+			}
+		}
+	}
+}
+
+func Test_makeSihTag_Consistency(t *testing.T) {
+	expected := []string{
+		"sSh1cCa+kulZi9q0F6jsBh5OrUF7YyG+p14hceD9LJM=",
+		"9SOxGae69L7ThS4K07DqRachON86X1WoWDf4/zV7LDM=",
+		"7VN4Czq6XFfSMM+hlYuFMgQHk/8gRS9Lgo1qHE2yXEg=",
+		"x6YlgeWB/DA63NaYXxX0XaPeNoqqqVLWue1UuvnIaqM=",
+		"S46dc09jKGsU1SpArge2NgDNYaN9FDZ+UohesF8DSiE=",
+	}
+
+	rng := rand.New(rand.NewSource(554987))
+
+	for _, exp := range expected {
+		mePub, mePriv, _ := ed25519.GenerateKey(rng)
+		themPub, _, _ := ed25519.GenerateKey(rng)
+
+		tag := makeSihTag(themPub, mePriv, mePub)
+		if tag != exp {
+			t.Errorf("Unexpected tag.\nexpected: %q\nreceived: %q", exp, tag)
+		}
+	}
+}
+
+func Test_makeSihTag_Differences(t *testing.T) {
+	const numTests = 1000
+
+	rng := rand.New(rand.NewSource(511843))
+
+	for i := 0; i < numTests; i++ {
+		mePub, mePriv, _ := ed25519.GenerateKey(rng)
+		themPub, themPriv, _ := ed25519.GenerateKey(rng)
+
+		results := make([]string, 0, 4)
+
+		// every other one uses the same id, and because the pub/priv key
+		// pairs are interchangeable due to the internal dh operation, those
+		// will be the same. outputs that are the same mathematical parity
+		// will be the same, different parity's will be different.
+
+		tag := makeSihTag(themPub, mePriv, mePub)
+		results = append(results, tag)
+
+		tag = makeSihTag(themPub, mePriv, themPub)
+		results = append(results, tag)
+
+		tag = makeSihTag(mePub, themPriv, mePub)
+		results = append(results, tag)
+
+		tag = makeSihTag(mePub, themPriv, themPub)
 		results = append(results, tag)
 
 		for x := 0; x < 4; x++ {
