@@ -61,11 +61,6 @@ func TestMakeSihTag_Differences2(t *testing.T) {
 
 		results := make([]string, 0, 4)
 
-		// every other one uses the same id, and because the pub/priv key
-		// pairs are interchangeable due to the internal dh operation, those
-		// will be the same. outputs that are the same mathematical parity
-		// will be the same, different parity's will be different.
-
 		tag := MakeReceiverSihTag(themPub, mePriv)
 		results = append(results, tag)
 
@@ -129,10 +124,11 @@ func Test_makeSihTag_Differences(t *testing.T) {
 
 		results := make([]string, 0, 4)
 
-		// every other one uses the same id, and because the pub/priv key
-		// pairs are interchangeable due to the internal dh operation, those
-		// will be the same. outputs that are the same mathematical parity
-		// will be the same, different parity's will be different.
+		// Every other one uses the same public key, and because the public/
+		// private key pairs are interchangeable—due to the internal DH
+		// operation—those will be the same. Outputs that are the same
+		// mathematical parity will be the same, different parities will be
+		// different.
 
 		tag := makeSihTag(themPub, mePriv, mePub)
 		results = append(results, tag)
