@@ -29,7 +29,7 @@ func TestPrivateIdentity_export_ImportPrivateIdentity_KeySign(t *testing.T) {
 
 	message := make([]byte, 256)
 	_, _ = rng.Read(message)
-	signature := ed25519.Sign(*pi.Privkey, message)
+	signature := ed25519.Sign(pi.Privkey, message)
 
 	password := "hunter2"
 	exported, err := pi.export(password, backup.DefaultParams(), rng)
