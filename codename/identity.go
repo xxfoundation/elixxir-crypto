@@ -34,13 +34,13 @@ const pubkeyHashingConstant = "codenamePubkeyHashingConstant"
 // PrivateIdentity is a user's private identity on a channel. It contains their
 // public identity and their private key.
 type PrivateIdentity struct {
-	Privkey *ed25519.PrivateKey
+	Privkey ed25519.PrivateKey
 	Identity
 }
 
 // Marshal creates en exportable version of the PrivateIdentity.
 func (i PrivateIdentity) Marshal() []byte {
-	return append([]byte{i.CodesetVersion}, append(*i.Privkey, i.PubKey...)...)
+	return append([]byte{i.CodesetVersion}, append(i.Privkey, i.PubKey...)...)
 }
 
 // GetDMToken returns the DM Token for this codename identity.
@@ -69,7 +69,7 @@ func UnmarshalPrivateIdentity(data []byte) (PrivateIdentity, error) {
 	if err != nil {
 		return PrivateIdentity{}, err
 	}
-	edPubKey := ecdh.ECDHNIKE2EdwardsPublicKey(pubkey)
+	edPubKey := ecdh.EcdhNike2EdwardsPublicKey(pubkey)
 
 	privkey := ecdh.ECDHNIKE.NewEmptyPrivateKey()
 	err = privkey.FromBytes(privKeyBytes)
@@ -78,13 +78,13 @@ func UnmarshalPrivateIdentity(data []byte) (PrivateIdentity, error) {
 	}
 	edPrivKey := ed25519.PrivateKey(privkey.Bytes())
 
-	identity, err := ConstructIdentity(*edPubKey, version)
+	identity, err := ConstructIdentity(edPubKey, version)
 	if err != nil {
 		return PrivateIdentity{}, err
 	}
 
 	pi := PrivateIdentity{
-		Privkey:  &edPrivKey,
+		Privkey:  edPrivKey,
 		Identity: identity,
 	}
 
@@ -120,7 +120,7 @@ func GenerateIdentity(rng io.Reader) (PrivateIdentity, error) {
 	}
 
 	pi := PrivateIdentity{
-		Privkey:  &priv,
+		Privkey:  priv,
 		Identity: identity,
 	}
 
@@ -207,14 +207,14 @@ func UnmarshalIdentity(data []byte) (Identity, error) {
 	if err != nil {
 		return Identity{}, err
 	}
-	edPubKey := ecdh.ECDHNIKE2EdwardsPublicKey(pubkey)
+	edPubKey := ecdh.EcdhNike2EdwardsPublicKey(pubkey)
 
-	return ConstructIdentity(*edPubKey, version)
+	return ConstructIdentity(edPubKey, version)
 }
 
 // hashPrivateKey is a helper function which generates a DM token.
 // As per spec, this is just a hash of the private key.
-func hashPrivateKey(privKey *ed25519.PrivateKey) []byte {
+func hashPrivateKey(privKey ed25519.PrivateKey) []byte {
 	h, err := hash.NewCMixHash()
 	if err != nil {
 		jww.FATAL.Panicf("Failed to generate cMix hash: %+v", err)

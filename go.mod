@@ -5,6 +5,7 @@ go 1.19
 require (
 	filippo.io/edwards25519 v1.0.0
 	git.xx.network/elixxir/ctidh_cgo v0.0.0-20220929120408-d7b2cd265da7
+	github.com/Max-Sum/base32768 v0.0.0-20230304063302-18e6ce5945fd
 	github.com/cloudflare/circl v1.1.0
 	github.com/liyue201/goqr v0.0.0-20200803022322-df443203d4ea
 	github.com/multiformats/go-multihash v0.2.1

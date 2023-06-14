@@ -233,7 +233,7 @@ func (i PrivateIdentity) encode() []byte {
 
 	buff.Write([]byte{currentEncryptedVersion})
 	buff.Write([]byte{i.CodesetVersion})
-	buff.Write(*i.Privkey)
+	buff.Write(i.Privkey)
 	buff.Write(i.PubKey)
 
 	return buff.Bytes()
@@ -265,7 +265,7 @@ func decodePrivateIdentity(data []byte) (PrivateIdentity, error) {
 	}
 
 	pi := PrivateIdentity{
-		Privkey:  &privKey,
+		Privkey:  privKey,
 		Identity: identity,
 	}
 
