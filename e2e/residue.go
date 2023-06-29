@@ -9,7 +9,10 @@ package e2e
 
 import (
 	"encoding/base64"
+	"encoding/json"
+
 	"github.com/pkg/errors"
+
 	"gitlab.com/elixxir/crypto/hash"
 )
 
@@ -53,9 +56,7 @@ func UnmarshalKeyResidue(b []byte) (KeyResidue, error) {
 
 // Marshal returns the serialized KeyResidue into a binary format.
 func (kr KeyResidue) Marshal() []byte {
-	krCopy := kr
-	copy(krCopy[:], kr[:])
-	return krCopy[:]
+	return kr[:]
 }
 
 // String adheres to the stringer interface to return a truncated
@@ -68,4 +69,29 @@ func (kr KeyResidue) String() string {
 func (kr KeyResidue) StringVerbose() string {
 	s := base64.StdEncoding.EncodeToString(kr[:])
 	return s
+}
+
+// MarshalJSON marshals the [KeyResidue] into valid JSON. This function adheres
+// to the [json.Marshaler] interface.
+func (kr KeyResidue) MarshalJSON() ([]byte, error) {
+	return json.Marshal(kr.Marshal())
+}
+
+// UnmarshalJSON unmarshalls the JSON into the [KeyResidue]. This function
+// adheres to the [json.Unmarshaler] interface.
+func (kr *KeyResidue) UnmarshalJSON(data []byte) error {
+	var krBytes []byte
+	err := json.Unmarshal(data, &krBytes)
+	if err != nil {
+		return err
+	}
+
+	newKR, err := UnmarshalKeyResidue(krBytes)
+	if err != nil {
+		return err
+	}
+
+	*kr = newKR
+
+	return nil
 }
