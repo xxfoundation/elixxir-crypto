@@ -33,9 +33,9 @@ const (
 
 // Params contains the cost parameters used by Argon2.
 type Params struct {
-	Time    uint32 // Number of passes over the memory
-	Memory  uint32 // Amount of memory used in KiB
-	Threads uint8  // Number of threads used
+	Time    uint32 `json:"time"`    // Number of passes over the memory
+	Memory  uint32 `json:"memory"`  // Amount of memory used in KiB
+	Threads uint8  `json:"threads"` // Number of threads used
 }
 
 // DefaultParams returns the recommended general purposes parameters.
