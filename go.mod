@@ -15,10 +15,10 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0
 	github.com/stretchr/testify v1.8.2
 	gitlab.com/elixxir/bloomfilter v0.0.0-20230322223210-fa84f6842de8
-	gitlab.com/elixxir/primitives v0.0.3-0.20230720204156-9c2c66af3c87
+	gitlab.com/elixxir/primitives v0.0.3-0.20230724190035-efb1f377c08a
 	gitlab.com/elixxir/wasm-utils v0.0.0-20230615222914-185dd3a6fa08
-	gitlab.com/xx_network/crypto v0.0.5-0.20230720190242-8c9a48eff1ea
-	gitlab.com/xx_network/primitives v0.0.4-0.20230718211916-dc1775b65941
+	gitlab.com/xx_network/crypto v0.0.5-0.20230724190222-a1fd6f70e6cb
+	gitlab.com/xx_network/primitives v0.0.4-0.20230724185812-bc6fc6e5341b
 	gitlab.com/yawning/nyquist.git v0.0.0-20221003103146-de5645224a22
 	golang.org/x/crypto v0.5.0
 )
