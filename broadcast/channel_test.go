@@ -9,6 +9,7 @@ package broadcast
 
 import (
 	"bytes"
+	"encoding/json"
 	"github.com/pkg/errors"
 	"gitlab.com/elixxir/crypto/cmix"
 	"gitlab.com/elixxir/crypto/rsa"
@@ -80,14 +81,14 @@ func TestChannel_MarshalJson(t *testing.T) {
 	}
 
 	// Marshal data
-	data, err := channel.MarshalJson()
+	data, err := json.Marshal(channel)
 	if err != nil {
 		t.Fatalf("Failed to marshal channel: %+v", err)
 	}
 
 	// Unmarshal
 	newChannel := &Channel{}
-	err = newChannel.UnmarshalJson(data)
+	err = json.Unmarshal(data, newChannel)
 	if err != nil {
 		t.Fatalf("UnmarshalJSON error: %+v", err)
 	}

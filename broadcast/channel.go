@@ -291,21 +291,6 @@ func NewChannelID(name, description string, level PrivacyLevel,
 	return sid, nil
 }
 
-// MarshalJson JSON marshals the Channel.
-func (c *Channel) MarshalJson() ([]byte, error) {
-	return json.Marshal(c)
-
-}
-
-// UnmarshalJson unmarshalls the bytes into the Channel.
-func (c *Channel) UnmarshalJson(b []byte) error {
-	err := json.Unmarshal(b, c)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 // PrivacyLevel returns the Level of privacy set for this channel.
 func (c *Channel) PrivacyLevel() PrivacyLevel {
 	return c.Level
