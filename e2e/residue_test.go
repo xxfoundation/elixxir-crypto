@@ -10,6 +10,7 @@ package e2e
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"math/rand"
 	"strings"
 	"testing"
@@ -72,7 +73,35 @@ func TestNewKeyResidue_AllInputs(t *testing.T) {
 	}
 }
 
-//tests that the wrong size error triggers correctly
+// Tests that UnmarshalKeyResidue produces the correct result.
+func TestUnmarshalKeyResidue(t *testing.T) {
+
+	expected := []string{
+		"sMweiL8iqwQ6sSvKpeNI6X75Q62PNjjtRuXwdsgdsYs=",
+		"Vm9LKiZhyLTjU9CAZun0vcC3ppYrSKyv8Ve3PRPTs14=",
+		"ygQoB7igwNbvAHNepSmbW36YDm3vxfE6CbmB5F4/wBQ=",
+		"KcIeQV/jKvxfvVmrrlzAFPhWZR9chJv1smu+nDAdppg=",
+	}
+
+	for _, exp := range expected {
+
+		expectedInput, _ := base64.StdEncoding.DecodeString(exp)
+
+		mid, err := UnmarshalKeyResidue(expectedInput)
+		if err != nil {
+			t.Errorf("unexpected rror returned on unmarshal: %s", err)
+		}
+		midString := base64.StdEncoding.EncodeToString(mid[:])
+		if midString != exp {
+			t.Errorf("Key Residues are not consistant\n +"+
+				"\tExpected: %s\n\tReceived: %s",
+				exp,
+				midString)
+		}
+	}
+}
+
+// Tests that the wrong size error triggers correctly.
 func TestUnmarshalKeyResidue_Error(t *testing.T) {
 	nilKeyResidue := KeyResidue{}
 
@@ -103,37 +132,7 @@ func TestUnmarshalKeyResidue_Error(t *testing.T) {
 	}
 }
 
-// TestUnmarshalKeyResidue tests that UnmarshalKeyResidue
-// produces the correct result.
-func TestUnmarshalKeyResidue(t *testing.T) {
-
-	expected := []string{
-		"sMweiL8iqwQ6sSvKpeNI6X75Q62PNjjtRuXwdsgdsYs=",
-		"Vm9LKiZhyLTjU9CAZun0vcC3ppYrSKyv8Ve3PRPTs14=",
-		"ygQoB7igwNbvAHNepSmbW36YDm3vxfE6CbmB5F4/wBQ=",
-		"KcIeQV/jKvxfvVmrrlzAFPhWZR9chJv1smu+nDAdppg=",
-	}
-
-	for _, exp := range expected {
-
-		expectedInput, _ := base64.StdEncoding.DecodeString(exp)
-
-		mid, err := UnmarshalKeyResidue(expectedInput)
-		if err != nil {
-			t.Errorf("unexpected rror returned on unmarshal: %s", err)
-		}
-		midString := base64.StdEncoding.EncodeToString(mid[:])
-		if midString != exp {
-			t.Errorf("Key Residues are not consistant\n +"+
-				"\tExpected: %s\n\tReceived: %s",
-				exp,
-				midString)
-		}
-	}
-}
-
-//TestKeyResidue_String tests that ths KeyResidue.String function
-// produces the correct truncated result. This is a consistency test.
+// Consistency test of KeyResidue.String.
 func TestKeyResidue_String(t *testing.T) {
 
 	prng := rand.New(rand.NewSource(42))
@@ -162,8 +161,7 @@ func TestKeyResidue_String(t *testing.T) {
 	}
 }
 
-//TestKeyResidue_StringVerbose tests that the KeyResidue.StringVerbose
-// produces the correct full result. This is a consistency test.
+// Consistency test of KeyResidue.StringVerbose.
 func TestKeyResidue_StringVerbose(t *testing.T) {
 
 	prng := rand.New(rand.NewSource(42))
@@ -192,8 +190,7 @@ func TestKeyResidue_StringVerbose(t *testing.T) {
 	}
 }
 
-// TestKeResidue_Marshal tests that KeyResidue.Marshal
-// produces the correct full result. This is a consistency test.
+// Consistency test of KeyResidue.Marshal.
 func TestKeResidue_Marshal(t *testing.T) {
 
 	prng := rand.New(rand.NewSource(42))
@@ -221,4 +218,41 @@ func TestKeResidue_Marshal(t *testing.T) {
 				base64.StdEncoding.EncodeToString(mid.Marshal()))
 		}
 	}
+}
+
+// Tests that a KeyResidue marshalled by KeyResidue.Marshal and unmarshalled
+// with UnmarshalKeyResidue
+// produces the correct full result. This is a consistency test.
+func TestKeyResidue_Marshal_UnmarshalKeyResidue(t *testing.T) {
+	prng := rand.New(rand.NewSource(68700))
+
+	expected := newTestKeyResidue(prng)
+
+	data, err := json.Marshal(expected)
+	if err != nil {
+		t.Errorf("Failed to JSON marshal %T: %+v", expected, err)
+	}
+
+	var residue KeyResidue
+	err = json.Unmarshal(data, &residue)
+	if err != nil {
+		t.Errorf("Failed to JSON umarshal %T: %+v", residue, err)
+	}
+
+	if expected != residue {
+		t.Errorf("Marshalled and unamrshalled KeyResidue does not match "+
+			"expected.\nexpected: %s\nreceived: %s", expected, residue)
+	}
+}
+
+func newTestKeyResidue(prng *rand.Rand) KeyResidue {
+	baseKeyBytes := make([]byte, grp.GetP().ByteLen())
+	prng.Read(baseKeyBytes)
+	baseKeyBytes[0] &= 0x7f
+	baseKey := grp.NewIntFromBytes(baseKeyBytes)
+
+	keyNum := prng.Uint32()
+
+	key := DeriveKey(baseKey, keyNum)
+	return NewKeyResidue(key)
 }

@@ -83,19 +83,19 @@ func unmarshalSaltParams(data []byte) ([]byte, Params, error) {
 }
 
 type TransmissionIdentity struct {
-	RSASigningPrivateKey *rsa.PrivateKey
-	RegistrarSignature   []byte
-	Salt                 []byte
-	ComputedID           *id.ID
+	RSASigningPrivateKey *rsa.PrivateKey `json:"rsaSigningPrivateKey"`
+	RegistrarSignature   []byte          `json:"registrarSignature"`
+	Salt                 []byte          `json:"salt"`
+	ComputedID           *id.ID          `json:"computedID"`
 }
 
 type ReceptionIdentity struct {
-	RSASigningPrivateKey *rsa.PrivateKey
-	RegistrarSignature   []byte
-	Salt                 []byte
-	ComputedID           *id.ID
-	DHPrivateKey         *cyclic.Int
-	DHPublicKey          *cyclic.Int
+	RSASigningPrivateKey *rsa.PrivateKey `json:"rsaSigningPrivateKey"`
+	RegistrarSignature   []byte          `json:"registrarSignature"`
+	Salt                 []byte          `json:"salt"`
+	ComputedID           *id.ID          `json:"computedID"`
+	DHPrivateKey         *cyclic.Int     `json:"dhPrivateKey"`
+	DHPublicKey          *cyclic.Int     `json:"dhPublicKey"`
 }
 
 type UserDiscoveryRegistration struct {
@@ -103,17 +103,17 @@ type UserDiscoveryRegistration struct {
 }
 
 type Contacts struct {
-	Identities []*id.ID
+	Identities []*id.ID `json:"identities"`
 }
 
 type Backup struct {
-	RegistrationTimestamp     int64
-	RegistrationCode          string
-	JSONParams                string
-	TransmissionIdentity      TransmissionIdentity
-	ReceptionIdentity         ReceptionIdentity
-	UserDiscoveryRegistration UserDiscoveryRegistration
-	Contacts                  Contacts
+	RegistrationTimestamp     int64                     `json:"registrationTimestamp"`
+	RegistrationCode          string                    `json:"registrationCode"`
+	JSONParams                string                    `json:"jsonParams"`
+	TransmissionIdentity      TransmissionIdentity      `json:"transmissionIdentity"`
+	ReceptionIdentity         ReceptionIdentity         `json:"receptionIdentity"`
+	UserDiscoveryRegistration UserDiscoveryRegistration `json:"userDiscoveryRegistration"`
+	Contacts                  Contacts                  `json:"contacts"`
 }
 
 // Decrypt decrypts the encrypted serialized backup. Returns an error for
