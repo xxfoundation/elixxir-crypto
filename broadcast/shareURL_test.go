@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/xx_network/crypto/csprng"
+	"gitlab.com/xx_network/primitives/netTime"
 	goUrl "net/url"
 	"reflect"
 	"strconv"
@@ -32,25 +33,28 @@ func TestChannel_ShareURL_DecodeShareURL(t *testing.T) {
 	rng := csprng.NewSystemRNG()
 
 	for i, level := range []PrivacyLevel{Public, Private, Secret} {
-		c, _, err := NewChannel("My_Channel",
-			"Here is information about my channel.", level, 512, rng)
-		if err != nil {
-			t.Fatalf("Failed to create new %s channel: %+v", level, err)
-		}
+		for _, announcement := range []bool{false, true} {
+			c, _, err := NewChannelVariableKeyUnsafe("My_Channel",
+				"Here is information about my channel.", level, netTime.Now(),
+				512, announcement, rng)
+			if err != nil {
+				t.Fatalf("Failed to create new %s channel: %+v", level, err)
+			}
 
-		url, password, err := c.ShareURL(host, i, rng)
-		if err != nil {
-			t.Fatalf("Failed to create %s URL: %+v", level, err)
-		}
+			url, password, err := c.ShareURL(host, i, rng)
+			if err != nil {
+				t.Fatalf("Failed to create %s URL: %+v", level, err)
+			}
 
-		newChannel, err := DecodeShareURL(url, password)
-		if err != nil {
-			t.Errorf("Failed to decode %s URL: %+v", level, err)
-		}
+			newChannel, err := DecodeShareURL(url, password)
+			if err != nil {
+				t.Errorf("Failed to decode %s URL: %+v", level, err)
+			}
 
-		if !reflect.DeepEqual(*c, *newChannel) {
-			t.Errorf("Decoded %s channel does not match original."+
-				"\nexpected: %+v\nreceived: %+v", level, *c, *newChannel)
+			if !reflect.DeepEqual(*c, *newChannel) {
+				t.Errorf("Decoded %s channel does not match original."+
+					"\nexpected: %+v\nreceived: %+v", level, *c, *newChannel)
+			}
 		}
 	}
 }

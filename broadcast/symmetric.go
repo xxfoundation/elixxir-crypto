@@ -95,7 +95,7 @@ func (c *Channel) getSymmetricKey() []byte {
 	var err error
 	if c.key == nil {
 		c.key, err = NewSymmetricKey(c.Name, c.Description, c.Level, c.Created,
-			c.Salt, c.RsaPubKeyHash, c.Secret)
+			c.Announcement, c.Salt, c.RsaPubKeyHash, c.Secret)
 		if err != nil {
 			jww.FATAL.Panic(err)
 		}
@@ -106,10 +106,10 @@ func (c *Channel) getSymmetricKey() []byte {
 // NewSymmetricKey generates a new symmetric channel key, which is derived like
 // this:
 //
-//	intermediary = H(name | description | level | created | rsaPubHash | hashedSecret | salt)
+//	intermediary = H(name | description | level | created | announcement | rsaPubHash | hashedSecret | salt)
 //	key = HKDF(secret, intermediary, hkdfInfo)
 func NewSymmetricKey(name, description string, level PrivacyLevel,
-	creation time.Time, salt, rsaPubHash, secret []byte) ([]byte, error) {
+	creation time.Time, announcement bool, salt, rsaPubHash, secret []byte) ([]byte, error) {
 	if len(secret) != 32 {
 		jww.FATAL.Panic(fmt.Sprintf("secret len is %d", len(secret)))
 		return nil, ErrSecretSizeIncorrect
@@ -124,8 +124,8 @@ func NewSymmetricKey(name, description string, level PrivacyLevel,
 	}
 
 	hkdfReader := hkdf.New(hkdfHash, secret,
-		deriveIntermediary(name, description, level, creation, salt, rsaPubHash,
-			HashSecret(secret)), []byte(hkdfInfo))
+		deriveIntermediary(name, description, level, creation, announcement,
+			salt, rsaPubHash, HashSecret(secret)), []byte(hkdfInfo))
 
 	// 256 bits of entropy
 	key := make([]byte, 32)

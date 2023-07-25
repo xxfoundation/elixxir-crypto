@@ -34,6 +34,7 @@ const (
 	descKey            = "1Description"
 	levelKey           = "2Level"
 	createdKey         = "3Created"
+	announcementKey    = "an"
 	saltKey            = "s"
 	rsaPubKeyHashKey   = "k"
 	rsaPubKeyLengthKey = "l"
@@ -52,6 +53,7 @@ const (
 	nameLengthLen       = 2
 	descLengthLen       = 2
 	createdLen          = 8
+	AnnouncementLen     = 1
 	saltLen             = saltSize
 	rsaPubKeyHashLen    = blake2b.Size256
 	rsaPubKeyLengthLen  = 2
@@ -61,7 +63,7 @@ const (
 	marshaledPrivateLen = privLevelLen + saltLen + rsaPubKeyHashLen +
 		rsaPubKeyLengthLen + rsaSubPayloadsLen + secretLen + maxUsesLen
 	marshaledSecretLen = nameLengthLen + descLengthLen + marshaledPrivateLen +
-		createdLen
+		createdLen + AnnouncementLen
 )
 
 // Error messages.
@@ -290,7 +292,7 @@ func decodeUrl(url string, pwHash []byte) (*Channel, error) {
 
 	// Generate the channel ID
 	c.ReceptionID, err = NewChannelID(c.Name, c.Description, c.Level, c.Created,
-		c.Salt, c.RsaPubKeyHash, HashSecret(c.Secret))
+		c.Announcement, c.Salt, c.RsaPubKeyHash, HashSecret(c.Secret))
 	if err != nil {
 		return nil, errors.Errorf(newReceptionIdErr, err)
 	}
@@ -337,6 +339,9 @@ func (c *Channel) encodePublicShareURL(q goUrl.Values) goUrl.Values {
 	q.Set(descKey, c.Description)
 	q.Set(levelKey, c.Level.Marshal())
 	q.Set(createdKey, strconv.FormatInt(c.Created.UnixNano(), 10))
+	if c.Announcement {
+		q.Set(announcementKey, "1")
+	}
 	q.Set(saltKey, base64.StdEncoding.EncodeToString(c.Salt))
 	q.Set(rsaPubKeyHashKey, base64.StdEncoding.EncodeToString(c.RsaPubKeyHash))
 	q.Set(rsaPubKeyLengthKey, strconv.Itoa(c.RsaPubKeyLength))
@@ -363,6 +368,10 @@ func (c *Channel) decodePublicShareURL(q goUrl.Values) error {
 	c.Level, err = UnmarshalPrivacyLevel(q.Get(levelKey))
 	if err != nil {
 		return errors.Errorf(parseLevelErr, err)
+	}
+
+	if q.Get(announcementKey) != "" {
+		c.Announcement = true
 	}
 
 	c.Salt, err = base64.StdEncoding.DecodeString(q.Get(saltKey))
@@ -402,6 +411,9 @@ func (c *Channel) encodePrivateShareURL(
 	q.Set(nameKey, c.Name)
 	q.Set(descKey, c.Description)
 	q.Set(createdKey, strconv.FormatInt(c.Created.UnixNano(), 10))
+	if c.Announcement {
+		q.Set(announcementKey, "1")
+	}
 	q.Set(dataKey, base64.StdEncoding.EncodeToString(encryptedSecrets))
 
 	return q
@@ -419,6 +431,10 @@ func (c *Channel) decodePrivateShareURL(
 		return 0, errors.Errorf(parseCreatedErr, err)
 	}
 	c.Created = time.Unix(0, created)
+
+	if q.Get(announcementKey) != "" {
+		c.Announcement = true
+	}
 
 	encryptedData, err := base64.StdEncoding.DecodeString(q.Get(dataKey))
 	if err != nil {
@@ -543,11 +559,11 @@ func (c *Channel) unmarshalPrivateShareUrlSecrets(data []byte) (int, error) {
 // Salt, RsaPubKeyHash, RsaPubKeyLength, RSASubPayloads, and Secret into a byte
 // slice.
 //
-//	+---------+---------+-------------+------+-------------+----------+-------+---------------+-----------------+----------------+----------+----------+
-//	| Privacy |  Name   | Description |      |             | Created | Salt  | RsaPubKeyHash | RsaPubKeyLength | RSASubPayloads |  Secret  | Max Uses |
-//	|  Level  | Length  |   Length    | Name | Description |         |  32   |               |                 |                |          |          |
-//	| 1 byte  | 2 bytes |   2 bytes   |      |             | 8 bytes | bytes |    32 bytes   |     2 bytes     |     2 bytes    | 32 bytes |  2 bytes |
-//	+---------+---------+-------------+------+-------------+----------+-------+---------------+-----------------+----------------+----------+----------+
+//	+---------+---------+-------------+------+-------------+---------+--------------+-------+---------------+-----------------+----------------+----------+----------+
+//	| Privacy |  Name   | Description |      |             | Created | Announcement | Salt  | RsaPubKeyHash | RsaPubKeyLength | RSASubPayloads |  Secret  | Max Uses |
+//	|  Level  | Length  |   Length    | Name | Description |         |              |  32   |               |                 |                |          |          |
+//	| 1 byte  | 2 bytes |   2 bytes   |      |             | 8 bytes |    1 byte    | bytes |    32 bytes   |     2 bytes     |     2 bytes    | 32 bytes |  2 bytes |
+//	+---------+---------+-------------+------+-------------+---------+--------------+-------+---------------+-----------------+----------------+----------+----------+
 func (c *Channel) marshalSecretShareUrlSecrets(maxUses int) []byte {
 	var buff bytes.Buffer
 	buff.Grow(len(c.Name) + len(c.Description) + marshaledSecretLen)
@@ -575,6 +591,9 @@ func (c *Channel) marshalSecretShareUrlSecrets(maxUses int) []byte {
 	b = make([]byte, createdLen)
 	binary.LittleEndian.PutUint64(b, uint64(c.Created.UnixNano()))
 	buff.Write(b)
+
+	// Announcement bool
+	buff.WriteByte(marshalBool(c.Announcement)[0])
 
 	// Salt (fixed length of saltSize)
 	buff.Write(c.Salt)
@@ -628,6 +647,7 @@ func (c *Channel) unmarshalSecretShareUrlSecrets(data []byte) (int, error) {
 	c.Description = string(buff.Next(descLen))
 	c.Created =
 		time.Unix(0, int64(binary.LittleEndian.Uint64(buff.Next(createdLen))))
+	c.Announcement = unmarshalBool(buff.Next(AnnouncementLen))
 	c.Salt = buff.Next(saltLen)
 	c.RsaPubKeyHash = buff.Next(rsaPubKeyHashLen)
 	c.RsaPubKeyLength =

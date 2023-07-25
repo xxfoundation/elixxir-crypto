@@ -24,32 +24,37 @@ import (
 func TestChannel_PrettyPrint(t *testing.T) {
 	rng := csprng.NewSystemRNG()
 
-	name := "Test_Channel"
-	desc := "Channel description." + string(ppDelim)
+	for _, level := range []PrivacyLevel{Public, Private, Secret} {
+		for _, announcement := range []bool{false, true} {
+			expected, _, err := NewChannelVariableKeyUnsafe("My_Channel",
+				"Here is information about my channel.", level, netTime.Now(),
+				512, announcement, rng)
+			if err != nil {
+				t.Fatalf("Failed to create new channel: %+v", err)
+			}
 
-	channel1, _, err := NewChannel(name, desc, Public, 1000, rng)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
+			pp := expected.PrettyPrint()
 
-	pretty1 := channel1.PrettyPrint()
+			c, err := NewChannelFromPrettyPrint(pp)
+			if err != nil {
+				t.Fatalf(
+					"Failed to create new channel from pretty print: %+v", err)
+			}
 
-	channel2, err := NewChannelFromPrettyPrint(pretty1)
-	if err != nil {
-		t.Fatalf("%+v", err)
-	}
+			if !reflect.DeepEqual(expected, c) {
+				t.Errorf("Channel from pretty print does not match expected."+
+					"\nexpected: %+v\nreceived: %+v", expected, c)
+			}
 
-	pretty2 := channel2.PrettyPrint()
+			if !c.Verify() {
+				t.Errorf("Failed to verify channel from pretty print: %+v", c)
+			}
 
-	if pretty1 != pretty2 {
-		t.Fatalf("Mismatch in serializations."+
-			"\nExpected: %s"+
-			"\nReceived: %s", pretty1, pretty2)
-	}
-
-	// Verify the new channel made from the pretty print is
-	if !channel2.Verify() {
-		t.Errorf("the channel failed to verify")
+			if c.PrettyPrint() != pp {
+				t.Errorf("Pretty print from new channel does not match original."+
+					"\nexpected: %s\nreceived: %s", c.PrettyPrint(), pp)
+			}
+		}
 	}
 }
 
@@ -70,8 +75,8 @@ func TestChannel_MarshalJson(t *testing.T) {
 	}
 
 	pubKeyPem := pk.Public().MarshalPem()
-	rid, err := NewChannelID(
-		name, desc, Public, netTime.Now(), secret, salt, HashSecret(pubKeyPem))
+	rid, err := NewChannelID(name, desc, Public, netTime.Now(), true, secret,
+		salt, HashSecret(pubKeyPem))
 	channel := Channel{
 		ReceptionID:   rid,
 		Name:          name,
@@ -145,8 +150,8 @@ func TestRChanel_Marshal_Unmarshal(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rid, err := NewChannelID(
-		name, desc, Public, netTime.Now(), secret, salt, HashPubKey(pk.Public()))
+	rid, err := NewChannelID(name, desc, Public, netTime.Now(), false, secret,
+		salt, HashPubKey(pk.Public()))
 	ac := &Channel{
 		RsaPubKeyLength: 528,
 		ReceptionID:     rid,
@@ -210,14 +215,15 @@ func TestChannel_Verify_Happy(t *testing.T) {
 	hashedSecret := HashSecret(secret)
 	hashedPubkey := HashPubKey(pk.Public())
 
-	rid, err := NewChannelID(
-		name, desc, level, created, salt, hashedPubkey, hashedSecret)
+	rid, err := NewChannelID(name, desc, level, created, true, salt,
+		hashedPubkey, hashedSecret)
 	ac := &Channel{
 		ReceptionID:     rid,
 		Name:            name,
 		Description:     desc,
 		Level:           level,
 		Created:         created,
+		Announcement:    true,
 		Salt:            salt,
 		RsaPubKeyHash:   hashedPubkey,
 		RsaPubKeyLength: 528,
@@ -289,8 +295,8 @@ func TestChannel_Verify_BadGeneration(t *testing.T) {
 	hashedSecret := HashSecret(secret)
 	hashedPubkey := HashPubKey(pk.Public())
 
-	rid, err := NewChannelID(
-		name, desc, Public, netTime.Now(), salt, hashedPubkey, hashedSecret)
+	rid, err := NewChannelID(name, desc, Public, netTime.Now(), false, salt,
+		hashedPubkey, hashedSecret)
 	ac := &Channel{
 		RsaPubKeyLength: 528,
 		ReceptionID:     rid,

@@ -33,10 +33,10 @@ func TestChannel_deriveIntermediary_vector(t *testing.T) {
 		"8bcc7ab97b1c7638067f93eb70369c1567ca3e58db65741135cd40acc068333c")
 	require.NoError(t, err)
 
-	intermediary := deriveIntermediary(name, description, level, created, salt,
-		hashedPubKey, HashSecret(secret))
+	intermediary := deriveIntermediary(name, description, level, created, false,
+		salt, hashedPubKey, HashSecret(secret))
 	wantIntermediary, err := hex.DecodeString(
-		"9e80295813efd1bcdb19d1f236f53a4be249cbf1bdd402a7e9e85334d1ccf438")
+		"d15b9cc055643256122fd36bde8021434f82c6dc10fcf583db9569688d5d83a8")
 	require.NoError(t, err)
 	require.Equal(t, wantIntermediary, intermediary)
 
@@ -58,7 +58,7 @@ func TestChannel_deriveIntermediary_vector(t *testing.T) {
 	copy(sid[:], identityBytes)
 	sid.SetType(id.User)
 
-	rid, err := NewChannelID(name, description, level, created, salt,
+	rid, err := NewChannelID(name, description, level, created, false, salt,
 		hashedPubKey, HashSecret(secret))
 	if err != nil {
 		panic(err)
@@ -69,7 +69,7 @@ func TestChannel_deriveIntermediary_vector(t *testing.T) {
 	}
 
 	wantID, err := hex.DecodeString(
-		"7c736ca654836f784909facfd978e02c60a44771f6e43c9b8dce4b29fa3fb41603")
+		"b8cd1ff131db740ac7050e17ed4fdef45fa4addaab4b74c0abc4dd93b04e77c303")
 	require.NoError(t, err)
 	require.Equal(t, rid[:], wantID)
 }
@@ -97,8 +97,8 @@ func TestChannel_deriveIntermediary(t *testing.T) {
 		panic(err)
 	}
 
-	intermediary := deriveIntermediary(name, description, level, created, salt,
-		HashPubKey(privateKey.Public()), HashSecret(secret))
+	intermediary := deriveIntermediary(name, description, level, created, true,
+		salt, HashPubKey(privateKey.Public()), HashSecret(secret))
 
 	hkdfHash := func() hash.Hash {
 		h, err := blake2b.New256(nil)
@@ -118,7 +118,7 @@ func TestChannel_deriveIntermediary(t *testing.T) {
 	copy(sid[:], identityBytes)
 	sid.SetType(id.User)
 
-	rid, err := NewChannelID(name, description, level, created, salt,
+	rid, err := NewChannelID(name, description, level, created, true, salt,
 		HashPubKey(privateKey.Public()), HashSecret(secret))
 	if err != nil {
 		panic(err)
