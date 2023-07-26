@@ -138,24 +138,13 @@ type Channel struct {
 // NewChannel creates a new channel with a variable RSA key size calculated
 // based off of recommended security parameters.
 //
-// The name and description can be ato most [NameMaxChars] and
-// [DescriptionMaxChars] long, respectively.
-func NewChannel(name, description string, level PrivacyLevel,
+// The name and description can be at most [NameMaxChars] and
+// [DescriptionMaxChars] long, respectively. If announcement is true, only admin
+// messages will be allowed to be sent to/received on the channel.
+func NewChannel(name, description string, level PrivacyLevel, announcement bool,
 	packetPayloadLength int, rng csprng.Source) (*Channel, rsa.PrivateKey, error) {
 	return NewChannelVariableKeyUnsafe(name, description, level, netTime.Now(),
-		packetPayloadLength, false, rng)
-}
-
-// NewAnnouncementChannel creates a new channel that only admins can send on. It
-// has a variable RSA key size calculated based off of recommended security
-// parameters.
-//
-// The name and description can be ato most [NameMaxChars] and
-// [DescriptionMaxChars] long, respectively.
-func NewAnnouncementChannel(name, description string, level PrivacyLevel,
-	packetPayloadLength int, rng csprng.Source) (*Channel, rsa.PrivateKey, error) {
-	return NewChannelVariableKeyUnsafe(name, description, level, netTime.Now(),
-		packetPayloadLength, true, rng)
+		announcement, packetPayloadLength, rng)
 }
 
 // NewChannelVariableKeyUnsafe creates a new channel with a variable RSA key
@@ -163,10 +152,9 @@ func NewAnnouncementChannel(name, description string, level PrivacyLevel,
 //
 // Do not use this function unless you know what you are doing.
 //
-// packetPayloadLength is in bytes. maxKeySizeBits is the length, in bits, of an
-// RSA key defining the channel in bits. It must be divisible by 8.
+// packetPayloadLength is in bytes.
 func NewChannelVariableKeyUnsafe(name, description string, level PrivacyLevel,
-	created time.Time, packetPayloadLength int, announcement bool,
+	created time.Time, announcement bool, packetPayloadLength int,
 	rng csprng.Source) (*Channel, rsa.PrivateKey, error) {
 
 	if err := VerifyName(name); err != nil {

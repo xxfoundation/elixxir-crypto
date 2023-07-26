@@ -338,7 +338,7 @@ func Test_getTagContents_MissingTagsError(t *testing.T) {
 
 // newPPK generates a new portablePrivKey for testing.
 func newPPK(keySize int, rng csprng.Source, t *testing.T) *portablePrivKey {
-	channel, privKey, err := NewChannel("name", "d", Public, keySize, rng)
+	channel, privKey, err := NewChannel("name", "d", Public, false, keySize, rng)
 	if err != nil {
 		t.Fatalf("Failed to make new channel: %+v", err)
 	}

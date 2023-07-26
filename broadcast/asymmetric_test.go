@@ -153,8 +153,8 @@ func TestChannel_EncryptRSAToPublic_DecryptRSAToPublic_NewChannel(t *testing.T) 
 	rng := csprng.NewSystemRNG()
 	packetSize := 1000
 
-	ac, pk, err := NewChannel(
-		"Asymmetric_channel", "Channel description", Public, packetSize, rng)
+	ac, pk, err := NewChannel("Asymmetric_channel", "Channel description",
+		Public, false, packetSize, rng)
 	if err != nil {
 		t.Fatalf("Failed to make new channel: %+v", err)
 	}

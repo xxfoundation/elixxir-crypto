@@ -28,7 +28,7 @@ import (
 func TestSymmetric_Encrypt_Decrypt(t *testing.T) {
 
 	s, _, err := NewChannel(
-		"alice", "description", Public, 528, csprng.NewSystemRNG())
+		"alice", "description", Public, false, 528, csprng.NewSystemRNG())
 	if err != nil {
 		panic(err)
 	}
@@ -60,7 +60,7 @@ func TestSymmetric_Decrypt(t *testing.T) {
 	prng := rand.New(rand.NewSource(42))
 
 	s, _, err := NewChannel(
-		"alice", "description", Public, 528, csprng.NewSystemRNG())
+		"alice", "description", Public, false, 528, csprng.NewSystemRNG())
 	if err != nil {
 		panic(err)
 	}

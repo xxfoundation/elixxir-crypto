@@ -26,9 +26,9 @@ func TestChannel_PrettyPrint(t *testing.T) {
 
 	for _, level := range []PrivacyLevel{Public, Private, Secret} {
 		for _, announcement := range []bool{false, true} {
-			expected, _, err := NewChannelVariableKeyUnsafe("My_Channel",
-				"Here is information about my channel.", level, netTime.Now(),
-				512, announcement, rng)
+			expected, _, err := NewChannelVariableKeyUnsafe(
+				"My_Channel", "Here is information about my channel.", level,
+				netTime.Now(), announcement, 512, rng)
 			if err != nil {
 				t.Fatalf("Failed to create new channel: %+v", err)
 			}
@@ -183,7 +183,7 @@ func TestChannel_Verify(t *testing.T) {
 	name := "Asymmetric_channel"
 	desc := "Asymmetric channel description"
 
-	ac, _, _ := NewChannel(name, desc, Public, 1000, rng)
+	ac, _, _ := NewChannel(name, desc, Public, false, 1000, rng)
 
 	if !ac.Verify() {
 		t.Fatalf("Channel ID should have verified")

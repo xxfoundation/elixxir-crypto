@@ -34,9 +34,9 @@ func TestChannel_ShareURL_DecodeShareURL(t *testing.T) {
 
 	for i, level := range []PrivacyLevel{Public, Private, Secret} {
 		for _, announcement := range []bool{false, true} {
-			c, _, err := NewChannelVariableKeyUnsafe("My_Channel",
-				"Here is information about my channel.", level, netTime.Now(),
-				512, announcement, rng)
+			c, _, err := NewChannelVariableKeyUnsafe(
+				"My_Channel", "Here is information about my channel.", level,
+				netTime.Now(), announcement, 512, rng)
 			if err != nil {
 				t.Fatalf("Failed to create new %s channel: %+v", level, err)
 			}
@@ -71,7 +71,7 @@ func TestChannel_ShareURL(t *testing.T) {
 // Error path: Tests that Channel.ShareURL returns an error for an invalid host.
 func TestChannel_ShareURL_ParseError(t *testing.T) {
 	rng := csprng.NewSystemRNG()
-	c, _, err := NewChannel("ABC", "B", Public, 512, rng)
+	c, _, err := NewChannel("ABC", "B", Public, false, 512, rng)
 	if err != nil {
 		t.Fatalf("Failed to create new channel: %+v", err)
 	}
@@ -89,7 +89,8 @@ func TestChannel_ShareURL_ParseError(t *testing.T) {
 // Error path: Tests that Channel.ShareURL returns an error when generating a
 // password fails due to an empty RNG.
 func TestChannel_ShareURL_PasswordRngError(t *testing.T) {
-	c, _, err := NewChannel("ABC", "B", Secret, 512, csprng.NewSystemRNG())
+	c, _, err :=
+		NewChannel("ABC", "B", Secret, false, 512, csprng.NewSystemRNG())
 	if err != nil {
 		t.Fatalf("Failed to create new channel: %+v", err)
 	}
@@ -162,7 +163,7 @@ func TestDecodeShareURL_DecodeError(t *testing.T) {
 func TestChannel_DecodeShareURL_MaxUsesMismatchError(t *testing.T) {
 	host := "https://internet.speakeasy.tech/"
 	rng := csprng.NewSystemRNG()
-	c, _, err := NewChannel("ABC", "B", Secret, 512, rng)
+	c, _, err := NewChannel("ABC", "B", Secret, false, 512, rng)
 	if err != nil {
 		t.Fatalf("Failed to create new channel: %+v", err)
 	}
@@ -266,7 +267,7 @@ func TestGetShareUrlType(t *testing.T) {
 
 	for i, level := range []PrivacyLevel{Public, Private, Secret} {
 		c, _, err := NewChannel("My_Channel",
-			"Here is information about my channel.", level, 512, rng)
+			"Here is information about my channel.", level, false, 512, rng)
 		if err != nil {
 			t.Fatalf("Failed to create new %s channel: %+v", level, err)
 		}
@@ -326,7 +327,8 @@ func TestGetShareUrlType_Error(t *testing.T) {
 // Channel.decodePublicShareURL and that it matches the original.
 func TestChannel_encodePublicShareURL_decodePublicShareURL(t *testing.T) {
 	rng := csprng.NewSystemRNG()
-	c, _, err := NewChannel("Test_Channel", "Description", Public, 512, rng)
+	c, _, err :=
+		NewChannel("Test_Channel", "Description", Public, false, 512, rng)
 	if err != nil {
 		t.Fatalf("Failed to create new channel: %+v", err)
 	}
@@ -354,7 +356,8 @@ func TestChannel_encodePublicShareURL_decodePublicShareURL(t *testing.T) {
 // Channel.decodePrivateShareURL and that it matches the original.
 func TestChannel_encodePrivateShareURL_decodePrivateShareURL(t *testing.T) {
 	rng := csprng.NewSystemRNG()
-	c, _, err := NewChannel("Test_Channel", "Description", Private, 512, rng)
+	c, _, err :=
+		NewChannel("Test_Channel", "Description", Private, false, 512, rng)
 	if err != nil {
 		t.Fatalf("Failed to create new channel: %+v", err)
 	}
@@ -405,7 +408,8 @@ func TestChannel_decodePrivateShareURL(t *testing.T) {
 // Channel.decodeSecretShareURL and that it matches the original.
 func TestChannel_encodeSecretShareURL_decodeSecretShareURL(t *testing.T) {
 	rng := csprng.NewSystemRNG()
-	c, _, err := NewChannel("Test_Channel", "Description", Secret, 512, rng)
+	c, _, err :=
+		NewChannel("Test_Channel", "Description", Secret, false, 512, rng)
 	if err != nil {
 		t.Fatalf("Failed to create new channel: %+v", err)
 	}
@@ -442,7 +446,8 @@ func TestChannel_encodeSecretShareURL_decodeSecretShareURL(t *testing.T) {
 func TestChannel_marshalPrivateShareUrlSecrets_unmarshalPrivateShareUrlSecrets(
 	t *testing.T) {
 	rng := csprng.NewSystemRNG()
-	c, _, err := NewChannel("Test_Channel", "Description", Private, 512, rng)
+	c, _, err :=
+		NewChannel("Test_Channel", "Description", Private, false, 512, rng)
 	if err != nil {
 		t.Fatalf("Failed to create new channel: %+v", err)
 	}
@@ -479,7 +484,8 @@ func TestChannel_marshalPrivateShareUrlSecrets_unmarshalPrivateShareUrlSecrets(
 func TestChannel_marshalSecretShareUrlSecrets_unmarshalSecretShareUrlSecrets(
 	t *testing.T) {
 	rng := csprng.NewSystemRNG()
-	c, _, err := NewChannel("Test_Channel", "Description", Secret, 512, rng)
+	c, _, err :=
+		NewChannel("Test_Channel", "Description", Secret, false, 512, rng)
 	if err != nil {
 		t.Fatalf("Failed to create new channel: %+v", err)
 	}
@@ -564,7 +570,7 @@ func TestChannel_InviteURL_DecodeInviteURL(t *testing.T) {
 
 	for i, level := range []PrivacyLevel{Public, Private, Secret} {
 		c, _, err := NewChannel("My_Channel",
-			"Here is information about my channel.", level, 512, rng)
+			"Here is information about my channel.", level, false, 512, rng)
 		require.NoError(t, err)
 
 		url, password, err := c.ShareURL(host, i, rng)
@@ -593,7 +599,7 @@ func TestChannel_InviteURL(t *testing.T) {
 // Error path: Tests that Channel.InviteURL returns an error for an invalid host.
 func TestChannel_InviteURL_ParseError(t *testing.T) {
 	rng := csprng.NewSystemRNG()
-	c, _, err := NewChannel("ABC", "B", Public, 512, rng)
+	c, _, err := NewChannel("ABC", "B", Public, false, 512, rng)
 	if err != nil {
 		t.Fatalf("Failed to create new channel: %+v", err)
 	}
@@ -718,7 +724,8 @@ func TestDecodeInviteURL_DescriptionMaxLengthError(t *testing.T) {
 // Channel.decodePublicInviteURL and that it matches the original.
 func TestChannel_encodePublicInviteURL_decodePublicInviteURL(t *testing.T) {
 	rng := csprng.NewSystemRNG()
-	c, _, err := NewChannel("Test_Channel", "Description", Public, 512, rng)
+	c, _, err :=
+		NewChannel("Test_Channel", "Description", Public, false, 512, rng)
 	require.NoError(t, err)
 	urlValues := make(goUrl.Values)
 	urlValues = c.encodePublicShareURL(urlValues)
@@ -737,7 +744,8 @@ func TestChannel_encodePublicInviteURL_decodePublicInviteURL(t *testing.T) {
 // Channel.decodePrivateInviteURL and that it matches the original.
 func TestChannel_encodePrivateInviteURL_decodePrivateInviteURL(t *testing.T) {
 	rng := csprng.NewSystemRNG()
-	c, _, err := NewChannel("Test_Channel", "Description", Private, 512, rng)
+	c, _, err :=
+		NewChannel("Test_Channel", "Description", Private, false, 512, rng)
 	require.NoError(t, err)
 
 	maxUses := 12
@@ -776,7 +784,8 @@ func TestChannel_decodeInviteURL(t *testing.T) {
 // Channel.decodeSecretInviteURL and that it matches the original.
 func TestChannel_encodeSecretInviteURL_decodeSecretInviteURL(t *testing.T) {
 	rng := csprng.NewSystemRNG()
-	c, _, err := NewChannel("Test_Channel", "Description", Secret, 512, rng)
+	c, _, err :=
+		NewChannel("Test_Channel", "Description", Secret, false, 512, rng)
 	require.NoError(t, err)
 
 	maxUses := 2
