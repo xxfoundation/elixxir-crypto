@@ -5,6 +5,7 @@ go 1.19
 require (
 	filippo.io/edwards25519 v1.0.0
 	git.xx.network/elixxir/ctidh_cgo v0.0.0-20220929120408-d7b2cd265da7
+	github.com/Max-Sum/base32768 v0.0.0-20230304063302-18e6ce5945fd
 	github.com/cloudflare/circl v1.1.0
 	github.com/liyue201/goqr v0.0.0-20200803022322-df443203d4ea
 	github.com/multiformats/go-multihash v0.2.1
@@ -14,12 +15,12 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0
 	github.com/stretchr/testify v1.8.2
 	gitlab.com/elixxir/bloomfilter v0.0.0-20230322223210-fa84f6842de8
-	gitlab.com/elixxir/primitives v0.0.3-0.20230214180039-9a25e2d3969c
-	gitlab.com/elixxir/wasm-utils v0.0.0-20230519212008-29635852d8c7
-	gitlab.com/xx_network/crypto v0.0.5-0.20230214003943-8a09396e95dd
-	gitlab.com/xx_network/primitives v0.0.4-0.20230203173415-81c2cb07da44
+	gitlab.com/elixxir/primitives v0.0.3-0.20230724190035-efb1f377c08a
+	gitlab.com/elixxir/wasm-utils v0.0.0-20230615222914-185dd3a6fa08
+	gitlab.com/xx_network/crypto v0.0.5-0.20230724190222-a1fd6f70e6cb
+	gitlab.com/xx_network/primitives v0.0.4-0.20230724185812-bc6fc6e5341b
 	gitlab.com/yawning/nyquist.git v0.0.0-20221003103146-de5645224a22
-	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa
+	golang.org/x/crypto v0.5.0
 )
 
 require (
@@ -35,7 +36,7 @@ require (
 	github.com/zeebo/blake3 v0.1.1 // indirect
 	gitlab.com/yawning/bsaes.git v0.0.0-20190805113838-0a714cd429ec // indirect
 	gitlab.com/yawning/x448.git v0.0.0-20221003101044-617eb9b7d9b7 // indirect
-	golang.org/x/sys v0.0.0-20220928140112-f11e5e49a4ec // indirect
+	golang.org/x/sys v0.10.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

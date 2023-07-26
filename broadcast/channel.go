@@ -106,6 +106,12 @@ type Channel struct {
 
 	// Determines the amount of information displayed as plaintext vs encrypted
 	// when sharing channel information.
+	//
+	// When sharing via a URL comes in one of three forms based on the privacy
+	// Level set when generating the channel. Each privacy Level hides more
+	// information than the last with the lowest Level revealing everything and
+	// the highest Level revealing nothing. For any Level above the lowest, a
+	// password is returned, which will be required when decoding the URL.
 	Level PrivacyLevel
 
 	// Time the channel is created. It is used as a hint as to when to start
@@ -283,21 +289,6 @@ func NewChannelID(name, description string, level PrivacyLevel,
 	sid.SetType(id.User)
 
 	return sid, nil
-}
-
-// MarshalJson JSON marshals the Channel.
-func (c *Channel) MarshalJson() ([]byte, error) {
-	return json.Marshal(c)
-
-}
-
-// UnmarshalJson unmarshalls the bytes into the Channel.
-func (c *Channel) UnmarshalJson(b []byte) error {
-	err := json.Unmarshal(b, c)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 // PrivacyLevel returns the Level of privacy set for this channel.
