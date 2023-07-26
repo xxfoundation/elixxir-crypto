@@ -11,7 +11,7 @@
 // ensure encryption keys are not shared between the two systems to avoiding key
 // exhaustion.
 
-// id.go contains logic pertaining to transferID generation
+// transferID.go contains logic pertaining to transferID generation
 
 package fileTransfer
 

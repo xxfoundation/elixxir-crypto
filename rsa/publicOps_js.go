@@ -11,10 +11,11 @@ import (
 	"crypto"
 	gorsa "crypto/rsa"
 	"crypto/x509"
-	"github.com/pkg/errors"
 	"hash"
 	"io"
 	"syscall/js"
+
+	"github.com/pkg/errors"
 )
 
 // ErrVerification represents a failure to verify a signature by a Javascript
@@ -55,13 +56,7 @@ func (pub *public) EncryptOAEP(
 		return nil, err
 	}
 
-	result, awaitErr := Await(subtleCrypto.Call("encrypt",
-		algorithm, key, CopyBytesToJS(msg)))
-	if awaitErr != nil {
-		return nil, handleJsError(awaitErr[0])
-	}
-
-	return CopyBytesToGo(Uint8Array.New(result[0])), nil
+	return sc.encrypt(algorithm, key, msg)
 }
 
 // VerifyPKCS1v15 verifies an RSA PKCS #1 v1.5 signature.
@@ -82,18 +77,17 @@ func (pub *public) VerifyPKCS1v15(
 		return ErrInvalidHash
 	}
 
+	algorithm := map[string]any{"name": "RSASSA-PKCS1-v1_5"}
+
 	key, err := pub.getPKCS1()
 	if err != nil {
 		return err
 	}
 
-	result, awaitErr := Await(subtleCrypto.Call("verify",
-		"RSASSA-PKCS1-v1_5", key, CopyBytesToJS(sig), CopyBytesToJS(hashed)))
-	if awaitErr != nil {
-		return handleJsError(awaitErr[0])
-	}
-
-	if !result[0].Bool() {
+	valid, err := sc.verify(algorithm, key, sig, hashed)
+	if err != nil {
+		return err
+	} else if !valid {
 		return ErrVerification
 	}
 
@@ -137,13 +131,10 @@ func (pub *public) VerifyPSS(
 		return err
 	}
 
-	result, awaitErr := Await(subtleCrypto.Call("verify",
-		algorithm, key, CopyBytesToJS(sig), CopyBytesToJS(digest)))
-	if awaitErr != nil {
-		return handleJsError(awaitErr[0])
-	}
-
-	if !result[0].Bool() {
+	valid, err := sc.verify(algorithm, key, sig, digest)
+	if err != nil {
+		return err
+	} else if !valid {
 		return ErrVerification
 	}
 
@@ -189,11 +180,5 @@ func (pub *public) getRsaCryptoKey(
 
 	algorithm := makeRsaHashedImportParams(scheme, hash)
 
-	result, awaitErr := Await(subtleCrypto.Call("importKey",
-		"spki", CopyBytesToJS(key), algorithm, true, array.New(keyUsages...)))
-	if awaitErr != nil {
-		return js.Value{}, handleJsError(awaitErr[0])
-	}
-
-	return result[0], nil
+	return sc.importKey("spki", key, algorithm, true, keyUsages)
 }

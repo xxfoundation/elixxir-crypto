@@ -40,7 +40,7 @@ func TestSignVerify_Consistency(t *testing.T) {
 	}
 	serverPrivKey.Precompute()
 
-	publicKey := serverPrivKey.Public().(*rsa.PublicKey)
+	publicKey := serverPrivKey.GetPublic()
 	if bytes.Compare(publicKey.GetN().Bytes(), expected_N) != 0 {
 		t.Fatalf("SignVerify error: "+
 			"Bad N value in pre-canned private key."+
