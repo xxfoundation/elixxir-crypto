@@ -41,8 +41,8 @@ func TestChannel_EncryptRSAToPublic_DecryptRSAToPublic_BigKey(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rid, err := NewChannelID(
-		name, desc, level, created, false, salt, HashPubKey(pk.Public()), secret)
+	rid, err := NewChannelID(name, desc, level, created, NewOptions(), salt,
+		HashPubKey(pk.Public()), secret)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -51,8 +51,8 @@ func TestChannel_EncryptRSAToPublic_DecryptRSAToPublic_BigKey(t *testing.T) {
 		Name:            name,
 		Description:     desc,
 		Level:           level,
+		Options:         NewOptions(),
 		Created:         created,
-		Announcement:    false,
 		Salt:            salt,
 		RsaPubKeyHash:   HashPubKey(pk.Public()),
 		RsaPubKeyLength: keySize,
@@ -108,8 +108,8 @@ func TestChannel_EncryptRSAToPublic_DecryptRSAToPublic_BigKey_SmallPayload(t *te
 		t.Fatal(err)
 	}
 
-	rid, err := NewChannelID(
-		name, desc, level, created, false, salt, HashPubKey(pk.Public()), secret)
+	rid, err := NewChannelID(name, desc, level, created, NewOptions(), salt,
+		HashPubKey(pk.Public()), secret)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -118,8 +118,8 @@ func TestChannel_EncryptRSAToPublic_DecryptRSAToPublic_BigKey_SmallPayload(t *te
 		Name:            name,
 		Description:     desc,
 		Level:           level,
+		Options:         NewOptions(),
 		Created:         created,
-		Announcement:    false,
 		Salt:            salt,
 		RsaPubKeyHash:   HashPubKey(pk.Public()),
 		RsaPubKeyLength: keySize,
@@ -153,8 +153,8 @@ func TestChannel_EncryptRSAToPublic_DecryptRSAToPublic_NewChannel(t *testing.T) 
 	rng := csprng.NewSystemRNG()
 	packetSize := 1000
 
-	ac, pk, err := NewChannel("Asymmetric_channel", "Channel description",
-		Public, false, packetSize, rng)
+	ac, pk, err := NewChannel(
+		"Asymmetric_channel", "Channel description", Public, packetSize, rng)
 	if err != nil {
 		t.Fatalf("Failed to make new channel: %+v", err)
 	}
@@ -208,8 +208,8 @@ func TestChannel_EncryptRSAToPrivate_DecryptRSAToPrivate_BigKey(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rid, err := NewChannelID(
-		name, desc, level, created, true, salt, HashPubKey(pk.Public()), secret)
+	rid, err := NewChannelID(name, desc, level, created, NewOptions(), salt,
+		HashPubKey(pk.Public()), secret)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -218,8 +218,8 @@ func TestChannel_EncryptRSAToPrivate_DecryptRSAToPrivate_BigKey(t *testing.T) {
 		Name:            name,
 		Description:     desc,
 		Level:           level,
+		Options:         NewOptions(),
 		Created:         created,
-		Announcement:    true,
 		Salt:            salt,
 		RsaPubKeyHash:   HashPubKey(pk.Public()),
 		RsaPubKeyLength: keySize,
@@ -276,8 +276,8 @@ func TestChannel_EncryptRSAToPrivate_DecryptRSAToPrivate_BigKey_SmallPacket(t *t
 		t.Fatal(err)
 	}
 
-	rid, err := NewChannelID(
-		name, desc, level, created, true, salt, HashPubKey(pk.Public()), secret)
+	rid, err := NewChannelID(name, desc, level, created, NewOptions(), salt,
+		HashPubKey(pk.Public()), secret)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -286,8 +286,8 @@ func TestChannel_EncryptRSAToPrivate_DecryptRSAToPrivate_BigKey_SmallPacket(t *t
 		Name:            name,
 		Description:     desc,
 		Level:           level,
+		Options:         NewOptions(),
 		Created:         created,
-		Announcement:    true,
 		Salt:            salt,
 		RsaPubKeyHash:   HashPubKey(pk.Public()),
 		RsaPubKeyLength: keySize,
@@ -342,8 +342,8 @@ func TestChannel_DecryptRSAToPublicInner(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rid, err := NewChannelID(
-		name, desc, level, created, false, salt, HashPubKey(pk.Public()), secret)
+	rid, err := NewChannelID(name, desc, level, created, NewOptions(), salt,
+		HashPubKey(pk.Public()), secret)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -352,8 +352,8 @@ func TestChannel_DecryptRSAToPublicInner(t *testing.T) {
 		Name:            name,
 		Description:     desc,
 		Level:           level,
+		Options:         NewOptions(),
 		Created:         created,
-		Announcement:    false,
 		Salt:            salt,
 		RsaPubKeyHash:   HashPubKey(pk.Public()),
 		RsaPubKeyLength: keySize,

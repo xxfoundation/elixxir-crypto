@@ -23,12 +23,18 @@ import (
 
 func TestChannel_PrettyPrint(t *testing.T) {
 	rng := csprng.NewSystemRNG()
+	options := [][]ChannelOptions{
+		{},
+		{SetAdminLevel(Normal)},
+		{SetAdminLevel(Announcement)},
+		{SetAdminLevel(Free)},
+	}
 
 	for _, level := range []PrivacyLevel{Public, Private, Secret} {
-		for _, announcement := range []bool{false, true} {
+		for _, opts := range options {
 			expected, _, err := NewChannelVariableKeyUnsafe(
 				"My_Channel", "Here is information about my channel.", level,
-				netTime.Now(), announcement, 512, rng)
+				netTime.Now(), 512, rng, opts...)
 			if err != nil {
 				t.Fatalf("Failed to create new channel: %+v", err)
 			}
@@ -61,28 +67,36 @@ func TestChannel_PrettyPrint(t *testing.T) {
 func TestChannel_MarshalJson(t *testing.T) {
 	// Construct a channel
 	rng := csprng.NewSystemRNG()
-	pk, err := rsa.GetScheme().Generate(rng, 4096)
+	packetSize := 1000
+	keySize, n := calculateKeySize(packetSize)
+	keySize = keySize * 8
+	pk, err := rsa.GetScheme().Generate(rng, keySize)
 	if err != nil {
 		t.Fatalf("Failed to generate private key: %+v", err)
 	}
-	name := "Asymmetric channel"
-	desc := "Asymmetric channel description"
-	salt := cmix.NewSalt(rng, 512)
-	secret := make([]byte, 32)
-	_, err = rng.Read(secret)
-	if err != nil {
+	salt := cmix.NewSalt(rng, saltSize)
+	secret := make([]byte, secretSize)
+	if _, err = rng.Read(secret); err != nil {
 		t.Fatal(err)
 	}
 
-	pubKeyPem := pk.Public().MarshalPem()
-	rid, err := NewChannelID(name, desc, Public, netTime.Now(), true, secret,
-		salt, HashSecret(pubKeyPem))
 	channel := Channel{
-		ReceptionID:   rid,
-		Name:          name,
-		Description:   desc,
-		Salt:          salt,
-		RsaPubKeyHash: HashSecret(pubKeyPem),
+		Name:            "Asymmetric channel",
+		Description:     "Asymmetric channel description",
+		Level:           Private,
+		Options:         NewOptions(),
+		Created:         netTime.Now(),
+		Salt:            salt,
+		RsaPubKeyHash:   HashSecret(pk.Public().MarshalPem()),
+		RsaPubKeyLength: keySize,
+		RSASubPayloads:  n,
+		Secret:          secret,
+	}
+	channel.ReceptionID, err = NewChannelID(channel.Name, channel.Description,
+		channel.Level, channel.Created, channel.Options, salt,
+		channel.RsaPubKeyHash, secret)
+	if err != nil {
+		t.Fatalf("Failed to create new channel ID: %+v", err)
 	}
 
 	// Marshal data
@@ -150,8 +164,8 @@ func TestRChanel_Marshal_Unmarshal(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rid, err := NewChannelID(name, desc, Public, netTime.Now(), false, secret,
-		salt, HashPubKey(pk.Public()))
+	rid, err := NewChannelID(name, desc, Public, netTime.Now(), NewOptions(),
+		secret, salt, HashPubKey(pk.Public()))
 	ac := &Channel{
 		RsaPubKeyLength: 528,
 		ReceptionID:     rid,
@@ -183,7 +197,7 @@ func TestChannel_Verify(t *testing.T) {
 	name := "Asymmetric_channel"
 	desc := "Asymmetric channel description"
 
-	ac, _, _ := NewChannel(name, desc, Public, false, 1000, rng)
+	ac, _, _ := NewChannel(name, desc, Public, 1000, rng)
 
 	if !ac.Verify() {
 		t.Fatalf("Channel ID should have verified")
@@ -215,15 +229,15 @@ func TestChannel_Verify_Happy(t *testing.T) {
 	hashedSecret := HashSecret(secret)
 	hashedPubkey := HashPubKey(pk.Public())
 
-	rid, err := NewChannelID(name, desc, level, created, true, salt,
+	rid, err := NewChannelID(name, desc, level, created, NewOptions(), salt,
 		hashedPubkey, hashedSecret)
 	ac := &Channel{
 		ReceptionID:     rid,
 		Name:            name,
 		Description:     desc,
 		Level:           level,
+		Options:         NewOptions(),
 		Created:         created,
-		Announcement:    true,
 		Salt:            salt,
 		RsaPubKeyHash:   hashedPubkey,
 		RsaPubKeyLength: 528,
@@ -295,8 +309,8 @@ func TestChannel_Verify_BadGeneration(t *testing.T) {
 	hashedSecret := HashSecret(secret)
 	hashedPubkey := HashPubKey(pk.Public())
 
-	rid, err := NewChannelID(name, desc, Public, netTime.Now(), false, salt,
-		hashedPubkey, hashedSecret)
+	rid, err := NewChannelID(name, desc, Public, netTime.Now(), NewOptions(),
+		salt, hashedPubkey, hashedSecret)
 	ac := &Channel{
 		RsaPubKeyLength: 528,
 		ReceptionID:     rid,

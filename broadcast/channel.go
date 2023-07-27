@@ -65,8 +65,8 @@ var (
 		"NewChannelID secret must be 32 bytes long.")
 
 	// ErrSaltSizeIncorrect indicates an incorrect sized salt.
-	ErrSaltSizeIncorrect = errors.New(
-		"NewChannelID salt must be 32 bytes long.")
+	ErrSaltSizeIncorrect = errors.Errorf(
+		"NewChannelID salt must be %d bytes long.", saltSize)
 
 	// ErrMalformedPrettyPrintedChannel indicates the channel description blob
 	// was malformed.
@@ -114,14 +114,12 @@ type Channel struct {
 	// password is returned, which will be required when decoding the URL.
 	Level PrivacyLevel
 
+	Options Options
+
 	// Time the channel is created. It is used as a hint as to when to start
 	// picking up messages. Note that this is converted to Unix nano (int64) for
 	// all processing and transportation.
 	Created time.Time
-
-	// Announcement indicates if the channel should only allow messages sent by
-	// the admin.
-	Announcement bool
 
 	Salt            []byte
 	RsaPubKeyHash   []byte
@@ -139,12 +137,12 @@ type Channel struct {
 // based off of recommended security parameters.
 //
 // The name and description can be at most [NameMaxChars] and
-// [DescriptionMaxChars] long, respectively. If announcement is true, only admin
-// messages will be allowed to be sent to/received on the channel.
-func NewChannel(name, description string, level PrivacyLevel, announcement bool,
-	packetPayloadLength int, rng csprng.Source) (*Channel, rsa.PrivateKey, error) {
+// [DescriptionMaxChars] long, respectively.
+func NewChannel(name, description string, level PrivacyLevel,
+	packetPayloadLength int, rng csprng.Source, opts ...ChannelOptions) (
+	*Channel, rsa.PrivateKey, error) {
 	return NewChannelVariableKeyUnsafe(name, description, level, netTime.Now(),
-		announcement, packetPayloadLength, rng)
+		packetPayloadLength, rng, opts...)
 }
 
 // NewChannelVariableKeyUnsafe creates a new channel with a variable RSA key
@@ -154,8 +152,8 @@ func NewChannel(name, description string, level PrivacyLevel, announcement bool,
 //
 // packetPayloadLength is in bytes.
 func NewChannelVariableKeyUnsafe(name, description string, level PrivacyLevel,
-	created time.Time, announcement bool, packetPayloadLength int,
-	rng csprng.Source) (*Channel, rsa.PrivateKey, error) {
+	created time.Time, packetPayloadLength int, rng csprng.Source,
+	opts ...ChannelOptions) (*Channel, rsa.PrivateKey, error) {
 
 	if err := VerifyName(name); err != nil {
 		return nil, nil, err
@@ -203,8 +201,13 @@ func NewChannelVariableKeyUnsafe(name, description string, level PrivacyLevel,
 
 	pubKeyHash := HashPubKey(pk.Public())
 
-	channelID, err := NewChannelID(name, description, level, created,
-		announcement, salt, pubKeyHash, HashSecret(secret))
+	options := NewOptions()
+	for _, opt := range opts {
+		opt(&options)
+	}
+
+	channelID, err := NewChannelID(name, description, level, created, options,
+		salt, pubKeyHash, HashSecret(secret))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -214,8 +217,8 @@ func NewChannelVariableKeyUnsafe(name, description string, level PrivacyLevel,
 		Name:            name,
 		Description:     description,
 		Level:           level,
+		Options:         options,
 		Created:         created.Round(0),
-		Announcement:    announcement,
 		Salt:            salt,
 		RsaPubKeyHash:   pubKeyHash,
 		RsaPubKeyLength: keySize,
@@ -244,7 +247,7 @@ func (c *Channel) label() []byte {
 // primitives.
 func (c *Channel) Verify() bool {
 	gen, err := NewChannelID(c.Name, c.Description, c.Level, c.Created,
-		c.Announcement, c.Salt, c.RsaPubKeyHash, HashSecret(c.Secret))
+		c.Options, c.Salt, c.RsaPubKeyHash, HashSecret(c.Secret))
 	if err != nil {
 		jww.ERROR.Printf("Channel verify failed due to error from "+
 			"channel generation: %+v", err)
@@ -257,36 +260,38 @@ func (c *Channel) Verify() bool {
 //
 // The 32-byte identity is derived as described below:
 //
-//	intermediary = H(name | description | level | created | announcement | salt | rsaPubHash | hashedSecret)
+//	intermediary = H(name | description | level | options | created | salt | rsaPubHash | hashedSecret)
 //	identityBytes = HKDF(intermediary, salt, hkdfInfo)
 func NewChannelID(name, description string, level PrivacyLevel,
-	created time.Time, announcement bool, salt, rsaPubHash, secretHash []byte) (
+	created time.Time, opts Options, salt, rsaPubHash, secretHash []byte) (
 	*id.ID, error) {
 	if len(salt) != saltSize {
-		return nil, ErrSaltSizeIncorrect
+		return nil, errors.Wrapf(
+			ErrSaltSizeIncorrect, "received salt of length %d", len(salt))
 	}
 
 	hkdfHash := func() hash.Hash {
 		h, err := blake2b.New256(nil)
 		if err != nil {
-			jww.FATAL.Panic(err)
+			jww.FATAL.Panicf(
+				"Failed to get hash function for NewChannelID: %+v", err)
 		}
 		return h
 	}
 
-	intermediary := deriveIntermediary(name, description, level, created,
-		announcement, salt, rsaPubHash, secretHash)
+	intermediary := deriveIntermediary(
+		name, description, level, created, opts, salt, rsaPubHash, secretHash)
 	hkdf1 := hkdf.New(hkdfHash, intermediary, salt, []byte(hkdfInfo))
 
 	const identitySize = 32
 	identityBytes := make([]byte, identitySize)
 	n, err := io.ReadFull(hkdf1, identityBytes)
 	if err != nil {
-		jww.FATAL.Panic(err)
+		jww.FATAL.Panicf("Failed to get read HKDF bytes: %+v", err)
 	}
 	if n != identitySize {
 		jww.FATAL.Panicf(
-			"channel identity requires %d bytes, HKDF provided %d bytes",
+			"Channel identity requires %d bytes, HKDF provided %d bytes",
 			identitySize, n)
 	}
 
@@ -303,15 +308,15 @@ func (c *Channel) PrivacyLevel() PrivacyLevel {
 }
 
 const (
-	ppHead         = "<Speakeasy-v"
-	ppVerDelim     = ":"
-	ppTail         = ">"
-	ppDelim        = '|'
-	ppDesc         = "description:"
-	ppLevel        = "level:"
-	ppCreated      = "created:"
-	ppAnnouncement = "announcement:"
-	ppSecrets      = "secrets:"
+	ppHead     = "<Haven-v"
+	ppVerDelim = ":"
+	ppTail     = ">"
+	ppDelim    = '|'
+	ppDesc     = "description:"
+	ppLevel    = "level:"
+	ppOptions  = "options:"
+	ppCreated  = "created:"
+	ppSecrets  = "secrets:"
 
 	ppNumFields = 10
 )
@@ -321,7 +326,7 @@ const (
 //
 // Example:
 //
-//	<Speakeasy-v4:Test_Channel|description:Channel description.|level:Public|created:1666718081766741100|announcement:false|secrets:+oHcqDbJPZaT3xD5NcdLY8OjOMtSQNKdKgLPmr7ugdU=|rCI0wr01dHFStjSFMvsBzFZClvDIrHLL5xbCOPaUOJ0=|493|1|7cBhJxVfQxWo+DypOISRpeWdQBhuQpAZtUbQHjBm8NQ=>
+//	<Haven-v4:Test_Channel|description:Channel description.|level:Public|created:1666718081766741100|options:AdminLevel:normal|secrets:+oHcqDbJPZaT3xD5NcdLY8OjOMtSQNKdKgLPmr7ugdU=|rCI0wr01dHFStjSFMvsBzFZClvDIrHLL5xbCOPaUOJ0=|493|1|7cBhJxVfQxWo+DypOISRpeWdQBhuQpAZtUbQHjBm8NQ=>
 func (c *Channel) PrettyPrint() string {
 	shouldEscape := func(s []rune, i int) bool { return s[i] == ppDelim }
 
@@ -329,8 +334,8 @@ func (c *Channel) PrettyPrint() string {
 		escape.HexEscape(c.Name, shouldEscape),
 		ppDesc + escape.HexEscape(c.Description, shouldEscape),
 		ppLevel + c.Level.Marshal(),
+		ppOptions + c.Options.PrettyPrint(),
 		ppCreated + strconv.FormatInt(c.Created.UnixNano(), 10),
-		ppAnnouncement + strconv.FormatBool(c.Announcement),
 		ppSecrets + base64.StdEncoding.EncodeToString(c.Salt),
 		base64.StdEncoding.EncodeToString(c.RsaPubKeyHash),
 		strconv.Itoa(c.RsaPubKeyLength),
@@ -387,18 +392,18 @@ func NewChannelFromPrettyPrint(p string) (*Channel, error) {
 		return nil, errors.Errorf("could not decode privacy level: %+v", err)
 	}
 
-	// Creation time
-	createdUnixNano, err :=
-		strconv.ParseInt(strings.TrimPrefix(fields[3], ppCreated), 10, 64)
+	// Options
+	opts, err :=
+		NewOptionsFromPrettyPrint(strings.TrimPrefix(fields[3], ppOptions))
 	if err != nil {
-		return nil, errors.Errorf("could not parse creation time int: %+v", err)
+		return nil, errors.Errorf("could not parse options: %+v", err)
 	}
 
-	// Announcement bool
-	announcement, err :=
-		strconv.ParseBool(strings.TrimPrefix(fields[4], ppAnnouncement))
+	// Creation time
+	createdUnixNano, err :=
+		strconv.ParseInt(strings.TrimPrefix(fields[4], ppCreated), 10, 64)
 	if err != nil {
-		return nil, errors.Errorf("could not parse announcemment bool: %+v", err)
+		return nil, errors.Errorf("could not parse creation time int: %+v", err)
 	}
 
 	// Salt
@@ -438,7 +443,7 @@ func NewChannelFromPrettyPrint(p string) (*Channel, error) {
 		Description:     strings.TrimPrefix(escape.HexUnescape(fields[1]), ppDesc),
 		Level:           level,
 		Created:         time.Unix(0, createdUnixNano),
-		Announcement:    announcement,
+		Options:         opts,
 		Salt:            salt,
 		RsaPubKeyHash:   rsaPubKeyHash,
 		RsaPubKeyLength: rsaPubKeyLength,
@@ -458,7 +463,7 @@ func NewChannelFromPrettyPrint(p string) (*Channel, error) {
 	}
 
 	c.ReceptionID, err = NewChannelID(c.Name, c.Description, c.Level, c.Created,
-		c.Announcement, c.Salt, c.RsaPubKeyHash, HashSecret(c.Secret))
+		c.Options, c.Salt, c.RsaPubKeyHash, HashSecret(c.Secret))
 	if err != nil {
 		return nil, ErrMalformedPrettyPrintedChannel
 	}

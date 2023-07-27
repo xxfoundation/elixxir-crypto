@@ -26,9 +26,8 @@ import (
 // Tests that a payload encrypted with Symmetric.Encrypt and decrypted with
 // Symmetric.Decrypt matches the original.
 func TestSymmetric_Encrypt_Decrypt(t *testing.T) {
-
-	s, _, err := NewChannel(
-		"alice", "description", Public, false, 528, csprng.NewSystemRNG())
+	s, _, err :=
+		NewChannel("alice", "description", Public, 528, csprng.NewSystemRNG())
 	if err != nil {
 		panic(err)
 	}
@@ -59,8 +58,8 @@ func TestSymmetric_Encrypt_Decrypt(t *testing.T) {
 func TestSymmetric_Decrypt(t *testing.T) {
 	prng := rand.New(rand.NewSource(42))
 
-	s, _, err := NewChannel(
-		"alice", "description", Public, false, 528, csprng.NewSystemRNG())
+	s, _, err :=
+		NewChannel("alice", "description", Public, 528, csprng.NewSystemRNG())
 	if err != nil {
 		panic(err)
 	}
@@ -124,35 +123,33 @@ func TestSymmetric_Marshal_UnmarshalSymmetric(t *testing.T) {
 func TestNewSymmetricKey_Consistency(t *testing.T) {
 	prng := rand.New(rand.NewSource(42))
 	expectedKeys := []string{
-		"zxUn1z+TRg9h2fdT3KaSjFJ+InEQHWzO05ca8WfJwp8=",
-		"OYfpbk5UjOi0z2XeUdC307QFj0zDbzT1Gd7oO9Z7h5I=",
-		"ze7kOTK3vt7Qc7TB3/K4NolcNdMI8MMO3P4RJ/Mt/1I=",
-		"37VKgKbKEGUsdqzH6p0/YoTTqdBzq8r+govftyYG+kY=",
-		"06/tnqfhjxDwOjh6ObTSFNAtABH7R16/IQ3BHglzrhw=",
-		"GfY+24Z+wxQwTaP81GdWveEy1mx8Whgo+uJGDF6CpNI=",
-		"V+hwP/i22QtTTusIm+OYA8rmTC7R7+JLx/50qyQUHf8=",
-		"Zuz+VwCn+AKuE9MQbXVe1zEKTKN9O5S3nq1u2o70A0I=",
-		"4lSpoaxJIi+uwgZRcHeO9U3AhrZTwAFwrl+XWRD61Bo=",
-		"JuGgFCYZJ9htuXQB5VlAm8jHp+6v3pZI9xTSjF7JaNY=",
+		"Ozk4jUaSbqwNFNK5EuALfE2/nNAjwOmxheFtiWpui/A=",
+		"1DjLi5nYBgOHs1moUdqK/NFk1CIug7ctXfJdOxA+Pbc=",
+		"Mjuk2RaLaBMCYU7E4lECpBxUYrlfYU46R29h1zlJSto=",
+		"LjZmy2Pdxl4ztBXECXa198nPz1Dq56jkKj+xd+AnxlA=",
+		"AAt2sTU6rJt+KFJlr49GJ0Hos5RvA9txQ8tNIepw96c=",
+		"+cF4IVSZSaw5uVQVOHwG1L6Km40xcyShuNk4KGpAPjs=",
+		"vhOABoOEymIzYwDABQucXNhxsFRucNintcwFE/hxp6U=",
+		"IuyQVSrF7CJ6C7v+UcMVtrbwi5XGrIOxtDHFvS+G2Fs=",
+		"e2M/nSl+ao71r9GUsY5sMVDDfpPwd2BScFh3wh7LNLY=",
+		"f7pvcWpwCr1H6RCG0J+bq5+MG4sIjxjRGvfziNenNF4=",
 	}
 
 	secret := make([]byte, 32)
 
 	for i, expected := range expectedKeys {
-
 		n, err := prng.Read(secret)
 		if err != nil {
-			panic(err)
-		}
-		if n != 32 {
-			panic("failed to read from rng")
+			t.Fatalf("Failed to generate random secret: %+v", err)
+		} else if n != 32 {
+			t.Fatalf("Generated %d bytes when %d bytes expected", n, 32)
 		}
 
 		key, err := NewSymmetricKey("alice",
 			"chan description",
 			Public,
 			time.Date(1955, 11, 5, 12, 0, 0, 0, time.UTC),
-			i%2 == 0,
+			NewOptions(),
 			[]byte("salt"),
 			[]byte("my fake rsa key"),
 			secret)
@@ -190,7 +187,7 @@ func TestNewSymmetricKey_Unique(t *testing.T) {
 			"chan description",
 			Public,
 			netTime.Now(),
-			true,
+			NewOptions(),
 			[]byte("salt"),
 			[]byte("my fake rsa key"),
 			secret)

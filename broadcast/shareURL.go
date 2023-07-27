@@ -34,7 +34,7 @@ const (
 	descKey            = "1Description"
 	levelKey           = "2Level"
 	createdKey         = "3Created"
-	announcementKey    = "an"
+	optionsKey         = "op"
 	saltKey            = "s"
 	rsaPubKeyHashKey   = "k"
 	rsaPubKeyLengthKey = "l"
@@ -52,8 +52,8 @@ const (
 	privLevelLen        = 1
 	nameLengthLen       = 2
 	descLengthLen       = 2
+	optionsLengthLen    = 2
 	createdLen          = 8
-	AnnouncementLen     = 1
 	saltLen             = saltSize
 	rsaPubKeyHashLen    = blake2b.Size256
 	rsaPubKeyLengthLen  = 2
@@ -63,7 +63,7 @@ const (
 	marshaledPrivateLen = privLevelLen + saltLen + rsaPubKeyHashLen +
 		rsaPubKeyLengthLen + rsaSubPayloadsLen + secretLen + maxUsesLen
 	marshaledSecretLen = nameLengthLen + descLengthLen + marshaledPrivateLen +
-		createdLen + AnnouncementLen
+		optionsLengthLen + createdLen
 )
 
 // Error messages.
@@ -90,6 +90,7 @@ const (
 	// Channel.decodePublicShareURL
 	parseCreatedErr         = "failed to parse creation time: %+v"
 	parseLevelErr           = "failed to parse privacy Level: %+v"
+	parseOptionsErr         = "failed to parse options"
 	parseSaltErr            = "failed to parse Salt: %+v"
 	parseRsaPubKeyHashErr   = "failed to parse RsaPubKeyHash: %+v"
 	parseRsaPubKeyLengthErr = "failed to parse RsaPubKeyLength: %+v"
@@ -242,7 +243,7 @@ func decodeUrl(url string, pwHash []byte) (*Channel, error) {
 		return nil, errors.Errorf(parseMaxUsesErr, err)
 	}
 
-	c := &Channel{}
+	c := &Channel{Options: NewOptions()}
 	var maxUses int
 
 	// Decode the URL based on the information available (e.g., only the public
@@ -292,7 +293,7 @@ func decodeUrl(url string, pwHash []byte) (*Channel, error) {
 
 	// Generate the channel ID
 	c.ReceptionID, err = NewChannelID(c.Name, c.Description, c.Level, c.Created,
-		c.Announcement, c.Salt, c.RsaPubKeyHash, HashSecret(c.Secret))
+		c.Options, c.Salt, c.RsaPubKeyHash, HashSecret(c.Secret))
 	if err != nil {
 		return nil, errors.Errorf(newReceptionIdErr, err)
 	}
@@ -338,10 +339,10 @@ func (c *Channel) encodePublicShareURL(q goUrl.Values) goUrl.Values {
 	q.Set(nameKey, c.Name)
 	q.Set(descKey, c.Description)
 	q.Set(levelKey, c.Level.Marshal())
-	q.Set(createdKey, strconv.FormatInt(c.Created.UnixNano(), 10))
-	if c.Announcement {
-		q.Set(announcementKey, "1")
+	if c.Options != NewOptions() {
+		q.Set(optionsKey, c.Options.encodeForURL())
 	}
+	q.Set(createdKey, strconv.FormatInt(c.Created.UnixNano(), 10))
 	q.Set(saltKey, base64.StdEncoding.EncodeToString(c.Salt))
 	q.Set(rsaPubKeyHashKey, base64.StdEncoding.EncodeToString(c.RsaPubKeyHash))
 	q.Set(rsaPubKeyLengthKey, strconv.Itoa(c.RsaPubKeyLength))
@@ -359,20 +360,22 @@ func (c *Channel) decodePublicShareURL(q goUrl.Values) error {
 	c.Name = q.Get(nameKey)
 	c.Description = q.Get(descKey)
 
-	created, err := strconv.ParseInt(q.Get(createdKey), 10, 64)
-	if err != nil {
-		return errors.Errorf(parseCreatedErr, err)
-	}
-	c.Created = time.Unix(0, created)
-
 	c.Level, err = UnmarshalPrivacyLevel(q.Get(levelKey))
 	if err != nil {
 		return errors.Errorf(parseLevelErr, err)
 	}
 
-	if q.Get(announcementKey) != "" {
-		c.Announcement = true
+	if optionsStr := q.Get(optionsKey); optionsStr != "" {
+		if err = c.Options.decodeFromURL(optionsStr); err != nil {
+			return errors.Wrap(err, parseOptionsErr)
+		}
 	}
+
+	created, err := strconv.ParseInt(q.Get(createdKey), 10, 64)
+	if err != nil {
+		return errors.Errorf(parseCreatedErr, err)
+	}
+	c.Created = time.Unix(0, created)
 
 	c.Salt, err = base64.StdEncoding.DecodeString(q.Get(saltKey))
 	if err != nil {
@@ -410,10 +413,10 @@ func (c *Channel) encodePrivateShareURL(
 
 	q.Set(nameKey, c.Name)
 	q.Set(descKey, c.Description)
-	q.Set(createdKey, strconv.FormatInt(c.Created.UnixNano(), 10))
-	if c.Announcement {
-		q.Set(announcementKey, "1")
+	if c.Options != NewOptions() {
+		q.Set(optionsKey, c.Options.encodeForURL())
 	}
+	q.Set(createdKey, strconv.FormatInt(c.Created.UnixNano(), 10))
 	q.Set(dataKey, base64.StdEncoding.EncodeToString(encryptedSecrets))
 
 	return q
@@ -426,15 +429,17 @@ func (c *Channel) decodePrivateShareURL(
 	c.Name = q.Get(nameKey)
 	c.Description = q.Get(descKey)
 
+	if optionsStr := q.Get(optionsKey); optionsStr != "" {
+		if err := c.Options.decodeFromURL(optionsStr); err != nil {
+			return 0, errors.Wrap(err, parseOptionsErr)
+		}
+	}
+
 	created, err := strconv.ParseInt(q.Get(createdKey), 10, 64)
 	if err != nil {
 		return 0, errors.Errorf(parseCreatedErr, err)
 	}
 	c.Created = time.Unix(0, created)
-
-	if q.Get(announcementKey) != "" {
-		c.Announcement = true
-	}
 
 	encryptedData, err := base64.StdEncoding.DecodeString(q.Get(dataKey))
 	if err != nil {
@@ -559,11 +564,11 @@ func (c *Channel) unmarshalPrivateShareUrlSecrets(data []byte) (int, error) {
 // Salt, RsaPubKeyHash, RsaPubKeyLength, RSASubPayloads, and Secret into a byte
 // slice.
 //
-//	+---------+---------+-------------+------+-------------+---------+--------------+-------+---------------+-----------------+----------------+----------+----------+
-//	| Privacy |  Name   | Description |      |             | Created | Announcement | Salt  | RsaPubKeyHash | RsaPubKeyLength | RSASubPayloads |  Secret  | Max Uses |
-//	|  Level  | Length  |   Length    | Name | Description |         |              |  32   |               |                 |                |          |          |
-//	| 1 byte  | 2 bytes |   2 bytes   |      |             | 8 bytes |    1 byte    | bytes |    32 bytes   |     2 bytes     |     2 bytes    | 32 bytes |  2 bytes |
-//	+---------+---------+-------------+------+-------------+---------+--------------+-------+---------------+-----------------+----------------+----------+----------+
+//	+---------+---------+-------------+-----------+------+-------------+---------+---------+-------+---------------+-----------------+----------------+----------+----------+
+//	| Privacy |  Name   | Description | Length of |      |             |         | Created | Salt  | RsaPubKeyHash | RsaPubKeyLength | RSASubPayloads |  Secret  | Max Uses |
+//	|  Level  | Length  |   Length    |  Options  | Name | Description | Options |         |  32   |               |                 |                |          |          |
+//	| 1 byte  | 2 bytes |   2 bytes   |   2 byte  |      |             |         | 8 bytes | bytes |    32 bytes   |     2 bytes     |     2 bytes    | 32 bytes |  2 bytes |
+//	+---------+---------+-------------+-----------+------+-------------+---------+---------+-------+---------------+-----------------+----------------+----------+----------+
 func (c *Channel) marshalSecretShareUrlSecrets(maxUses int) []byte {
 	var buff bytes.Buffer
 	buff.Grow(len(c.Name) + len(c.Description) + marshaledSecretLen)
@@ -581,19 +586,25 @@ func (c *Channel) marshalSecretShareUrlSecrets(maxUses int) []byte {
 	binary.LittleEndian.PutUint16(b, uint16(len(c.Description)))
 	buff.Write(b)
 
+	// Length of options
+	options := c.Options.encodeForURL()
+	b = make([]byte, optionsLengthLen)
+	binary.LittleEndian.PutUint16(b, uint16(len(options)))
+	buff.Write(b)
+
 	// Name
 	buff.WriteString(c.Name)
 
 	// Description
 	buff.WriteString(c.Description)
 
+	// Options
+	buff.WriteString(options)
+
 	// Creation date
 	b = make([]byte, createdLen)
 	binary.LittleEndian.PutUint64(b, uint64(c.Created.UnixNano()))
 	buff.Write(b)
-
-	// Announcement bool
-	buff.WriteByte(marshalBool(c.Announcement)[0])
 
 	// Salt (fixed length of saltSize)
 	buff.Write(c.Salt)
@@ -637,17 +648,25 @@ func (c *Channel) unmarshalSecretShareUrlSecrets(data []byte) (int, error) {
 
 	nameLen := int(binary.LittleEndian.Uint16(buff.Next(nameLengthLen)))
 	descLen := int(binary.LittleEndian.Uint16(buff.Next(descLengthLen)))
+	optionsLen := int(binary.LittleEndian.Uint16(buff.Next(optionsLengthLen)))
 
-	if len(data) != marshaledSecretLen+nameLen+descLen {
-		return 0, errors.Errorf(unmarshalSecretDataLenErr2,
-			marshaledSecretLen+nameLen+descLen, len(data))
+	expectedLen := marshaledSecretLen + nameLen + descLen + optionsLen
+	if len(data) != expectedLen {
+		return 0,
+			errors.Errorf(unmarshalSecretDataLenErr2, expectedLen, len(data))
 	}
 
 	c.Name = string(buff.Next(nameLen))
 	c.Description = string(buff.Next(descLen))
+
+	err := c.Options.decodeFromURL(string(buff.Next(optionsLen)))
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to decode options")
+	}
+
 	c.Created =
 		time.Unix(0, int64(binary.LittleEndian.Uint64(buff.Next(createdLen))))
-	c.Announcement = unmarshalBool(buff.Next(AnnouncementLen))
+
 	c.Salt = buff.Next(saltLen)
 	c.RsaPubKeyHash = buff.Next(rsaPubKeyHashLen)
 	c.RsaPubKeyLength =

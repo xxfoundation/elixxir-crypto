@@ -29,10 +29,9 @@ func HashPubKey(pub rsa.PublicKey) []byte {
 
 // deriveIntermediary returns the BLAKE2b hash of the given arguments:
 //
-//	H(name | description | level | created | announcement | rsaPubHash | hashedSecret | salt)
+//	H(name | description | level | options | created | rsaPubHash | hashedSecret | salt)
 func deriveIntermediary(name, description string, level PrivacyLevel,
-	creation time.Time, announcement bool, salt, rsaPubHash,
-	hashedSecret []byte) []byte {
+	creation time.Time, opts Options, salt, rsaPubHash, hashedSecret []byte) []byte {
 	h, err := channelHash(nil)
 	if err != nil {
 		jww.FATAL.Panic(err)
@@ -42,7 +41,7 @@ func deriveIntermediary(name, description string, level PrivacyLevel,
 	write(h, []byte(description))
 	write(h, []byte{byte(level)})
 	write(h, marshalTime(creation))
-	write(h, marshalBool(announcement))
+	write(h, opts.encode())
 	write(h, rsaPubHash)
 	write(h, hashedSecret)
 	write(h, salt)
