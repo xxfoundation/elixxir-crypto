@@ -114,7 +114,8 @@ type Channel struct {
 	// password is returned, which will be required when decoding the URL.
 	Level PrivacyLevel
 
-	Options Options
+	// Options contains optional settings for the channel.
+	Options Options `json:"options"`
 
 	// Time the channel is created. It is used as a hint as to when to start
 	// picking up messages. Note that this is converted to Unix nano (int64) for
@@ -326,7 +327,7 @@ const (
 //
 // Example:
 //
-//	<Haven-v4:Test_Channel|description:Channel description.|level:Public|created:1666718081766741100|options:AdminLevel:normal|secrets:+oHcqDbJPZaT3xD5NcdLY8OjOMtSQNKdKgLPmr7ugdU=|rCI0wr01dHFStjSFMvsBzFZClvDIrHLL5xbCOPaUOJ0=|493|1|7cBhJxVfQxWo+DypOISRpeWdQBhuQpAZtUbQHjBm8NQ=>
+//	<Haven-v4:Test_Channel|description:Channel description.|level:Public|options:adminLevel:normal|created:1666718081766741100|secrets:+oHcqDbJPZaT3xD5NcdLY8OjOMtSQNKdKgLPmr7ugdU=|rCI0wr01dHFStjSFMvsBzFZClvDIrHLL5xbCOPaUOJ0=|493|1|7cBhJxVfQxWo+DypOISRpeWdQBhuQpAZtUbQHjBm8NQ=>
 func (c *Channel) PrettyPrint() string {
 	shouldEscape := func(s []rune, i int) bool { return s[i] == ppDelim }
 
@@ -334,7 +335,7 @@ func (c *Channel) PrettyPrint() string {
 		escape.HexEscape(c.Name, shouldEscape),
 		ppDesc + escape.HexEscape(c.Description, shouldEscape),
 		ppLevel + c.Level.Marshal(),
-		ppOptions + c.Options.PrettyPrint(),
+		ppOptions + c.Options.prettyPrint(),
 		ppCreated + strconv.FormatInt(c.Created.UnixNano(), 10),
 		ppSecrets + base64.StdEncoding.EncodeToString(c.Salt),
 		base64.StdEncoding.EncodeToString(c.RsaPubKeyHash),
@@ -394,7 +395,7 @@ func NewChannelFromPrettyPrint(p string) (*Channel, error) {
 
 	// Options
 	opts, err :=
-		NewOptionsFromPrettyPrint(strings.TrimPrefix(fields[3], ppOptions))
+		newOptionsFromPrettyPrint(strings.TrimPrefix(fields[3], ppOptions))
 	if err != nil {
 		return nil, errors.Errorf("could not parse options: %+v", err)
 	}

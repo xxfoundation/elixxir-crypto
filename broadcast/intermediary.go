@@ -40,8 +40,8 @@ func deriveIntermediary(name, description string, level PrivacyLevel,
 	write(h, []byte(name))
 	write(h, []byte(description))
 	write(h, []byte{byte(level)})
-	write(h, marshalTime(creation))
 	write(h, opts.encode())
+	write(h, marshalTime(creation))
 	write(h, rsaPubHash)
 	write(h, hashedSecret)
 	write(h, salt)
@@ -62,20 +62,4 @@ func marshalTime(t time.Time) []byte {
 	b := make([]byte, 8)
 	binary.LittleEndian.PutUint64(b, uint64(t.UnixNano()))
 	return b
-}
-
-// marshalBool converts the boolean to a 1-byte slice.
-func marshalBool(b bool) []byte {
-	if b {
-		return []byte{1}
-	}
-	return []byte{0}
-}
-
-// unmarshalBool converts the slice to a boolean.
-func unmarshalBool(data []byte) bool {
-	if data[0] == 1 {
-		return true
-	}
-	return false
 }
