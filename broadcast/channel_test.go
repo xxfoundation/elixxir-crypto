@@ -84,7 +84,7 @@ func TestChannel_MarshalJson(t *testing.T) {
 		Name:            "Asymmetric channel",
 		Description:     "Asymmetric channel description",
 		Level:           Private,
-		Options:         NewOptions(),
+		Options:         *newOptions(),
 		Created:         netTime.Now(),
 		Salt:            salt,
 		RsaPubKeyHash:   HashSecret(pk.Public().MarshalPem()),
@@ -164,7 +164,7 @@ func TestRChanel_Marshal_Unmarshal(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rid, err := NewChannelID(name, desc, Public, netTime.Now(), NewOptions(),
+	rid, err := NewChannelID(name, desc, Public, netTime.Now(), *newOptions(),
 		secret, salt, HashPubKey(pk.Public()))
 	ac := &Channel{
 		RsaPubKeyLength: 528,
@@ -229,14 +229,14 @@ func TestChannel_Verify_Happy(t *testing.T) {
 	hashedSecret := HashSecret(secret)
 	hashedPubkey := HashPubKey(pk.Public())
 
-	rid, err := NewChannelID(name, desc, level, created, NewOptions(), salt,
+	rid, err := NewChannelID(name, desc, level, created, *newOptions(), salt,
 		hashedPubkey, hashedSecret)
 	ac := &Channel{
 		ReceptionID:     rid,
 		Name:            name,
 		Description:     desc,
 		Level:           level,
-		Options:         NewOptions(),
+		Options:         *newOptions(),
 		Created:         created,
 		Salt:            salt,
 		RsaPubKeyHash:   hashedPubkey,
@@ -309,7 +309,7 @@ func TestChannel_Verify_BadGeneration(t *testing.T) {
 	hashedSecret := HashSecret(secret)
 	hashedPubkey := HashPubKey(pk.Public())
 
-	rid, err := NewChannelID(name, desc, Public, netTime.Now(), NewOptions(),
+	rid, err := NewChannelID(name, desc, Public, netTime.Now(), *newOptions(),
 		salt, hashedPubkey, hashedSecret)
 	ac := &Channel{
 		RsaPubKeyLength: 528,

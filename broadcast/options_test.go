@@ -9,6 +9,7 @@ package broadcast
 
 import (
 	"bytes"
+	"reflect"
 	"testing"
 )
 
@@ -23,30 +24,149 @@ func TestSetAdminLevel(t *testing.T) {
 // Options Structure                                                          //
 ////////////////////////////////////////////////////////////////////////////////
 
-// Unit test of NewOptions.
-func TestNewOptions(t *testing.T) {
-	expected := Options{AdminLevel: DefaultAdminLevel}
+// Unit test of newOptions.
+func Test_newOptions(t *testing.T) {
+	tests := []struct {
+		opts     []ChannelOptions
+		expected *options
+	}{
+		{nil,
+			&options{AdminLevel: Normal}},
+		{[]ChannelOptions{SetAdminLevel(Announcement)},
+			&options{AdminLevel: Announcement}},
+		{[]ChannelOptions{SetAdminLevel(Free)},
+			&options{AdminLevel: Free}},
+	}
 
-	opts := NewOptions()
-	if expected != opts {
-		t.Errorf("Unexpected new Options."+
+	for i, tt := range tests {
+		opts := newOptions(tt.opts...)
+		if !reflect.DeepEqual(tt.expected, opts) {
+			t.Errorf("Unexpected new options (%d)."+
+				"\nexpected: %+v\nreceived: %+v", i, tt.expected, opts)
+		}
+	}
+}
+
+// Consistency test of options.encode.
+func Test_options_encode(t *testing.T) {
+	tests := []struct {
+		opts     *options
+		expected []byte
+	}{
+		{newOptions(), []byte{}},
+		{newOptions(SetAdminLevel(Announcement)), []byte{1}},
+		{newOptions(SetAdminLevel(Free)), []byte{2}},
+	}
+
+	for i, tt := range tests {
+		encoded := tt.opts.encode()
+		if !bytes.Equal(encoded, tt.expected) {
+			t.Errorf("Failed to get expected encoding for options %d: %+v"+
+				"\nexpected: %d\nreceived: %d", i, tt.opts, tt.expected, encoded)
+		}
+	}
+}
+
+// Tests that an options object encoded with options.encodeForURL and decoded
+// with options.decodeFromURL matches the original.
+func Test_options_encodeForURL_decodeFromURL(t *testing.T) {
+	tests := []*options{
+		newOptions(),
+		newOptions(SetAdminLevel(Announcement)),
+		newOptions(SetAdminLevel(Free)),
+	}
+
+	for i, expected := range tests {
+		encoded := expected.encodeForURL()
+
+		opts := newOptions()
+		err := opts.decodeFromURL(encoded)
+		if err != nil {
+			t.Errorf("Failed to decode from URL (%d): %+v", i, err)
+		}
+		if !reflect.DeepEqual(expected, opts) {
+			t.Errorf("Unexpected decoded options from URL (%d)."+
+				"\nexpected: %+v\nreceived: %+v", i, expected, opts)
+		}
+	}
+}
+
+// Tests that options.decodeFromURL does not modify the options for an empty
+// string.
+func Test_options_decodeFromURL_EmptyURL(t *testing.T) {
+	opts := newOptions(SetAdminLevel(Announcement))
+	expected := newOptions(SetAdminLevel(Announcement))
+
+	err := opts.decodeFromURL("")
+	if err != nil {
+		t.Errorf("Failed to decode from empty string: %+v", err)
+	}
+
+	if !reflect.DeepEqual(expected, opts) {
+		t.Errorf("Options was modified from empty string."+
 			"\nexpected: %+v\nreceived: %+v", expected, opts)
 	}
 }
 
-func TestOptions_encode(t *testing.T) {
+// Error path: Tests that an options returns errors for invalid fields.
+func Test_options_decodeFromURL_DecoderErrors(t *testing.T) {
+	tests := []string{"a"}
+
+	for i, invalid := range tests {
+		err := newOptions().decodeFromURL(invalid)
+		if err == nil {
+			t.Errorf("Failed to receive error for invalid string (%d): %q",
+				i, invalid)
+		}
+	}
 }
 
-func TestOptions_encodeForURL(t *testing.T) {
+// Tests that an options object encoded with options.prettyPrint and decoded
+// with newOptionsFromPrettyPrint matches the original.
+func Test_options_prettyPrint_newOptionsFromPrettyPrint(t *testing.T) {
+	tests := []*options{
+		newOptions(),
+		newOptions(SetAdminLevel(Announcement)),
+		newOptions(SetAdminLevel(Free)),
+	}
+
+	for i, expected := range tests {
+		prettyPrint := expected.prettyPrint()
+
+		opts, err := newOptionsFromPrettyPrint(prettyPrint)
+		if err != nil {
+			t.Errorf("Failed to decode from pretty print (%d): %+v", i, err)
+		}
+		if !reflect.DeepEqual(expected, opts) {
+			t.Errorf("Unexpected decoded options from pretty print (%d)."+
+				"\nexpected: %+v\nreceived: %+v", i, expected, opts)
+		}
+	}
 }
 
-func TestOptions_decodeFromURL(t *testing.T) {
+// Error path: Tests that newOptionsFromPrettyPrint returns an error when an
+// option is has the wrong delimiter.
+func Test_newOptionsFromPrettyPrint_InvalidFieldError(t *testing.T) {
+	invalid := oppHead + oppAdminLevel + "=" + Free.marshalText() + oppTail
+	_, err := newOptionsFromPrettyPrint(invalid)
+	if err == nil {
+		t.Errorf("Failed to receive error for fake field: %q", invalid)
+	}
 }
 
-func TestOptions_prettyPrint(t *testing.T) {
-}
+// Error path: Tests that newOptionsFromPrettyPrint returns the expected errors
+// for different invalid fields.
+func Test_newOptionsFromPrettyPrint_DecodeErrors(t *testing.T) {
+	tests := []string{oppAdminLevel + oppFieldDelim + "some value"}
 
-func Test_newOptionsFromPrettyPrint(t *testing.T) {
+	for i, invalid := range tests {
+		invalid = oppHead + invalid + oppTail
+		_, err := newOptionsFromPrettyPrint(invalid)
+		if err == nil {
+			t.Errorf("Failed to receive error for invalid field (%d): %q",
+				i, invalid)
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////

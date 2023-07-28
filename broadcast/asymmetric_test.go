@@ -41,7 +41,7 @@ func TestChannel_EncryptRSAToPublic_DecryptRSAToPublic_BigKey(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rid, err := NewChannelID(name, desc, level, created, NewOptions(), salt,
+	rid, err := NewChannelID(name, desc, level, created, *newOptions(), salt,
 		HashPubKey(pk.Public()), secret)
 	if err != nil {
 		t.Fatal(err)
@@ -51,7 +51,7 @@ func TestChannel_EncryptRSAToPublic_DecryptRSAToPublic_BigKey(t *testing.T) {
 		Name:            name,
 		Description:     desc,
 		Level:           level,
-		Options:         NewOptions(),
+		Options:         *newOptions(),
 		Created:         created,
 		Salt:            salt,
 		RsaPubKeyHash:   HashPubKey(pk.Public()),
@@ -108,7 +108,7 @@ func TestChannel_EncryptRSAToPublic_DecryptRSAToPublic_BigKey_SmallPayload(t *te
 		t.Fatal(err)
 	}
 
-	rid, err := NewChannelID(name, desc, level, created, NewOptions(), salt,
+	rid, err := NewChannelID(name, desc, level, created, *newOptions(), salt,
 		HashPubKey(pk.Public()), secret)
 	if err != nil {
 		t.Fatal(err)
@@ -118,7 +118,7 @@ func TestChannel_EncryptRSAToPublic_DecryptRSAToPublic_BigKey_SmallPayload(t *te
 		Name:            name,
 		Description:     desc,
 		Level:           level,
-		Options:         NewOptions(),
+		Options:         *newOptions(),
 		Created:         created,
 		Salt:            salt,
 		RsaPubKeyHash:   HashPubKey(pk.Public()),
@@ -208,7 +208,7 @@ func TestChannel_EncryptRSAToPrivate_DecryptRSAToPrivate_BigKey(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rid, err := NewChannelID(name, desc, level, created, NewOptions(), salt,
+	rid, err := NewChannelID(name, desc, level, created, *newOptions(), salt,
 		HashPubKey(pk.Public()), secret)
 	if err != nil {
 		t.Fatal(err)
@@ -218,7 +218,7 @@ func TestChannel_EncryptRSAToPrivate_DecryptRSAToPrivate_BigKey(t *testing.T) {
 		Name:            name,
 		Description:     desc,
 		Level:           level,
-		Options:         NewOptions(),
+		Options:         *newOptions(),
 		Created:         created,
 		Salt:            salt,
 		RsaPubKeyHash:   HashPubKey(pk.Public()),
@@ -276,7 +276,7 @@ func TestChannel_EncryptRSAToPrivate_DecryptRSAToPrivate_BigKey_SmallPacket(t *t
 		t.Fatal(err)
 	}
 
-	rid, err := NewChannelID(name, desc, level, created, NewOptions(), salt,
+	rid, err := NewChannelID(name, desc, level, created, *newOptions(), salt,
 		HashPubKey(pk.Public()), secret)
 	if err != nil {
 		t.Fatal(err)
@@ -286,7 +286,7 @@ func TestChannel_EncryptRSAToPrivate_DecryptRSAToPrivate_BigKey_SmallPacket(t *t
 		Name:            name,
 		Description:     desc,
 		Level:           level,
-		Options:         NewOptions(),
+		Options:         *newOptions(),
 		Created:         created,
 		Salt:            salt,
 		RsaPubKeyHash:   HashPubKey(pk.Public()),
@@ -342,7 +342,7 @@ func TestChannel_DecryptRSAToPublicInner(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rid, err := NewChannelID(name, desc, level, created, NewOptions(), salt,
+	rid, err := NewChannelID(name, desc, level, created, *newOptions(), salt,
 		HashPubKey(pk.Public()), secret)
 	if err != nil {
 		t.Fatal(err)
@@ -352,7 +352,7 @@ func TestChannel_DecryptRSAToPublicInner(t *testing.T) {
 		Name:            name,
 		Description:     desc,
 		Level:           level,
-		Options:         NewOptions(),
+		Options:         *newOptions(),
 		Created:         created,
 		Salt:            salt,
 		RsaPubKeyHash:   HashPubKey(pk.Public()),

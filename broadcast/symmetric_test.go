@@ -149,7 +149,7 @@ func TestNewSymmetricKey_Consistency(t *testing.T) {
 			"chan description",
 			Public,
 			time.Date(1955, 11, 5, 12, 0, 0, 0, time.UTC),
-			NewOptions(),
+			*newOptions(),
 			[]byte("salt"),
 			[]byte("my fake rsa key"),
 			secret)
@@ -187,7 +187,7 @@ func TestNewSymmetricKey_Unique(t *testing.T) {
 			"chan description",
 			Public,
 			netTime.Now(),
-			NewOptions(),
+			*newOptions(),
 			[]byte("salt"),
 			[]byte("my fake rsa key"),
 			secret)

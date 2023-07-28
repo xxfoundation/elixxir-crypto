@@ -243,7 +243,7 @@ func decodeUrl(url string, pwHash []byte) (*Channel, error) {
 		return nil, errors.Errorf(parseMaxUsesErr, err)
 	}
 
-	c := &Channel{Options: NewOptions()}
+	c := &Channel{Options: *newOptions()}
 	var maxUses int
 
 	// Decode the URL based on the information available (e.g., only the public
@@ -339,7 +339,7 @@ func (c *Channel) encodePublicShareURL(q goUrl.Values) goUrl.Values {
 	q.Set(nameKey, c.Name)
 	q.Set(descKey, c.Description)
 	q.Set(levelKey, c.Level.Marshal())
-	if c.Options != NewOptions() {
+	if c.Options != *newOptions() {
 		q.Set(optionsKey, c.Options.encodeForURL())
 	}
 	q.Set(createdKey, strconv.FormatInt(c.Created.UnixNano(), 10))
@@ -413,7 +413,7 @@ func (c *Channel) encodePrivateShareURL(
 
 	q.Set(nameKey, c.Name)
 	q.Set(descKey, c.Description)
-	if c.Options != NewOptions() {
+	if c.Options != *newOptions() {
 		q.Set(optionsKey, c.Options.encodeForURL())
 	}
 	q.Set(createdKey, strconv.FormatInt(c.Created.UnixNano(), 10))
@@ -598,7 +598,7 @@ func (c *Channel) marshalSecretShareUrlSecrets(maxUses int) []byte {
 	// Description
 	buff.WriteString(c.Description)
 
-	// Options
+	// options
 	buff.WriteString(options)
 
 	// Creation date

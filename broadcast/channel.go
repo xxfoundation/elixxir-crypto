@@ -115,7 +115,7 @@ type Channel struct {
 	Level PrivacyLevel
 
 	// Options contains optional settings for the channel.
-	Options Options `json:"options"`
+	Options options `json:"options"`
 
 	// Time the channel is created. It is used as a hint as to when to start
 	// picking up messages. Note that this is converted to Unix nano (int64) for
@@ -202,12 +202,9 @@ func NewChannelVariableKeyUnsafe(name, description string, level PrivacyLevel,
 
 	pubKeyHash := HashPubKey(pk.Public())
 
-	options := NewOptions()
-	for _, opt := range opts {
-		opt(&options)
-	}
+	options := newOptions(opts...)
 
-	channelID, err := NewChannelID(name, description, level, created, options,
+	channelID, err := NewChannelID(name, description, level, created, *options,
 		salt, pubKeyHash, HashSecret(secret))
 	if err != nil {
 		return nil, nil, err
@@ -218,7 +215,7 @@ func NewChannelVariableKeyUnsafe(name, description string, level PrivacyLevel,
 		Name:            name,
 		Description:     description,
 		Level:           level,
-		Options:         options,
+		Options:         *options,
 		Created:         created.Round(0),
 		Salt:            salt,
 		RsaPubKeyHash:   pubKeyHash,
@@ -264,7 +261,7 @@ func (c *Channel) Verify() bool {
 //	intermediary = H(name | description | level | options | created | salt | rsaPubHash | hashedSecret)
 //	identityBytes = HKDF(intermediary, salt, hkdfInfo)
 func NewChannelID(name, description string, level PrivacyLevel,
-	created time.Time, opts Options, salt, rsaPubHash, secretHash []byte) (
+	created time.Time, opts options, salt, rsaPubHash, secretHash []byte) (
 	*id.ID, error) {
 	if len(salt) != saltSize {
 		return nil, errors.Wrapf(
@@ -444,7 +441,7 @@ func NewChannelFromPrettyPrint(p string) (*Channel, error) {
 		Description:     strings.TrimPrefix(escape.HexUnescape(fields[1]), ppDesc),
 		Level:           level,
 		Created:         time.Unix(0, createdUnixNano),
-		Options:         opts,
+		Options:         *opts,
 		Salt:            salt,
 		RsaPubKeyHash:   rsaPubKeyHash,
 		RsaPubKeyLength: rsaPubKeyLength,

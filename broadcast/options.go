@@ -20,10 +20,10 @@ import (
 // Channel Option Functions                                                   //
 ////////////////////////////////////////////////////////////////////////////////
 
-type ChannelOptions func(*Options)
+type ChannelOptions func(*options)
 
 func SetAdminLevel(al AdminLevel) ChannelOptions {
-	return func(o *Options) {
+	return func(o *options) {
 		o.AdminLevel = al
 	}
 }
@@ -32,38 +32,42 @@ func SetAdminLevel(al AdminLevel) ChannelOptions {
 // Options Structure                                                          //
 ////////////////////////////////////////////////////////////////////////////////
 
-// Options contains all the optional configuration options for channels.
-type Options struct {
+// options contains all the optional configuration options for channels.
+type options struct {
 	// NOTE TO DEVELOPERS: When adding an option, it is very important to follow
 	// the provided steps to avoid breaking existing channels.
 	//
 	//  1. Define a default value for the option.
-	//  2. Add the field to NewOptions with the default value.
+	//  2. Add the field to newOptions with the default value.
 	//  3. Add an encoding method for the field to encodingOrder using the
 	//     default value. It must be added to the end of the list to avoid
 	//     altering the order.
 	//  4. Add an encoding method for the field to urlCodingOrder. It must be
 	//     added to the end of the list to avoid altering the order.
-	//  5. Add marshalling and unmarshalling of the field to Options.PrettyPrint
-	//     and NewOptionsFromPrettyPrint.
+	//  5. Add marshalling and unmarshalling of the field to options.prettyPrint
+	//     and newOptionsFromPrettyPrint.
 
 	// AdminLevel describes the level of control an admin has over a channel.
 	AdminLevel AdminLevel `json:"adminLevel"`
 }
 
-// NewOptions returns a new Options object with all options set to their
-// defaults.
-func NewOptions() Options {
-	return Options{AdminLevel: DefaultAdminLevel}
+// newOptions returns a new options object with all the given ChannelOptions
+// applied. Any unset options are set to their defaults.
+func newOptions(opts ...ChannelOptions) *options {
+	o := &options{AdminLevel: DefaultAdminLevel}
+	for _, opt := range opts {
+		opt(o)
+	}
+	return o
 }
 
-// Defaults for each option in Options. Note: Do not modify already set
+// Defaults for each option in options. Note: Do not modify already set
 // defaults. Doing so could break existing channels.
 const (
 	DefaultAdminLevel = Normal
 )
 
-// encodingOrder is an ordered list of functions that encode a single [Options]
+// encodingOrder is an ordered list of functions that encode a single options
 // field when encoding the options for hashing. The ordering of this list is
 // very important. All new entries should only be added to the end of the list.
 // Not doing so can break existing channels.
@@ -71,8 +75,9 @@ const (
 // Each function always returns the byte encoding of a specific option to be
 // used for hashing. If the option matches the default, then it returns true
 // along with the encoded value.
-var encodingOrder = []func(o *Options) (encoded []byte, isDefault bool){
-	func(o *Options) ([]byte, bool) {
+var encodingOrder = []func(o *options) (encoded []byte, isDefault bool){
+	// AdminLevel
+	func(o *options) ([]byte, bool) {
 		return o.AdminLevel.marshal(), o.AdminLevel == DefaultAdminLevel
 	},
 }
@@ -80,7 +85,7 @@ var encodingOrder = []func(o *Options) (encoded []byte, isDefault bool){
 // encode encodes the options to be hashed. It handles the addition of future
 // options by going in reverse order and ignoring defaults until custom option
 // is found.
-func (o *Options) encode() []byte {
+func (o *options) encode() []byte {
 	var buff bytes.Buffer
 	var hitNonDefault bool
 	for i := len(encodingOrder) - 1; i >= 0; i-- {
@@ -96,21 +101,21 @@ func (o *Options) encode() []byte {
 }
 
 // urlCodingOrder is an ordered list of functions that encode and decode a
-// single [Options] field when encoding it for a channel share URL. The ordering
+// single options field when encoding it for a channel share URL. The ordering
 // of this list is very important. All new entries should only be added to the
 // end of the list. Not doing so can break existing channels.
 //
 // Each entry includes an encoder that must encode an option to a single rune
 // and decode it back into the field.
 var urlCodingOrder = []struct {
-	encode func(o *Options) rune
-	decode func(r rune, o *Options) error
+	encode func(o *options) rune
+	decode func(r rune, o *options) error
 }{
-	{
-		func(o *Options) rune {
+	{ // AdminLevel
+		func(o *options) rune {
 			return rune(strconv.FormatUint(uint64(o.AdminLevel), 10)[0])
 		},
-		func(r rune, o *Options) error {
+		func(r rune, o *options) error {
 			adminLevel, err := strconv.ParseUint(string(r), 10, 8)
 			if err != nil {
 				return errors.Wrap(err, "failed to parse admin level rune")
@@ -123,7 +128,7 @@ var urlCodingOrder = []struct {
 
 // encodeForURL encodes all the options in the urlCodingOrder list to a concise
 // string to be used in the Channel share URL.
-func (o *Options) encodeForURL() string {
+func (o *options) encodeForURL() string {
 	var sb strings.Builder
 
 	for _, coder := range urlCodingOrder {
@@ -133,10 +138,10 @@ func (o *Options) encodeForURL() string {
 	return sb.String()
 }
 
-// decodeFromURL decodes the string from the Channel share URL to the Options.
+// decodeFromURL decodes the string from the Channel share URL to the options.
 // Any runes missing from the encoding are skipped with the initial values
 // unchanged. These should most likely be set to default beforehand.
-func (o *Options) decodeFromURL(s string) error {
+func (o *options) decodeFromURL(s string) error {
 	sr := strings.NewReader(s)
 
 	var r rune
@@ -162,10 +167,34 @@ func (o *Options) decodeFromURL(s string) error {
 }
 
 const (
+	oppHead       = "["
+	oppTail       = "]"
+	oppDelim      = ","
+	oppFieldDelim = ":"
 	oppNumFields  = 1
-	oppDelim      = '/'
-	oppAdminLevel = "adminLevel:"
+	oppAdminLevel = "adminLevel"
 )
+
+var prettyPrintCoders = []struct {
+	key    string
+	encode func(o *options) string
+	decode func(s string, o *options) error
+}{
+	{ // AdminLevel
+		oppAdminLevel,
+		func(o *options) string {
+			return o.AdminLevel.marshalText()
+		},
+		func(s string, o *options) error {
+			adminLevel, err := unmarshalAdminLevelText(s)
+			if err != nil {
+				return errors.Wrap(err, "failed to unmarshal admin level")
+			}
+			o.AdminLevel = adminLevel
+			return nil
+		},
+	},
+}
 
 // prettyPrint prints a human-readable serialization of this Option that can be
 // included in the Channel pretty print.
@@ -173,31 +202,54 @@ const (
 // Example:
 //
 //	adminLevel:normal
-func (o *Options) prettyPrint() string {
-	fields := [oppNumFields]string{
-		oppAdminLevel + o.AdminLevel.marshalText(),
+func (o *options) prettyPrint() string {
+	fields := make([]string, 0, oppNumFields)
+	for _, coder := range prettyPrintCoders {
+		fields = append(fields, coder.key+oppFieldDelim+coder.encode(o))
 	}
 
-	return strings.Join(fields[:], string(oppDelim))
+	return oppHead + strings.Join(fields[:], oppDelim) + oppTail
 }
 
-// newOptionsFromPrettyPrint creates a new [Options] given a valid pretty
-// printed [Options] serialization generated using the [Options.PrettyPrint]
+// newOptionsFromPrettyPrint creates a new options given a valid pretty
+// printed options serialization generated using the options.prettyPrint
 // method.
-func newOptionsFromPrettyPrint(p string) (Options, error) {
-	opts := NewOptions()
-	// Split into separate fields
-	fields := strings.Split(p, string(oppDelim))
-	if len(fields) != oppNumFields {
-		return Options{}, errors.Errorf(
-			"expected %d fields, found %d fields", oppNumFields, len(fields))
+func newOptionsFromPrettyPrint(p string) (*options, error) {
+	opts := newOptions()
+	var err error
+
+	// Strip the header and tail
+	if !strings.HasPrefix(p, oppHead) {
+		return nil, errors.New("missing header")
+	}
+	p = strings.TrimPrefix(p, oppHead)
+	if !strings.HasSuffix(p, oppTail) {
+		return nil, errors.New("missing tail")
+	}
+	p = strings.TrimSuffix(p, oppTail)
+
+	// Split into separate fields and store the keys and values in a map
+	fields := strings.Split(p, oppDelim)
+	values := make(map[string]string, len(fields))
+	for i, field := range fields {
+		key, value, found := strings.Cut(field, oppFieldDelim)
+		if !found {
+			return nil, errors.Errorf(
+				"invalid field %d of %d: %q", i+1, len(fields), field)
+		}
+
+		values[key] = value
 	}
 
-	adminLevel, err := unmarshalAdminLevelText(strings.TrimPrefix(fields[0], oppAdminLevel))
-	if err != nil {
-		return Options{}, errors.Wrap(err, "failed to unmarshal admin level")
+	for _, coder := range prettyPrintCoders {
+		val, exists := values[coder.key]
+		if exists {
+			err = coder.decode(val, opts)
+			if err != nil {
+				return nil, errors.Wrap(err, "could not decode field")
+			}
+		}
 	}
-	opts.AdminLevel = adminLevel
 
 	return opts, nil
 }
