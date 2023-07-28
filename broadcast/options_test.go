@@ -28,14 +28,14 @@ func TestSetAdminLevel(t *testing.T) {
 func Test_newOptions(t *testing.T) {
 	tests := []struct {
 		opts     []ChannelOptions
-		expected *options
+		expected *Options
 	}{
 		{nil,
-			&options{AdminLevel: Normal}},
+			&Options{AdminLevel: Normal}},
 		{[]ChannelOptions{SetAdminLevel(Announcement)},
-			&options{AdminLevel: Announcement}},
+			&Options{AdminLevel: Announcement}},
 		{[]ChannelOptions{SetAdminLevel(Free)},
-			&options{AdminLevel: Free}},
+			&Options{AdminLevel: Free}},
 	}
 
 	for i, tt := range tests {
@@ -50,7 +50,7 @@ func Test_newOptions(t *testing.T) {
 // Consistency test of options.encode.
 func Test_options_encode(t *testing.T) {
 	tests := []struct {
-		opts     *options
+		opts     *Options
 		expected []byte
 	}{
 		{newOptions(), []byte{}},
@@ -70,7 +70,7 @@ func Test_options_encode(t *testing.T) {
 // Tests that an options object encoded with options.encodeForURL and decoded
 // with options.decodeFromURL matches the original.
 func Test_options_encodeForURL_decodeFromURL(t *testing.T) {
-	tests := []*options{
+	tests := []*Options{
 		newOptions(),
 		newOptions(SetAdminLevel(Announcement)),
 		newOptions(SetAdminLevel(Free)),
@@ -124,7 +124,7 @@ func Test_options_decodeFromURL_DecoderErrors(t *testing.T) {
 // Tests that an options object encoded with options.prettyPrint and decoded
 // with newOptionsFromPrettyPrint matches the original.
 func Test_options_prettyPrint_newOptionsFromPrettyPrint(t *testing.T) {
-	tests := []*options{
+	tests := []*Options{
 		newOptions(),
 		newOptions(SetAdminLevel(Announcement)),
 		newOptions(SetAdminLevel(Free)),
