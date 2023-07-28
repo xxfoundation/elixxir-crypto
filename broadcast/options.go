@@ -42,10 +42,9 @@ type Options struct {
 	//  3. Add an encoding method for the field to encodingOrder using the
 	//     default value. It must be added to the end of the list to avoid
 	//     altering the order.
-	//  4. Add an encoding method for the field to urlCodingOrder. It must be
-	//     added to the end of the list to avoid altering the order.
-	//  5. Add marshalling and unmarshalling of the field to Options.prettyPrint
-	//     and newOptionsFromPrettyPrint.
+	//  4. Add an encoding/decoding methods for the field to urlCodingOrder. It
+	//     must be added to the end of the list to avoid altering the order.
+	//  5. Add encoding/decoding methods for the field to prettyPrintCoders.
 
 	// AdminLevel describes the level of control an admin has over a channel.
 	AdminLevel AdminLevel `json:"adminLevel"`
@@ -175,6 +174,13 @@ const (
 	oppAdminLevel = "adminLevel"
 )
 
+// prettyPrintCoders is a list of functions that encode and decode a single
+// Options field when encoding it for pretty print. The ordering of this list
+// does not matter like the other list.
+//
+// Each entry includes an encoder that must encode an option to a human-readable
+// string that does not contain any of the delimiters in the Channel or Options
+// pretty print and decode it back into the field.
 var prettyPrintCoders = []struct {
 	key    string
 	encode func(o *Options) string
