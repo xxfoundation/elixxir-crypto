@@ -115,7 +115,7 @@ type Channel struct {
 	Level PrivacyLevel
 
 	// Options contains optional settings for the channel.
-	Options options `json:"options"`
+	Options Options `json:"options"`
 
 	// Time the channel is created. It is used as a hint as to when to start
 	// picking up messages. Note that this is converted to Unix nano (int64) for
@@ -261,7 +261,7 @@ func (c *Channel) Verify() bool {
 //	intermediary = H(name | description | level | options | created | salt | rsaPubHash | hashedSecret)
 //	identityBytes = HKDF(intermediary, salt, hkdfInfo)
 func NewChannelID(name, description string, level PrivacyLevel,
-	created time.Time, opts options, salt, rsaPubHash, secretHash []byte) (
+	created time.Time, opts Options, salt, rsaPubHash, secretHash []byte) (
 	*id.ID, error) {
 	if len(salt) != saltSize {
 		return nil, errors.Wrapf(
@@ -306,7 +306,7 @@ func (c *Channel) PrivacyLevel() PrivacyLevel {
 }
 
 const (
-	ppHead     = "<Haven-v"
+	ppHead     = "<haven-v"
 	ppVerDelim = ":"
 	ppTail     = ">"
 	ppDelim    = '|'
@@ -324,7 +324,7 @@ const (
 //
 // Example:
 //
-//	<Haven-v4:Test_Channel|description:Channel description.|level:Public|options:adminLevel:normal|created:1666718081766741100|secrets:+oHcqDbJPZaT3xD5NcdLY8OjOMtSQNKdKgLPmr7ugdU=|rCI0wr01dHFStjSFMvsBzFZClvDIrHLL5xbCOPaUOJ0=|493|1|7cBhJxVfQxWo+DypOISRpeWdQBhuQpAZtUbQHjBm8NQ=>
+//	<haven-v4:Test_Channel|description:Channel description.|level:Public|options:[adminLevel:normal]|created:1666718081766741100|secrets:+oHcqDbJPZaT3xD5NcdLY8OjOMtSQNKdKgLPmr7ugdU=|rCI0wr01dHFStjSFMvsBzFZClvDIrHLL5xbCOPaUOJ0=|493|1|7cBhJxVfQxWo+DypOISRpeWdQBhuQpAZtUbQHjBm8NQ=>
 func (c *Channel) PrettyPrint() string {
 	shouldEscape := func(s []rune, i int) bool { return s[i] == ppDelim }
 

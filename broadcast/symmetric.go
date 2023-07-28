@@ -109,7 +109,7 @@ func (c *Channel) getSymmetricKey() []byte {
 //	intermediary = H(name | description | level | created | announcement | rsaPubHash | hashedSecret | salt)
 //	key = HKDF(secret, intermediary, hkdfInfo)
 func NewSymmetricKey(name, description string, level PrivacyLevel,
-	creation time.Time, opts options, salt, rsaPubHash, secret []byte) (
+	creation time.Time, opts Options, salt, rsaPubHash, secret []byte) (
 	[]byte, error) {
 	if len(secret) != 32 {
 		jww.FATAL.Panic(fmt.Sprintf("secret len is %d", len(secret)))

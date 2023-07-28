@@ -31,7 +31,7 @@ func HashPubKey(pub rsa.PublicKey) []byte {
 //
 //	H(name | description | level | options | created | rsaPubHash | hashedSecret | salt)
 func deriveIntermediary(name, description string, level PrivacyLevel,
-	creation time.Time, opts options, salt, rsaPubHash, hashedSecret []byte) []byte {
+	creation time.Time, opts Options, salt, rsaPubHash, hashedSecret []byte) []byte {
 	h, err := channelHash(nil)
 	if err != nil {
 		jww.FATAL.Panic(err)

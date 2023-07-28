@@ -598,7 +598,7 @@ func (c *Channel) marshalSecretShareUrlSecrets(maxUses int) []byte {
 	// Description
 	buff.WriteString(c.Description)
 
-	// options
+	// Options
 	buff.WriteString(options)
 
 	// Creation date
