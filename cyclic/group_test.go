@@ -55,7 +55,7 @@ func TestNewInt(t *testing.T) {
 	}
 }
 
-//Tests creation and properties of an IntBuffer
+// Tests creation and properties of an IntBuffer
 func TestGroup_NewIntBuffer(t *testing.T) {
 
 	p := large.NewInt(1000000010101111111)
@@ -1083,9 +1083,9 @@ func TestGetP(t *testing.T) {
 	}
 }
 
-//Tests the prime byte getter from the group
-//Tests the old manual call against the implementation (p.Bytes() vs grp.GetPBytes())
-//P is never nil, so no edge case there
+// Tests the prime byte getter from the group
+// Tests the old manual call against the implementation (p.Bytes() vs grp.GetPBytes())
+// P is never nil, so no edge case there
 func TestGetPBytes(t *testing.T) {
 	// setup test group and generator
 	p := large.NewInt(17)
@@ -1461,8 +1461,8 @@ func TestRandomCoprime_PanicReadErr(t *testing.T) {
 	group.RandomCoprime(group.NewInt(1))
 }
 
-//Tests whether the z value is prematurely overwritten in the group after RootCoprime is run
-//Tests z value after rootcoprime against a value it's known to be given this input
+// Tests whether the z value is prematurely overwritten in the group after RootCoprime is run
+// Tests z value after rootcoprime against a value it's known to be given this input
 func TestRootCoprime_ZVal(t *testing.T) {
 	p := large.NewInt(17)
 	g := large.NewInt(29)

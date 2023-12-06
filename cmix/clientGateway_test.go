@@ -14,7 +14,7 @@ import (
 	"testing"
 )
 
-//Tests that the ClientGateway key generates consistently and expected
+// Tests that the ClientGateway key generates consistently and expected
 func TestGenerateClientGatewayKey(t *testing.T) {
 	grp := grpTest()
 

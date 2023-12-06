@@ -15,7 +15,7 @@ import (
 	"testing"
 )
 
-//Tests that the generated fingerprints do not change
+// Tests that the generated fingerprints do not change
 func TestMakeRequestFingerprint_Consistency(t *testing.T) {
 	expected := []string{
 		"MY/pv2UmD7nvcsU6hmcly72humiiqOWIspbiGw4pHr4=",
@@ -42,7 +42,7 @@ func TestMakeRequestFingerprint_Consistency(t *testing.T) {
 	}
 }
 
-//Tests that the first bit of the fingerprint is always zero
+// Tests that the first bit of the fingerprint is always zero
 func TestMakeRequestFingerprint_FirstBitZero(t *testing.T) {
 	const numTests = 100
 
@@ -62,7 +62,7 @@ func TestMakeRequestFingerprint_FirstBitZero(t *testing.T) {
 	}
 }
 
-//Tests that the set fingerprints are correct
+// Tests that the set fingerprints are correct
 func TestSetRequestFingerprint_Consistency(t *testing.T) {
 	expected := []string{
 		"MY/pv2UmD7nvcsU6hmcly72humiiqOWIspbiGw4pHr4=",

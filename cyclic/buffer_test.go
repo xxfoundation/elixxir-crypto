@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-//Tests that getting and interacting with the intbuffer is correct
+// Tests that getting and interacting with the intbuffer is correct
 func TestIntBuffer_Get(t *testing.T) {
 	p := large.NewInt(1000000010101111111)
 	g := large.NewInt(5)
@@ -43,7 +43,7 @@ func TestIntBuffer_Get(t *testing.T) {
 	}
 }
 
-//Tests that len works correctly
+// Tests that len works correctly
 func TestIntBuffer_Len(t *testing.T) {
 	p := large.NewInt(1000000010101111111)
 	g := large.NewInt(5)
@@ -57,7 +57,7 @@ func TestIntBuffer_Len(t *testing.T) {
 	}
 }
 
-//Tests that GetFingerprint returns the correct fingerprint
+// Tests that GetFingerprint returns the correct fingerprint
 func TestIntBuffer_GetFingerprint(t *testing.T) {
 	p1 := large.NewInt(1000000010101111111)
 	g := large.NewInt(5)
@@ -82,7 +82,7 @@ func TestIntBuffer_GetFingerprint(t *testing.T) {
 
 }
 
-//Tests that getting a region in the intbuffer works correctly
+// Tests that getting a region in the intbuffer works correctly
 func TestIntBuffer_GetRegion(t *testing.T) {
 	p := large.NewInt(1000000010101111111)
 	g := large.NewInt(5)
@@ -125,7 +125,7 @@ func TestIntBuffer_GetRegion(t *testing.T) {
 	}
 }
 
-//Tests that deep copy of an int buffer copies correctly
+// Tests that deep copy of an int buffer copies correctly
 func TestIntBuffer_DeepCopy(t *testing.T) {
 	p := large.NewInt(1000000010101111111)
 	g := large.NewInt(5)

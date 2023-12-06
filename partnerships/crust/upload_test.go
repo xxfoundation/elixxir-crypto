@@ -86,8 +86,8 @@ func TestSignVerifyUpload(t *testing.T) {
 
 }
 
-//Unit test: Generate signatures using pre-canned data
-//and compare it against the expected pre-canned data.
+// Unit test: Generate signatures using pre-canned data
+// and compare it against the expected pre-canned data.
 func TestSignUpload_Consistency(t *testing.T) {
 	// use insecure seeded rng to ensure repeatability
 	notRand := &CountingReader{count: uint8(0)}

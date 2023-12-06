@@ -39,7 +39,7 @@ func (s *fakeRNG) SetSeed(seed []byte) error {
 	return nil
 }
 
-//tests that the byte mask value resulst sin 50% 1s and 50% 0s
+// tests that the byte mask value resulst sin 50% 1s and 50% 0s
 func TestSelectGroupBit_ByteMask(t *testing.T) {
 	//c := csprng.Source(&csprng.SystemRNG{})
 	c := newFakeRNG()
@@ -92,7 +92,7 @@ func (s *all1RNG) SetSeed(seed []byte) error {
 	return nil
 }
 
-//tests that when the payload is outside the group with a leading 1, it makes the leading value a 0
+// tests that when the payload is outside the group with a leading 1, it makes the leading value a 0
 func TestSelectGroupBit_InGroup(t *testing.T) {
 	prime := large.NewIntFromString(pString, base)
 	payload := prime.Add(prime, prime)

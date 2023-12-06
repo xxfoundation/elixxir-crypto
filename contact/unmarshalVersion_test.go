@@ -28,7 +28,6 @@ var expectedContact = []string{
 	"<xxc(2)WnzDHpJX9IYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADIAB7Ugdw/BAr6WjQA9fwDEYOKAAAAAAAAAAAAAAAAAAAAAAAAAAAAGwAVWFYZz0sVTJhWE9ZdjZjR0E9PSxVUEJrenFSYlhPRHVaUEdsSm1VV3dzTS9qM0M3Qi9KWT07zmmJXN9xJq5gp21nEEkmqg==xxc>",
 }
 
-
 // Consistency test for unmarshal version "2".
 func TestContact_unmarshalVer2_Consistency(t *testing.T) {
 	prng := rand.New(rand.NewSource(42))

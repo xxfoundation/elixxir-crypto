@@ -15,7 +15,7 @@ import (
 	"testing"
 )
 
-//show that every input changes the output hash
+// show that every input changes the output hash
 func TestMakeRelationshipFingerprint(t *testing.T) {
 	grp := getGroup()
 

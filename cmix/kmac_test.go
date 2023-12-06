@@ -18,7 +18,7 @@ import (
 	"testing"
 )
 
-//Tests that the kmac function outputs wha
+// Tests that the kmac function outputs wha
 func TestGenerateKMAC_Consistency(t *testing.T) {
 
 	grp := grpTest()
@@ -56,7 +56,7 @@ func TestGenerateKMAC_Consistency(t *testing.T) {
 	}
 }
 
-//Tests that the kmac function outputs wha
+// Tests that the kmac function outputs wha
 func TestGenerateKMACs_Consistency(t *testing.T) {
 
 	grp := grpTest()
@@ -101,7 +101,7 @@ func TestGenerateKMACs_Consistency(t *testing.T) {
 	}
 }
 
-//Happy path
+// Happy path
 func TestVerifyKMAC(t *testing.T) {
 	grp := grpTest()
 
@@ -137,7 +137,7 @@ func TestVerifyKMAC(t *testing.T) {
 	}
 }
 
-//Error path
+// Error path
 func TestVerifyKMAC_WrongExpectedKmac(t *testing.T) {
 
 	grp := grpTest()
@@ -172,7 +172,7 @@ func TestVerifyKMAC_WrongExpectedKmac(t *testing.T) {
 
 }
 
-//Error path
+// Error path
 func TestVerifyKACY_Mismatch(t *testing.T) {
 	grp := grpTest()
 

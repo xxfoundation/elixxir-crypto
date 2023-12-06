@@ -33,7 +33,7 @@ func (m *mockRNG) SetSeed(seed []byte) error {
 	return nil
 }
 
-//Test the creation of a new stream generator and that it is configured correctly
+// Test the creation of a new stream generator and that it is configured correctly
 func TestNewStreamGenerator(t *testing.T) {
 	sg := NewStreamGenerator(12, 20, csprng.NewSystemRNG)
 	if cap(sg.waitingStreams) != 20 || sg.scalingFactor != 12 {
@@ -41,7 +41,7 @@ func TestNewStreamGenerator(t *testing.T) {
 	}
 }
 
-//Test the creation of new streams and that the counters are in fact working
+// Test the creation of new streams and that the counters are in fact working
 func TestNewStream(t *testing.T) {
 	sg := NewStreamGenerator(12, 3, csprng.NewSystemRNG)
 	s1 := sg.GetStream()
@@ -54,7 +54,7 @@ func TestNewStream(t *testing.T) {
 	}
 }
 
-//Test that a blocked channel will grab a stream that is available
+// Test that a blocked channel will grab a stream that is available
 func TestGetStream_GrabsAlreadyWaitingStream(t *testing.T) {
 	sg := NewStreamGenerator(43, 3, csprng.NewSystemRNG)
 	stream0 := sg.GetStream()
@@ -187,7 +187,7 @@ func TestRead_ReadMoreThanSource(t *testing.T) {
 	}
 }
 
-//Test that different streams under same stream generator output differently upon reading
+// Test that different streams under same stream generator output differently upon reading
 func TestRead_MultipleStreams_DifferentOutputs(t *testing.T) {
 	//A large byte array, of which you will read size from src byte array
 	requestedBytes := make([]byte, 512)
@@ -227,7 +227,7 @@ func TestRead_MultipleStreams_DifferentOutputs(t *testing.T) {
 	}
 }
 
-//Test that b (requestedBytes) is delinked from source by overwriting b and checking that source has not changed
+// Test that b (requestedBytes) is delinked from source by overwriting b and checking that source has not changed
 func TestRead_DelinkedSource(t *testing.T) {
 	//A large byte array, of which you will read size from src byte array
 	requestedBytes := make([]byte, 512)
@@ -287,7 +287,7 @@ func TestRead_ReadLessThanSource(t *testing.T) {
 	}
 }
 
-//Test with a mock read that returns predictably every time
+// Test with a mock read that returns predictably every time
 func TestRead_MockRNG(t *testing.T) {
 	sg := NewStreamGenerator(20, 2, csprng.NewSystemRNG)
 	read := make([]byte, 24)

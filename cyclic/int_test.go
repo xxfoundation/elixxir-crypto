@@ -78,7 +78,7 @@ func TestLeftpadBytes(t *testing.T) {
 	}
 }
 
-//TestBitLen checks if BitLen works
+// TestBitLen checks if BitLen works
 func TestBitLen(t *testing.T) {
 	testints := []*Int{
 		grp.NewInt(42),
@@ -218,7 +218,7 @@ func TestTextVerbose(t *testing.T) {
 	}
 }
 
-//TestByteLen checks if the ByteLen placeholder exists
+// TestByteLen checks if the ByteLen placeholder exists
 func TestByteLen(t *testing.T) {
 	testints := []*Int{
 		grp.NewInt(1),       //1 bits -->  1 byte   (where +7 works)

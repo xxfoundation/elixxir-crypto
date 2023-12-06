@@ -18,7 +18,7 @@ import (
 
 const authRequestFingerprintVector = "authRequestFingerprintVector"
 
-//Sets the message as an authenticated channel creation message
+// Sets the message as an authenticated channel creation message
 func SetRequestFingerprint(m format.Message, partnerPublicKey *cyclic.Int) {
 
 	//get the key hash
@@ -28,7 +28,7 @@ func SetRequestFingerprint(m format.Message, partnerPublicKey *cyclic.Int) {
 	m.SetKeyFP(keyHash)
 }
 
-//creates a valid auth request fingerprint from a public key
+// creates a valid auth request fingerprint from a public key
 func MakeRequestFingerprint(publicKey *cyclic.Int) format.Fingerprint {
 	// Create new hash
 	//suppress because we just panic and a nil hash will panic anyhow

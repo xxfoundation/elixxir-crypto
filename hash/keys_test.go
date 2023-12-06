@@ -32,7 +32,7 @@ var p = large.NewIntFromString(primeString, 16)
 var g = large.NewInt(2)
 var grp = cyclic.NewGroup(p, g)
 
-//TestExpandKey verifies ExpandKey with two different hashes
+// TestExpandKey verifies ExpandKey with two different hashes
 func TestExpandKey(t *testing.T) {
 	test := 4
 	pass := 0

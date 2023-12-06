@@ -15,7 +15,7 @@ import (
 	"testing"
 )
 
-//tests io consistency of new message id
+// tests io consistency of new message id
 func TestNewMessageID_Consistency(t *testing.T) {
 
 	prng := rand.New(rand.NewSource(42))
@@ -70,7 +70,7 @@ func TestNewMessageID_AllInputs(t *testing.T) {
 	}
 }
 
-//tests that the wrong size error triggers correctly
+// tests that the wrong size error triggers correctly
 func TestUnmarshalMessageID_Error(t *testing.T) {
 	nulMID := MessageID{}
 
@@ -103,7 +103,7 @@ func TestUnmarshalMessageID_Error(t *testing.T) {
 	}
 }
 
-//tests that unmarshal produces the correct result
+// tests that unmarshal produces the correct result
 func TestUnmarshalMessageID(t *testing.T) {
 
 	expected := []string{
@@ -131,7 +131,7 @@ func TestUnmarshalMessageID(t *testing.T) {
 	}
 }
 
-//tests that ths string function produces the correct truncated result
+// tests that ths string function produces the correct truncated result
 func TestMessageID_String_Consistency(t *testing.T) {
 
 	prng := rand.New(rand.NewSource(42))
@@ -158,7 +158,7 @@ func TestMessageID_String_Consistency(t *testing.T) {
 	}
 }
 
-//tests that the string verbose produces the correct full result
+// tests that the string verbose produces the correct full result
 func TestMessageID_StringVerbose_Consistency(t *testing.T) {
 
 	prng := rand.New(rand.NewSource(42))
@@ -185,7 +185,7 @@ func TestMessageID_StringVerbose_Consistency(t *testing.T) {
 	}
 }
 
-//tests that the string verbose produces the correct full result
+// tests that the string verbose produces the correct full result
 func TestMessageID_Marshal_Consistency(t *testing.T) {
 
 	prng := rand.New(rand.NewSource(42))

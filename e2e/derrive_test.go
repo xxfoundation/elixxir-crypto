@@ -17,7 +17,7 @@ import (
 	"testing"
 )
 
-//checks that the derived keys are as is expected
+// checks that the derived keys are as is expected
 func TestDerive_Consistency(t *testing.T) {
 	expectedKeys := []string{
 		"xnry59JCUEvvkzAr+S/IHUGHyY2NcWQynI5sYtWL0aE=",
@@ -60,7 +60,7 @@ func TestDerive_Consistency(t *testing.T) {
 	}
 }
 
-//checks that the keynum has an impact on the output key
+// checks that the keynum has an impact on the output key
 func TestDerive_KeyNum(t *testing.T) {
 	const numTests = 25
 
@@ -88,7 +88,7 @@ func TestDerive_KeyNum(t *testing.T) {
 	}
 }
 
-//checks that the data has an impact on the output key
+// checks that the data has an impact on the output key
 func TestDerive_Data(t *testing.T) {
 	const numTests = 25
 

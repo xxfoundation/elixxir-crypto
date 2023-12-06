@@ -17,7 +17,7 @@ func Encrypt(myPrivKey, partnerPubKey *cyclic.Int, payload []byte,
 	grp *cyclic.Group) (ecrPayload, mac []byte) {
 
 	// Generate the base key
-	authKey, vec := MakeAuthKey(myPrivKey, partnerPubKey,grp)
+	authKey, vec := MakeAuthKey(myPrivKey, partnerPubKey, grp)
 
 	// Encrypt the payload
 	ecrPayload = Crypt(authKey, vec, payload)
