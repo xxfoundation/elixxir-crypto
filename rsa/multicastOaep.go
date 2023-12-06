@@ -268,6 +268,9 @@ func mgf1XOR(out []byte, hash hash.Hash, seed []byte) {
 	for done < len(out) {
 		hash.Write(seed)
 		hash.Write(counter[0:4])
+		// NOTE: while `.Sum(data)` pattern is banned in the xx network
+		// codebase, this is a copy from golang's `crypto/rsa/rsa.go`,
+		// so we will leave it as-is.
 		digest = hash.Sum(digest[:0])
 		hash.Reset()
 
