@@ -38,6 +38,7 @@ func isValidBengerCode(readCode, key, msg []byte) bool {
 func makeBengerCode(key, msg []byte) []byte {
 	h, _ := blake2b.New256(nil)
 	h.Write(key)
-	r := h.Sum(msg)[:bengerCodeSize]
+	h.Write(msg)
+	r := h.Sum(nil)[:bengerCodeSize]
 	return r
 }
