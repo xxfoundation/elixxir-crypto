@@ -11,6 +11,9 @@ import (
 	"bytes"
 	cryptoCipher "crypto/cipher"
 	"encoding/base64"
+	"io"
+	"strings"
+
 	"github.com/pkg/errors"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/backup"
@@ -19,8 +22,6 @@ import (
 	"golang.org/x/crypto/argon2"
 	"golang.org/x/crypto/blake2b"
 	"golang.org/x/crypto/chacha20poly1305"
-	"io"
-	"strings"
 )
 
 // Error messages.
@@ -376,10 +377,16 @@ func decryptPrivateKey(data, key []byte) ([]byte, error) {
 // initChaCha20Poly1305Pk returns a XChaCha20-Poly1305 cipher.AEAD that uses the
 // given password hashed into a 256-bit key.
 func initChaCha20Poly1305Pk(key []byte) cryptoCipher.AEAD {
-	pwHash := blake2b.Sum256(key)
+	blake, err := blake2b.New256(nil)
+	if err != nil {
+		jww.FATAL.Panicf("could not init blake2b: %+v", err)
+	}
+	blake.Write(key)
+	pwHash := blake.Sum(nil)
 	chaCipher, err := chacha20poly1305.NewX(pwHash[:])
 	if err != nil {
-		jww.FATAL.Panicf("Could not init XChaCha20Poly1305 mode: %+v", err)
+		jww.FATAL.Panicf("could not init XChaCha20Poly1305 mode: %+v",
+			err)
 	}
 
 	return chaCipher

@@ -12,16 +12,17 @@ import (
 	"crypto/cipher"
 	"encoding/base64"
 	"encoding/binary"
-	"github.com/pkg/errors"
-	"github.com/sethvargo/go-diceware/diceware"
-	jww "github.com/spf13/jwalterweatherman"
-	"golang.org/x/crypto/blake2b"
-	"golang.org/x/crypto/chacha20poly1305"
 	"io"
 	goUrl "net/url"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
+	"github.com/sethvargo/go-diceware/diceware"
+	jww "github.com/spf13/jwalterweatherman"
+	"golang.org/x/crypto/blake2b"
+	"golang.org/x/crypto/chacha20poly1305"
 )
 
 // The current version number of the share URL structure.
@@ -171,7 +172,13 @@ func HashURLPassword(password string) []byte {
 		return []byte{}
 	}
 
-	pwHash := blake2b.Sum256([]byte(password))
+	blake, err := blake2b.New256(nil)
+	if err != nil {
+		jww.ERROR.Printf("could not init blake2b: %+v", err)
+	}
+	blake.Write([]byte(password))
+	pwHash := blake.Sum(nil)
+
 	return pwHash[:]
 }
 
@@ -688,7 +695,12 @@ func decryptShareURL(data, password []byte) ([]byte, error) {
 // initChaCha20Poly1305 returns a XChaCha20-Poly1305 cipher.AEAD that uses the
 // given password hashed into a 256-bit key.
 func initChaCha20Poly1305(password []byte) cipher.AEAD {
-	pwHash := blake2b.Sum256(password)
+	blake, err := blake2b.New256(nil)
+	if err != nil {
+		jww.FATAL.Panicf("could not init blake2b: %+v", err)
+	}
+	blake.Write(password)
+	pwHash := blake.Sum(nil)
 	chaCipher, err := chacha20poly1305.NewX(pwHash[:])
 	if err != nil {
 		jww.FATAL.Panicf("Could not init XChaCha20Poly1305 mode: %+v", err)

@@ -11,13 +11,14 @@ import (
 	cryptoCipher "crypto/cipher"
 	"encoding/binary"
 	"encoding/json"
+	"io"
+
 	"github.com/Max-Sum/base32768"
 	"github.com/pkg/errors"
 	jww "github.com/spf13/jwalterweatherman"
 	"gitlab.com/elixxir/crypto/hash"
 	"golang.org/x/crypto/blake2b"
 	"golang.org/x/crypto/chacha20poly1305"
-	"io"
 )
 
 // Error messages.
@@ -271,10 +272,16 @@ func deriveDatabaseSecret(password, salt []byte) []byte {
 // initChaCha20Poly1305 returns a XChaCha20-Poly1305 cipher.AEAD that uses the
 // given password hashed into a 256-bit key.
 func initChaCha20Poly1305(key []byte) cryptoCipher.AEAD {
-	pwHash := blake2b.Sum256(key)
+	blake, err := blake2b.New256(nil)
+	if err != nil {
+		jww.FATAL.Panicf("could not initialize blake2b: %+v", err)
+	}
+	blake.Write(key)
+	pwHash := blake.Sum(nil)
 	chaCipher, err := chacha20poly1305.NewX(pwHash[:])
 	if err != nil {
-		jww.FATAL.Panicf("Could not init XChaCha20Poly1305 mode: %+v", err)
+		jww.FATAL.Panicf("could not init XChaCha20Poly1305 mode: %+v",
+			err)
 	}
 
 	return chaCipher
