@@ -15,9 +15,9 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0
 	github.com/stretchr/testify v1.8.4
 	gitlab.com/elixxir/bloomfilter v0.0.1
-	gitlab.com/elixxir/primitives v0.0.3
+	gitlab.com/elixxir/primitives v0.0.4
 	gitlab.com/elixxir/wasm-utils v0.0.1
-	gitlab.com/xx_network/crypto v0.0.5
+	gitlab.com/xx_network/crypto v0.0.6
 	gitlab.com/xx_network/primitives v0.0.5
 	gitlab.com/yawning/nyquist.git v0.0.0-20221003103146-de5645224a22
 	golang.org/x/crypto v0.16.0
