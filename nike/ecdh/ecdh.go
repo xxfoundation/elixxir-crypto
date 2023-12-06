@@ -153,7 +153,9 @@ func (p *PrivateKey) FromBytes(data []byte) error {
 // conversion as specified in https://www.rfc-editor.org/rfc/rfc8032#section-5.1.5
 func (p *PrivateKey) FromEdwards(privateKey ed25519.PrivateKey) {
 	p.edwards = privateKey
-	dhBytes := sha512.Sum512(privateKey[:32])
+	hash := sha512.New()
+	hash.Write(privateKey[:32])
+	dhBytes := hash.Sum(nil)
 	dhBytes[0] &= 248
 	dhBytes[31] &= 127
 	dhBytes[31] |= 64
