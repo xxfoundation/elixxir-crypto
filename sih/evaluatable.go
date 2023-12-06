@@ -94,7 +94,8 @@ func makeFilter(pickup *id.ID, msgHash []byte) (bloomfilter.Sealed, error) {
 
 func makeFilterKey(pickup *id.ID) []byte {
 	blake := hasher()
-	data := blake.Sum(pickup.Bytes())
+	blake.Write(pickup.Bytes())
+	data := blake.Sum(nil)
 	return data[:32]
 }
 
